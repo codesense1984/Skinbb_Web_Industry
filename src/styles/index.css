@@ -28,20 +28,22 @@ html {
 
   .form-control {
     /* Base styling */
-    @apply border-input flex h-10 w-full min-w-0 rounded-md border py-2 text-base;
+    @apply border-border flex h-10 w-full min-w-0 rounded-md border px-4 py-2 text-base;
     @apply bg-background text-foreground placeholder:text-muted-foreground/50;
     @apply transition-[color,box-shadow] outline-none;
     @apply selection:bg-primary selection:text-primary-foreground;
-    @apply px-4; /* Default padding */
+
+    /* select */
+    @apply data-[placeholder]:text-muted-foreground/50;
 
     /* Dark mode adjustments */
     @apply dark:bg-input/30;
 
     /* File input styling */
-    @apply file:border-border file:text-muted-foreground file:inline-flex file:border-0 file:border-e file:bg-transparent file:py-0 file:pe-1 file:font-normal;
+    @apply file:border-border file:text-muted-foreground file:inline-flex file:border-0 file:border-e file:py-0 file:pe-1 file:font-normal;
 
     /* Disabled state */
-    @apply disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-70;
+    @apply disabled:bg-muted/50 disabled:cursor-not-allowed;
 
     /* Focus state */
     @apply focus-visible:border-primary;
@@ -59,7 +61,7 @@ html {
     @apply inline-flex shrink-0 cursor-pointer flex-wrap items-center justify-center gap-2 border-transparent text-center leading-[1em] no-underline shadow transition-[color,background-color,border-color,opacity,box-shadow,transform,scale] duration-[0.2s] ease-out select-none focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-95 disabled:scale-100 disabled:cursor-not-allowed disabled:opacity-70 motion-reduce:hidden [&_svg]:pointer-events-none;
   }
   .btn.contained {
-    @apply bg-background text-foreground hover:bg-foreground/5;
+    @apply bg-background text-foreground hover:bg-muted;
   }
   .btn.outlined {
     @apply border-border bg-background hover:bg-muted border shadow-none;

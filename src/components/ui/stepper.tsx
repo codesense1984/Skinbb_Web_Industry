@@ -239,8 +239,10 @@ function StepperTitle({
   children,
   ...props
 }: React.HTMLAttributes<HTMLHeadingElement>) {
+  const { state } = useStepItem();
   return (
     <h3
+      data-state={state}
       data-slot="stepper-title"
       className={cn("text-sm font-medium", className)}
       {...props}

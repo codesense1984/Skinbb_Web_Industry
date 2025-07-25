@@ -17,6 +17,7 @@ export const dashboardRoutes: RouteObject[] = [
             index: true,
             Component: lazy(() => import("@/features/dashboard/index")),
           },
+          //brand
           {
             path: ROUTES.BRAND_LIST,
             Component: lazy(() => import("@/features/brands/brand-list")),
@@ -29,6 +30,7 @@ export const dashboardRoutes: RouteObject[] = [
             path: `${ROUTES.BRAND_EDIT}/:id`,
             Component: lazy(() => import("@/features/brands/brand-form")),
           },
+          // analytics
           {
             path: ROUTES.ANALYTIC,
             Component: lazy(() => import("@/features/analytics/dashboard")),
@@ -53,6 +55,7 @@ export const dashboardRoutes: RouteObject[] = [
               },
             ],
           },
+          // survey
           {
             path: ROUTES.SURVEYS,
             Component: lazy(
@@ -77,6 +80,22 @@ export const dashboardRoutes: RouteObject[] = [
               () => import("@/features/market-research/market-research-detail"),
             ),
           },
+
+          // company
+          {
+            path: ROUTES.COMPANIES,
+            Component: lazy(() => import("@/features/company/list")),
+          },
+          {
+            path: `${ROUTES.COMPANY_EDIT}/:id`,
+            Component: lazy(() => import("@/features/company/edit")),
+          },
+          {
+            path: `${ROUTES.COMPANY}/:id`,
+            Component: lazy(() => import("@/features/company/edit")),
+          },
+
+          // chat
           { path: "chat", Component: Chat },
         ],
       },

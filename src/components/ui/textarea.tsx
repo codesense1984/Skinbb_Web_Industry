@@ -24,9 +24,7 @@ function Textarea({
     <textarea
       data-slot="textarea"
       className={cn(
-        "bg-background placeholder:text-muted-foreground/50 selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex min-h-10 w-full min-w-0 rounded-md border py-2 text-base transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
-        "focus-visible:border-ring focus-visible:border-primary focus-visible:ring-primary/50 focus-visible:ring-[3px]",
-        "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+        "form-control h-full min-h-10",
         // Dynamic padding based on icons
         startIcon ? "pl-10" : "px-4",
         endIcon ? "pr-10" : startIcon ? "" : "px-4",

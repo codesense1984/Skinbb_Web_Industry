@@ -228,7 +228,7 @@ function SortableHeader<TData>({ header }: { header: Header<TData, unknown> }) {
 
 interface DataTableBodyProps<TData> extends TableProps {
   table: TableType<TData>;
-  emptyMessage?: string;
+  emptyMessage?: string | ReactNode;
 }
 
 export function DataTableBody<TData>({
@@ -264,9 +264,14 @@ export function DataTableBody<TData>({
           <TableRow>
             <TableCell
               colSpan={table.getAllColumns().length}
-              className="text-center"
+              className="h-30 text-center"
+              data-cell="empty"
             >
-              {emptyMessage ?? "No results."}
+              {emptyMessage ?? (
+                <div className="flex h-[228px] items-center justify-center">
+                  No result found.
+                </div>
+              )}
             </TableCell>
           </TableRow>
         )}
@@ -403,6 +408,7 @@ interface DataTableActionProps<TData> extends ComponentProps<"div"> {
   tableState: UseTableResponse<TData>;
   children?: ReactNode;
   showViewToggle?: boolean;
+  showColumnsFilter?: boolean;
   tableHeading?: string;
 }
 
@@ -412,6 +418,7 @@ export function DataTableAction<TData>({
   className,
   tableHeading = "",
   showViewToggle = true,
+  showColumnsFilter = true,
   ...props
 }: DataTableActionProps<TData>) {
   const { table, viewMode, toggleViewMode } = tableState;
@@ -461,7 +468,7 @@ export function DataTableAction<TData>({
         />
 
         {children}
-        {columnFilter()}
+        {showColumnsFilter && columnFilter()}
         {/* {viewMode === DataViewMode.list && } */}
         {showViewToggle && (
           <Button variant={"outlined"} size={"icon"} onClick={toggleViewMode}>
@@ -497,12 +504,14 @@ export function DataTable<TData extends object>({
   showPagination = true,
   tableHeading,
   className,
+  pageSize,
   ...props
 }: DataTableProps<TData>) {
   const tableState = useTable({
     rows,
     columns,
     defaultViewMode: DataViewMode.list,
+    pageSize: !showPagination ? -1 : pageSize,
     ...props,
   });
   const { table } = tableState;

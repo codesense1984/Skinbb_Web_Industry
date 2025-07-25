@@ -61,31 +61,12 @@ function SelectTrigger({
       data-slot="select-trigger"
       data-size={size}
       className={cn(
+        "form-control",
         // Layout & Box Model
-        "flex w-full items-center justify-between gap-2",
-        "relative rounded-md border bg-transparent px-4 py-2",
+        "justify-between gap-2",
 
-        // Height based on size variant
-        "data-[size=default]:h-10 data-[size=sm]:h-9",
-
-        // Borders & Colors
-        "border-input focus-visible:border-primary",
-        "focus-visible:ring-primary/50 focus-visible:ring-[3px]",
-        "aria-invalid:border-destructive aria-invalid:ring-destructive/20",
-
-        // Text & Color
-        "data-[placeholder]:text-muted-foreground/50",
-        "transition-[color,box-shadow] outline-none",
-        "disabled:cursor-not-allowed disabled:opacity-50",
-
-        // Child & Slot Styling
         "*:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:text-left",
         "*:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:gap-2",
-
-        // SVG Styling
-        "[&_svg]:pointer-events-none [&_svg]:shrink-0",
-        "[&_svg:not([class*='text-'])]:text-muted-foreground",
-        "[&_svg:not([class*='size-'])]:size-5",
 
         paddingClass,
         className,

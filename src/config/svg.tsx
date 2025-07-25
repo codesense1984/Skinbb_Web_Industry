@@ -1,6 +1,6 @@
 import { cn } from "@/utils";
 
-export const SVGBiglogo = ({ className }: { className?: string }) => (
+export const HorizontalLogo = ({ className }: { className?: string }) => (
   <svg
     className={cn("fill-foreground h-8 w-full", className)}
     width="1292"

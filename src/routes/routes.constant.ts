@@ -15,6 +15,9 @@ export const ROUTES = {
   RELATIONSHIP_PREVIEW: "/relationship",
   SURVEY: "/survey",
   SURVEYS: "/surveys",
+  COMPANIES: "/companies",
+  COMPANY: "/company",
+  ONBOARD: "/onboard",
 
   // analytics
   get PLATFORM_ANALYTIC() {
@@ -33,6 +36,20 @@ export const ROUTES = {
   },
   get SURVEY_EDIT() {
     return `${this.SURVEY}${this.EDIT}`;
+  },
+
+  // company
+  get COMPANY_CREATE() {
+    return `${this.COMPANY}${this.CREATE}`;
+  },
+  get COMPANY_EDIT() {
+    return `${this.COMPANY}${this.EDIT}`;
+  },
+  get COMPANY_ONBOARD() {
+    return `${this.COMPANY}${this.ONBOARD}`;
+  },
+  get COMPANY_DETAIL() {
+    return `${this.COMPANY}`;
   },
 
   // Auth routes

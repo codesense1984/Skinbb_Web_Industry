@@ -1,3 +1,6 @@
+export const MAX_FILE_SIZE_MB = 5;
+export const MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024;
+
 export const PERSONAL_CARE_DATA = {
   skin: {
     types: ["Oily", "Combination", "Dry", "Normal"],

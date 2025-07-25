@@ -37,9 +37,12 @@ import {
 } from "./select";
 import { Slider } from "./slider";
 import { Textarea, type TextareaProps } from "./textarea";
+import { InformationCircleIcon } from "@heroicons/react/24/outline";
+import { Tooltip } from "./tooltip";
 
 const INPUT_TYPES = {
   TEXT: "text",
+  EMAIL: "email",
   NUMBER: "number",
   TEXTAREA: "textarea",
   CHECKBOX: "checkbox",
@@ -80,6 +83,8 @@ interface BaseInputProps<
   disabled?: boolean;
   readOnly?: boolean;
   transform?: TransformType<TF, TI>;
+  required?: boolean;
+  note?: string | React.ReactNode;
 }
 
 type StandardInputProps = InputProps &
@@ -113,7 +118,8 @@ type NonSelectProps<
     | typeof INPUT_TYPES.TEXTAREA
     | typeof INPUT_TYPES.CHECKBOX
     | typeof INPUT_TYPES.PASSWORD
-    | typeof INPUT_TYPES.FILE;
+    | typeof INPUT_TYPES.FILE
+    | typeof INPUT_TYPES.EMAIL;
   inputProps?: StandardInputProps;
 };
 
@@ -166,10 +172,13 @@ function FormInput<T extends FieldValues, N extends FieldPath<T>>(
     description = "",
     rules,
     className,
+    required,
+    note,
     ...rest
   } = props ?? {};
 
   const formItemPropsClass = cn(
+    "h-fit",
     type === "checkbox" && "flex items-center flex-row-reverse justify-end",
     className,
   );
@@ -181,7 +190,17 @@ function FormInput<T extends FieldValues, N extends FieldPath<T>>(
       rules={rules}
       render={({ field, formState, fieldState }) => (
         <FormItem className={formItemPropsClass} {...rest}>
-          {label && <FormLabel htmlFor={inputId}>{label}</FormLabel>}
+          {label && (
+            <FormLabel htmlFor={inputId}>
+              {label}
+              {required && <span className="text-destructive"> *</span>}
+              {note && (
+                <Tooltip title={note}>
+                  <InformationCircleIcon className="fill-muted size-4" />
+                </Tooltip>
+              )}
+            </FormLabel>
+          )}
           <InputRenderer
             {...props}
             field={field}
@@ -222,7 +241,7 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
   name,
   ...props
 }: InputRendererProps<T, N>) {
-  const { setValue } = useFormContext();
+  const { setValue, trigger } = useFormContext();
 
   const rawValue = (inputProps?.value ?? field.value) as PathValue<T, N>;
   const value = transform ? transform.input(rawValue) : rawValue;
@@ -353,6 +372,7 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
 
               if (type === INPUT_TYPES.FILE) {
                 setValue(`${String(name)}_files`, e.target?.files);
+                trigger(name);
               }
             }}
             {...inputProps}
@@ -361,4 +381,31 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
       );
   }
 }
-export { FormInput, INPUT_TYPES };
+
+interface FormFieldsRendererProps<T extends FieldValues>
+  extends React.ComponentProps<"div"> {
+  control: Control<T>;
+  fieldConfigs: FormFieldConfig<T>[];
+}
+function FormFieldsRenderer<T extends FieldValues>({
+  control,
+  fieldConfigs,
+  className,
+  ...props
+}: FormFieldsRendererProps<T>) {
+  return (
+    <div
+      className={cn(
+        "grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3",
+        className,
+      )}
+      {...props}
+    >
+      {fieldConfigs.map((field) => (
+        <FormInput key={field.name} {...field} control={control} />
+      ))}
+    </div>
+  );
+}
+
+export { FormInput, INPUT_TYPES, FormFieldsRenderer };

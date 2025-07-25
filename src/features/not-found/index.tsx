@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { PageContent } from "@/components/ui/structure";
-import { SVGBiglogo } from "@/config/svg";
+import { HorizontalLogo } from "@/config/svg";
 import { useAuth } from "@/hooks/useAuth";
 import MainLayout from "@/layouts/main-layout";
 import { cn } from "@/utils";
@@ -21,7 +21,7 @@ const NotFound = () => {
             to="/"
             className="data-[label=text]:text-primary mb-6 no-underline"
           >
-            <SVGBiglogo className="w-40" />
+            <HorizontalLogo className="w-40" />
           </NavLink>
 
           <h2 className="text-foreground text-4xl">Page Not Found</h2>
