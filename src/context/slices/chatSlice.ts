@@ -32,16 +32,16 @@ export const sendMessageAsync = createAsyncThunk<
   { dispatch: AppDispatch; rejectValue: string }
 >("chat/sendMessage", async (query, { rejectWithValue, dispatch }) => {
   try {
-    // const response = await axios.post("http://localhost:11434/api/generate", {
-    //   model: "gemma3:1b",
-    //   prompt: query,
-    //   stream: true,
-    // });
     const res = await fetch(`${basePythonApiUrl}/api/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({ query }),
     });
+
+    if (res.status !== 200) {
+      throw new Error(`Error: ${res.status} ${res.statusText}`);
+    }
 
     if (!res.body) throw new Error("No response body");
     const reader = res.body.getReader();
@@ -49,7 +49,6 @@ export const sendMessageAsync = createAsyncThunk<
 
     dispatch(addBotMessageChunk(""));
     dispatch(setHasStartedResponse(false));
-    // let fullResponse = "";
 
     let partial = "";
     let hasStarted = false;
@@ -84,43 +83,9 @@ export const sendMessageAsync = createAsyncThunk<
     }
 
     return "done";
-    // return fullResponse.trim();
-    // return response.data?.response || "No response from server.";
   } catch {
-    dispatch(addBotMessageChunk("⚠️ Failed to respond.\n"));
     return rejectWithValue("Failed to contact server.");
   }
-  // return new Promise((resolve) => {
-  //   setTimeout(() => {
-  //     resolve(
-  //       "According to the context provided, niacinamide has the following benefits for the skin:\n\n1. Brightening - It can help even out skin tone and reduce dullness, giving the skin a brighter appearance.\n\n2. Anti-inflammatory - Niacinamide has soothing properties that can help calm irritation and redness in the skin. This makes it beneficial for sensitive or acne-prone skin.\n\nSo in summary, niacinamide is an active skincare ingredient that can help brighten the complexion, reduce inflammation, and is suitable for those dealing with uneven skin tone, dullness, sensitivity or acne. It is a versatile ingredient with multiple benefits for the skin.",
-  //     );
-  //   }, 1000); // Simulate network delay)
-  // });
-  // try {
-  //   const res = await axios.post(
-  //     `${basePythonApiUrl}/api/chat`,
-  //     { query },
-  //     {
-  //       headers: { "Content-Type": "application/json" },
-  //       // body: JSON.stringify({ query }),
-  //     },
-  //   );
-
-  //   console.log("🚀 ~ > ~ res.data:", res.data);
-
-  //   if (!res.data) throw new Error("No response body");
-  //   // debugger;
-
-  //   const reader = res.data.getReader();
-  //   const decoder = new TextDecoder("utf-8");
-
-  //   console.log("🚀 ~ > ~ data:", res);
-  //   // const data = await res.json();
-  //   return "";
-  // } catch {
-  //   return rejectWithValue("Failed to contact server.");
-  // }
 });
 
 const chatSlice = createSlice({

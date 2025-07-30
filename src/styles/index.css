@@ -41,7 +41,7 @@ html {
     @apply file:border-border file:text-muted-foreground file:inline-flex file:border-0 file:border-e file:bg-transparent file:py-0 file:pe-1 file:font-normal;
 
     /* Disabled state */
-    @apply disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-70;
+    @apply disabled:bg-muted/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-70;
 
     /* Focus state */
     @apply focus-visible:border-primary;

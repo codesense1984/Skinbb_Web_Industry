@@ -27,16 +27,11 @@ export function ChatMessage({
   children,
 }: ChatMessageProps) {
   return (
-    <article
-      className={cn(
-        "flex items-start gap-4 text-[15px] leading-relaxed",
-        isUser && "justify-end",
-      )}
-    >
+    <article className={cn("flex items-start gap-4", isUser && "justify-end")}>
       <img
         className={cn(
-          "rounded-full",
-          isUser ? "order-1" : "border border-black/[0.08] shadow-sm",
+          "rounded-full shadow-sm",
+          isUser ? "order-1" : "border-border/40 border p-1",
         )}
         src={
           isUser
@@ -46,8 +41,8 @@ export function ChatMessage({
               "https://raw.githubusercontent.com/origin-space/origin-images/refs/heads/main/exp2/user-01_i5l7tp.png")
         }
         alt={isUser ? "User profile" : "Bart logo"}
-        width={40}
-        height={40}
+        width={45}
+        height={45}
       />
       <div
         className={cn(isUser ? "bg-muted rounded-xl px-4 py-3" : "space-y-4")}
@@ -55,7 +50,10 @@ export function ChatMessage({
         <div className="flex flex-col gap-3">
           <p className="sr-only">{isUser ? "You" : "ChatGPT"} said:</p>
           {typeof children === "string" ? (
-            <MarkdownMessage content={children} />
+            <MarkdownMessage
+              className="prose-p:p-0 prose-p:text-lg"
+              content={children}
+            />
           ) : (
             children
           )}
@@ -75,7 +73,11 @@ function ActionButton({ icon, label, ...rest }: ActionButtonProps) {
   return (
     <TooltipRoot>
       <TooltipTrigger asChild>
-        <Button className="size-8 [&_svg]:size-4" {...rest}>
+        <Button
+          variant={"link"}
+          className="text-muted-foreground hover:text-foreground size-8 [&_svg]:size-4"
+          {...rest}
+        >
           {icon}
           <span className="sr-only">{label}</span>
         </Button>
@@ -114,13 +116,24 @@ function MessageActions({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="relative inline-flex -space-x-px rounded-md border border-black/[0.08] bg-white shadow-sm">
+    <div className="relative inline-flex rounded-md border p-0.5 shadow-sm">
       <TooltipProvider delayDuration={0}>
         <ActionButton
           onClick={handleCopy}
           icon={copied ? <CheckIcon /> : <DocumentDuplicateIcon />}
           label="Copy"
         />
+        {/* <div className="bg-border my-auto h-[15px] w-[1px] rounded-md"></div>
+        <ActionButton
+          onClick={handleCopy}
+          icon={copied ? <CheckIcon /> : <DocumentDuplicateIcon />}
+          label="Copy"
+        />
+        <ActionButton
+          onClick={handleCopy}
+          icon={copied ? <CheckIcon /> : <DocumentDuplicateIcon />}
+          label="Copy"
+        /> */}
         {/* {/* <ActionButton icon={<RiCodeSSlashLine size={16} />} label="Show code" /> */}
         {/* <ActionButton icon={<RiBookLine size={16} />} label="Bookmark" />
         <ActionButton icon={<RiLoopRightFill size={16} />} label="Refresh" />
