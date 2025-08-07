@@ -1,204 +1,404 @@
+import onBoarding from "@/assets/images/onboard-company.jpg";
+import { ConfirmationDialog } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import {
   Stepper,
   StepperIndicator,
   StepperItem,
-  StepperSeparator,
-  StepperTitle,
   StepperTrigger,
 } from "@/components/ui/stepper";
 import { HorizontalLogo } from "@/config/svg";
-import { MODE, type Company, type CompanyBrand } from "@/types";
-import { cn } from "@/utils";
+import { MODE } from "@/types";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   createContext,
+  memo,
   useCallback,
   useContext,
   useMemo,
   useState,
-  type Dispatch,
-  type SetStateAction,
+  type FC,
 } from "react";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { useSearchParams } from "react-router";
+import { toast } from "sonner";
+import {
+  fullCompanyDefaultValues,
+  fullCompanyDetailsSchema,
+  fullCompanyZodSchema,
+  type FullCompanyFormType,
+} from "../../schema/fullCompany.schema";
+import { AddressDetails } from "./AddressDetails";
 import CompanyDetails from "./CompanyDetails";
-import Review from "./Review";
-import Users from "./Users";
-import Brands from "./brands";
+import { DocumentDetails } from "./DocumentDetails";
+import Start from "./Start";
+import Thankyou from "./Thankyou";
 
-export enum Step {
-  company_details = "company_details",
-  brand_details = "brand_details",
-  users_details = "users_details",
-  review = "review",
+export enum StepKey {
+  START = "start",
+  COMPANY_DETAILS = "company_information",
+  ADDRESS_DETAILS = "address_information",
+  DOCUMENTS_DETAILS = "documents_information",
+  // CONFIRMATION = "confirmation",
+  THANK_YOU = "thank_you",
 }
+
+const StepCount = {
+  [StepKey.START]: 1,
+  [StepKey.COMPANY_DETAILS]: 2,
+  [StepKey.ADDRESS_DETAILS]: 3,
+  [StepKey.DOCUMENTS_DETAILS]: 4,
+  // [StepKey.CONFIRMATION]: 5,
+  [StepKey.THANK_YOU]: 5,
+};
 
 interface StepItem {
   step: number;
+  stepTitle: string;
+  value: StepKey;
   title: string;
-  value: string;
+  description: string;
+  Component: FC<{ mode: MODE }>;
 }
 
-type OnBoardFormData = {
-  [Step.company_details]?: Company;
-  [Step.brand_details]?: CompanyBrand;
-  [Step.users_details]?: unknown;
-};
-
-const steps: StepItem[] = [
+const STEPS: StepItem[] = [
   {
-    step: 1,
-    title: "Company details",
-    value: Step.company_details,
+    step: StepCount[StepKey.START],
+    stepTitle: "Start",
+    value: StepKey.START,
+    title: "👋 Welcome to Your Company Onboarding",
+    description:
+      "Your journey with SkinBB starts here. We’re excited to have you on board!",
+    Component: memo(Start),
   },
   {
-    step: 2,
-    title: "Brand details",
-    value: Step.brand_details,
+    step: StepCount[StepKey.COMPANY_DETAILS],
+    stepTitle: "Company information",
+    value: StepKey.COMPANY_DETAILS,
+    title: "Build Your Business Identity",
+    description: "Lay the foundation with your core company details.",
+    Component: memo(CompanyDetails),
   },
   {
-    step: 3,
-    title: "Users details",
-    value: Step.users_details,
+    step: StepCount[StepKey.ADDRESS_DETAILS],
+    stepTitle: "Address information",
+    value: StepKey.ADDRESS_DETAILS,
+    title: "Tell Us Your Address",
+    description:
+      "We need your registered address to keep our records accurate and compliant.",
+    Component: memo(AddressDetails),
   },
   {
-    step: 4,
-    title: "Review",
-    value: Step.review,
+    step: StepCount[StepKey.DOCUMENTS_DETAILS],
+    stepTitle: "Documents information",
+    value: StepKey.DOCUMENTS_DETAILS,
+    title: "Prove Your Legitimacy",
+    description: "Upload your legal documents for verification.",
+    Component: memo(DocumentDetails),
+  },
+  // {
+  //   step: StepCount[StepKey.CONFIRMATION],
+  //   stepTitle: "Confirm",
+  //   value: StepKey.CONFIRMATION,
+  //   title: "Submit Profile?",
+  //   description: "Are you sure you want to submit your profile for review?",
+  //   Component: () => null,
+  // },
+  {
+    step: StepCount[StepKey.THANK_YOU],
+    stepTitle: "Thank You",
+    value: StepKey.THANK_YOU,
+    title: "Thank You for Submitting Your Company Profile!",
+    description:
+      "Your details have been successfully submitted for review. We’ll be in touch soon.",
+    Component: memo(Thankyou),
   },
 ];
 
-type OnBoardContextType = {
-  currentTab: string;
-  setCurrentTab: (step: number) => void;
-  steps: StepItem[];
-  currentItem: StepItem | undefined;
+interface OnBoardContextType {
   mode: MODE;
-  goToNextStep: () => void;
-  goToPreviousStep: () => void;
-  setForm: Dispatch<SetStateAction<OnBoardFormData>>;
-  form: OnBoardFormData;
-};
+  goNext: () => void;
+  goBack: () => void;
+  currentIndex: number;
+}
 
 const OnBoardContext = createContext<OnBoardContextType | undefined>(undefined);
 
 export const useOnBoardContext = () => {
-  const context = useContext(OnBoardContext);
-  if (!context) {
-    throw new Error("useOnBoardContext must be used within OnBoardProvider");
-  }
-  return context;
+  const ctx = useContext(OnBoardContext);
+  if (!ctx) throw new Error("useOnBoardContext must be inside OnBoardProvider");
+  return ctx;
 };
 
 const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
-  const [searchParam, setSearchParam] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentValue =
+    (searchParams.get("step") as StepKey) || StepKey.COMPANY_DETAILS;
 
-  const [form, setForm] = useState<OnBoardFormData>({
-    [Step.company_details]: undefined,
-    [Step.users_details]: undefined,
-    [Step.brand_details]: undefined,
+  const [confirmation, setConfirmation] = useState<boolean>(false);
+
+  const currentItem = useMemo(
+    () => STEPS.find((s) => s.value === currentValue) ?? STEPS[0],
+    [currentValue],
+  );
+
+  const currentIndex = useMemo(
+    () => STEPS.findIndex((s) => s.value === currentValue),
+    [currentValue],
+  );
+
+  const isFirst = currentIndex === 0;
+  const isStart = currentIndex === 0;
+
+  const isFormStep = [
+    StepCount[StepKey.COMPANY_DETAILS],
+    StepCount[StepKey.ADDRESS_DETAILS],
+    StepCount[StepKey.DOCUMENTS_DETAILS],
+  ].includes(currentItem?.step);
+
+  // const isConfirmation = currentItem.step === StepCount[StepKey.CONFIRMATION];
+  const isThankYou = currentItem.step === StepCount[StepKey.THANK_YOU];
+
+  const navigateTo = useCallback(
+    (idx: number) => setSearchParams({ step: STEPS[idx].value }),
+    [setSearchParams],
+  );
+
+  const goNext = useCallback(() => {
+    if (currentIndex < STEPS.length - 1) navigateTo(currentIndex + 1);
+  }, [currentIndex, navigateTo]);
+
+  const goBack = useCallback(() => {
+    if (currentIndex > 0) navigateTo(currentIndex - 1);
+  }, [currentIndex, navigateTo]);
+
+  const methods = useForm<FullCompanyFormType>({
+    defaultValues: fullCompanyDefaultValues(),
+    resolver: zodResolver(fullCompanyZodSchema),
+    mode: "onTouched",
+    reValidateMode: "onChange",
   });
 
-  const currentTab = searchParam.get("currentTab") ?? steps[0].value;
-  const currentItem = steps.find((item) => item.value === currentTab);
+  const { handleSubmit, trigger, watch, formState } = methods;
 
-  const setCurrentTab = useCallback(
-    (step: number) => {
-      const data = steps.find((item) => item.step === step);
-      setSearchParam({ currentTab: data?.value ?? "" });
-    },
-    [setSearchParam],
-  );
+  const agreeTermsConditions = useWatch({
+    control: methods.control,
+    name: "agreeTermsConditions",
+    defaultValue: false,
+  });
 
-  const goToNextStep = useCallback(() => {
-    if (currentItem && currentItem.step < steps.length) {
-      setCurrentTab(currentItem.step + 1);
+  console.log(watch(), formState.errors, "watch");
+  // Validate current form slice before advancing
+  const onNext = useCallback(async () => {
+    if (!isFormStep) {
+      goNext();
+      return;
     }
-  }, [currentItem, setCurrentTab]);
+    const sliceKey = currentItem.value as StepKey;
+    let names: (keyof FullCompanyFormType)[] = [];
+    const values = watch();
 
-  const goToPreviousStep = useCallback(() => {
-    if (currentItem && currentItem.step > 1) {
-      setCurrentTab(currentItem.step - 1);
-    }
-  }, [currentItem, setCurrentTab]);
+    switch (sliceKey) {
+      case StepKey.COMPANY_DETAILS:
+        names = fullCompanyDetailsSchema
+          .company_information({ mode })
+          .map((f) => f.name) as (keyof FullCompanyFormType)[];
+        break;
 
-  const currentComponent = useMemo(() => {
-    switch (currentTab) {
-      case Step.company_details:
-        return <CompanyDetails />;
-      case Step.brand_details:
-        return <Brands />;
-      case Step.users_details:
-        return <Users />;
-      case "review":
-        return <Review />;
+      case StepKey.ADDRESS_DETAILS:
+        values.address.forEach((_, index) => {
+          const dName = fullCompanyDetailsSchema
+            .address_information({ mode, index })
+            .map((f) => f.name) as (keyof FullCompanyFormType)[];
+          names = [...names, ...dName];
+        });
+        break;
+
+      case StepKey.DOCUMENTS_DETAILS: {
+        values.documents.forEach((_, index) => {
+          const dName = fullCompanyDetailsSchema
+            .documents_information({ mode, index })
+            .map((f) => f.name) as (keyof FullCompanyFormType)[];
+          names = [...names, ...dName];
+        });
+        break;
+      }
+
       default:
-        return <CompanyDetails />;
+        goNext();
+        return;
     }
-  }, [currentTab]);
 
-  const contextValue = useMemo(
-    () => ({
-      currentTab,
-      currentItem,
-      steps,
-      mode,
-      form,
-      setForm,
-      setCurrentTab,
-      goToNextStep,
-      goToPreviousStep,
-    }),
-    [
-      form,
-      currentTab,
-      currentItem,
-      mode,
-      setCurrentTab,
-      goToNextStep,
-      goToPreviousStep,
-    ],
+    if (!(await trigger(names))) {
+      toast.error(`Please fill all required fields in ${sliceKey}`);
+      return;
+    }
+
+    goNext();
+  }, [isFormStep, currentItem.value, watch, trigger, goNext, mode]);
+
+  // Submit entire form then advance to thank-you
+  const onFinish = handleSubmit(
+    (data) => {
+      toast.success("Profile submitted for review!");
+      setConfirmation(true);
+      console.log("🔍 Final payload:", data);
+    },
+    (...rest) => {
+      console.log("Error in form submission", rest);
+    },
   );
-  return (
-    <OnBoardContext.Provider value={contextValue}>
-      <div className="bg-card flex h-full w-full flex-col gap-4 rounded-md p-4 shadow-md md:flex-row md:p-6">
-        <div className="h-full min-w-40 space-y-7 text-center md:sticky md:top-5">
-          <HorizontalLogo />
 
-          <hr />
-          <Stepper
-            defaultValue={currentItem?.step}
-            orientation={"vertical"}
-            onValueChange={setCurrentTab}
-          >
-            {steps.map(({ step, title }) => (
-              <StepperItem
-                key={step}
-                step={step}
-                className="relative items-start not-last:flex-1"
-              >
-                <StepperTrigger className="flex-row items-start rounded pb-8">
-                  <StepperIndicator />
-                  <div className="text-left">
-                    <StepperTitle className="data-[state=active]:text-foreground data-[state=completed]:text-foreground text-muted-foreground text-sm font-normal data-[state=active]:font-medium md:text-base">
-                      {title}
-                    </StepperTitle>
+  const onConfirm = () => {
+    toast.success("Profile submitted for review!");
+    goNext();
+  };
+
+  // Pick page-specific component
+  const { title, description, Component } = currentItem;
+
+  return (
+    <OnBoardContext.Provider
+      value={{ mode, goNext: onNext, goBack, currentIndex }}
+    >
+      <FormProvider {...methods}>
+        <div className="w-full gap-4 md:h-[100vh]">
+          <div className="relative grid grid-cols-1 md:grid-cols-12">
+            <div
+              className="relative p-4 py-10 before:absolute before:inset-0 before:bg-linear-to-b before:from-black/90 before:to-black/10 before:content-['*'] md:sticky md:top-0 md:col-span-5 md:h-[100dvh] md:px-8 md:py-12 md:before:z-[-1]"
+              style={{
+                backgroundImage: `url(${onBoarding})`,
+                backgroundSize: "cover",
+              }}
+            >
+              <div className="dark relative z-[1] space-y-6 text-center">
+                <HorizontalLogo className="" />
+                <h1 className="text-foreground h3">Corporate Compliance </h1>
+                <p className="font-normal">
+                  To ensure regulatory alignment and maintain accurate company
+                  records, please complete this form with your organization’s
+                  official details. The information provided will be used solely
+                  for compliance, verification, and onboarding purposes.
+                </p>
+              </div>
+            </div>
+            <div className="col-span-7 mx-auto w-full max-w-2xl space-y-10 p-4 py-6 md:px-6 md:pt-12 md:pb-0">
+              {isStart && (
+                <>
+                  <Component mode={mode} />
+                  <Button
+                    variant={"contained"}
+                    color="primary"
+                    onClick={goNext}
+                  >
+                    Next
+                  </Button>
+                </>
+              )}
+
+              {isFormStep && (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (
+                      currentItem.step === StepCount[StepKey.DOCUMENTS_DETAILS]
+                    ) {
+                      onFinish();
+                    } else {
+                      onNext();
+                    }
+                  }}
+                  className="flex-1 space-y-10"
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="font-medium">{currentItem?.stepTitle}</p>
+                      <p className="text-muted-foreground text-sm">
+                        {STEPS[currentIndex].step - 1} / 3
+                      </p>
+                    </div>
+                    <Stepper
+                      value={STEPS[currentIndex].step}
+                      onValueChange={(v) =>
+                        navigateTo(STEPS.findIndex((s) => s.step === Number(v)))
+                      }
+                      className="gap-1"
+                    >
+                      {[2, 3, 4].map((n) => (
+                        <StepperItem key={n} step={n} className="flex-1">
+                          <StepperTrigger
+                            className="w-full flex-col items-start gap-2"
+                            asChild
+                          >
+                            <StepperIndicator
+                              asChild
+                              className="bg-border h-2 w-full"
+                            >
+                              <span className="sr-only">{n}</span>
+                            </StepperIndicator>
+                          </StepperTrigger>
+                        </StepperItem>
+                      ))}
+                    </Stepper>
                   </div>
-                </StepperTrigger>
-                {step < steps.length && (
-                  <StepperSeparator
-                    className={cn(
-                      "mt-3.5 md:m-0",
-                      "absolute inset-y-0 top-[calc(1.5rem+0.125rem)] left-3 -order-1 m-0 -translate-x-1/2 group-data-[orientation=horizontal]/stepper:w-[calc(100%-1.5rem-0.25rem)] group-data-[orientation=horizontal]/stepper:flex-none group-data-[orientation=vertical]/stepper:h-[calc(100%-1.5rem-0.25rem)]",
-                    )}
-                  />
-                )}
-              </StepperItem>
-            ))}
-          </Stepper>
+
+                  <div>
+                    <h4 className="pb-1 font-bold">{title}</h4>
+                    <p className="text-muted-foreground">{description}</p>
+                  </div>
+
+                  <Component mode={mode} />
+
+                  <div className="bg-background sticky bottom-0 mt-auto flex justify-between border-t py-4">
+                    <Button
+                      type="button"
+                      onClick={goBack}
+                      disabled={isFirst}
+                      className="button-outline"
+                    >
+                      Back
+                    </Button>
+                    <Button
+                      type="submit"
+                      variant={"contained"}
+                      color="primary"
+                      disabled={
+                        currentItem.step ===
+                          StepCount[StepKey.DOCUMENTS_DETAILS] &&
+                        !agreeTermsConditions
+                      }
+                    >
+                      {currentItem.step === StepCount[StepKey.DOCUMENTS_DETAILS]
+                        ? "Submit"
+                        : "Next"}
+                    </Button>
+                  </div>
+                </form>
+              )}
+
+              {/* {isConfirmation && <>COnfirm</>} */}
+
+              <ConfirmationDialog
+                isOpen={confirmation}
+                onClose={() => setConfirmation(false)}
+                title="Submit Profile?"
+                description="Are you sure you want to submit your company profile for review? Once submitted, your information will be sent to the admin for approval. You’ll be notified after your profile is reviewed."
+                actionButtons={[
+                  {
+                    label: "Confirm",
+                    onClick: onConfirm,
+                    color: "primary",
+                  },
+                ]}
+                showCancel={true}
+                cancelText="Close"
+              />
+
+              {isThankYou && <Component mode={mode} />}
+            </div>
+          </div>
         </div>
-        <div className="w-full flex-1 border-l pl-4 md:pl-6">
-          {currentComponent}
-        </div>
-      </div>
+      </FormProvider>
     </OnBoardContext.Provider>
   );
 };

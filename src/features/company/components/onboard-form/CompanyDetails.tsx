@@ -1,117 +1,68 @@
-import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
 import {
   FormFieldsRenderer,
   type FormFieldConfig,
 } from "@/components/ui/form-input";
-import { TitledSection } from "@/components/ui/section";
 import { useImagePreview } from "@/hooks/useImagePreview";
-import { MODE, type Company } from "@/types";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { Step, useOnBoardContext } from ".";
+import { MODE } from "@/types";
+import type { FC } from "react";
+import { useFormContext, useWatch } from "react-hook-form";
 import {
-  fullCompanyDefaultValues,
   fullCompanyDetailsSchema,
-  fullCompanyZodSchema,
+  type FullCompanyFormType,
 } from "../../schema/fullCompany.schema";
-import { toast } from "sonner";
+interface CompanyDetailsProps {
+  mode: MODE;
+}
+const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
+  const { control, setValue } = useFormContext<FullCompanyFormType>();
 
-const CompanyDetails = () => {
-  const { mode, steps, goToNextStep, form: formValues } = useOnBoardContext();
-
-  const form = useForm<Company>({
-    defaultValues: fullCompanyDefaultValues(formValues[Step.company_details]),
-    resolver: zodResolver(fullCompanyZodSchema),
+  const isSubsidiary = useWatch({
+    control,
+    name: "isSubsidiary",
+    defaultValue: "false",
   });
 
-  const { control, setValue, watch, handleSubmit, reset } = form;
+  const profileData = useWatch({
+    control,
+    name: "logo_files",
+  })[0];
 
-  const profileData = watch("logo_files")?.[0];
+  const uploadFields = fullCompanyDetailsSchema.uploadImage({
+    mode,
+  }) as FormFieldConfig<FullCompanyFormType>[];
+
+  const rawInfoFields = fullCompanyDetailsSchema.company_information({
+    mode,
+  }) as FormFieldConfig<FullCompanyFormType>[];
+
+  const infoFields = rawInfoFields.filter(
+    (field) => field.name !== "headquarterLocation" || JSON.parse(isSubsidiary),
+  );
 
   const { element } = useImagePreview(profileData, {
     clear: () => {
       setValue("logo_files", []);
-      setValue("logo", undefined);
+      setValue("logo", "");
     },
   });
 
-  const onSubmit = (data: Company) => {
-    console.log("Submitted", data);
-    toast.success(`${steps[0].title} submitted successfully!`);
-    goToNextStep();
-  };
-
-  const action = (
-    <div className="flex justify-end gap-4">
-      <Button variant="outlined" type="reset" onClick={() => reset()}>
-        Reset
-      </Button>
-      <Button color="primary" type="submit">
-        Save & Next
-      </Button>
-    </div>
-  );
-
   return (
-    <Form {...form}>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <TitledSection
-          className="space-y-8"
-          title="Add Company details"
-          titleProps={{ className: "h5" }}
-          actions={mode !== MODE.VIEW && action}
-        >
-          <div className="flex items-center gap-4">
-            {element}
-            <FormFieldsRenderer<Company>
-              className="flex"
-              control={control}
-              fieldConfigs={
-                fullCompanyDetailsSchema.uploadImage({
-                  mode,
-                }) as FormFieldConfig<Company>[]
-              }
-            />
-          </div>
+    <>
+      <div className="flex items-center gap-4">
+        {element}
+        <FormFieldsRenderer<FullCompanyFormType>
+          className="w-full grid-cols-1 sm:grid-cols-1 lg:grid-cols-1"
+          control={control}
+          fieldConfigs={uploadFields}
+        />
+      </div>
 
-          <TitledSection title="Company Information">
-            <FormFieldsRenderer<Company>
-              control={control}
-              fieldConfigs={
-                fullCompanyDetailsSchema.company_information({
-                  mode,
-                }) as FormFieldConfig<Company>[]
-              }
-            />
-          </TitledSection>
-
-          <TitledSection title="Legal Documents">
-            <FormFieldsRenderer<Company>
-              control={control}
-              fieldConfigs={
-                fullCompanyDetailsSchema.legal_documents({
-                  mode,
-                }) as FormFieldConfig<Company>[]
-              }
-            />
-          </TitledSection>
-
-          <TitledSection title="Address Information">
-            <FormFieldsRenderer<Company>
-              control={control}
-              fieldConfigs={
-                fullCompanyDetailsSchema.address({
-                  mode,
-                }) as FormFieldConfig<Company>[]
-              }
-            />
-          </TitledSection>
-
-          {mode !== MODE.VIEW && action}
-        </TitledSection>
-      </form>
-    </Form>
+      <FormFieldsRenderer<FullCompanyFormType>
+        className="gap-6 lg:grid-cols-2"
+        control={control}
+        fieldConfigs={infoFields}
+      />
+    </>
   );
 };
 

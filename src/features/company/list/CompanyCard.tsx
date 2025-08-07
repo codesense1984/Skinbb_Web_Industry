@@ -1,6 +1,6 @@
 import { StatusBadge } from "@/components/ui/badge";
 import { ROUTES } from "@/routes/routes.constant";
-import type { Company } from "@/types/company.type";
+import type { CompanyList } from "@/types/company.type";
 import { memo, type FC } from "react";
 import { NavLink } from "react-router";
 
@@ -15,7 +15,7 @@ const Stat = memo(
 Stat.displayName = "Stat";
 
 interface CompanyCardProps {
-  company: Company;
+  company: CompanyList;
 }
 
 export const CompanyCard: FC<CompanyCardProps> = ({ company }) => {
@@ -24,7 +24,7 @@ export const CompanyCard: FC<CompanyCardProps> = ({ company }) => {
       <article className="bg-background hover:ring-primary flex flex-col gap-4 rounded-md p-4 shadow-md hover:ring-3 md:p-5">
         <header className="flex items-center gap-2">
           <img
-            src={company.image}
+            src={company.logo || ""}
             alt={`${company.companyName} logo`}
             className="h-15 w-15 rounded-md border object-contain p-1"
           />

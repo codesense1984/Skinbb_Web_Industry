@@ -177,6 +177,8 @@ function FormInput<T extends FieldValues, N extends FieldPath<T>>(
     ...rest
   } = props ?? {};
 
+  const { inputProps: _, ...formItem } = rest;
+
   const formItemPropsClass = cn(
     "h-fit",
     type === "checkbox" && "flex items-center flex-row-reverse justify-end",
@@ -189,7 +191,7 @@ function FormInput<T extends FieldValues, N extends FieldPath<T>>(
       name={name}
       rules={rules}
       render={({ field, formState, fieldState }) => (
-        <FormItem className={formItemPropsClass} {...rest}>
+        <FormItem className={formItemPropsClass} {...formItem}>
           {label && (
             <FormLabel htmlFor={inputId}>
               {label}
@@ -241,7 +243,7 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
   name,
   ...props
 }: InputRendererProps<T, N>) {
-  const { setValue, trigger } = useFormContext();
+  const { setValue, trigger, clearErrors } = useFormContext();
 
   const rawValue = (inputProps?.value ?? field.value) as PathValue<T, N>;
   const value = transform ? transform.input(rawValue) : rawValue;
@@ -306,9 +308,10 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
             {...field}
             value={value}
             disabled={disabled}
-            onValueChange={(val) =>
-              field.onChange(transform ? transform.output(val) : val)
-            }
+            onValueChange={(val) => {
+              clearErrors(name);
+              field.onChange(transform ? transform.output(val) : val);
+            }}
           >
             <FormControl>
               <SelectTrigger {...inputProps}>
@@ -368,7 +371,7 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               //   if (inputProps?.onChange) inputProps.onChange(e);
 
-              field.onChange(transform ? transform.output(e) : e.target.value);
+              field.onChange(transform ? transform.output(e) : e.target?.value);
 
               if (type === INPUT_TYPES.FILE) {
                 setValue(`${String(name)}_files`, e.target?.files);

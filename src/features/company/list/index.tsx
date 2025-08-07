@@ -2,7 +2,7 @@ import { EntityDialog } from "@/components/dialogs/EntityDialog";
 import { DataTableToogle } from "@/components/table/data-table";
 import { StatCard } from "@/components/ui/stat";
 import { PageContent } from "@/components/ui/structure";
-import type { Company } from "@/types/company.type";
+import type { CompanyList as CompanyListProps } from "@/types/company.type";
 import { formatNumber } from "@/utils";
 import { lazy, useCallback } from "react";
 import { CompanyCard } from "./CompanyCard";
@@ -12,7 +12,7 @@ const CompanyForm = lazy(() => import("../components/AddCompanyForm"));
 
 const CompanyList = () => {
   const renderGridItem = useCallback(
-    (row: Company) => (
+    (row: CompanyListProps) => (
       <CompanyCard
         key={row.id}
         company={row}

@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { StatusBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { Company } from "@/types/company.type";
+import type { CompanyList } from "@/types/company.type";
 import { EyeIcon } from "@heroicons/react/24/outline";
 import type { ColumnDef } from "@tanstack/react-table";
 
@@ -32,12 +32,12 @@ export const statsData = [
   },
 ];
 
-export const companyData: Company[] = [
+export const companyData: CompanyList[] = [
   {
-    id: 1,
+    id: "1",
     companyName: "The Derma",
     category: "Sensitive Skin",
-    image: "https://images.thedermaco.com/TheDermaCoLogo2-min.png",
+    logo: "https://images.thedermaco.com/TheDermaCoLogo2-min.png",
     status: "active",
     products: 50,
     surveys: 50,
@@ -45,11 +45,10 @@ export const companyData: Company[] = [
     earnings: 125500,
   },
   {
-    id: 2,
+    id: "2",
     companyName: "Glow Essentials",
     category: "Oily Skin",
-    image:
-      "https://glow-essentials.com/cdn/shop/files/1_8d8dcce1-c8f8-4b82-a871-9144ca10035b_360x.png",
+    logo: "https://glow-essentials.com/cdn/shop/files/1_8d8dcce1-c8f8-4b82-a871-9144ca10035b_360x.png",
     status: "inactive",
     products: 32,
     surveys: 25,
@@ -57,11 +56,10 @@ export const companyData: Company[] = [
     earnings: 64040,
   },
   {
-    id: 3,
+    id: "3",
     companyName: "AcneFix Labs",
     category: "Acne Treatment",
-    image:
-      "https://www.acnefix.com/cdn/shop/files/ACNEFIX_logo_black_web_ready.png?height=168&v=1681153016",
+    logo: "https://www.acnefix.com/cdn/shop/files/ACNEFIX_logo_black_web_ready.png?height=168&v=1681153016",
     status: "active",
     products: 35,
     surveys: 42,
@@ -69,11 +67,10 @@ export const companyData: Company[] = [
     earnings: 94002,
   },
   {
-    id: 4,
+    id: "4",
     companyName: "SkinScience Pro",
     category: "Medical Skincare",
-    image:
-      "https://skinscience.md/wp-content/uploads/2022/07/ss-logo-2022-retina.png",
+    logo: "https://skinscience.md/wp-content/uploads/2022/07/ss-logo-2022-retina.png",
     status: "inactive",
     products: 40,
     surveys: 38,
@@ -81,11 +78,10 @@ export const companyData: Company[] = [
     earnings: 87000,
   },
   {
-    id: 5,
+    id: "5",
     companyName: "EpiGlow",
     category: "Pigmentation Care",
-    image:
-      "https://images.apollo247.in/images/pharmacy_logo.svg?tr=q-80,w-100,dpr-2,c-at_max",
+    logo: "https://images.apollo247.in/images/pharmacy_logo.svg?tr=q-80,w-100,dpr-2,c-at_max",
     status: "active",
     products: 28,
     surveys: 30,
@@ -93,11 +89,10 @@ export const companyData: Company[] = [
     earnings: 65000,
   },
   {
-    id: 6,
+    id: "6",
     companyName: "RejuvaDerm",
     category: "Anti-Aging",
-    image:
-      "https://www.rejuvaderm.ca/wp-content/uploads/2024/04/logonew@1x.png",
+    logo: "https://www.rejuvaderm.ca/wp-content/uploads/2024/04/logonew@1x.png",
     status: "active",
     products: 60,
     surveys: 55,
@@ -105,11 +100,10 @@ export const companyData: Company[] = [
     earnings: 160000,
   },
   {
-    id: 7,
+    id: "7",
     companyName: "RejuvaDerm1",
     category: "Anti-Aging",
-    image:
-      "https://www.rejuvaderm.ca/wp-content/uploads/2024/04/logonew@1x.png",
+    logo: "https://www.rejuvaderm.ca/wp-content/uploads/2024/04/logonew@1x.png",
     status: "active",
     products: 60,
     surveys: 55,
@@ -117,11 +111,10 @@ export const companyData: Company[] = [
     earnings: 160000,
   },
   {
-    id: 8,
+    id: "8",
     companyName: "RejuvaDerm2",
     category: "Anti-Aging",
-    image:
-      "https://www.rejuvaderm.ca/wp-content/uploads/2024/04/logonew@1x.png",
+    logo: "https://www.rejuvaderm.ca/wp-content/uploads/2024/04/logonew@1x.png",
     status: "active",
     products: 60,
     surveys: 55,
@@ -130,7 +123,7 @@ export const companyData: Company[] = [
   },
 ];
 
-export const columns: ColumnDef<Company>[] = [
+export const columns: ColumnDef<CompanyList>[] = [
   {
     accessorKey: "name",
     header: "Name",
@@ -139,7 +132,7 @@ export const columns: ColumnDef<Company>[] = [
         <Avatar className="size-10 rounded-md border">
           <AvatarImage
             className="object-contain"
-            src={row.original.image}
+            src={row.original.logo}
             alt={`${row.original.companyName} logo`}
           />
           <AvatarFallback className="rounded-md capitalize">
