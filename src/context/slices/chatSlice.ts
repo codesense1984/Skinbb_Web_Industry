@@ -4,7 +4,7 @@ import {
   createSlice,
   type PayloadAction,
 } from "@reduxjs/toolkit";
-import type { AppDispatch } from "../store";
+import type { AppDispatch, RootState } from "../store";
 
 type Message = {
   isUser: boolean;
@@ -26,67 +26,93 @@ const initialState: ChatState = {
   hasStartedResponse: false,
 };
 
+type QA = {
+  query: string;
+  response: string;
+};
+
+function convertChatLog(chatLog: Message[]): QA[] {
+  const result: QA[] = [];
+
+  for (let i = 0; i < chatLog.length; i++) {
+    if (chatLog[i].isUser && chatLog[i + 1] && !chatLog[i + 1].isUser) {
+      result.push({
+        query: chatLog[i].content.trim(),
+        response: chatLog[i + 1].content.trim(),
+      });
+    }
+  }
+
+  return result;
+}
+
 export const sendMessageAsync = createAsyncThunk<
   string, // Return type
   string, // Input argument (the query)
   { dispatch: AppDispatch; rejectValue: string }
->("chat/sendMessage", async (query, { rejectWithValue, dispatch }) => {
-  try {
-    const res = await fetch(`${basePythonApiUrl}/api/chat`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ query }),
-    });
+>(
+  "chat/sendMessage",
+  async (query, { rejectWithValue, dispatch, getState }) => {
+    try {
+      const res = await fetch(`${basePythonApiUrl}/api/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          query,
+          history: convertChatLog((getState() as RootState).chat.messages),
+        }),
+      });
 
-    if (res.status !== 200) {
-      throw new Error(`Error: ${res.status} ${res.statusText}`);
-    }
+      if (res.status !== 200) {
+        throw new Error(`Error: ${res.status} ${res.statusText}`);
+      }
 
-    if (!res.body) throw new Error("No response body");
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder("utf-8");
+      if (!res.body) throw new Error("No response body");
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder("utf-8");
 
-    dispatch(addBotMessageChunk(""));
-    dispatch(setHasStartedResponse(false));
+      dispatch(addBotMessageChunk(""));
+      dispatch(setHasStartedResponse(false));
 
-    let partial = "";
-    let hasStarted = false;
+      let partial = "";
+      let hasStarted = false;
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-      partial += decoder.decode(value, { stream: true });
+        partial += decoder.decode(value, { stream: true });
 
-      const lines = partial.split("\n");
-      // keep incomplete line at end (if any)
-      partial = lines.pop() || "";
+        const lines = partial.split("\n");
+        // keep incomplete line at end (if any)
+        partial = lines.pop() || "";
 
-      for (const line of lines) {
-        try {
-          const parsed = JSON.parse(line);
+        for (const line of lines) {
+          try {
+            const parsed = JSON.parse(line);
 
-          if (parsed.response && !hasStarted) {
-            dispatch(setHasStartedResponse(true));
-            hasStarted = true;
+            if (parsed.response && !hasStarted) {
+              dispatch(setHasStartedResponse(true));
+              hasStarted = true;
+            }
+
+            if (parsed.response) {
+              dispatch(addBotMessageChunk(parsed.response + " "));
+            }
+            if (parsed.done) return "done";
+          } catch {
+            console.warn("Skipping bad JSON chunk:", line);
           }
-
-          if (parsed.response) {
-            dispatch(addBotMessageChunk(parsed.response + " "));
-          }
-          if (parsed.done) return "done";
-        } catch {
-          console.warn("Skipping bad JSON chunk:", line);
         }
       }
-    }
 
-    return "done";
-  } catch {
-    return rejectWithValue("Failed to contact server.");
-  }
-});
+      return "done";
+    } catch {
+      return rejectWithValue("Failed to contact server.");
+    }
+  },
+);
 
 const chatSlice = createSlice({
   name: "chat",

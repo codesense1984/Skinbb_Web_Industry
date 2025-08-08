@@ -10,7 +10,7 @@ export const MarkdownMessage = ({ content, className }: Props) => {
   return (
     <div
       className={cn(
-        "prose prose:list prose-p:text-foreground max-w-none leading-relaxed",
+        "prose max-w-none leading-relaxed",
         className,
       )}
     >
