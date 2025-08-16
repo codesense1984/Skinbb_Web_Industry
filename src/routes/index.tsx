@@ -8,8 +8,8 @@ import { dummyRoutes } from "./dummy.routes";
 export const appRoutes = createBrowserRouter([
   ...dashboardRoutes,
   ...authRoutes,
-
   ...dummyRoutes,
+  
   {
     path: "*",
     Component: NotFound,

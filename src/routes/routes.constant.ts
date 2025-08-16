@@ -15,7 +15,8 @@ export const ROUTES = {
   RELATIONSHIP_PREVIEW: "/relationship",
   SURVEY: "/survey",
   SURVEYS: "/surveys",
-
+  
+  INGREDIENT_DETAILS: "/ingredient-details",
   // analytics
   get PLATFORM_ANALYTIC() {
     return `${this.ANALYTIC}${this.PLATFORM}`;

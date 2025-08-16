@@ -5,6 +5,7 @@ import { lazy } from "react";
 import type { RouteObject } from "react-router";
 import PrivateRoute from "./PrivateRoute";
 import { ROUTES } from "./routes.constant";
+import IngredientDetail from "@/features/ingredient-detail";
 
 export const dashboardRoutes: RouteObject[] = [
   {
@@ -78,6 +79,7 @@ export const dashboardRoutes: RouteObject[] = [
             ),
           },
           { path: "chat", Component: Chat },
+          { path: ROUTES.INGREDIENT_DETAILS, Component: IngredientDetail },
         ],
       },
       {
