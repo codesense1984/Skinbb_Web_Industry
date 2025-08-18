@@ -11,6 +11,7 @@ export const appRoutes = createBrowserRouter([
   ...dashboardRoutes,
   ...authRoutes,
   ...dummyRoutes,
+
   {
     path: ROUTES.COMPANY_ONBOARD,
     Component: lazy(() => import("@/features/company/onboard")),

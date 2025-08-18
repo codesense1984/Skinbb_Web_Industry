@@ -28,4 +28,3 @@ export const shortCompanyFormFields: FormFieldConfig<ShortCompany>[] = [
     note: "This field is used to send emails.",
   },
 ];
-

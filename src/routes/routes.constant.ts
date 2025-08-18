@@ -19,6 +19,7 @@ export const ROUTES = {
   COMPANY: "/company",
   ONBOARD: "/onboard",
 
+  INGREDIENT_DETAILS: "/ingredient-details",
   // analytics
   get PLATFORM_ANALYTIC() {
     return `${this.ANALYTIC}${this.PLATFORM}`;

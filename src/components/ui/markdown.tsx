@@ -8,12 +8,7 @@ type Props = {
 
 export const MarkdownMessage = ({ content, className }: Props) => {
   return (
-    <div
-      className={cn(
-        "prose prose:list prose-p:text-foreground max-w-none leading-relaxed",
-        className,
-      )}
-    >
+    <div className={cn("prose max-w-none leading-relaxed", className)}>
       <ReactMarkdown>{content}</ReactMarkdown>
     </div>
   );

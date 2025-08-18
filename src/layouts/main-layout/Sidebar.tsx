@@ -11,7 +11,7 @@ import {
   type ItemInstance,
 } from "@headless-tree/core";
 import { useTree } from "@headless-tree/react";
-import { BoltIcon } from "@heroicons/react/24/outline";
+import { BoltIcon, BuildingStorefrontIcon } from "@heroicons/react/24/outline";
 import React, { useEffect, useMemo } from "react";
 import { NavLink, useLocation } from "react-router";
 import { Button } from "../../components/ui/button";
@@ -36,6 +36,7 @@ const items: () => Record<string, Item> = () => ({
       "listing",
       "users",
       "chat",
+      "ingredient",
     ],
   },
   dashboard: {
@@ -220,6 +221,11 @@ const items: () => Record<string, Item> = () => ({
     name: "chat",
     href: ROUTES.CHAT,
     icon: <BoltIcon />,
+  },
+  ingredient: {
+    name: "ingredient",
+    href: ROUTES.INGREDIENT_DETAILS,
+    icon: <BuildingStorefrontIcon />,
   },
 });
 
