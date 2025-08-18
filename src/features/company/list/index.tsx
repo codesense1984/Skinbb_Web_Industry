@@ -1,9 +1,9 @@
-import { EntityDialog } from "@/components/dialogs/EntityDialog";
-import { DataTableToogle } from "@/components/table/data-table";
-import { StatCard } from "@/components/ui/stat";
-import { PageContent } from "@/components/ui/structure";
-import type { CompanyList as CompanyListProps } from "@/types/company.type";
-import { formatNumber } from "@/utils";
+import { EntityDialog } from "@/core/components/dialogs/EntityDialog";
+import { DataTableToogle } from "@/core/components/table/data-table";
+import { StatCard } from "@/core/components/ui/stat";
+import { PageContent } from "@/core/components/ui/structure";
+import type { CompanyList as CompanyListProps } from "@/core/types/company.type";
+import { formatNumber } from "@/core/utils";
 import { lazy, useCallback } from "react";
 import { CompanyCard } from "./CompanyCard";
 import { columns, companyData, statsData } from "./data";

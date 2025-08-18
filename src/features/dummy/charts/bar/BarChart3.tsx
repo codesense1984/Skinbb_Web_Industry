@@ -1,5 +1,5 @@
-import BarChart from "@/components/charts/BarChart";
-import { type ChartConfig } from "@/components/ui/chart";
+import BarChart from "@/core/components/charts/BarChart";
+import { type ChartConfig } from "@/core/components/ui/chart";
 import { LabelList } from "recharts";
 
 const chartData = [

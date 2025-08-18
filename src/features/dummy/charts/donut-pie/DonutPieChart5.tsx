@@ -1,5 +1,5 @@
-import DonutPieChart from "@/components/charts/DonutPieChart";
-import { type ChartConfig } from "@/components/ui/chart";
+import DonutPieChart from "@/core/components/charts/DonutPieChart";
+import { type ChartConfig } from "@/core/components/ui/chart";
 
 const chartData = [
   {

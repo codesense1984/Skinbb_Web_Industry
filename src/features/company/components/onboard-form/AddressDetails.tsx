@@ -4,8 +4,8 @@ import { useFieldArray, useFormContext } from "react-hook-form";
 import {
   FormFieldsRenderer,
   type FormFieldConfig,
-} from "@/components/ui/form-input";
-import { MODE } from "@/types";
+} from "@/core/components/ui/form-input";
+import { MODE } from "@/core/types";
 import {
   fullCompanyDetailsSchema,
   type FullCompanyFormType,

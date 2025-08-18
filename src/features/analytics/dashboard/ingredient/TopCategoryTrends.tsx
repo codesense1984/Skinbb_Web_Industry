@@ -1,6 +1,6 @@
-import DonutPieChart from "@/components/charts/DonutPieChart";
-import { StatChartCard } from "@/components/ui/card";
-import type { ChartConfig } from "@/components/ui/chart";
+import DonutPieChart from "@/core/components/charts/DonutPieChart";
+import { StatChartCard } from "@/core/components/ui/card";
+import type { ChartConfig } from "@/core/components/ui/chart";
 import {
   SelectRoot,
   SelectContent,
@@ -9,7 +9,7 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@/core/components/ui/select";
 import { useState } from "react";
 
 // Define the allowed keys as a union type

@@ -1,9 +1,9 @@
-import { Button } from "@/components/ui/button";
-import { PageContent } from "@/components/ui/structure";
-import { HorizontalLogo } from "@/config/svg";
-import { useAuth } from "@/hooks/useAuth";
-import MainLayout from "@/layouts/main-layout";
-import { cn } from "@/utils";
+import { Button } from "@/core/components/ui/button";
+import { PageContent } from "@/core/components/ui/structure";
+import { HorizontalLogo } from "@/core/config/svg";
+import { useAuth } from "@/modules/auth/hooks/useAuth";
+import MainLayout from "@/core/layouts/main-layout";
+import { cn } from "@/core/utils";
 import { Link, NavLink } from "react-router";
 
 const NotFound = () => {

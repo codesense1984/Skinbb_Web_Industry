@@ -1,14 +1,17 @@
-import BarChart from "@/components/charts/BarChart";
-import DonutPieChart from "@/components/charts/DonutPieChart";
-import PieChart from "@/components/charts/PieChart";
-import { BlobIcon, Button } from "@/components/ui/button";
-import { StatChartCard } from "@/components/ui/card";
-import { type ChartConfig } from "@/components/ui/chart";
-import { StatCard } from "@/components/ui/stat";
-import { PageContent } from "@/components/ui/structure";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { ROUTES } from "@/routes/routes.constant";
-import { formatNumber } from "@/utils";
+import BarChart from "@/core/components/charts/BarChart";
+import DonutPieChart from "@/core/components/charts/DonutPieChart";
+import PieChart from "@/core/components/charts/PieChart";
+import { BlobIcon, Button } from "@/core/components/ui/button";
+import { StatChartCard } from "@/core/components/ui/card";
+import { type ChartConfig } from "@/core/components/ui/chart";
+import { StatCard } from "@/core/components/ui/stat";
+import { PageContent } from "@/core/components/ui/structure";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@/core/components/ui/toggle-group";
+import { ROUTES } from "@/core/routes/routes.constant";
+import { formatNumber } from "@/core/utils";
 import {
   CalendarDaysIcon,
   FunnelIcon,

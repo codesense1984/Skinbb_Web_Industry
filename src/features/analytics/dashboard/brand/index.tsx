@@ -1,15 +1,27 @@
 import LineChart, {
   type LineChartWrapperProps,
-} from "@/components/charts/LineChart";
-import { BlobIcon } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { type ChartConfig } from "@/components/ui/chart";
-import { DatePicker } from "@/components/ui/date-picker";
-import { StatCard, StatValue, type StatValueProps } from "@/components/ui/stat";
-import { PageContent } from "@/components/ui/structure";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { ROUTES } from "@/routes/routes.constant";
-import { cn, formatCurrency, formatNumber } from "@/utils";
+} from "@/core/components/charts/LineChart";
+import { BlobIcon } from "@/core/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/core/components/ui/card";
+import { type ChartConfig } from "@/core/components/ui/chart";
+import { DatePicker } from "@/core/components/ui/date-picker";
+import {
+  StatCard,
+  StatValue,
+  type StatValueProps,
+} from "@/core/components/ui/stat";
+import { PageContent } from "@/core/components/ui/structure";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@/core/components/ui/toggle-group";
+import { ROUTES } from "@/core/routes/routes.constant";
+import { cn, formatCurrency, formatNumber } from "@/core/utils";
 import {
   CalendarDateRangeIcon,
   ShoppingBagIcon,

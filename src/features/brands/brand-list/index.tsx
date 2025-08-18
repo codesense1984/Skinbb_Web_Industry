@@ -1,16 +1,20 @@
-import { StatusBadge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { StatCard } from "@/components/ui/stat";
-import { PageContent } from "@/components/ui/structure";
-import { DataTableToogle } from "@/components/table/data-table";
-import type { Brand } from "@/types/brand.type";
-import { formatCurrency, formatNumber } from "@/utils";
+import { StatusBadge } from "@/core/components/ui/badge";
+import { Button } from "@/core/components/ui/button";
+import { StatCard } from "@/core/components/ui/stat";
+import { PageContent } from "@/core/components/ui/structure";
+import { DataTableToogle } from "@/core/components/table/data-table";
+import type { Brand } from "@/core/types/brand.type";
+import { formatCurrency, formatNumber } from "@/core/utils";
 import { EyeIcon } from "@heroicons/react/24/outline";
 import type { ColumnDef } from "@tanstack/react-table";
 import { BrandCard } from "./BrandCard";
 import { NavLink } from "react-router";
-import { ROUTES } from "@/routes/routes.constant";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ROUTES } from "@/core/routes/routes.constant";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/core/components/ui/avatar";
 
 const statsData = [
   {

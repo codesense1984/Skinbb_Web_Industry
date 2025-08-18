@@ -1,6 +1,6 @@
-import LineChart from "@/components/charts/LineChart";
-import { StatChartCard } from "@/components/ui/card";
-import type { ChartConfig } from "@/components/ui/chart";
+import LineChart from "@/core/components/charts/LineChart";
+import { StatChartCard } from "@/core/components/ui/card";
+import type { ChartConfig } from "@/core/components/ui/chart";
 
 const trendingIngredientData = [
   {

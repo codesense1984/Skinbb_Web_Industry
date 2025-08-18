@@ -1,6 +1,6 @@
-import { PageContent } from "@/components/ui/structure";
+import { PageContent } from "@/core/components/ui/structure.tsx";
 import OnBoardForm from "../components/onboard-form/index.tsx";
-import { MODE } from "@/types";
+import { MODE } from "@/core/types/index.ts";
 
 const CompantEdit = () => {
   return (

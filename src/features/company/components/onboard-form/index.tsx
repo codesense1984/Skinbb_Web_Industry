@@ -1,14 +1,14 @@
-import onBoarding from "@/assets/images/onboard-company.jpg";
-import { ConfirmationDialog } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
+import onBoarding from "@/core/assets/images/onboard-company.jpg";
+import { ConfirmationDialog } from "@/core/components/ui/alert-dialog";
+import { Button } from "@/core/components/ui/button";
 import {
   Stepper,
   StepperIndicator,
   StepperItem,
   StepperTrigger,
-} from "@/components/ui/stepper";
-import { HorizontalLogo } from "@/config/svg";
-import { MODE } from "@/types";
+} from "@/core/components/ui/stepper";
+import { HorizontalLogo } from "@/core/config/svg";
+import { MODE } from "@/core/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   createContext,

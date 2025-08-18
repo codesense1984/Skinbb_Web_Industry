@@ -1,10 +1,10 @@
-import { GraphControls } from "@/components/cytoscape/GraphControls";
-import { Button } from "@/components/ui/button";
-import { ComboBox, type Option } from "@/components/ui/combo-box";
-import { DropdownMenu } from "@/components/ui/dropdown-menu";
-import { Tooltip } from "@/components/ui/tooltip";
-import { useDebounce } from "@/hooks/useDebounce";
-import { capitalize, cn } from "@/utils";
+import { GraphControls } from "@/core/components/cytoscape/GraphControls";
+import { Button } from "@/core/components/ui/button";
+import { ComboBox, type Option } from "@/core/components/ui/combo-box";
+import { DropdownMenu } from "@/core/components/ui/dropdown-menu";
+import { Tooltip } from "@/core/components/ui/tooltip";
+import { useDebounce } from "@/core/hooks/useDebounce";
+import { capitalize, cn } from "@/core/utils";
 import { CircleStackIcon } from "@heroicons/react/24/outline";
 import type {
   Core,

@@ -1,9 +1,9 @@
 import React from "react";
-import { ThemeProvider } from "./context/theme-provider";
-import { Toaster } from "./components/ui/sonner";
-import { persistor, store } from "./context/store";
+import { Toaster } from "./core/components/ui/sonner";
 import { Provider as ReduxProvider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
+import { persistor, store } from "./core/store";
+import { ThemeProvider } from "./core/store/theme-provider";
 
 store.subscribe(() => console.log(store.getState(), "store"));
 

@@ -1,6 +1,6 @@
 import { z } from "zod";
-import type { ShortCompany } from "@/types/company.type";
-import type { FormFieldConfig } from "@/components/ui/form-input";
+import type { ShortCompany } from "@/core/types/company.type";
+import type { FormFieldConfig } from "@/core/components/ui/form-input";
 
 export const shortCompanyZodSchema = z.object({
   companyName: z.string().min(1, "Company name is required"),

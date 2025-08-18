@@ -1,11 +1,14 @@
-import { INPUT_TYPES, type FormFieldConfig } from "@/components/ui/form-input";
-import { MAX_FILE_SIZE } from "@/config/constants";
-import { MODE } from "@/types";
+import {
+  INPUT_TYPES,
+  type FormFieldConfig,
+} from "@/core/components/ui/form-input";
+import { MAX_FILE_SIZE } from "@/core/config/constants";
+import { MODE } from "@/core/types";
 import type {
   Company,
   CompanyAddress,
   CompanyDocument,
-} from "@/types/company.type";
+} from "@/core/types/company.type";
 import { z } from "zod";
 import { StepKey } from "../components/onboard-form";
 

@@ -1,6 +1,6 @@
 // src/components/onboarding/AddressDetails.tsx
-import { FormFieldsRenderer } from "@/components/ui/form-input";
-import { MODE, type CompanyDocument } from "@/types";
+import { FormFieldsRenderer } from "@/core/components/ui/form-input";
+import { MODE, type CompanyDocument } from "@/core/types";
 import React, { useMemo } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import {

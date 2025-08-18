@@ -1,7 +1,11 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { StatusBadge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import type { CompanyList } from "@/types/company.type";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/core/components/ui/avatar";
+import { StatusBadge } from "@/core/components/ui/badge";
+import { Button } from "@/core/components/ui/button";
+import type { CompanyList } from "@/core/types/company.type";
 import { EyeIcon } from "@heroicons/react/24/outline";
 import type { ColumnDef } from "@tanstack/react-table";
 

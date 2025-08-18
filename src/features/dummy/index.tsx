@@ -1,5 +1,8 @@
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { ROUTES } from "@/routes/routes.constant";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@/core/components/ui/toggle-group";
+import { ROUTES } from "@/core/routes/routes.constant";
 import { Outlet, useLocation, useNavigate } from "react-router";
 
 const URLS = [ROUTES.D_CHARTS, ROUTES.D_TABLE];

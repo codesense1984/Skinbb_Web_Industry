@@ -1,9 +1,9 @@
-import type { EntityFormComponentProps } from "@/components/dialogs/EntityDialog";
-import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
-import { FormInput } from "@/components/ui/form-input";
-import type { ShortCompany } from "@/types/company.type";
-import { cn } from "@/utils";
+import type { EntityFormComponentProps } from "@/core/components/dialogs/EntityDialog";
+import { Button } from "@/core/components/ui/button";
+import { Form } from "@/core/components/ui/form";
+import { FormInput } from "@/core/components/ui/form-input";
+import type { ShortCompany } from "@/core/types/company.type";
+import { cn } from "@/core/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";

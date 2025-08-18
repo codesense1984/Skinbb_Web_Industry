@@ -1,7 +1,7 @@
-import { StatusBadge } from "@/components/ui/badge";
-import { ROUTES } from "@/routes/routes.constant";
-import type { Brand } from "@/types/brand.type";
-import { formatCurrency, formatNumber } from "@/utils";
+import { StatusBadge } from "@/core/components/ui/badge";
+import { ROUTES } from "@/core/routes/routes.constant";
+import type { Brand } from "@/core/types/brand.type";
+import { formatCurrency, formatNumber } from "@/core/utils";
 import { memo, type FC } from "react";
 import { NavLink } from "react-router";
 

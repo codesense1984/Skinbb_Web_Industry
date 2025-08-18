@@ -1,9 +1,9 @@
 // components/forms/AnalyticsFilterForm.tsx
-import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
-import { FormInput } from "@/components/ui/form-input";
-import { PERSONAL_CARE_DATA } from "@/config/constants";
-import { mapToSelectOptions } from "@/utils";
+import { Button } from "@/core/components/ui/button";
+import { Form } from "@/core/components/ui/form";
+import { FormInput } from "@/core/components/ui/form-input";
+import { PERSONAL_CARE_DATA } from "@/core/config/constants";
+import { mapToSelectOptions } from "@/core/utils";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 

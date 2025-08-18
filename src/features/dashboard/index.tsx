@@ -1,7 +1,7 @@
-import { BlobIcon, Button } from "@/components/ui/button";
-import { PageContent } from "@/components/ui/structure";
-import { ROUTES } from "@/routes/routes.constant";
-import { cn } from "@/utils";
+import { BlobIcon, Button } from "@/core/components/ui/button";
+import { PageContent } from "@/core/components/ui/structure";
+import { ROUTES } from "@/core/routes/routes.constant";
+import { cn } from "@/core/utils";
 import { Fragment, type ReactElement, type SVGProps } from "react";
 import { NavLink } from "react-router";
 

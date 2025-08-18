@@ -1,6 +1,6 @@
-import BarChart from "@/components/charts/BarChart";
-import { StatChartCard } from "@/components/ui/card";
-import type { ChartConfig } from "@/components/ui/chart";
+import BarChart from "@/core/components/charts/BarChart";
+import { StatChartCard } from "@/core/components/ui/card";
+import type { ChartConfig } from "@/core/components/ui/chart";
 
 const focusIngredientData = [
   {

@@ -1,12 +1,12 @@
-import onBoarding from "@/assets/images/onboard-company.jpg";
+import onBoarding from "@/core/assets/images/onboard-company.jpg";
 import {
   Stepper,
   StepperIndicator,
   StepperItem,
   StepperTrigger,
-} from "@/components/ui/stepper";
-import { HorizontalLogo } from "@/config/svg";
-import { MODE, type CompanyBrand } from "@/types";
+} from "@/core/components/ui/stepper";
+import { HorizontalLogo } from "@/core/config/svg";
+import { MODE, type CompanyBrand } from "@/core/types";
 import {
   createContext,
   useCallback,

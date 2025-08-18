@@ -1,4 +1,4 @@
-import type { FormFieldConfig } from "@/components/ui/form-input";
+import type { FormFieldConfig } from "@/core/components/ui/form-input";
 
 export type BrandFormData = {
   brandName: string;

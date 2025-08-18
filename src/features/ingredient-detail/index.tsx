@@ -1,8 +1,8 @@
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { PageContent } from "@/components/ui/structure";
-import { Textarea } from "@/components/ui/textarea";
-import { basePythonApiUrl } from "@/config/baseUrls";
+import { Badge } from "@/core/components/ui/badge";
+import { Button } from "@/core/components/ui/button";
+import { PageContent } from "@/core/components/ui/structure";
+import { Textarea } from "@/core/components/ui/textarea";
+import { basePythonApiUrl } from "@/core/config/baseUrls";
 import {
   BuildingStorefrontIcon,
   MagnifyingGlassIcon,

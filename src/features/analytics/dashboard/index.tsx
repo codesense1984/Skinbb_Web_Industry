@@ -1,4 +1,4 @@
-import { FullLoader } from "@/components/ui/loader";
+import { FullLoader } from "@/core/components/ui/loader";
 import {
   createContext,
   Suspense,

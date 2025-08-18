@@ -1,4 +1,7 @@
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@/core/components/ui/toggle-group";
 import PieChart from "./pie";
 import { useState } from "react";
 import BarChart from "./bar";

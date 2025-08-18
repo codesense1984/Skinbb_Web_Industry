@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/button";
-import { StatChartCard } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/core/components/ui/button";
+import { StatChartCard } from "@/core/components/ui/card";
+import { Label } from "@/core/components/ui/label";
 import {
   SelectContent,
   SelectGroup,
@@ -9,16 +9,16 @@ import {
   SelectRoot,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { PageContent } from "@/components/ui/structure";
+} from "@/core/components/ui/select";
+import { PageContent } from "@/core/components/ui/structure";
 import FocusIngredients from "./FocusIngredients";
 import FunctionalTrends from "./FunctionalTrends";
 import IngredientOvertime from "./IngredientOvertime";
 import TopCategoryTrends from "./TopCategoryTrends";
-import { Tooltip } from "@/components/ui/tooltip";
+import { Tooltip } from "@/core/components/ui/tooltip";
 import { ArrowsPointingOutIcon } from "@heroicons/react/24/outline";
 import { NavLink, useLocation } from "react-router";
-import { ROUTES } from "@/routes/routes.constant";
+import { ROUTES } from "@/core/routes/routes.constant";
 import { lazy, Suspense } from "react";
 const RelationshipPreview = lazy(
   () => import("@/features/relationship-preview"),

@@ -1,8 +1,11 @@
-import PieChart from "@/components/charts/PieChart";
-import { DataTable } from "@/components/table/data-table";
-import { StatChartCard } from "@/components/ui/card";
-import type { ChartConfig } from "@/components/ui/chart";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import PieChart from "@/core/components/charts/PieChart";
+import { DataTable } from "@/core/components/table/data-table";
+import { StatChartCard } from "@/core/components/ui/card";
+import type { ChartConfig } from "@/core/components/ui/chart";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@/core/components/ui/toggle-group";
 import { useState } from "react";
 
 const categoryData = [

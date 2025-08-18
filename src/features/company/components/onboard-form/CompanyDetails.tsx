@@ -1,9 +1,9 @@
 import {
   FormFieldsRenderer,
   type FormFieldConfig,
-} from "@/components/ui/form-input";
-import { useImagePreview } from "@/hooks/useImagePreview";
-import { MODE } from "@/types";
+} from "@/core/components/ui/form-input";
+import { useImagePreview } from "@/core/hooks/useImagePreview";
+import { MODE } from "@/core/types";
 import type { FC } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import {

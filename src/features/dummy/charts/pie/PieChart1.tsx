@@ -1,5 +1,5 @@
-import PieChart from "@/components/charts/PieChart";
-import { type ChartConfig } from "@/components/ui/chart";
+import PieChart from "@/core/components/charts/PieChart";
+import { type ChartConfig } from "@/core/components/ui/chart";
 
 const chartData = [
   {

@@ -1,7 +1,7 @@
 import type { Core, EventObject, LayoutOptions, NodeSingular } from "cytoscape";
-import type { ApiResponse } from "@/services";
+import type { ApiResponse } from "@/core/services/http";
 import DATA from "./cleaned-data.json";
-import type { Option } from "@/components/ui/combo-box";
+import type { Option } from "@/core/components/ui/combo-box";
 export type Product = {
   brand_name: string;
   product_name: string;

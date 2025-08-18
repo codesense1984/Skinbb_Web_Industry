@@ -1,6 +1,6 @@
-import { StatusBadge } from "@/components/ui/badge";
-import { ROUTES } from "@/routes/routes.constant";
-import type { CompanyList } from "@/types/company.type";
+import { StatusBadge } from "@/core/components/ui/badge";
+import { ROUTES } from "@/core/routes/routes.constant";
+import type { CompanyList } from "@/core/types/company.type";
 import { memo, type FC } from "react";
 import { NavLink } from "react-router";
 

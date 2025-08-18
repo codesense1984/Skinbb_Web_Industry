@@ -1,5 +1,5 @@
-import { Button } from "@/components/ui/button";
-import { DataTable } from "@/components/table/data-table";
+import { Button } from "@/core/components/ui/button";
+import { DataTable } from "@/core/components/table/data-table";
 import { EyeIcon } from "@heroicons/react/24/outline";
 import type { ColumnDef } from "@tanstack/react-table";
 

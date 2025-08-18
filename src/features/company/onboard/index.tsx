@@ -1,4 +1,4 @@
-import { MODE } from "@/types";
+import { MODE } from "@/core/types/index.ts";
 import OnBoardForm from "../components/onboard-form/index.tsx";
 
 const CompanyOnboard = () => {
