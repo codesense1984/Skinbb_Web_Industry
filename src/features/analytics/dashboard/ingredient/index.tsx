@@ -88,7 +88,7 @@ const Ingredient = () => {
       </div>
       <FunctionalTrends />
       <StatChartCard
-        name="Top Ingredients"
+        name="Relationship Builder"
         className="md:max-h-full"
         actions={
           <Tooltip title="Full Screen">

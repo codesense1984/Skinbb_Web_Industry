@@ -36,7 +36,7 @@ const items: () => Record<string, Item> = () => ({
       "listing",
       "users",
       "chat",
-      "ingredient",
+      "formulationLooker",
     ],
   },
   dashboard: {
@@ -203,8 +203,8 @@ const items: () => Record<string, Item> = () => ({
     href: ROUTES.CHAT,
     icon: <BoltIcon />,
   },
-  ingredient: {
-    name: "ingredient",
+  formulationLooker: {
+    name: "Formulation Looker",
     href: ROUTES.INGREDIENT_DETAILS,
     icon: <BuildingStorefrontIcon />,
   },
