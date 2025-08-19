@@ -7,10 +7,10 @@ export const ROUTES = {
   BRAND_LIST: "/brands",
   BRAND_CREATE: "/brand/create",
   BRAND_EDIT: "/brand/edit",
-  ANALYTICS: "/analytics",
-  ANALYTIC: "/analytic",
-  PLATFORM: "/platform",
-  INGREDIENT: "/ingredient",
+  // ANALYTICS: "/analytics",
+  // ANALYTIC: "/analytic",
+  // PLATFORM: "/platform",
+  // INGREDIENT: "/ingredient",
   CHAT: "/chat",
   RELATIONSHIP_PREVIEW: "/relationship",
   // SURVEY: "/survey",
@@ -21,15 +21,15 @@ export const ROUTES = {
 
   INGREDIENT_DETAILS: "/ingredient-details",
   // analytics
-  get PLATFORM_ANALYTIC() {
-    return `${this.ANALYTIC}${this.PLATFORM}`;
-  },
-  get BRAND_ANALYTIC() {
-    return `${this.ANALYTIC}${this.BRAND}`;
-  },
-  get INGREDIENT_ANALYTIC() {
-    return `${this.ANALYTIC}${this.INGREDIENT}`;
-  },
+  // get PLATFORM_ANALYTIC() {
+  //   return `${this.ANALYTIC}${this.PLATFORM}`;
+  // },
+  // get BRAND_ANALYTIC() {
+  //   return `${this.ANALYTIC}${this.BRAND}`;
+  // },
+  // get INGREDIENT_ANALYTIC() {
+  //   return `${this.ANALYTIC}${this.INGREDIENT}`;
+  // },
 
   // survey
   // get SURVEY_CREATE() {

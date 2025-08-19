@@ -1,7 +1,8 @@
 import { BlobIcon, Button } from "@/core/components/ui/button";
 import { PageContent } from "@/core/components/ui/structure";
-import { ROUTES } from "@/core/routes/routes.constant";
 import { cn } from "@/core/utils";
+import { ANALYTICS_ROUTES } from "@/modules/analytics/routes/constants";
+import { SURVEY_ROUTES } from "@/modules/survey/routes/constant";
 import { Fragment, type ReactElement, type SVGProps } from "react";
 import { NavLink } from "react-router";
 
@@ -32,11 +33,11 @@ const cardData = [
     buttons: [
       {
         name: "Platform",
-        href: `${ROUTES.PLATFORM_ANALYTIC}`,
+        href: `${ANALYTICS_ROUTES.PLATFORM_ANALYTIC}`,
       },
       {
         name: "Brand",
-        href: `${ROUTES.BRAND_ANALYTIC}`,
+        href: `${ANALYTICS_ROUTES.BRAND_ANALYTIC}`,
       },
     ],
     icon: (
@@ -59,7 +60,7 @@ const cardData = [
     title: "Survey",
     description:
       "Explore trends, ingredient interest, and competitive landscape analysis",
-    buttons: [{ name: "Explore", href: ROUTES.SURVEYS }],
+    buttons: [{ name: "Explore", href: SURVEY_ROUTES.SURVEYS }],
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"

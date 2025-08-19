@@ -32,7 +32,15 @@ function SurveyBasics<T extends FieldValues>({
           />
           <FormInput
             type="select"
-            options={mapToSelectOptions(["health care"])}
+            options={mapToSelectOptions([
+              "health care",
+              "Brand Perception",
+              "Packaging Feedback",
+              "Competition Analysis",
+              "Price Sensitivity",
+              "Purchase Behaviour",
+              "Others",
+            ])}
             name={"category" as Path<T>}
             label="Category"
             placeholder="Enter category"

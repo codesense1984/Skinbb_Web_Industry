@@ -5,7 +5,7 @@ import {
   type ChartConfig,
   type ChartContainerProps,
   type ChartTooltipContentProps,
-} from "@/core/components/ui/chart";
+} from "@components/ui/chart";
 import { cn, formatNumber } from "@/core/utils";
 import { type ComponentProps, type FC, type ReactNode } from "react";
 import {

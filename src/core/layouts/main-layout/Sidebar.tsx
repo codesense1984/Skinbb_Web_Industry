@@ -16,6 +16,7 @@ import React, { useEffect, useMemo } from "react";
 import { NavLink, useLocation } from "react-router";
 import { Button } from "../../components/ui/button";
 import { SURVEY_ROUTES } from "@/modules/survey/routes/constant";
+import { ANALYTICS_ROUTES } from "@/modules/analytics/routes/constants";
 const INDENT = 32;
 interface Item {
   name: string;
@@ -37,7 +38,7 @@ const items: () => Record<string, Item> = () => ({
       "listing",
       "users",
       "chat",
-      "ingredient",
+      "formulationLooker",
     ],
   },
   dashboard: {
@@ -124,11 +125,11 @@ const items: () => Record<string, Item> = () => ({
   },
   "platform analysis": {
     name: "Platform insight",
-    href: ROUTES.PLATFORM_ANALYTIC,
+    href: ANALYTICS_ROUTES.PLATFORM_ANALYTIC,
   },
   "brand analysis": {
     name: "Brand insight",
-    href: ROUTES.BRAND_ANALYTIC,
+    href: ANALYTICS_ROUTES.BRAND_ANALYTIC,
   },
   "user insight": {
     name: "user insight",
@@ -140,7 +141,7 @@ const items: () => Record<string, Item> = () => ({
   },
   "ingredient analysis": {
     name: "Ingredient insight",
-    href: ROUTES.INGREDIENT_ANALYTIC,
+    href: ANALYTICS_ROUTES.INGREDIENT_ANALYTIC,
   },
   surveys: {
     name: "surveys",
@@ -223,8 +224,8 @@ const items: () => Record<string, Item> = () => ({
     href: ROUTES.CHAT,
     icon: <BoltIcon />,
   },
-  ingredient: {
-    name: "ingredient",
+  formulationLooker: {
+    name: "Formulation Looker",
     href: ROUTES.INGREDIENT_DETAILS,
     icon: <BuildingStorefrontIcon />,
   },
