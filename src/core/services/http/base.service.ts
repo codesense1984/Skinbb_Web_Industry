@@ -111,7 +111,8 @@ http.interceptors.response.use(
     const status = error.response?.status ?? 0;
 
     // Handle 401 once: try refresh, replay queued requests
-    if (status === 401 && !original?._retry) {
+    const { accessToken, refreshToken } = getAuth();
+    if (status === 401 && !original?._retry && accessToken && refreshToken) {
       original._retry = true;
 
       if (!isRefreshing) {

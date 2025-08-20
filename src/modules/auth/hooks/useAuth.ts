@@ -1,7 +1,12 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { AUTH_ROUTES } from "../routes/constants";
-import { bootstrapAuthCache, logout, QK, type AuthQueryData } from "../services/auth.service";
+import {
+  bootstrapAuthCache,
+  logout,
+  QK,
+  type AuthQueryData,
+} from "../services/auth.service";
 
 export const useAuth = () => {
   const qc = useQueryClient();
