@@ -41,7 +41,9 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --font-sans: "Jost", "sans-serif";
+  --font-sans: "Jost", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+               Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji",
+               "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --font-jost: Jost, sans-serif;
   --shadow-md: 0px 4px 12px rgba(13, 10, 44, 0.06);
 }
