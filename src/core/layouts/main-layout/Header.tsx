@@ -7,19 +7,16 @@ import {
 import { Button } from "@/core/components/ui/button";
 import { DropdownMenu } from "@/core/components/ui/dropdown-menu";
 import { Input } from "@/core/components/ui/input";
-import { useAuth } from "@/modules/auth/hooks/useAuth";
+import { useSidebar } from "@/core/store/theme-provider";
 import { cn } from "@/core/utils";
+import { useAuth } from "@/modules/auth/hooks/useAuth";
 import { BellIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { useEffect } from "react";
-import { useDispatch } from "react-redux";
 import { NavLink } from "react-router";
-import { useSidebar } from "@/core/store/theme-provider";
-import { logout } from "@/modules/auth/store/slices/authSlice";
 
 const Header = () => {
   const { isSidebarOpen, toggleSidebar } = useSidebar();
-  const dispatch = useDispatch();
-  const { role, user } = useAuth();
+  const { role, user, signOut } = useAuth();
   const fullName = user?.firstName || "";
   const profile = user?.profilePic?.[0]?.url || "";
   const fullNameInitial = `${user?.firstName?.charAt(0) || ""}${user?.lastName?.charAt(0) || ""}`;
@@ -145,7 +142,7 @@ const Header = () => {
                 children: "Logout",
                 type: "item",
                 className: "cursor-pointer",
-                onClick: () => dispatch(logout()),
+                onClick: () => signOut(),
               },
             ]}
             asChild

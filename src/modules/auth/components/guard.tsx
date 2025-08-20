@@ -1,8 +1,7 @@
-import type { ReactNode } from "react";
-import { useSelector } from "react-redux";
-import type { Permission, Role } from "../types/permission.type.";
 import type React from "react";
-import type { RootState } from "../../../core/store";
+import type { ReactNode } from "react";
+import { useAuth } from "../hooks/useAuth";
+import type { Permission, Role } from "../types/permission.type.";
 
 export type MatchMode = "any" | "all";
 
@@ -66,9 +65,8 @@ export const WithRole: React.FC<Props> = ({
   children,
   fallback = null,
 }) => {
-  const role = useSelector(
-    (state: RootState) => state.auth.user?.[0]?.roleValue,
-  );
+  // const role = useSelector((state: RootState) => state.auth.user?.roleValue);
+  const { role } = useAuth();
 
   if (!role) return <>{fallback}</>;
 
@@ -106,8 +104,9 @@ export const WithPermission: React.FC<WithPermissionProps> = ({
   children,
   fallback = null,
 }) => {
-  const permissions =
-    useSelector((state: RootState) => state.auth.user?.[0]?.permissions) ?? [];
+  // const permissions =
+  //   useSelector((state: RootState) => state.auth.user?.permissions) ?? [];
+  const { permissions } = useAuth();
 
   const allowed = hasPermission(permissions, page, action, mode);
   return <>{allowed ? children : fallback}</>;

@@ -162,13 +162,14 @@ const Dashboard = () => {
       }}
     >
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
-        {cardData.map(({ title, description, buttons, icon }) => (
+        {cardData.map(({ title, description, buttons, icon }, index) => (
           <Card
             key={title}
             title={title}
             description={description}
             buttons={buttons}
             icon={icon}
+            index={index}
           />
         ))}
       </div>
@@ -187,9 +188,10 @@ interface CardProps {
   description: string;
   buttons: ButtonLink[];
   icon: ReactElement<SVGProps<SVGSVGElement>>;
+  index: number;
 }
 
-const Card = ({ title, description, buttons, icon }: CardProps) => {
+const Card = ({ title, description, buttons, icon, index }: CardProps) => {
   const element = (
     <>
       <BlobIcon size="lg">{icon}</BlobIcon>
@@ -222,7 +224,7 @@ const Card = ({ title, description, buttons, icon }: CardProps) => {
   );
 
   const className =
-    "bg-background hover:ring-primary visited:ring-3 visited:ring-primary flex flex-col items-center gap-3 rounded-lg py-7 px-6 shadow-md hover:ring-3";
+    "bg-background hover:ring-primary visited:ring-3 visited:ring-primary flex flex-col items-center gap-3 rounded-lg py-7 px-6 shadow-md hover:ring-3 animate-in fade-in slide-in-from-bottom-8 duration-500";
 
   if (buttons.length === 1) {
     return (
@@ -235,5 +237,7 @@ const Card = ({ title, description, buttons, icon }: CardProps) => {
     );
   }
 
-  return <div className={className}>{element}</div>;
+  return (
+    <div className={cn(className, `delay-${index + 1 * 100}`)}>{element}</div>
+  );
 };

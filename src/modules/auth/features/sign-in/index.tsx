@@ -2,24 +2,17 @@ import logo from "@/core/assets/images/logo-white.png";
 import { Button } from "@/core/components/ui/button";
 import { Form } from "@/core/components/ui/form";
 import { FormInput } from "@/core/components/ui/form-input";
-import { setAuthData } from "@/store/slices/authSlice";
-import type { AppDispatch } from "@/store/store";
-import useMutation from "@/core/hooks/useMutation";
-import { ROUTES } from "@/core/routes/routes.constant";
-import { login } from "@/core/services/http";
 import { PhoneIcon } from "@heroicons/react/24/outline";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useDispatch } from "react-redux";
-import { NavLink } from "react-router";
+import { NavLink, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { z } from "zod";
-// type FormType = {
-//   phoneNumber: string;
-//   password: string;
-//   remember: boolean;
-// };
+import { AUTH_ROUTES } from "../../routes/constants";
+import { onLoginSuccess } from "../../services/auth.service";
+import { login } from "../../services/http/auth.service";
 
 export const schema = z.object({
   phoneNumber: z
@@ -36,8 +29,24 @@ export const schema = z.object({
 export type FormType = z.infer<typeof schema>;
 
 const SignIn = () => {
-  const { mutate, isLoading } = useMutation(login);
-  const dispatch = useDispatch<AppDispatch>();
+  // const { mutate, isLoading } = useMutation(login);
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+
+  const { mutate, isPending } = useMutation({
+    mutationKey: ["auth", "login"],
+    retry: 0,
+    mutationFn: login,
+    onSuccess(data) {
+      onLoginSuccess(qc, data, form.getValues("remember"));
+      toast.success("Login successful!", { duration: 900 });
+      navigate("/", { replace: true });
+    },
+    onError(error) {
+      console.log("🚀 ~ onError ~ error:", error);
+      toast.error(error.message ?? "Something went wrong!");
+    },
+  });
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   const toggleMode = () => {
@@ -53,28 +62,11 @@ const SignIn = () => {
     },
   });
 
-  const onSubmit = async (values: FormType) => {
-    console.log("🚀 ~ onSubmit ~ values:", values);
-    await mutate(
-      {
-        password: values.password,
-        phoneNumber: values.phoneNumber,
-      },
-      {
-        onSuccess(data) {
-          toast.success("Login successfull!", {
-            duration: 1000,
-            id: "Login success",
-          });
-          setTimeout(() => {
-            dispatch(setAuthData(data.data));
-          }, 1000);
-        },
-        onError(error) {
-          toast.error(error ?? "Something went wrong!");
-        },
-      },
-    );
+  const onSubmit = (values: FormType) => {
+    mutate({
+      password: values.password,
+      phoneNumber: values.phoneNumber,
+    });
   };
   return (
     <Form {...form}>
@@ -93,7 +85,7 @@ const SignIn = () => {
             name="phoneNumber"
             label="Phone Number"
             placeholder="Enter phone number"
-            disabled={isLoading}
+            disabled={isPending}
             inputProps={{
               autoFocus: true,
               keyfilter: "num",
@@ -108,7 +100,7 @@ const SignIn = () => {
             name="password"
             label="Password"
             placeholder="Enter password"
-            disabled={isLoading}
+            disabled={isPending}
             inputProps={{
               className: "py-6",
               endIcon: isDarkMode ? (
@@ -158,11 +150,11 @@ const SignIn = () => {
               type="checkbox"
               name="remember"
               label="Remember me"
-              disabled={isLoading}
+              disabled={isPending}
             />
 
             <NavLink
-              to={ROUTES.FORGOT_PASSWORD}
+              to={AUTH_ROUTES.FORGOT_PASSWORD}
               className="flex items-center gap-3"
             >
               Forgot password
@@ -170,7 +162,7 @@ const SignIn = () => {
           </div>
         </div>
 
-        <Button color={"primary"} className="h-13" loading={isLoading}>
+        <Button color={"primary"} className="h-13" loading={isPending}>
           Sign In
         </Button>
 

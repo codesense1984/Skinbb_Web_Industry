@@ -1,6 +1,6 @@
 import type { Permission } from "./permission.type.";
 
-export interface User {
+export interface LoggedUser {
   _id: string;
   firstName: string;
   lastName: string;

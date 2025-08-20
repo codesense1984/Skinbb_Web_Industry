@@ -20,7 +20,6 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from "@/core/components/ui/toggle-group";
-import { ROUTES } from "@/core/routes/routes.constant";
 import { cn, formatCurrency, formatNumber } from "@/core/utils";
 import {
   CalendarDateRangeIcon,
@@ -28,6 +27,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { type ComponentProps, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router";
+import { ANALYTICS_ROUTES } from "../../routes/constants";
 import ActiveCarts from "./ActiveCarts";
 import Products from "./Products";
 
@@ -130,14 +130,14 @@ and performance`,
               >
                 <ToggleGroupItem
                   className="aspect-auto h-full flex-auto px-3"
-                  value={`${ROUTES.PLATFORM_ANALYTIC}`}
+                  value={`${ANALYTICS_ROUTES.PLATFORM_ANALYTIC}`}
                   aria-label="Toggle Platform"
                 >
                   Platform
                 </ToggleGroupItem>
                 <ToggleGroupItem
                   className="aspect-auto h-full flex-auto px-3"
-                  value={`${ROUTES.BRAND_ANALYTIC}`}
+                  value={`${ANALYTICS_ROUTES.BRAND_ANALYTIC}`}
                   aria-label="Toggle Brand"
                 >
                   Brand

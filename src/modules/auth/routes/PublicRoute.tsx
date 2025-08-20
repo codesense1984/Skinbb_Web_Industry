@@ -1,13 +1,12 @@
 // components/route-guards/PublicRoute.tsx
-import { useSelector } from "react-redux";
-import type { RootState } from "@/store/store";
-import { Navigate, Outlet } from "react-router";
 import { ROUTES } from "@/core/routes/routes.constant";
+import { Navigate, Outlet } from "react-router";
+import { useAuth } from "../hooks/useAuth";
 
 const PublicRoute = () => {
-  const { user } = useSelector((state: RootState) => state.auth);
+  const { isLoggedIn } = useAuth();
 
-  if (user) {
+  if (isLoggedIn) {
     return <Navigate to={ROUTES.DASHBOARD} replace />;
   }
 

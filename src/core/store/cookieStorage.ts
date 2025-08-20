@@ -1,15 +1,43 @@
-// src/context/cookieStorage.ts
+export type CookieOptions = {
+  expires?: number | Date; // number = days, Date = exact expiration
+  path?: string;
+  secure?: boolean;
+  sameSite?: "Strict" | "Lax" | "None";
+};
+
 const cookieStorage = {
-  getItem: async (key: string): Promise<string | null> => {
+  getAsyncItem: async (key: string): Promise<string | null> => {
+    const match = document.cookie.match(new RegExp(`(^| )${key}=([^;]+)`));
+    return match ? decodeURIComponent(match[2]) : null;
+  },
+  getItem: (key: string): string | null => {
     const match = document.cookie.match(new RegExp(`(^| )${key}=([^;]+)`));
     return match ? decodeURIComponent(match[2]) : null;
   },
 
-  setItem: async (key: string, value: string): Promise<void> => {
-    console.log("🚀 ~ setItem: ~ value:", value);
-    const expires = new Date();
-    expires.setDate(expires.getDate() + 7); // 7 days
-    document.cookie = `${key}=${encodeURIComponent(value)};expires=${expires.toUTCString()};path=/;secure;SameSite=Strict`;
+  setItem: async (
+    key: string,
+    value: string,
+    opts: CookieOptions = {},
+  ): Promise<void> => {
+    let cookieStr = `${key}=${encodeURIComponent(value)}`;
+
+    if (opts.expires) {
+      let expires: Date;
+      if (typeof opts.expires === "number") {
+        expires = new Date();
+        expires.setDate(expires.getDate() + opts.expires);
+      } else {
+        expires = opts.expires;
+      }
+      cookieStr += `;expires=${expires.toUTCString()}`;
+    }
+
+    cookieStr += `;path=${opts.path ?? "/"}`;
+    if (opts.secure) cookieStr += ";secure";
+    if (opts.sameSite) cookieStr += `;SameSite=${opts.sameSite}`;
+
+    document.cookie = cookieStr;
   },
 
   removeItem: async (key: string): Promise<void> => {

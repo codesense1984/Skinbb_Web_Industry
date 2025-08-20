@@ -10,7 +10,6 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from "@/core/components/ui/toggle-group";
-import { ROUTES } from "@/core/routes/routes.constant";
 import { formatNumber } from "@/core/utils";
 import {
   CalendarDaysIcon,
@@ -19,6 +18,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router";
+import { ANALYTICS_ROUTES } from "../../routes/constants";
 import { AnalyticsFilterForm } from "./AnalyticsFilterForm";
 
 const genderData = [
@@ -223,14 +223,14 @@ and performance`,
             >
               <ToggleGroupItem
                 className="aspect-auto h-full flex-auto px-3"
-                value={`${ROUTES.PLATFORM_ANALYTIC}`}
+                value={`${ANALYTICS_ROUTES.PLATFORM_ANALYTIC}`}
                 aria-label="Toggle Platform"
               >
                 Platform
               </ToggleGroupItem>
               <ToggleGroupItem
                 className="aspect-auto h-full flex-auto px-3"
-                value={`${ROUTES.BRAND_ANALYTIC}`}
+                value={`${ANALYTICS_ROUTES.BRAND_ANALYTIC}`}
                 aria-label="Toggle Brand"
               >
                 Brand

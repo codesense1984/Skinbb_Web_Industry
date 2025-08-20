@@ -1,161 +1,298 @@
-import { baseApiUrl } from "@/core/config/baseUrls";
-import { store } from "@/core/store";
-import { logout, updateToken } from "@/modules/auth/store/slices/authSlice";
+import type { AuthSnapshot } from "@/modules/auth/services/auth.service";
+import {
+  QueryClient,
+  type DefaultOptions,
+  type QueryKey,
+} from "@tanstack/react-query";
 import axios, {
   AxiosError,
+  AxiosHeaders,
+  type AxiosInstance,
   type AxiosRequestConfig,
   type AxiosResponse,
 } from "axios";
-// import { tokenService } from "./token.service";
 
-export const axiosInstance = axios.create({
-  //   baseURL: `${baseApiUrl}/api/v1`,
-  baseURL: baseApiUrl,
+// ---- Config ---------------------------------------------------------------
+export const API_BASE_URL = import.meta.env.VITE_API_URL ?? "/api";
+export const REQUEST_TIMEOUT_MS = 25_000; // reasonable network timeout
+
+// If you still have Redux auth slice, wire it here. Otherwise, swap with your auth store.
+// This indirection keeps base service store‑agnostic.
+
+export type GetAuthFn = () => AuthSnapshot;
+export type SetTokensFn = (tokens: AuthSnapshot) => void;
+export type LogoutFn = () => void;
+
+let getAuth: GetAuthFn = () => ({
+  accessToken: undefined,
+  refreshToken: undefined,
+});
+let setTokens: SetTokensFn | null = null;
+let logout: LogoutFn | null = null;
+
+export function wireAuthAdapters(adapters: {
+  getAuth?: GetAuthFn;
+  setTokens?: SetTokensFn;
+  logout?: LogoutFn;
+}) {
+  if (adapters.getAuth) getAuth = adapters.getAuth;
+  if (adapters.setTokens) setTokens = adapters.setTokens;
+  if (adapters.logout) logout = adapters.logout;
+}
+
+// ---- Axios instance -------------------------------------------------------
+export const http: AxiosInstance = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: REQUEST_TIMEOUT_MS,
+  // Let React Query abort via `signal`
+  // signal: (AbortSignal as unknown as undefined), // placeholder to allow passing per‑request
+  // withCredentials: false, // if you use httpOnly refresh tokens/cookies
 });
 
-// Token refresh management
-let isRefreshing = false;
-let refreshSubscribers: ((token: string) => void)[] = [];
-
-const subscribeTokenRefresh = (callback: (token: string) => void) => {
-  refreshSubscribers.push(callback);
-};
-
-const onTokenRefreshed = (token: string) => {
-  refreshSubscribers.forEach((callback) => callback(token));
-  refreshSubscribers = [];
-};
-
-// Add Authorization header dynamically from Redux store
-axiosInstance.interceptors.request.use((config) => {
-  const token = store.getState().auth.accessToken;
-  // const token = tokenService.getAccessToken();
-
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+// Attach Authorization header on every request
+http.interceptors.request.use((config) => {
+  const { accessToken } = getAuth();
+  if (accessToken) {
+    // Ensure headers is an AxiosHeaders instance
+    if (!config.headers || !(config.headers instanceof AxiosHeaders)) {
+      config.headers = new AxiosHeaders(config.headers);
+    }
+    (config.headers as AxiosHeaders).set(
+      "Authorization",
+      `Bearer ${accessToken}`,
+    );
   }
-
   return config;
 });
+// ---- Refresh token single‑flight queue -----------------------------------
+let isRefreshing = false;
+let pendingQueue: Array<(token: string | null) => void> = [];
 
-// Handle token expiration and retry logic
-axiosInstance.interceptors.response.use(
-  (response: AxiosResponse) => response,
-  async (error: AxiosError) => {
-    const originalRequest = error.config as AxiosRequestConfig & {
+async function refreshAccessToken(): Promise<string | null> {
+  const { refreshToken } = getAuth();
+  console.log("🚀 ~ refreshAccessToken ~ refreshToken:", refreshToken);
+  if (!refreshToken) return null;
+
+  try {
+    const { data } = await axios.post(
+      `${API_BASE_URL}/api/v1/users/refresh-token`,
+      { refreshToken },
+      { timeout: REQUEST_TIMEOUT_MS },
+    );
+    const newAccessToken: string | undefined = data?.data?.accessToken;
+    const newRefreshToken: string | undefined = data?.data?.refreshToken;
+    setTokens?.({ accessToken: newAccessToken, refreshToken: newRefreshToken });
+    return newAccessToken ?? null;
+  } catch {
+    return null;
+  }
+}
+
+http.interceptors.response.use(
+  (res) => res,
+  async (error: unknown) => {
+    console.log("🚀 ~response error:", error);
+    // If request was aborted by React Query, surface a friendly error
+    if (axios.isCancel(error)) {
+      return Promise.reject(
+        createApiError("Request was cancelled", 499, error),
+      );
+    }
+
+    // ✅ Narrow unknown → AxiosError
+    if (!axios.isAxiosError(error)) {
+      // Non-Axios error (thrown by code, runtime, etc.)
+      return Promise.reject(createApiError("Unexpected error", 0, error));
+    }
+
+    const original = (error.config ?? {}) as AxiosRequestConfig & {
       _retry?: boolean;
     };
-    const refreshToken = store.getState().auth.refreshToken;
-    // const refreshToken = tokenService.getRefreshToken();
+    const status = error.response?.status ?? 0;
 
-    if (
-      error.response?.status === 401 &&
-      refreshToken &&
-      !originalRequest._retry
-    ) {
-      originalRequest._retry = true;
+    // Handle 401 once: try refresh, replay queued requests
+    if (status === 401 && !original?._retry) {
+      original._retry = true;
 
       if (!isRefreshing) {
         isRefreshing = true;
+        const newToken = await refreshAccessToken();
+        isRefreshing = false;
+        // flush queued
+        pendingQueue.forEach((resolve) => resolve(newToken));
+        pendingQueue = [];
 
-        try {
-          const { data } = await axios.post(
-            `${baseApiUrl}/api/v1/users/refresh-token`,
-            { refreshToken },
+        if (!newToken) {
+          // logout?.();
+          logout?.();
+          return Promise.reject(
+            createApiError(
+              "Session expired. Please sign in again.",
+              401,
+              error,
+            ),
           );
-
-          const newAccessToken = data?.data?.accessToken;
-          const newRefreshToken = data?.data?.refreshToken;
-
-          store.dispatch(
-            updateToken({
-              accessToken: newAccessToken,
-              refreshToken: newRefreshToken,
-            }),
-          );
-          axiosInstance.defaults.headers.common["Authorization"] =
-            `Bearer ${newAccessToken}`;
-
-          onTokenRefreshed(newAccessToken);
-          isRefreshing = false;
-        } catch (refreshError) {
-          store.dispatch(logout());
-          isRefreshing = false;
-          return Promise.reject(refreshError);
         }
       }
 
-      // Queue failed requests until token is refreshed
-      return new Promise((resolve) => {
-        subscribeTokenRefresh((token: string) => {
-          if (originalRequest.headers) {
-            originalRequest.headers["Authorization"] = `Bearer ${token}`;
-          }
-          resolve(axiosInstance(originalRequest));
-        });
-      });
+      // wait for ongoing refresh
+      const tokenFromQueue = await new Promise<string | null>((resolve) =>
+        pendingQueue.push(resolve),
+      );
+      if (tokenFromQueue) {
+        // retry original with fresh token
+        original.headers = {
+          ...(original.headers ?? {}),
+          Authorization: `Bearer ${tokenFromQueue}`,
+        };
+        return http(original);
+      }
+      logout?.();
+      return Promise.reject(
+        createApiError("Session expired. Please sign in again.", 401, error),
+      );
     }
 
-    return Promise.reject(error);
+    // Non‑auth errors
+    return Promise.reject(normalizeAxiosError(error));
   },
 );
 
-// =============================
-// Utility Methods (with Types)
-// =============================
-
-type Headers = Record<string, string>;
-
-export interface ApiResponse<T> {
-  data: T | null;
-  error: string | null;
-}
-
-const handleRequest = async <T>(
-  method: "get" | "post" | "put" | "patch" | "delete",
-  url: string,
-  data?: unknown,
-  headers: Headers = {},
-): Promise<ApiResponse<T>> => {
-  try {
-    const config: AxiosRequestConfig = { headers };
-
-    if (data instanceof FormData) {
-      config.headers!["Content-Type"] = "multipart/form-data";
-    } else if (data && typeof data === "object" && method !== "get") {
-      config.headers!["Content-Type"] = "application/json";
-      data = JSON.stringify(data);
-    }
-
-    const response: AxiosResponse<T> =
-      method === "get" || method === "delete"
-        ? await axiosInstance[method](url, config)
-        : await axiosInstance[method](url, data, config);
-
-    return { data: response.data, error: null };
-  } catch (err: unknown) {
-    const error = err as AxiosError;
-    const message =
-      (error?.response?.data as { message: string })?.message ||
-      (error?.response?.data as { errors: string })?.errors ||
-      error.message ||
-      "Unknown error";
-    return { data: null, error: message };
-  }
+// ---- Thin request wrapper (typed, signal‑aware) ---------------------------
+export type RequestConfig<TBody = unknown> = Omit<
+  AxiosRequestConfig<TBody>,
+  "url" | "method"
+> & {
+  signal?: AbortSignal; // from React Query
 };
 
-// Exposed HTTP methods
-export const get = <T>(url: string, headers?: Headers) =>
-  handleRequest<T>("get", url, null, headers);
+async function request<TResp = unknown, TBody = unknown>(
+  method: AxiosRequestConfig["method"],
+  url: string,
+  data?: TBody,
+  config?: RequestConfig<TBody>,
+): Promise<TResp> {
+  const res: AxiosResponse<TResp> = await http({
+    method,
+    url,
+    data,
+    ...(config ?? {}),
+  });
+  return res.data as TResp;
+}
 
-export const post = <T>(url: string, data: unknown, headers?: Headers) =>
-  handleRequest<T>("post", url, data, headers);
+export const api = {
+  get: <T = unknown>(url: string, config?: RequestConfig) =>
+    request<T>("get", url, undefined, config),
+  post: <T = unknown, B = unknown>(
+    url: string,
+    body?: B,
+    config?: RequestConfig<B>,
+  ) => request<T, B>("post", url, body, config),
+  put: <T = unknown, B = unknown>(
+    url: string,
+    body?: B,
+    config?: RequestConfig<B>,
+  ) => request<T, B>("put", url, body, config),
+  patch: <T = unknown, B = unknown>(
+    url: string,
+    body?: B,
+    config?: RequestConfig<B>,
+  ) => request<T, B>("patch", url, body, config),
+  delete: <T = unknown>(url: string, config?: RequestConfig) =>
+    request<T>("delete", url, undefined, config),
+};
 
-export const put = <T>(url: string, data: unknown, headers?: Headers) =>
-  handleRequest<T>("put", url, data, headers);
+// ---- React Query: sane defaults + helpers --------------------------------
+export const defaultQueryOptions: DefaultOptions = {
+  queries: {
+    staleTime: 60_000, // 1 min: avoid over‑fetching
+    gcTime: 5 * 60_000, // 5 min cache
+    refetchOnReconnect: true,
+    refetchOnWindowFocus: "always",
+    retry(failureCount, err) {
+      const e = err as AxiosError;
+      const status = e.response?.status ?? 0;
+      // don't hammer on client errors or auth failures
+      if (status >= 400 && status < 500 && status !== 429) return false;
+      return failureCount < 2; // small, respectful retry budget
+    },
+  },
+  mutations: { retry: 0 },
+};
 
-export const patch = <T>(url: string, data: unknown, headers?: Headers) =>
-  handleRequest<T>("patch", url, data, headers);
+export function createQueryClient(overrides?: Partial<DefaultOptions>) {
+  return new QueryClient({
+    defaultOptions: { ...defaultQueryOptions, ...(overrides ?? {}) },
+  });
+}
 
-export const remove = <T>(url: string, headers?: Headers) =>
-  handleRequest<T>("delete", url, null, headers);
+// Query key utility to keep keys consistent & typed
+export const qk = {
+  by: (...parts: (string | number | boolean | null | undefined)[]) =>
+    parts.filter((p) => p !== undefined) as QueryKey,
+};
+
+// ---- Error helpers --------------------------------------------------------
+export type ApiErrorShape = {
+  message: string;
+  status?: number;
+  code?: string;
+} & Record<string, unknown>;
+
+export function createApiError(
+  message: string,
+  status?: number,
+  cause?: unknown,
+  extras?: Record<string, unknown>,
+): ApiErrorShape {
+  const err: ApiErrorShape = { message, status, ...(extras ?? {}) };
+  if (cause && cause instanceof AxiosError) {
+    err.code = cause.code;
+  }
+  return err;
+}
+
+export function normalizeAxiosError(err: unknown): ApiErrorShape {
+  if (axios.isAxiosError(err)) {
+    const status = err.response?.status;
+    const serverMessage =
+      (err.response?.data as { message?: string; error?: string })?.message ??
+      (err.response?.data as { message?: string; error?: string })?.error ??
+      err.message ??
+      "Request failed";
+    return createApiError(String(serverMessage), status, err);
+  }
+  return createApiError(err instanceof Error ? err.message : "Unknown error");
+}
+
+// Optional: small pagination helper
+export type PageParams = { page?: number; limit?: number };
+export type PageResponse<T> = {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+};
+
+export const buildPageQuery = (params?: PageParams) =>
+  new URLSearchParams({
+    page: String(params?.page ?? 1),
+    limit: String(params?.limit ?? 10),
+  }).toString();
+
+// ---- Example usage patterns ----------------------------------------------
+// import { useQuery, useMutation } from "@tanstack/react-query";
+//
+// export function useProducts(params?: PageParams) {
+//   return useQuery({
+//     queryKey: qk.by("products", params?.page, params?.limit),
+//     queryFn: ({ signal }) => api.get<PageResponse<Product>>(`/api/v1/products?${buildPageQuery(params)}`, { signal }),
+//   });
+// }
+//
+// export function useCreateProduct() {
+//   return useMutation({
+//     mutationFn: (payload: ProductInput) => api.post<Product>("/api/v1/products", payload),
+//   });
+// }

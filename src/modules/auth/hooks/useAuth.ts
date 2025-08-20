@@ -1,19 +1,37 @@
-import type { RootState } from "@/store/store";
-import { useSelector } from "react-redux";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router";
+import { AUTH_ROUTES } from "../routes/constants";
+import { bootstrapAuthCache, logout, QK, type AuthQueryData } from "../services/auth.service";
 
 export const useAuth = () => {
-  const { user, accessToken, refreshToken } = useSelector(
-    (state: RootState) => state.auth,
-  );
+  const qc = useQueryClient();
+  const navigate = useNavigate();
 
-  const isLoggedIn = !!user;
+  const query = useQuery<AuthQueryData>({
+    queryKey: QK.ME,
+    queryFn: async () => {
+      return bootstrapAuthCache(qc);
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: 0,
+  });
+
+  const signOut = () => {
+    logout(qc);
+    navigate(AUTH_ROUTES.SIGN_IN, { replace: true });
+  };
 
   return {
-    user: user?.[0],
-    accessToken,
-    refreshToken,
-    isLoggedIn,
-    role: user?.[0]?.roleValue,
-    permissions: user?.[0]?.permissions || [],
+    me: query.data,
+    user: query.data?.user,
+    isLoading: query.isLoading,
+    isError: query.isError,
+    signOut,
+    accessToken: query.data?.accessToken,
+    refreshToken: query.data?.refreshToken,
+    isLoggedIn: !!query.data?.user,
+    role: query.data?.user.roleValue ?? "",
+    permissions: query.data?.user?.permissions || [],
   };
 };

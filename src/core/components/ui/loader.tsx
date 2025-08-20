@@ -1,6 +1,15 @@
-const FullLoader = () => {
+import { HorizontalLogo } from "@/core/config/svg";
+import { cn } from "@/core/utils";
+
+const FullLoader = ({ isLogin = false }: { isLogin?: boolean }) => {
   return (
-    <div className="fixed inset-0 z-100 flex h-full w-full items-center justify-center bg-[#00000020] backdrop-blur-[1px]">
+    <div
+      className={cn(
+        "fixed inset-0 z-100 flex h-full w-full flex-col items-center justify-center gap-8 bg-[#00000020] backdrop-blur-[1px]",
+        isLogin && "bg-white",
+      )}
+    >
+      <HorizontalLogo />
       <svg className="w-15" viewBox="0 0 100 50">
         <line
           x1="10"

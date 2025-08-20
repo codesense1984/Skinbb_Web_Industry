@@ -1,30 +1,30 @@
-import { combineReducers, configureStore } from "@reduxjs/toolkit";
-import storage from "redux-persist/lib/storage";
-import { persistReducer, persistStore } from "redux-persist";
-import authReducer from "@/modules/auth/store/slices/authSlice";
 import chatReducer from "@/core/store/slices/chatSlice";
+// import authReducer from "@/modules/auth/store/slices/authSlice";
+import { combineReducers, configureStore } from "@reduxjs/toolkit";
+// import storage from "redux-persist/lib/storage";
 
-const persistConfig = {
-  key: "root",
-  storage,
-  whitelist: ["auth"], // only persist auth
-};
+// const persistConfig = {
+//   key: "root",
+//   storage,
+//   whitelist: ["auth"], // only persist auth
+// };
 
 const rootReducer = combineReducers({
-  auth: authReducer,
+  // auth: authReducer,
   chat: chatReducer,
 });
-const persistedReducer = persistReducer(persistConfig, rootReducer);
+// const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 export const store = configureStore({
-  reducer: persistedReducer,
+  // reducer: persistedReducer,
+  reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: false, // needed for redux-persist
     }),
 });
 
-export const persistor = persistStore(store);
+// export const persistor = persistStore(store);
 
 // Types for usage in hooks
 export type RootState = ReturnType<typeof store.getState>;

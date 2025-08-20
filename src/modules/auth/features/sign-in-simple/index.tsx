@@ -2,24 +2,22 @@ import logo from "@/core/assets/images/logo-white.png";
 import { Button } from "@/core/components/ui/button";
 import { Form } from "@/core/components/ui/form";
 import { FormInput } from "@/core/components/ui/form-input";
-import useMutation from "@/core/hooks/useMutation";
-import type { AppDispatch } from "@/core/store";
-import { setAuthData } from "@/modules/auth/store/slices/authSlice";
+import type { ApiErrorShape } from "@/core/services/http";
 import { PhoneIcon } from "@heroicons/react/24/outline";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useDispatch } from "react-redux";
-import { NavLink } from "react-router";
+import { NavLink, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { z } from "zod";
 import { AUTH_ROUTES } from "../../routes/constants";
-import { login } from "../../services/auth.service";
-// type FormType = {
-//   phoneNumber: string;
-//   password: string;
-//   remember: boolean;
-// };
+import { onLoginSuccess } from "../../services/auth.service";
+import {
+  login,
+  type LoginPayload,
+  type LoginSuccess,
+} from "../../services/http/auth.service";
 
 export const schema = z.object({
   phoneNumber: z
@@ -30,19 +28,13 @@ export const schema = z.object({
 
   password: z.string().min(1, "Password is required"),
   remember: z.boolean(),
-  // .max(32, "Password must be at most 32 characters"),
 });
 
 export type FormType = z.infer<typeof schema>;
 
 const SignIn = () => {
-  const { mutate, isLoading } = useMutation(login);
-  const dispatch = useDispatch<AppDispatch>();
-  const [isDarkMode, setIsDarkMode] = useState(false);
-
-  const toggleMode = () => {
-    setIsDarkMode((prev) => !prev);
-  };
+  const qc = useQueryClient();
+  const navigate = useNavigate();
 
   const form = useForm<FormType>({
     resolver: zodResolver(schema),
@@ -53,29 +45,38 @@ const SignIn = () => {
     },
   });
 
-  const onSubmit = async (values: FormType) => {
-    console.log("🚀 ~ onSubmit ~ values:", values);
-    await mutate(
-      {
-        password: values.password,
-        phoneNumber: values.phoneNumber,
-      },
-      {
-        onSuccess(data) {
-          toast.success("Login successfull!", {
-            duration: 1000,
-            id: "Login success",
-          });
-          setTimeout(() => {
-            dispatch(setAuthData((data as { data: unknown }).data));
-          }, 1000);
-        },
-        onError(error) {
-          toast.error(error ?? "Something went wrong!");
-        },
-      },
-    );
+  const { mutate, isPending } = useMutation<
+    LoginSuccess,
+    ApiErrorShape,
+    LoginPayload
+  >({
+    mutationKey: ["auth", "login"],
+    retry: 0,
+    mutationFn: login,
+    onSuccess(data) {
+      onLoginSuccess(qc, data, form.getValues("remember"));
+      toast.success("Login successful!", { duration: 900 });
+      navigate("/", { replace: true });
+    },
+    onError(error) {
+      console.log("🚀 ~ onError ~ error:", error);
+      toast.error(error.message ?? "Something went wrong!");
+    },
+  });
+
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  const toggleMode = () => {
+    setIsDarkMode((prev) => !prev);
   };
+
+  const onSubmit = async (values: FormType) => {
+    mutate({
+      password: values.password,
+      phoneNumber: values.phoneNumber,
+    });
+  };
+
   return (
     <div className="bg-muted p-4">
       <Form {...form}>
@@ -95,7 +96,7 @@ const SignIn = () => {
                 name="phoneNumber"
                 label="Phone Number"
                 placeholder="Enter phone number"
-                disabled={isLoading}
+                disabled={isPending}
                 inputProps={{
                   autoFocus: true,
                   keyfilter: "num",
@@ -110,7 +111,7 @@ const SignIn = () => {
                 name="password"
                 label="Password"
                 placeholder="Enter password"
-                disabled={isLoading}
+                disabled={isPending}
                 inputProps={{
                   className: "py-6",
                   endIcon: isDarkMode ? (
@@ -160,7 +161,7 @@ const SignIn = () => {
                   type="checkbox"
                   name="remember"
                   label="Remember me"
-                  disabled={isLoading}
+                  disabled={isPending}
                 />
 
                 <NavLink
@@ -175,7 +176,7 @@ const SignIn = () => {
             <Button
               color={"primary"}
               className="h-13 w-full"
-              loading={isLoading}
+              loading={isPending}
             >
               Sign In
             </Button>
