@@ -1,5 +1,7 @@
 import { BlobIcon, Button } from "@/core/components/ui/button";
 import { PageContent } from "@/core/components/ui/structure";
+import { useMotionConfig } from "@/core/store/motion-provider";
+import { fadeInUp } from "@/core/styles/animation/presets";
 import { cn } from "@/core/utils";
 import { ANALYTICS_ROUTES } from "@/modules/analytics/routes/constants";
 import { hasAccess, type MatchMode } from "@/modules/auth/components/guard";
@@ -13,6 +15,7 @@ import {
   type Role,
 } from "@/modules/auth/types/permission.type.";
 import { SURVEY_ROUTES } from "@/modules/survey/routes/constant";
+import { motion } from "motion/react";
 import { Fragment, type ReactElement, type SVGProps } from "react";
 import { NavLink } from "react-router";
 
@@ -196,17 +199,18 @@ const Dashboard = () => {
       ariaLabel="dashboard"
       header={{
         title: (
-          <>
+          <div>
             Hi, Welcome back,{" "}
             <span className="text-primary">
               {user?.firstName} {user?.lastName}
             </span>{" "}
             👋
-          </>
+          </div>
         ),
         description:
           "Your dashboard is ready — explore insights, manage your listings, and grow your reach.",
         hasBack: false,
+        animate: true,
       }}
     >
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
@@ -240,6 +244,14 @@ interface CardProps {
 }
 
 const Card = ({ title, description, buttons, icon, index }: CardProps) => {
+  const { reducedMotion } = useMotionConfig();
+  const delay = reducedMotion ? 0 : Math.max(0, index) * 0.06;
+
+  const containerMotion = {
+    ...fadeInUp,
+    transition: { ...fadeInUp.transition, delay },
+  };
+
   const element = (
     <>
       <BlobIcon size="lg">{icon}</BlobIcon>
@@ -272,20 +284,24 @@ const Card = ({ title, description, buttons, icon, index }: CardProps) => {
   );
 
   const className =
-    "bg-background hover:ring-primary visited:ring-3 visited:ring-primary flex flex-col items-center gap-3 rounded-lg py-7 px-6 shadow-md hover:ring-3 animate-in fade-in slide-in-from-bottom-8 duration-500";
+    "bg-background hover:ring-primary visited:ring-3 visited:ring-primary flex flex-col items-center gap-3 rounded-lg py-7 px-6 shadow-md hover:ring-3";
 
   if (buttons.length === 1) {
     return (
-      <NavLink
-        to={buttons[0].href}
-        className={cn("text-foreground no-underline", className)}
-      >
-        {element}
-      </NavLink>
+      <motion.div {...containerMotion} role="group">
+        <NavLink
+          to={buttons[0].href}
+          className={cn("text-foreground no-underline", className)}
+        >
+          {element}
+        </NavLink>
+      </motion.div>
     );
   }
 
   return (
-    <div className={cn(className, `delay-${index + 1 * 100}`)}>{element}</div>
+    <motion.div {...containerMotion} className={className}>
+      {element}
+    </motion.div>
   );
 };

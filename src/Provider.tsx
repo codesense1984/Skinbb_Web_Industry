@@ -6,6 +6,7 @@ import { Toaster } from "./core/components/ui/sonner";
 import { store } from "./core/store";
 import { ThemeProvider } from "./core/store/theme-provider";
 import { queryClient } from "./core/utils/queryClient";
+import { MotionProvider } from "./core/store/motion-provider";
 
 store.subscribe(() => console.log(store.getState(), "store"));
 
@@ -14,10 +15,12 @@ const Provider = ({ children }: { children: React.ReactNode }) => {
     <ReduxProvider store={store}>
       {/* <PersistGate loading={null} persistor={persistor}> */}
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <Toaster richColors position="top-right" />
-          {children}
-        </ThemeProvider>
+        <MotionProvider>
+          <ThemeProvider>
+            <Toaster richColors position="top-right" />
+            {children}
+          </ThemeProvider>
+        </MotionProvider>
 
         {import.meta.env.NODE_ENV === "development" && (
           <ReactQueryDevtools initialIsOpen={false} />

@@ -8,6 +8,8 @@ import React, {
 import { Button } from "./button";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import { useNavigate } from "react-router";
+import { motion } from "motion/react";
+import { fadeInUp } from "@/core/styles/animation/presets";
 
 type PageContentProps = {
   as?: ElementType;
@@ -56,6 +58,7 @@ type PageHeaderProps = {
   fallbackBackUrl?: string;
   className?: string;
   backLink?: string;
+  animate?: boolean;
 };
 
 export const PageHeader = ({
@@ -66,6 +69,7 @@ export const PageHeader = ({
   fallbackBackUrl = "/",
   className,
   backLink,
+  animate = false,
 }: PageHeaderProps) => {
   const navigate = useNavigate();
   const [canGoBack, setCanGoBack] = useState(false);
@@ -87,7 +91,8 @@ export const PageHeader = ({
   if (!title && !description && !actions) return null;
 
   return (
-    <header
+    <motion.header
+      {...(animate && fadeInUp)}
       className={cn(
         "flex flex-wrap items-center justify-between gap-2",
         className,
@@ -114,7 +119,7 @@ export const PageHeader = ({
         {description && <p>{description}</p>}
       </div>
       {actions}
-    </header>
+    </motion.header>
   );
 };
 

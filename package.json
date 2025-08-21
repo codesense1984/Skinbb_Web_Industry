@@ -46,6 +46,7 @@
     "date-fns": "^4.1.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "lucide-react": "^0.513.0",
+    "motion": "^12.23.12",
     "react": "^19.1.0",
     "react-cytoscapejs": "^2.0.0",
     "react-day-picker": "^9.7.0",
