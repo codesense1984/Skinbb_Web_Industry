@@ -1,7 +1,7 @@
 import { StatusBadge } from "@/core/components/ui/badge";
-import { ROUTES } from "@/core/routes/routes.constant";
 import type { Brand } from "@/core/types/brand.type";
 import { formatCurrency, formatNumber } from "@/core/utils";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { memo, type FC } from "react";
 import { NavLink } from "react-router";
 
@@ -21,7 +21,7 @@ interface BrandCardProps {
 
 export const BrandCard: FC<BrandCardProps> = ({ brand }) => {
   return (
-    <NavLink to={`${ROUTES.BRAND_EDIT}/${brand.id}`}>
+    <NavLink to={PANEL_ROUTES.BRAND.EDIT((brand?.id ?? "")?.toString())}>
       <article className="bg-background hover:ring-primary flex flex-col gap-4 rounded-md p-4 shadow-md hover:ring-3 md:p-5">
         <header className="flex items-center gap-2">
           <img

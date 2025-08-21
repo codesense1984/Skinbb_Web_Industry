@@ -2,10 +2,10 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from "@/core/components/ui/toggle-group";
-import { ROUTES } from "@/core/routes/routes.constant";
 import { Outlet, useLocation, useNavigate } from "react-router";
+import { DUMMY_ROUTES } from "../routes";
 
-const URLS = [ROUTES.D_CHARTS, ROUTES.D_TABLE];
+const URLS = [DUMMY_ROUTES.CHART.LIST, DUMMY_ROUTES.TABLE.LIST];
 
 const Dummy = () => {
   const { pathname } = useLocation();

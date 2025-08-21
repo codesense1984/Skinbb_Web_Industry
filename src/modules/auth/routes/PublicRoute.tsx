@@ -1,5 +1,5 @@
 // components/route-guards/PublicRoute.tsx
-import { ROUTES } from "@/core/routes/routes.constant";
+import { ROUTES } from "@/core/routes/constant";
 import { Navigate, Outlet } from "react-router";
 import { useAuth } from "../hooks/useAuth";
 

@@ -1,20 +1,20 @@
-import { StatusBadge } from "@/core/components/ui/badge";
-import { Button } from "@/core/components/ui/button";
-import { StatCard } from "@/core/components/ui/stat";
-import { PageContent } from "@/core/components/ui/structure";
 import { DataTableToogle } from "@/core/components/table/data-table";
-import type { Brand } from "@/core/types/brand.type";
-import { formatCurrency, formatNumber } from "@/core/utils";
-import { EyeIcon } from "@heroicons/react/24/outline";
-import type { ColumnDef } from "@tanstack/react-table";
-import { BrandCard } from "./BrandCard";
-import { NavLink } from "react-router";
-import { ROUTES } from "@/core/routes/routes.constant";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@/core/components/ui/avatar";
+import { StatusBadge } from "@/core/components/ui/badge";
+import { Button } from "@/core/components/ui/button";
+import { StatCard } from "@/core/components/ui/stat";
+import { PageContent } from "@/core/components/ui/structure";
+import type { Brand } from "@/core/types/brand.type";
+import { formatCurrency, formatNumber } from "@/core/utils";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
+import { EyeIcon } from "@heroicons/react/24/outline";
+import type { ColumnDef } from "@tanstack/react-table";
+import { NavLink } from "react-router";
+import { BrandCard } from "./BrandCard";
 
 const statsData = [
   {
@@ -217,7 +217,7 @@ const BrandList = () => {
         description: "Discover top brands from around the world.",
         actions: (
           <Button color={"primary"} asChild>
-            <NavLink to={ROUTES.BRAND_CREATE}>Add Brand</NavLink>
+            <NavLink to={PANEL_ROUTES.BRAND.CREATE}>Add Brand</NavLink>
           </Button>
         ),
       }}

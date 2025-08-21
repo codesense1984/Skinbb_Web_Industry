@@ -1,11 +1,13 @@
-import { ROUTES } from "@/core/routes/routes.constant";
+import { ROUTE } from "@/core/routes/constant";
 
-const BASE = "/survey";
+const SURVEY_BASE = "/survey";
+const SURVEYS = "/surveys";
 
 export const SURVEY_ROUTES = {
-  SURVEY: BASE,
-  SURVEYS: "/surveys",
-  CREATE: `${BASE}${ROUTES.CREATE}`,
-  EDIT: (id: string | number = ":id") => `${BASE}/${id}${ROUTES.EDIT}`,
-  DETAIL: (id: string | number = ":id") => `${BASE}/${id}`,
+  BASE: SURVEY_BASE, // /survey
+  LIST: SURVEYS, // /surveys
+  CREATE: ROUTE.build(SURVEY_BASE, ROUTE.seg.create), // /survey/create
+  EDIT: (id: string = ROUTE.seg.id) =>
+    ROUTE.build(SURVEY_BASE, id, ROUTE.seg.edit), // /survey/:id/edit
+  DETAIL: (id: string = ROUTE.seg.id) => ROUTE.build(SURVEY_BASE, id), // /survey/:id
 };

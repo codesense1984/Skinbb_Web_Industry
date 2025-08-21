@@ -133,7 +133,7 @@ const MarketResearchCreate = () => {
     setConfirmation(false);
     toast.success("Brand is saved successfully!");
     setTimeout(() => {
-      navigate(SURVEY_ROUTES.SURVEY);
+      navigate(SURVEY_ROUTES.BASE);
     }, 1000);
   };
 

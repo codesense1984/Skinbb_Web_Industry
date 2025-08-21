@@ -1,22 +1,19 @@
 // src/modules/analytics/routes/constants.ts
+
+import { ROUTE } from "@/core/routes/constant";
+
+const ANALYTICS_BASE = "/analytics";
+const ANALYTIC_BASE = "/analytic";
+
 export const ANALYTICS_ROUTES = {
-  //   ROOT: "/analytics",
-  //   TAB: (tab: "brand" | "platform" | "ingredient" | ":tab" = ":tab") =>
-  //     `/analytics/${tab}`,
-
-  ANALYTICS: "/analytics",
-  BRAND: "/brand",
-  ANALYTIC: "/analytic",
-  PLATFORM: "/platform",
-  INGREDIENT: "/ingredient",
-
-  get PLATFORM_ANALYTIC() {
-    return `${this.ANALYTIC}${this.PLATFORM}`;
+  BASE: ANALYTICS_BASE,
+  PLATFORM: {
+    BASE: ROUTE.build(ANALYTIC_BASE, "platform"), // /analytic/platform
   },
-  get BRAND_ANALYTIC() {
-    return `${this.ANALYTIC}${this.BRAND}`;
+  BRAND: {
+    BASE: ROUTE.build(ANALYTIC_BASE, "brand"), // /analytic/brand
   },
-  get INGREDIENT_ANALYTIC() {
-    return `${this.ANALYTIC}${this.INGREDIENT}`;
+  INGREDIENT: {
+    BASE: ROUTE.build(ANALYTIC_BASE, "ingredient"), // /analytic/ingredient
   },
 };

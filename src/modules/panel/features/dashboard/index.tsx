@@ -64,11 +64,11 @@ const cardData: CardConfig[] = [
     buttons: [
       {
         name: "Platform",
-        href: `${ANALYTICS_ROUTES.PLATFORM_ANALYTIC}`,
+        href: `${ANALYTICS_ROUTES.PLATFORM.BASE}`,
       },
       {
         name: "Brand",
-        href: `${ANALYTICS_ROUTES.BRAND_ANALYTIC}`,
+        href: `${ANALYTICS_ROUTES.BRAND.BASE}`,
       },
     ],
     icon: (
@@ -91,7 +91,7 @@ const cardData: CardConfig[] = [
     title: "Survey",
     description:
       "Explore trends, ingredient interest, and competitive landscape analysis",
-    buttons: [{ name: "Explore", href: SURVEY_ROUTES.SURVEYS }],
+    buttons: [{ name: "Explore", href: SURVEY_ROUTES.LIST }],
     requiredRoles: [ROLE.ADMIN],
     icon: (
       <svg

@@ -11,15 +11,15 @@ import {
   SelectValue,
 } from "@/core/components/ui/select";
 import { PageContent } from "@/core/components/ui/structure";
+import { Tooltip } from "@/core/components/ui/tooltip";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
+import { ArrowsPointingOutIcon } from "@heroicons/react/24/outline";
+import { lazy, Suspense } from "react";
+import { NavLink, useLocation } from "react-router";
 import FocusIngredients from "./FocusIngredients";
 import FunctionalTrends from "./FunctionalTrends";
 import IngredientOvertime from "./IngredientOvertime";
 import TopCategoryTrends from "./TopCategoryTrends";
-import { Tooltip } from "@/core/components/ui/tooltip";
-import { ArrowsPointingOutIcon } from "@heroicons/react/24/outline";
-import { NavLink, useLocation } from "react-router";
-import { ROUTES } from "@/core/routes/routes.constant";
-import { lazy, Suspense } from "react";
 const RelationshipPreview = lazy(
   () => import("@/features/relationship-preview"),
 );
@@ -93,7 +93,9 @@ const Ingredient = () => {
         actions={
           <Tooltip title="Full Screen">
             <Button size={"icon"} variant={"ghost"} asChild>
-              <NavLink to={`${ROUTES.RELATIONSHIP_PREVIEW}${searchParams}`}>
+              <NavLink
+                to={`${PANEL_ROUTES.RELATIONSHIP_PREVIEW}${searchParams}`}
+              >
                 <ArrowsPointingOutIcon />
               </NavLink>
             </Button>

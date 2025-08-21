@@ -26,7 +26,7 @@ function SidebarItemLabel({ item }: { item: ItemInstance<SidebarItem> }) {
     () =>
       (!href || href !== location.pathname) &&
       (children?.some(isChildActive) ?? false),
-    [href, children, isChildActive],
+    [href, location.pathname, children, isChildActive],
   );
 
   const content = (

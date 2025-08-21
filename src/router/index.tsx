@@ -1,27 +1,48 @@
-import MainLayout from "@/core/layouts/main-layout";
-import NotFound from "@/features/not-found";
+import NotFound from "@/core/features/not-found";
 import { analyticsRoutes } from "@/modules/analytics/routes";
 import { authRoutes } from "@/modules/auth/routes";
-import { surveyRoutes } from "@/modules/survey/routes";
-import { lazy } from "react";
-import { createBrowserRouter } from "react-router";
-import { dashboardRoutes } from "../core/routes/dashboard.routes";
-import { dummyRoutes } from "../core/routes/dummy.routes";
-import { ROUTES } from "../core/routes/routes.constant";
+import PrivateRoute from "@/modules/auth/routes/PrivateRoute";
+import PublicRoute from "@/modules/auth/routes/PublicRoute";
 import { chatRoutes } from "@/modules/chat/routes";
+import { panelOpenRoutes, panelRoutes } from "@/modules/panel/routes";
+import { surveyRoutes } from "@/modules/survey/routes";
+import { createBrowserRouter, type RouteObject } from "react-router";
+
+/* ----------------------------- helpers ----------------------------- */
+
+// export function lazyWithPreload<T extends ComponentType<unknown>>(
+//   importFn: () => Promise<{ default: T }>,
+// ) {
+//   // const C = ReactLazy(importFn) as LazyExoticComponent<T> & {
+//   //   preload: () => Promise<{ default: T }>;
+//   // };
+//   // C.preload = importFn;
+//   return C
+// }
+
+const protectedRoutes: RouteObject = {
+  element: <PrivateRoute />,
+  children: [
+    {
+      children: [panelRoutes, surveyRoutes, analyticsRoutes, chatRoutes],
+    },
+  ],
+};
+
+const publicRoutes: RouteObject = {
+  element: <PublicRoute />,
+  children: [authRoutes],
+};
+
+const openRoutes = {
+  children: [...panelOpenRoutes],
+};
 
 // later you can import dashboardRoutes, brandRoutes, etc.
 export const appRoutes = createBrowserRouter([
-  authRoutes,
-  { Component: MainLayout, children: [surveyRoutes] },
-  dashboardRoutes,
-  analyticsRoutes,
-  chatRoutes,
-  ...dummyRoutes,
-  {
-    path: ROUTES.COMPANY_ONBOARD,
-    Component: lazy(() => import("@/features/company/onboard")),
-  },
+  publicRoutes,
+  openRoutes,
+  protectedRoutes,
   {
     path: "*",
     Component: NotFound,

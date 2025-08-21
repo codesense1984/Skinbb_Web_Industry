@@ -1,4 +1,4 @@
-import { ROUTES } from "@/core/routes/routes.constant";
+import { ROUTES } from "@/core/routes/constant";
 import {
   PAGE,
   PERMISSION,
@@ -11,6 +11,7 @@ import { SURVEY_ROUTES } from "@/modules/survey/routes/constant";
 import { BoltIcon, BuildingStorefrontIcon } from "@heroicons/react/24/outline";
 import React from "react";
 import type { MatchMode } from "@/modules/auth/components/guard";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 
 export interface SidebarItem {
   name: string;
@@ -64,7 +65,7 @@ export const rawItems: Readonly<Record<string, SidebarItem>> = {
       page: PAGE.BRANDS,
       action: [PERMISSION.VIEW],
     },
-    href: ROUTES.BRAND_LIST,
+    href: PANEL_ROUTES.BRAND.LIST,
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -83,7 +84,7 @@ export const rawItems: Readonly<Record<string, SidebarItem>> = {
   },
   company: {
     name: "company",
-    href: ROUTES.COMPANIES,
+    href: PANEL_ROUTES.COMPANY.LIST,
     requiredRoles: [ROLE.ADMIN],
     icon: (
       <svg
@@ -128,12 +129,12 @@ export const rawItems: Readonly<Record<string, SidebarItem>> = {
   },
   "platform analysis": {
     name: "Platform insight",
-    href: ANALYTICS_ROUTES.PLATFORM_ANALYTIC,
+    href: ANALYTICS_ROUTES.PLATFORM.BASE,
     requiredRoles: [ROLE.ADMIN],
   },
   "brand analysis": {
     name: "Brand insight",
-    href: ANALYTICS_ROUTES.BRAND_ANALYTIC,
+    href: ANALYTICS_ROUTES.BRAND.BASE,
     requiredRoles: [ROLE.ADMIN],
   },
   "user insight": {
@@ -148,7 +149,7 @@ export const rawItems: Readonly<Record<string, SidebarItem>> = {
   },
   "ingredient analysis": {
     name: "Ingredient insight",
-    href: ANALYTICS_ROUTES.INGREDIENT_ANALYTIC,
+    href: ANALYTICS_ROUTES.INGREDIENT.BASE,
     requiredRoles: [ROLE.ADMIN],
   },
   listing: {
@@ -205,7 +206,7 @@ export const rawItems: Readonly<Record<string, SidebarItem>> = {
     name: "surveys",
     requiredRoles: [ROLE.ADMIN],
 
-    href: SURVEY_ROUTES.SURVEYS,
+    href: SURVEY_ROUTES.LIST,
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -272,13 +273,13 @@ export const rawItems: Readonly<Record<string, SidebarItem>> = {
   },
   chat: {
     name: "chat",
-    href: ROUTES.CHAT,
+    href: PANEL_ROUTES.CHAT,
     icon: <BoltIcon />,
     requiredRoles: [ROLE.ADMIN],
   },
   formulationLooker: {
     name: "Formulation Looker",
-    href: ROUTES.INGREDIENT_DETAILS,
+    href: PANEL_ROUTES.INGREDIENT_DETAILS,
     requiredRoles: [ROLE.ADMIN],
     icon: <BuildingStorefrontIcon />,
   },

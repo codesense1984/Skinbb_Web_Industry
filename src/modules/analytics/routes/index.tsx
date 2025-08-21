@@ -5,19 +5,18 @@ import { ANALYTICS_ROUTES } from "./constants";
 
 export const analyticsRoutes: RouteObject = {
   Component: MainLayout,
-  path: ANALYTICS_ROUTES.ANALYTIC,
   // Component: lazy(() => import("@/features/analytics/dashboard")),
   children: [
     {
-      path: ANALYTICS_ROUTES.PLATFORM.slice(1),
+      path: ANALYTICS_ROUTES.PLATFORM.BASE,
       Component: lazy(() => import("@/modules/analytics/features/platform")),
     },
     {
-      path: ANALYTICS_ROUTES.BRAND.slice(1),
+      path: ANALYTICS_ROUTES.BRAND.BASE,
       Component: lazy(() => import("@/modules/analytics/features/brand")),
     },
     {
-      path: ANALYTICS_ROUTES.INGREDIENT.slice(1),
+      path: ANALYTICS_ROUTES.INGREDIENT.BASE,
       Component: lazy(() => import("@/modules/analytics/features/ingredient")),
     },
   ],
