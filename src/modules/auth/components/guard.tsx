@@ -1,7 +1,11 @@
 import type React from "react";
 import type { ReactNode } from "react";
 import { useAuth } from "../hooks/useAuth";
-import type { Permission, Role } from "../types/permission.type.";
+import type {
+  Permission,
+  PermissionElement,
+  Role,
+} from "../types/permission.type.";
 
 export type MatchMode = "any" | "all";
 
@@ -11,8 +15,8 @@ export type MatchMode = "any" | "all";
 
 export function hasPermission(
   permissions: Permission[] | undefined,
-  page: string,
-  actions?: string | string[],
+  page: Permission["page"],
+  actions?: PermissionElement | ReadonlyArray<PermissionElement>,
   mode: MatchMode = "any", // default OR
 ): boolean {
   if (!permissions) return false;
@@ -26,6 +30,7 @@ export function hasPermission(
   }
 
   const required = Array.isArray(actions) ? actions : [actions];
+
   if (mode === "all") {
     // AND: user must have every required action
     return required.every((a) => pagePerm.action.includes(a));
@@ -50,7 +55,7 @@ export function hasPermission(
 // // Check if user has any permission on "tags"
 // const canSeeTags = hasPermission(user.permissions, "tags");
 
-export function hasRole(userRole: string, allowedRoles: string[]) {
+export function hasRole(userRole: Role, allowedRoles: Role[]) {
   return allowedRoles.includes(userRole);
 }
 
@@ -83,60 +88,122 @@ export const WithRole: React.FC<Props> = ({
 //   <EditorDashboard />
 // </WithRole>
 
-/** ──────────────────────────────────────────────────────────────
- * WithPermission: accepts single or multiple actions + mode
- * ────────────────────────────────────────────────────────────── */
+type AccessLogic = "and" | "or";
 
-interface WithPermissionProps {
-  page: string;
-  /** Single action or list, e.g. "create" or ["create","update"] */
-  action?: string | string[];
-  /** "any" (OR) | "all" (AND). Default: "any" */
-  mode?: MatchMode;
-  children: ReactNode;
-  fallback?: ReactNode;
+type AccessCheckInput = {
+  /** From auth */
+  userRole?: Role;
+  userPermissions?: Permission[];
+
+  /** Role gate */
+  roles?: Role[]; // allowed roles (optional)
+
+  /** Permission gate */
+  page?: Permission["page"];
+  actions?: PermissionElement | ReadonlyArray<PermissionElement>;
+  mode?: MatchMode; // "any" | "all" for actions on a page (default "any")
+
+  /** How to combine role + permission checks when BOTH are provided. Default: "and" */
+  logic?: AccessLogic;
+};
+
+/**
+ * hasAccess: one-stop check for role and/or permission.
+ * - If only roles are provided → checks roles.
+ * - If only page/actions are provided → checks permissions.
+ * - If both are provided → combines using logic ("and" | "or"; default "and").
+ * - If neither is provided → returns false.
+ */
+export function hasAccess({
+  userRole,
+  userPermissions,
+  roles,
+  page,
+  actions,
+  mode = "any",
+  logic = "and",
+}: AccessCheckInput): boolean {
+  const hasRoleResult =
+    roles && roles.length > 0 && userRole
+      ? hasRole(userRole, roles)
+      : undefined;
+
+  const hasPermResult = page
+    ? hasPermission(userPermissions, page, actions, mode)
+    : undefined;
+
+  // nothing to check
+  if (hasRoleResult === undefined && hasPermResult === undefined) return false;
+
+  // only one side provided
+  if (hasRoleResult !== undefined && hasPermResult === undefined) {
+    return hasRoleResult;
+  }
+  if (hasRoleResult === undefined && hasPermResult !== undefined) {
+    return hasPermResult;
+  }
+
+  // both provided → combine
+  if (logic === "or") {
+    return Boolean(hasRoleResult || hasPermResult);
+  }
+  // default AND
+  return Boolean(hasRoleResult && hasPermResult);
 }
 
-export const WithPermission: React.FC<WithPermissionProps> = ({
+// // Only role-based
+// hasAccess({ userRole: role, roles: ["admin"] });
+
+// // Only permission-based
+// hasAccess({
+//   userPermissions,
+//   page: "posts",
+//   actions: ["create", "update"], // OR by default
+// });
+
+// // Role AND Permission (default)
+// hasAccess({
+//   userRole: role,
+//   roles: ["editor", "admin"],
+//   userPermissions,
+//   page: "posts",
+//   actions: "publish",
+//   mode: "all",
+// });
+
+// // Role OR Permission
+// hasAccess({
+//   userRole: role,
+//   roles: ["admin"],
+//   userPermissions,
+//   page: "reports",
+//   actions: "view",
+//   logic: "or",
+// });
+
+type WithAccessProps = Omit<AccessCheckInput, "userRole" | "permissions"> & {
+  children: ReactNode;
+  fallback?: ReactNode;
+};
+
+export const WithAccess: React.FC<WithAccessProps> = ({
+  roles,
   page,
-  action,
+  actions,
   mode = "any",
+  logic = "and",
   children,
   fallback = null,
 }) => {
-  // const permissions =
-  //   useSelector((state: RootState) => state.auth.user?.permissions) ?? [];
-  const { permissions } = useAuth();
-
-  const allowed = hasPermission(permissions, page, action, mode);
+  const { role: userRole, permissions } = useAuth();
+  const allowed = hasAccess({
+    userRole,
+    userPermissions: permissions,
+    roles,
+    page,
+    actions,
+    mode,
+    logic,
+  });
   return <>{allowed ? children : fallback}</>;
 };
-
-// // OR logic (default): create OR update
-// <WithPermission page="posts" action={["create", "update"]}>
-//   <Button>Save</Button>
-// </WithPermission>
-
-// // AND logic: must have BOTH create AND update
-// <WithPermission page="posts" action={["create", "update"]} mode="all">
-//   <Button>Publish</Button>
-// </WithPermission>
-
-// // Single action still works
-// <WithPermission page="categories" action="view">
-//   <CategoriesTable />
-// </WithPermission>
-
-// // No action passed → any access on page is enough
-// <WithPermission page="tags">
-//   <TagsPanel />
-// </WithPermission>
-
-// // Replace with disabled fallback when not allowed
-// <WithPermission
-//   page="posts"
-//   action={["delete", "update"]}
-//   fallback={<Button disabled>Restricted</Button>}
-// >
-//   <Button>Danger Zone</Button>
-// </WithPermission>

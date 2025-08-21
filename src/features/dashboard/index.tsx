@@ -2,15 +2,42 @@ import { BlobIcon, Button } from "@/core/components/ui/button";
 import { PageContent } from "@/core/components/ui/structure";
 import { cn } from "@/core/utils";
 import { ANALYTICS_ROUTES } from "@/modules/analytics/routes/constants";
+import { hasAccess, type MatchMode } from "@/modules/auth/components/guard";
+import { useAuth } from "@/modules/auth/hooks/useAuth";
+import {
+  PAGE,
+  PERMISSION,
+  ROLE,
+  type Permission,
+  type PermissionElement,
+  type Role,
+} from "@/modules/auth/types/permission.type.";
 import { SURVEY_ROUTES } from "@/modules/survey/routes/constant";
 import { Fragment, type ReactElement, type SVGProps } from "react";
 import { NavLink } from "react-router";
 
-const cardData = [
+type CardConfig = {
+  title: string;
+  description: string;
+  buttons: ButtonLink[];
+  icon: ReactElement<SVGProps<SVGSVGElement>>;
+  requiredRoles?: Role[];
+  requiredPermissions?: {
+    page: Permission["page"];
+    action?: PermissionElement | ReadonlyArray<PermissionElement>;
+    mode?: MatchMode;
+  };
+};
+
+const cardData: CardConfig[] = [
   {
     title: "Brands",
     description: "Discover top brands from around the world.",
     buttons: [{ name: "Explore", href: "/brands" }],
+    requiredPermissions: {
+      page: PAGE.BRANDS,
+      action: [PERMISSION.VIEW, PERMISSION.CREATE],
+    },
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -30,6 +57,7 @@ const cardData = [
   {
     title: "Analytics",
     description: "Dive into user behavior, demographics, and performance",
+    requiredRoles: [ROLE.ADMIN],
     buttons: [
       {
         name: "Platform",
@@ -61,6 +89,7 @@ const cardData = [
     description:
       "Explore trends, ingredient interest, and competitive landscape analysis",
     buttons: [{ name: "Explore", href: SURVEY_ROUTES.SURVEYS }],
+    requiredRoles: [ROLE.ADMIN],
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -82,6 +111,7 @@ const cardData = [
     description:
       "Create targeted campaigns and track promotion performance in real-time",
     buttons: [{ name: "Explore", href: "/brands" }],
+    requiredRoles: [ROLE.ADMIN],
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -102,6 +132,10 @@ const cardData = [
     title: "Listing",
     description:
       "Manage your product catalog, pricing, descriptions and media assets",
+    requiredPermissions: {
+      page: PAGE.PRODUCTS,
+      action: [PERMISSION.VIEW, PERMISSION.CREATE],
+    },
     buttons: [{ name: "Explore", href: "/brands" }],
     icon: (
       <svg
@@ -124,6 +158,7 @@ const cardData = [
     description:
       "Overview of earnings generated from product or service sales.",
     buttons: [{ name: "Explore", href: "/brands" }],
+    requiredRoles: [ROLE.ADMIN],
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -144,15 +179,28 @@ const cardData = [
 ];
 
 const Dashboard = () => {
-  // const authHook = useAuth();
-  // console.log("🚀 ~ Dashboard ~ authHook:", authHook);
+  const { user, role, permissions } = useAuth();
+
+  const visibleCards = cardData.filter((c) =>
+    hasAccess({
+      userRole: role,
+      userPermissions: permissions,
+      roles: c.requiredRoles,
+      page: c.requiredPermissions?.page,
+      actions: c.requiredPermissions?.action,
+      mode: c.requiredPermissions?.mode ?? "any",
+    }),
+  );
   return (
     <PageContent
       ariaLabel="dashboard"
       header={{
         title: (
           <>
-            Hi, Welcome back, <span className="text-primary">Karan Mange</span>{" "}
+            Hi, Welcome back,{" "}
+            <span className="text-primary">
+              {user?.firstName} {user?.lastName}
+            </span>{" "}
             👋
           </>
         ),
@@ -162,7 +210,7 @@ const Dashboard = () => {
       }}
     >
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
-        {cardData.map(({ title, description, buttons, icon }, index) => (
+        {visibleCards.map(({ title, description, buttons, icon }, index) => (
           <Card
             key={title}
             title={title}

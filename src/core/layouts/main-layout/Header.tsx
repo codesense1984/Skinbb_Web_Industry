@@ -6,11 +6,9 @@ import {
 } from "@/core/components/ui/avatar";
 import { Button } from "@/core/components/ui/button";
 import { DropdownMenu } from "@/core/components/ui/dropdown-menu";
-import { Input } from "@/core/components/ui/input";
 import { useSidebar } from "@/core/store/theme-provider";
 import { cn } from "@/core/utils";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
-import { BellIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { useEffect } from "react";
 import { NavLink } from "react-router";
 
@@ -85,21 +83,21 @@ const Header = () => {
           </NavLink>
         </div>
         <div className="flex items-center gap-1">
-          <Input
+          {/* <Input
             containerProps={{
               className: "hidden md:flex",
             }}
             startIcon={<MagnifyingGlassIcon />}
             placeholder="Search..."
-          />
+          /> */}
           <div>
-            <Button
+            {/* <Button
               variant="ghost"
               size="icon"
               className="text-muted-foreground md:hidden"
               startIcon={<MagnifyingGlassIcon />}
-            />
-            <Button
+            /> */}
+            {/* <Button
               variant="ghost"
               size="icon"
               className="text-muted-foreground"
@@ -129,7 +127,7 @@ const Header = () => {
                   d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
                 />
               </svg>
-            </Button>
+            </Button> */}
           </div>
           <DropdownMenu
             items={[
@@ -155,7 +153,7 @@ const Header = () => {
                 <AvatarImage src={profile} />
                 <AvatarFallback>{fullNameInitial}</AvatarFallback>
               </Avatar>
-              <div className="hidden space-y-0 leading-none md:block">
+              <div className="hidden space-y-0 text-left leading-none md:block">
                 <p className="text-foreground">{fullName}</p>
                 <p className="text-sm capitalize">{role}</p>
               </div>
