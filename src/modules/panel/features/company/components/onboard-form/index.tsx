@@ -33,9 +33,11 @@ import CompanyDetails from "./CompanyDetails";
 import { DocumentDetails } from "./DocumentDetails";
 import Start from "./Start";
 import Thankyou from "./Thankyou";
+import PersonalDetails from "./PersonalDetails";
 
 export enum StepKey {
   START = "start",
+  PERSONAL_INFORMATION = "personal_information",
   COMPANY_DETAILS = "company_information",
   ADDRESS_DETAILS = "address_information",
   DOCUMENTS_DETAILS = "documents_information",
@@ -45,11 +47,12 @@ export enum StepKey {
 
 const StepCount = {
   [StepKey.START]: 1,
-  [StepKey.COMPANY_DETAILS]: 2,
-  [StepKey.ADDRESS_DETAILS]: 3,
-  [StepKey.DOCUMENTS_DETAILS]: 4,
+  [StepKey.PERSONAL_INFORMATION]: 2,
+  [StepKey.COMPANY_DETAILS]: 3,
+  [StepKey.ADDRESS_DETAILS]: 4,
+  [StepKey.DOCUMENTS_DETAILS]: 5,
   // [StepKey.CONFIRMATION]: 5,
-  [StepKey.THANK_YOU]: 5,
+  [StepKey.THANK_YOU]: 6,
 };
 
 interface StepItem {
@@ -70,6 +73,15 @@ const STEPS: StepItem[] = [
     description:
       "Your journey with SkinBB starts here. We’re excited to have you on board!",
     Component: memo(Start),
+  },
+  {
+    step: StepCount[StepKey.PERSONAL_INFORMATION],
+    stepTitle: "Personal",
+    value: StepKey.PERSONAL_INFORMATION,
+    title: "Build your personal space",
+    description:
+      "Your journey with SkinBB starts here. We’re excited to have you on board!",
+    Component: memo(PersonalDetails),
   },
   {
     step: StepCount[StepKey.COMPANY_DETAILS],
@@ -115,6 +127,13 @@ const STEPS: StepItem[] = [
   },
 ];
 
+const formStep = [
+  StepCount[StepKey.PERSONAL_INFORMATION],
+  StepCount[StepKey.COMPANY_DETAILS],
+  StepCount[StepKey.ADDRESS_DETAILS],
+  StepCount[StepKey.DOCUMENTS_DETAILS],
+];
+
 interface OnBoardContextType {
   mode: MODE;
   goNext: () => void;
@@ -133,7 +152,7 @@ export const useOnBoardContext = () => {
 const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const currentValue =
-    (searchParams.get("step") as StepKey) || StepKey.COMPANY_DETAILS;
+    (searchParams.get("step") as StepKey) || StepKey.PERSONAL_INFORMATION;
 
   const [confirmation, setConfirmation] = useState<boolean>(false);
 
@@ -150,11 +169,7 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
   const isFirst = currentIndex === 0;
   const isStart = currentIndex === 0;
 
-  const isFormStep = [
-    StepCount[StepKey.COMPANY_DETAILS],
-    StepCount[StepKey.ADDRESS_DETAILS],
-    StepCount[StepKey.DOCUMENTS_DETAILS],
-  ].includes(currentItem?.step);
+  const isFormStep = formStep.includes(currentItem?.step);
 
   // const isConfirmation = currentItem.step === StepCount[StepKey.CONFIRMATION];
   const isThankYou = currentItem.step === StepCount[StepKey.THANK_YOU];
@@ -199,6 +214,12 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
     const values = watch();
 
     switch (sliceKey) {
+      case StepKey.PERSONAL_INFORMATION:
+        names = fullCompanyDetailsSchema
+          .personal_information({ mode })
+          .map((f) => f.name) as (keyof FullCompanyFormType)[];
+        break;
+
       case StepKey.COMPANY_DETAILS:
         names = fullCompanyDetailsSchema
           .company_information({ mode })
@@ -324,7 +345,7 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
                       }
                       className="gap-1"
                     >
-                      {[2, 3, 4].map((n) => (
+                      {formStep.map((n) => (
                         <StepperItem key={n} step={n} className="flex-1">
                           <StepperTrigger
                             className="w-full flex-col items-start gap-2"

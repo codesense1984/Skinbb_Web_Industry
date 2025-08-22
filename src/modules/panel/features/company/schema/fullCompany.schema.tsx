@@ -84,6 +84,20 @@ const DocumentSchema = z
 
 export const fullCompanyZodSchema = z
   .object({
+    name: z.string().min(1, "Name is required"),
+    email: z.string().email("Invalid email"),
+    phoneNumber: z.string().min(10, "Invalid phone"),
+    designation: z.string().min(1, "Designation is required"),
+    password: z
+      .string()
+      .nonempty("Password is required") // makes sure it's not empty
+      .min(8, "Password must be at least 8 characters")
+      .max(20, "Password must be at most 20 characters")
+      .regex(
+        /^(?![0-9])(?=.*[0-9])(?=.*[@#$%!*&])([^\s])+$/,
+        "Password must start with a non-digit, include at least one number, one special character (@#$%!*&), and contain no whitespace",
+      ),
+
     logo: z.any().optional().or(z.literal("")),
     logo_files: z.any().optional(),
 
@@ -188,9 +202,16 @@ export function fullCompanyDefaultValues(
   data?: Partial<FullCompanyFormType>,
 ): FullCompanyFormType {
   return {
+    // personal details
+    name: data?.name ?? "",
+    email: data?.email ?? "",
+    designation: data?.email ?? "",
+    password: data?.password ?? "",
+    phoneNumber: data?.phoneNumber ?? "",
+
+    // Step 1
     logo: data?.logo ?? "",
     logo_files: data?.logo_files ?? [],
-    // Step 1
     companyName: data?.companyName ?? "",
     category: data?.category ?? "",
     businessType: data?.businessType ?? "",
@@ -236,6 +257,7 @@ export function fullCompanyDefaultValues(
 type ModeProps = { mode: MODE };
 type FieldProps = {
   uploadImage: ModeProps;
+  [StepKey.PERSONAL_INFORMATION]: ModeProps;
   [StepKey.COMPANY_DETAILS]: ModeProps;
   [StepKey.DOCUMENTS_DETAILS]: ModeProps & {
     index: number;
@@ -255,6 +277,29 @@ export type FullCompanyDetailsSchemaProps = {
 };
 
 export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
+  personal_information: ({ mode }) => [
+    {
+      name: "name",
+      label: "Full Name",
+      type: INPUT_TYPES.TEXT,
+      placeholder: "Enter full name",
+      disabled: mode === MODE.VIEW,
+    },
+    {
+      name: "email",
+      label: "Email Address",
+      type: INPUT_TYPES.TEXT,
+      placeholder: "Enter email address",
+      disabled: mode === MODE.VIEW,
+    },
+    {
+      name: "designation",
+      label: "Designation",
+      type: INPUT_TYPES.TEXT,
+      placeholder: "Enter designation",
+      disabled: mode === MODE.VIEW,
+    },
+  ],
   uploadImage: ({ mode }) => [
     {
       name: "logo",

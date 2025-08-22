@@ -36,7 +36,7 @@ export function PageContent({
     <Tag
       aria-label={ariaLabel}
       className={cn(
-        "flex min-h-[calc(100dvh-56px)] flex-col gap-4 rounded-t-md inset-shadow-sm md:gap-6",
+        "min-h-[calc(100dvh-56px)] rounded-t-md inset-shadow-sm md:gap-6",
         !noPadding && "p-4 md:p-6",
         !hideGradient &&
           "bg-linear-150 from-[#FFBCA850] via-[#FAFAFA70] to-[#DBD3FF70]",
@@ -44,8 +44,10 @@ export function PageContent({
         className,
       )}
     >
-      {header && <PageHeader {...header} />}
-      {children}
+      <div className="mx-auto flex max-w-7xl flex-col gap-4">
+        {header && <PageHeader {...header} />}
+        {children}
+      </div>
     </Tag>
   );
 }

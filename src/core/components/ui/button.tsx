@@ -37,7 +37,7 @@ const buttonVariants = cva("btn", {
   defaultVariants: {
     variant: "contained",
     size: "md",
-    color: "default",
+    color: "primary",
     rounded: "md",
   },
   compoundVariants: [
