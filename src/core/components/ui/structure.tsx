@@ -37,14 +37,18 @@ export function PageContent({
       aria-label={ariaLabel}
       className={cn(
         "min-h-[calc(100dvh-56px)] rounded-t-md inset-shadow-sm md:gap-6",
-        !noPadding && "p-4 md:p-6",
         !hideGradient &&
           "bg-linear-150 from-[#FFBCA850] via-[#FAFAFA70] to-[#DBD3FF70]",
         showBorder && "border-t border-l",
         className,
       )}
     >
-      <div className="mx-auto flex max-w-7xl flex-col gap-4">
+      <div
+        className={cn(
+          "mx-auto flex min-h-[calc(100dvh-56px)] max-w-7xl flex-col gap-4",
+          !noPadding && "p-4 md:p-6",
+        )}
+      >
         {header && <PageHeader {...header} />}
         {children}
       </div>

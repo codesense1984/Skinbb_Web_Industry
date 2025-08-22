@@ -1,14 +1,20 @@
-import { Badge } from "@/core/components/ui/badge";
-import { Button } from "@/core/components/ui/button";
-import { PageContent } from "@/core/components/ui/structure";
-import { Textarea } from "@/core/components/ui/textarea";
-import { basePythonApiUrl } from "@/core/config/baseUrls";
+import { Badge } from "@components/ui/badge";
+import { Button } from "@components/ui/button";
+import { PageContent } from "@components/ui/structure";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@components/ui/accordion";
+import { Textarea } from "@components/ui/textarea";
 import {
   BuildingStorefrontIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
-import axios from "axios";
 import React, { useCallback, useMemo, useRef, useState } from "react";
+import axios from "axios";
+import { basePythonApiUrl } from "@/core/config/baseUrls";
 
 type AnalyzeRequest = { inci_names: string[] };
 
@@ -24,435 +30,1677 @@ type MatchedItem = {
   total_brand_inci: number;
 };
 
+type GroupItem = {
+  inci_list: string[];
+  items: MatchedItem[];
+  count: number;
+};
+
 type AnalyzeResponse = {
-  matched: MatchedItem[];
+  grouped: GroupItem[];
   unmatched: string[];
   overall_confidence: number; // 0..1
   processing_time: number; // 0..1
 };
 // const MOCK_RESPONSE: AnalyzeResponse = {
-//   matched: [
+//   grouped: [
 //     {
-//       ingredient_name: "Exfo-Bio",
-//       supplier_name: "Chemyunion",
-//       description:
-//         "Exfo-Bio is a fruit extract containing carbohydrates and alpha-hydroxy acids that stimulates gentle biological exfoliation through the intelligent cell renewal. It also stimulates the production of extracellular matrix and acts as a wrinkles and fine lines filler.",
-//       functionality_category_tree: [
-//         ["Skin Conditioning Agents", "Miscellaneous"],
+//       inci_list: ["carmine", "iron oxides", "mica", "titanium dioxide"],
+//       items: [
+//         {
+//           ingredient_name: "Cloisonne® Nu-Antique Red",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Cloisonne® Nu-Antique Red is composed of platelets of mica, titanium dioxide, iron oxides, and carmine. It is supplied as a grayish-red free-flowing powder. This product is recommended for use in color pigments for color cosmetic and personal care products.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Mixtures"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "carmine", "mica"],
+//           matched_count: 4,
+//           total_brand_inci: 4,
+//         },
+//         {
+//           ingredient_name: "Gemtone® Ruby",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Gemtone® Ruby is a precious jewel-like, rich earth tone pigment that produces a ruby color of liveliness and intensity. It is a mineral makeup that is ideally used where luster, dimensionality, and complex colors are desired, specifically eye shadow, facial makeup, liquid soaps, and lipstick applications. This product can be used alone or in conjunction with other effect pigments to create a myriad of color possibilities.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Mixtures"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "carmine", "mica"],
+//           matched_count: 4,
+//           total_brand_inci: 4,
+//         },
+//         {
+//           ingredient_name: "Gemtone® Garnet",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Gemtone® Garnet is a precious jewel, earth tone pigment that produces a garnet color of liveliness and intensity. It is a mineral makeup that is ideally used where luster, dimensionality, and complex colors are desired, specifically eye shadow, facial makeup, liquid soaps, and lipstick applications.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Mixtures"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "carmine", "mica"],
+//           matched_count: 4,
+//           total_brand_inci: 4,
+//         },
+//         {
+//           ingredient_name: "Gemtone® Sunstone",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Gemtone® Sunstone is an inorganic lustrous orange-yellow free flowing powder. It is ideal for use as a color pigment for color cosmetics and personal care products.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Mixtures"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "carmine", "mica"],
+//           matched_count: 4,
+//           total_brand_inci: 4,
+//         },
 //       ],
-//       chemical_class_category_tree: [["Botanical Products", "Derivatives"]],
-//       match_score: 1,
-//       matched_inci: [
-//         "benzyl alcohol",
-//         "glycerin",
-//         "mangifera indica (mango) pulp extract",
-//         "aqua",
-//         "potassium sorbate",
-//         "spondias mombin pulp extract",
-//         "musa sapientum (banana) pulp extract",
+//       count: 4,
+//     },
+//     {
+//       inci_list: ["iron oxides", "mica", "titanium dioxide"],
+//       items: [
+//         {
+//           ingredient_name: "Cloisonne® Rouge Flambé",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Cloisonne® Rouge Flambé contains an absorption colorant deposited on either a mica substrate or an interference pearl base. It is an enhancing pigment that imparts dramatic color and varied pearlescent effects to many types of cosmetics and personal care products. It is available in a variety of grades that provide different degrees of luster, ranging from a soft, satiny look to high sparkle.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Cloisonne® Gold",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Cloisonne® Gold is an enhancing pigment that imparts dramatic color and varied pearlescent effects to many types of cosmetics and personal care products. It is available in a variety of grades that provide different degrees of luster, ranging from a soft, satiny look to high sparkle.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Cloisonne® Monarch Gold",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Cloisonne® Monarch Gold is a lustrous yellow free-flowing powder. It is used in color pigments for color cosmetics and personal care products.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Cloisonne® Sparkle Gold",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Cloisonne® Sparkle Gold is an intense and lustrous pigment that adds a high degree of shimmer to a broad range of cosmetics and personal care products. Its large particle size makes it particularly well suited for dynamic, sparkly effects.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Cloisonne® Super Gold",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Cloisonne® Super Gold is an intermediate particle size interference pigment with superior chromaticity and metallic effects. It imparts dramatic color and varied pearlescent effects to many types of cosmetics and personal care products.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Cloisonne® Nu-Antique Bronze",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Cloisonne® Nu-Antique Bronze contains an absorption colorant deposited on either a mica substrate or an interference pearl base. It is an enhancing pigment that imparts dramatic color and varied pearlescent effects to many types of cosmetics and personal care products. It is available in a variety of grades that provide different degrees of luster, ranging from a soft, satiny look to high sparkle.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Cloisonne® Copper",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Cloisonne® Copper is an enhancing pigment that imparts dramatic color and varied pearlescent effects to many types of cosmetics and personal care products. It is available in a variety of grades that provide different degrees of luster, ranging from a soft, satiny look to high sparkle. In grades that use an interference base, the colorant is selected to reinforce the reflection color of the interference pigment. The result is a single dramatic reflection/transmission color.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Cloisonne® Nu-Antique Gold",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Cloisonne® Nu-Antique Gold contains an absorption colorant deposited on either a mica substrate or an interference pearl base. It is an enhancing pigment that imparts dramatic color and varied pearlescent effects to many types of cosmetics and personal care products. It is available in a variety of grades that provide different degrees of luster, ranging from a soft, satiny look to high sparkle.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Cloisonne® Nu-Antique Copper",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Cloisonne® Nu-Antique Copper contains an absorption colorant deposited on either a mica substrate or an interference pearl base. It is an enhancing pigment that imparts dramatic color and varied pearlescent effects to many types of cosmetics and personal care products. It is available in a variety of grades that provide different degrees of luster, ranging from a soft, satiny look to high sparkle.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Cloisonne® Golden Bronze",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Cloisonne® Golden Bronze is an enhancing pigment that imparts dramatic color and varied pearlescent effects to many types of cosmetics and personal care products. It is available in a variety of grades that provide different degrees of luster, ranging from a soft, satiny look to high sparkle.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Cloisonne® Nu-Antique Rouge Flambé",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Cloisonne® Nu-Antique Rouge Flambé contains an absorption colorant deposited on either a mica substrate or an interference pearl base. It is an enhancing pigment that imparts dramatic color and varied pearlescent effects to many types of cosmetics and personal care products. It is available in a variety of grades that provide different degrees of luster, ranging from a soft, satiny look to high sparkle.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Cloisonne® Orange",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Cloisonne® Orange contains an absorption colorant deposited on either a mica substrate or an interference pearl base. It is an enhancing pigment that imparts dramatic color and varied pearlescent effects to many types of cosmetics and personal care products. It is available in a variety of grades that provide different degrees of luster, ranging from a soft, satiny look to high sparkle.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Chromatique Silver Gray / MCM-4407",
+//           supplier_name: "Sandream Specialties",
+//           description:
+//             "Chromatique Silver Gray / MCM-4407 is a gray lustrous powder that is composed of Mica, Titanium Dioxide, and Iron Oxides. It is part of Impact Colors' Chromatique Colors Line of Products that provide intense and dramatic colors and a variety of pearlescent effects to many types of cosmetic and personal care products. Chromatique Pigments contain an absorption colorant deposited on either a mica substrate or an interference pearl base, providing a much more intense and rich color effect. In grades using an interference base, the colorant is selected to reinforce the reflection color of the interference pigment. The result is a single color dramatically enhanced through the reflection color complimenting the transition color.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Mixtures"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Chromatique Starlight Golden Brown / MCM-4383",
+//           supplier_name: "Sandream Specialties",
+//           description:
+//             "Chromatique Starlight Golden Brown / MCM-4383 is a mica based pearl pigment with a low micron size. This golden brown powder forms an intense and lustrous pearl pigment that is very smooth and attractive and gives an ideal look to eye shadows. This product has a particle size of 10-60μm.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Mixtures"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Chromatique Starlight Chestnut Brown / MCM-4389",
+//           supplier_name: "Sandream Specialties",
+//           description:
+//             "Chromatique Starlight Chestnut Brown / MCM-4389 is a tan lustrous powder that is composed of Mica, Titanium Dioxide, and Iron Oxides. It provides intense and dramatic colors and a variety of pearlescent effects to many types of cosmetic and personal care products. Chromatique Pigments contain an absorption colorant deposited on either a mica substrate or an interference pearl base, providing a much more intense and rich color effect. In grades using an interference base, the colorant is selected to reinforce the reflection color of the interference pigment. The result is a single color dramatically enhanced through the reflection color complimenting the transition color.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Chromatique Luster Black / MCM-4402",
+//           supplier_name: "Sandream Specialties",
+//           description:
+//             "Chromatique Luster Black / MCM-4402 is a mica based pearl pigment with a low micron size. This grey black powder forms an intense and lustrous pearl pigment that is very smooth and attractive and gives an ideal look to eye shadows. This product has a particle size of 10-60μm.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Mixtures"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Eldorado Gold Shimmer / MGL-351",
+//           supplier_name: "Sandream Specialties",
+//           description:
+//             "Eldorado Gold Shimmer / MGL-351 is a gold lustrous powder that is composed of Mica, Titanium Dioxide, and Iron Oxides. Eldorado Gold pigments are composed of mica coated with titanium dioxide and iron oxide. A wide array of gold shades is obtained by differing particle sizes and the ratio of iron oxide to titanium dioxide. Eldorado Gold pearls are useful for a wide variety of decorative cosmetic and personal care products where a golden luster or sparkle effect is desired. They can also be used in all types of gels or emulsions, either to provide a golden glitter effect in the product itself or a golden sheen when applied to the skin.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Eldorado Gold Satin / MGF-302",
+//           supplier_name: "Sandream Specialties",
+//           description:
+//             "Eldorado Gold Satin / MGF-302 is a gold lustrous powder that is composed of Mica, Titanium Dioxide, and Iron Oxides. Eldorado Gold pigments are composed of mica coated with titanium dioxide and iron oxide. A wide array of gold shades is obtained by differing particle sizes and the ratio of iron oxide to titanium dioxide. Eldorado Gold pearls are useful for a wide variety of decorative cosmetic and personal care products where a golden luster or sparkle effect is desired. They can also be used in all types of gels or emulsions, either to provide a golden glitter effect in the product itself or a golden sheen when applied to the skin.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Eldorado Sparkly Deep Gold / MGL-4315",
+//           supplier_name: "Sandream Specialties",
+//           description:
+//             "Eldorado Sparkly Deep Gold / MGL-4315 is a gold lustrous powder that is composed of Mica, Titanium Dioxide, and Iron Oxides. Eldorado Gold pigments are composed of mica coated with titanium dioxide and iron oxide. A wide array of gold shades is obtained by differing particle sizes and the ratio of iron oxide to titanium dioxide. Eldorado Gold pearls are useful for a wide variety of decorative cosmetic and personal care products where a golden luster or sparkle effect is desired. They can also be used in all types of gels or emulsions, either to provide a golden glitter effect in the product itself or a golden sheen when applied to the skin.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Gemtone® Moonstone",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Gemtone® Moonstone is a precious jewel-like, rich earth tone pigment that produces a moonstone color of liveliness and intensity. It is a mineral makeup that is ideally used where luster, dimensionality, and complex colors are desired, specifically eye shadow, facial makeup, liquid soaps, and lipstick applications. This product can be used alone or in conjunction with other effect pigments to create a myriad of color possibilities.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Mixtures"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Gemtone® Amber",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Gemtone® Amber is a precious jewel pigment that produces an amber color of liveliness and intensity. It is ideally used where luster, dimensionality, and complex colors are desired, specifically eye shadow, facial makeup, liquid soaps, and lipstick applications.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Gemtone® Tan Opal",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Gemtone® Tan Opal is a precious jewel-like, rich earth tone pigment that produces a tan opal color of liveliness and intensity. It is a mineral makeup that is ideally used where luster, dimensionality, and complex colors are desired, specifically eye shadow, facial makeup, liquid soaps, and lipstick applications. This product can be used alone or in conjunction with other effect pigments to create a myriad of color possibilities.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Mixtures"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Silk Gold",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Silk Gold has a fine particle size, and provides subtle luster for matte-type and low luster cosmetics and personal care formulations. It has the smallest particle size of any cosmetic grade interference colors, and provides excellent coverage and a fine, satin appearance.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Silk Red",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Silk Red has a fine particle size, and provides subtle luster for matte-type and low luster cosmetics and personal care formulations. It has the smallest particle size of any cosmetic grade interference colors, and provides excellent coverage and a fine, satin appearance.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Silk Green",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Silk Green has a fine particle size, and provides subtle luster for matte-type and low luster cosmetics and personal care formulations. It has the smallest particle size of any cosmetic grade interference colors, and provides excellent coverage and a fine, satin appearance.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "DP Classy Satin Gold / M3186",
+//           supplier_name: "Sandream Specialties",
+//           description:
+//             "DP Classy Satin Gold / M3186 is a mica based pearl pigment with a low micron size. This bright gold powder forms an intense and lustrous pearl pigment that is very smooth and attractive and gives an ideal look to eye shadows.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Mixtures"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Duocrome® YG",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Duocrome® YG is a two-toned make-up formula that offers an interplay of background and highlight colors, producing a distinctive two-toned look, that creates effects from sweet and playful to a pleasantly striking appearance. It is ideally used in color cosmetics and personal care products, delivering a jewel-like, antiqued-look,infusing finished formulation with  fashionable flare.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Duocrome® YR",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Duocrome® YR is a two-toned make-up formula that offers an interplay of background and highlight colors, producing a distinctive two-toned look, that creates effects from sweet and playful to a pleasantly striking appearance. It is ideally used in color cosmetics and personal care products, delivering a jewel-like, antiqued-look,infusing finished formulation with fashionable flare.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Colorona® Patina Silver",
+//           supplier_name: "Merck KGaA",
+//           description:
+//             "Colorona® Patina Silver is a pearlescent pigment with a graphite like silver luster. It is applicable in all kinds of color and care cosmetics.",
+//           functionality_category_tree: [],
+//           chemical_class_category_tree: [],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Colorona® Karat Gold MP-24",
+//           supplier_name: "Merck KGaA",
+//           description:
+//             "Colorona® Karat Gold MP-24 is a pearlescent effect pigment with a deep golden sparkle. It is applicable in all kinds of color and care cosmetics.",
+//           functionality_category_tree: [],
+//           chemical_class_category_tree: [],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Colorona® Ochre",
+//           supplier_name: "Merck KGaA",
+//           description:
+//             "Colorona® Ochre is a pastel hue of shimmering coral red. It is suitable for use in color cosmetics.",
+//           functionality_category_tree: [],
+//           chemical_class_category_tree: [],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Colorona® Sun Gold Sparkle MP-29",
+//           supplier_name: "Merck KGaA",
+//           description:
+//             "Colorona® Sun Gold Sparkle MP-29 is a pearlescent pigment with a deep golden sparkle. It is applicable in all kinds of color and care cosmetics.",
+//           functionality_category_tree: [],
+//           chemical_class_category_tree: [],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Colorona® Beige",
+//           supplier_name: "Merck KGaA",
+//           description:
+//             "Colorona® Beige emanates a silky shade of subtly lustrous beige that lends itself perfectly to match skin complexions.",
+//           functionality_category_tree: [],
+//           chemical_class_category_tree: [],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Colorona® Transgold MP-28",
+//           supplier_name: "Merck KGaA",
+//           description:
+//             "Colorona® Transgold MP-28 is a shade of bright, gold sparkle. It has a golden, powdery appearance that is suitable for use in color cosmetics.",
+//           functionality_category_tree: [],
+//           chemical_class_category_tree: [],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Colorona® Amber",
+//           supplier_name: "Merck KGaA",
+//           description:
+//             "Colorona® Amber is a shimmery tawny hue reminding us of the glistening surface of molten caramel.",
+//           functionality_category_tree: [],
+//           chemical_class_category_tree: [],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Colorona® Gold Plus MP-25",
+//           supplier_name: "Merck KGaA",
+//           description:
+//             "Colorona® Gold Plus MP-25 is a pearlescent effect pigment with a bright-golden sparkle. It is applicable in all kinds of color and care cosmetics.",
+//           functionality_category_tree: [],
+//           chemical_class_category_tree: [],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Colorona® Patina Gold",
+//           supplier_name: "Merck KGaA",
+//           description:
+//             "Colorona® Patina Gold is a pearlescent pigment with a rustic golden luster. It is applicable in all kinds of color and care cosmetics.",
+//           functionality_category_tree: [],
+//           chemical_class_category_tree: [],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Colorona® Red Gold",
+//           supplier_name: "Merck KGaA",
+//           description:
+//             "Colorona® Red Gold is a pearlescent effect pigment with a red-golden shimmer. It fits well in all kinds of color and care cosmetics.",
+//           functionality_category_tree: [],
+//           chemical_class_category_tree: [],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Colorona® Mica Black",
+//           supplier_name: "Merck KGaA",
+//           description:
+//             "Colorona® Mica Black is an effect pigment with a discreet shiny black appearance. It is applicable in all kinds of color and care cosmetics.",
+//           functionality_category_tree: [],
+//           chemical_class_category_tree: [],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "titanium dioxide", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
 //       ],
-//       matched_count: 7,
-//       total_brand_inci: 7,
+//       count: 39,
 //     },
 //     {
-//       ingredient_name: "Exfo-Bio",
-//       supplier_name: "Chemyunion",
-//       description:
-//         "Exfo-Bio is a fruit extract containing carbohydrates and alpha-hydroxy acids that stimulates gentle biological exfoliation through the intelligent cell renewal. It also stimulates the production of extracellular matrix and acts as a wrinkles and fine lines filler.",
-//       functionality_category_tree: [
-//         ["Skin Conditioning Agents", "Miscellaneous"],
+//       inci_list: ["carmine", "mica", "titanium dioxide"],
+//       items: [
+//         {
+//           ingredient_name: "Cloisonne® Super Red",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Cloisonne® Super Red is an intermediate particle size interference pigment with superior chromaticity and metallic effects. It imparts dramatic color and varied pearlescent effects to many types of cosmetics and personal care products.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "carmine", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Cloisonne® Sparkle Red",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Cloisonne® Sparkle Red is an intense and lustrous pigment that adds a high degree of shimmer to a broad range of cosmetics and personal care products. Its large particle size makes it particularly well suited for dynamic, sparkly effects.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "carmine", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Cloisonne® Red",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Cloisonne® Red is composed of platelets of mica coated with titanium dioxide and a small amount of carmine. It is a lustrous red-pink, free flowing powder designed for colored pigments for color cosmetic and personal care products.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Mixtures"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "carmine", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Duocrome® RV",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Duocrome® RV is a two-toned make-up formula that offers an interplay of background and highlight colors, producing a distinctive two-toned look, that creates effects from sweet and playful to a pleasantly striking appearance.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "carmine", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Duocrome® RB",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Duocrome® RB is a two-toned make-up formula that offers an interplay of background and highlight colors, producing a distinctive two-toned look, that creates effects from sweet and playful to pleasantly striking appearance.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "carmine", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Duocrome® RY",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Duocrome® RY is a two-toned make-up formula that offers an interplay of background and highlight colors, producing a distinctive two-toned look, that creates effects from sweet and playful to a pleasantly striking appearance.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "carmine", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Duocrome® RO",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Duocrome® RO is a two-toned make-up formula that offers an interplay of background and highlight colors, producing a distinctive two-toned look, that creates effects from sweet and playful to pleasantly striking appearance.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "carmine", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Duocrome® Sparkle RY",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Duocrome® Sparkle RY is a two-toned sparkling effect make-up formula that offers an interplay of background and highlight colors, producing a distinctive two-toned look, that creates effects from sweet and playful to a pleasantly striking appearance.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "carmine", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Colorona® RY",
+//           supplier_name: "Merck KGaA",
+//           description:
+//             "Colorona® RY is a two-tone pearlescent pigment with a pink-red and golden shimmer. It is applicable in all kinds of color and care cosmetics.",
+//           functionality_category_tree: [],
+//           chemical_class_category_tree: [],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "carmine", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
+//         {
+//           ingredient_name: "Colorona® Magenta",
+//           supplier_name: "Merck KGaA",
+//           description:
+//             "Colorona® Magenta is a pearlescent pigment with a violet-bluish shimmer. It is applicable in all kinds of color and care cosmetics.",
+//           functionality_category_tree: [],
+//           chemical_class_category_tree: [],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "carmine", "mica"],
+//           matched_count: 3,
+//           total_brand_inci: 3,
+//         },
 //       ],
-//       chemical_class_category_tree: [["Botanical Products", "Derivatives"]],
-//       match_score: 1,
-//       matched_inci: [
-//         "benzyl alcohol",
-//         "glycerin",
-//         "aqua",
-//         "mangifera indica (mango) pulp extract",
-//         "potassium sorbate",
-//         "spondias mombin pulp extract",
-//         "musa sapientum (banana) pulp extract",
+//       count: 10,
+//     },
+//     {
+//       inci_list: ["iron oxides", "mica"],
+//       items: [
+//         {
+//           ingredient_name: "Cloisonne® Sparkle Rouge",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Cloisonne® Sparkle Rouge is an intense and lustrous pigment that adds a high degree of shimmer to a broad range of cosmetics and personal care products. Its large particle size makes it particularly well suited for dynamic, sparkly effects.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Cloisonne® Sparkle Copper",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Cloisonne® Sparkle Copper is an intense and lustrous pigment that adds a high degree of shimmer to a broad range of cosmetics and personal care products. Its large particle size makes it particularly well suited for dynamic, sparkly effects.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Cloisonne® Super Rouge",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Cloisonne® Super Rouge is composed of platelets of mica coated with iron oxides. It is supplied as a lustrous red free-flowing powder. This product is recommended for use in color pigments for color cosmetic and personal care products.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Mixtures"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Cloisonne® Super Bronze",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Cloisonne® Super Bronze is an intermediate particle size interference pigment with superior chromaticity and metallic effects. It imparts dramatic color and varied pearlescent effects to many types of cosmetics and personal care products.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Cloisonne® Sparkle Bronze",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Cloisonne® Sparkle Bronze is platelets of mica and iron oxides. This powder is ideal for use in color pigments for color cosmetics and personal care products.",
+//           functionality_category_tree: [
+//             ["Colorants"],
+//             ["Opacifying", "Pearlizing Agents"],
+//           ],
+//           chemical_class_category_tree: [["Inorganics"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Cloisonne® Satin Rouge",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Cloisonne® Satin Rouge contains an absorption colorant deposited on either a mica substrate or an interference pearl base. It is an enhancing pigment that imparts dramatic color and varied pearlescent effects to many types of cosmetics and personal care products. It is available in a variety of grades that provide different degrees of luster, ranging from a soft, satiny look to high sparkle.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Cloisonne® Cerise Flambé",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Cloisonne® Cerise Flambé is an enhancing pigment that imparts dramatic color and varied pearlescent effects to many types of cosmetics and personal care products. It is available in a variety of grades that provide different degrees of luster, ranging from a soft, satiny look to high sparkle.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Cloisonne® Blue Flambé",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Cloisonne® Blue Flambé is an enhancing pigment that imparts dramatic color and varied pearlescent effects to many types of cosmetics and personal care products. It is available in a variety of grades that provide different degrees of luster, ranging from a soft, satiny look to high sparkle.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Cloisonne® Satin Bronze",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Cloisonne® Satin Bronze contains an absorption colorant deposited on either a mica substrate or an interference pearl base. It is an enhancing pigment that imparts dramatic color and varied pearlescent effects to many types of cosmetics and personal care products. It is available in a variety of grades that provide different degrees of luster, ranging from a soft, satiny look to high sparkle.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Chromatique Starlight Red Brown / MCF-4513",
+//           supplier_name: "Sandream Specialties",
+//           description:
+//             "Chromatique Starlight Red Brown / MCF-4513 is a copper lustrous powder that is composed of Mica and Iron Oxides. Chromatique Colors provide intense and dramatic colors and a variety of pearlescent effects to many types of cosmetic and personal care products. Chromatique Pigments contain an absorption colorant deposited on either a mica substrate or an interference pearl base, providing a much more intense and rich color effect. In grades using an interference base, the colorant is selected to reinforce the reflection color of the interference pigment. The result is a single color dramatically enhanced through the reflection color complimenting the transition color.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Eldorado Breen / MMM-509",
+//           supplier_name: "Sandream Specialties",
+//           description:
+//             "Eldorado Breen / MMM-509 is a green/brown lustrous powder that is composed of Mica and Iron Oxides. Eldorado Pigments can be used alone, blended together, or added as accents to other colors. They add metallic depth and highlights to eye shadow, eyeliners, lipsticks, nail enamels, shampoos, soaps, and many other personal care formulations. Many Eldorado Pigments are perfect for sun care products.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Eldorado Bronze Shimmer / MML-530",
+//           supplier_name: "Sandream Specialties",
+//           description:
+//             "Eldorado Bronze Shimmer / MML-530 is a tan lustrous powder that is composed of Mica and Iron Oxides. Eldorado Pigments can be used alone, blended together, or added as accents to other colors. They add metallic depth and highlights to eye shadow, eyeliners, lipsticks, nail enamels, shampoos, soaps, and many other personal care formulations. Many Eldorado Pigments are perfect for sun care products.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Eldorado Satin Bronze / MMF-520",
+//           supplier_name: "Sandream Specialties",
+//           description:
+//             "Eldorado Satin Bronze / MMF-520 is a copper lustrous powder that is composed of mica coated with titanium dioxide and iron oxide. Eldorado Pigments can be used alone, blended together, or added as accents to other colors. They add metallic depth and highlights to eye shadow, eyeliners, lipsticks, nail enamels, shampoos, soaps, and many other personal care formulations. Many Eldorado Pigments are perfect for sun care products.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Eldorado Satin Wine Red / MMF-524",
+//           supplier_name: "Sandream Specialties",
+//           description:
+//             "Eldorado Satin Wine Red / MMF-524 is a red lustrous powder that is composed of Mica and Iron Oxides. Eldorado Pigments can be used alone, blended together, or added as accents to other colors. They add metallic depth and highlights to eye shadow, eyeliners, lipsticks, nail enamels, shampoos, soaps, and many other personal care formulations. Many Eldorado Pigments are perfect for sun care products.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Eldorado Red-Brown / MMM-502",
+//           supplier_name: "Sandream Specialties",
+//           description:
+//             "Eldorado Red-Brown / MMM-502 is a red/gold lustrous powder that is composed of Mica and Iron Oxides and along with earth tone colors, offers deep warm tones. Eldorado Pigments can be used alone, blended together, or added as accents to other colors. They add metallic depth and highlights to eye shadow, eyeliners, lipsticks, nail enamels, shampoos, soaps, and many other personal care formulations. Many Eldorado Pigments are perfect for sun care products.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Eldorado Satin Mauve / MMF-525",
+//           supplier_name: "Sandream Specialties",
+//           description:
+//             "Eldorado Satin Mauve / MMF-525 is a red lustrous powder that is composed of Mica and Iron Oxides. Eldorado Pigments can be used alone, blended together, or added as accents to other colors. They add metallic depth and highlights to eye shadow, eyeliners, lipsticks, nail enamels, shampoos, soaps, and many other personal care formulations. Many Eldorado Pigments are perfect for sun care products.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Eldorado Wine Red Glitter / MML-534",
+//           supplier_name: "Sandream Specialties",
+//           description:
+//             "Eldorado Wine Red Glitter / MML-534 is a red lustrous powder that is composed of Mica and Iron Oxides and along with earth tone colors, offers deep warm tones. Eldorado Pigments can be used alone, blended together, or added as accents to other colors. They add metallic depth and highlights to eye shadow, eyeliners, lipsticks, nail enamels, shampoos, soaps, and many other personal care formulations. Many Eldorado Pigments are perfect for sun care products.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Eldorado Mauve / MMM-505",
+//           supplier_name: "Sandream Specialties",
+//           description:
+//             "Eldorado Mauve / MMM-505 is a red lustrous powder that is composed of Mica and Iron Oxides. Eldorado Pigments can be used alone, blended together, or added as accents to other colors. They add metallic depth and highlights to eye shadow, eyeliners, lipsticks, nail enamels, shampoos, soaps, and many other personal care formulations. Many Eldorado Pigments are perfect for sun care products.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Eldorado Reddish Brown / MMM-510",
+//           supplier_name: "Sandream Specialties",
+//           description:
+//             "Eldorado Reddish Brown / MMM-510 is a red/brown lustrous powder that is composed of Mica and Iron Oxides. Eldorado Pigments can be used alone, blended together, or added as accents to other colors. They add metallic depth and highlights to eye shadow, eyeliners, lipsticks, nail enamels, shampoos, soaps, and many other personal care formulations. Many Eldorado Pigments are perfect for sun care products.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "DP Bronze M5000",
+//           supplier_name: "Sandream Specialties",
+//           description:
+//             "DP Bronze / M5000 is a tan lustrous powder that is composed of Mica and Iron Oxides. Metallic Pigments can be used alone, blended together, or added as accents to other colors. They add metallic depth and highlights to eye shadow, eyeliners, lipsticks, nail enamels, shampoos, soaps, and many other personal care formulations. They are perfect for sun care products.",
+//           functionality_category_tree: [
+//             ["Colorants"],
+//             ["Opacifying", "Pearlizing Agents"],
+//           ],
+//           chemical_class_category_tree: [["Color Additives"], ["Inorganics"]],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Colorona® Bronze Sparkle",
+//           supplier_name: "Merck KGaA",
+//           description:
+//             "Colorona® Bronze Sparkle is a pearlescent pigment with a golden-brown sparkle effect. It fits well in all kinds of color and care cosmetics.",
+//           functionality_category_tree: [],
+//           chemical_class_category_tree: [],
+//           match_score: 1,
+//           matched_inci: ["iron oxides", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
 //       ],
-//       matched_count: 7,
-//       total_brand_inci: 7,
+//       count: 21,
 //     },
 //     {
-//       ingredient_name: "euxyl® K 700",
-//       supplier_name: "DKSH",
-//       description:
-//         "euxyl® K 700 from Ashland is a liquid cosmetic preservative, which can be used in leave-on as well as rinse-off products. It was developed for use in cosmetic formulations with a skin-friendly pH value up to 5.5. euxyl® K 700 has a broad, balanced spectrum of effect against bacteria, yeasts and mould fungi as well as a good vapour phase effectiveness. As a result of the special preparation, the tendency to discolouration known for sorbic acid can be reduced or prevented. In addition euxyl® K 700 can be stored for a longer period.",
-//       functionality_category_tree: [
-//         ["Oral Care Agents"],
-//         ["Antioxidants"],
-//         ["Fragrance Ingredients"],
-//         ["Skin Conditioning Agents", "Miscellaneous"],
-//         ["Skin Conditioning Agents", "Occlusives"],
-//         ["Preservatives"],
-//         ["Solvents"],
-//         ["Viscosity Modifiers", "Decreasing"],
-//         ["External Analgesics"],
+//       inci_list: ["mica", "titanium dioxide"],
+//       items: [
+//         {
+//           ingredient_name: "Cosmetica® Shimmering White N-8000E",
+//           supplier_name: "DKSH",
+//           description:
+//             "Cosmetica® Shimmering White N-8000E is a fine silk white, free-flowing powder.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Mixtures"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Cosmetica® Fine White N-8000D",
+//           supplier_name: "DKSH",
+//           description:
+//             "Cosmetica® Fine White N-8000D is a fine silk white, free-flowing powder.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Mixtures"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Cosmetica® Super White N-8000S",
+//           supplier_name: "DKSH",
+//           description:
+//             "Cosmetica® Super White N-8000S is a brilliant silver white, free-flowing powder.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Mixtures"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Cosmetica® Velvet White N-8000F",
+//           supplier_name: "DKSH",
+//           description:
+//             "Cosmetica® Velvet White N-8000F is a fine silk white, free-flowing powder.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Mixtures"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Geopearl® C Bright Silver",
+//           supplier_name: "Geotech International B.V.",
+//           description:
+//             "Geopearl® C Bright Silver is a silver/white natural mica based pearlescent pigment for cosmetic products. Resulting from reflected, refracted and transmitted light patterns developed at the multiple interfaces between layers, Geopearl® C pearlescent pigments provide unsurpassed performance in brightness and colour play. Geopearl® C pearlescent pigments create an infinite range of visual effects that capture your eyes and give unrivaled elegance to cosmetic products.",
+//           functionality_category_tree: [
+//             ["Bulking Agents"],
+//             ["Anti", "Caking Agents"],
+//             ["Colorants"],
+//             ["Opacifying", "Pearlizing Agents"],
+//             ["Slip Modifiers"],
+//             ["Stabilizers", "Light Stabilizers"],
+//             ["Sunscreen Agents"],
+//           ],
+//           chemical_class_category_tree: [["Mixtures"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Blue",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Blue is a pearlescent and iridescent pigment for color cosmetics and personal care products, and can be used to create lustrous or opalescent effects. This product uses thin, precisely controlled films of titanium dioxide on mica to separate white light into its component parts and produce dual colors, one by reflection one by transmission, that then appear as iridescence.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Pearl",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Pearl is a pearlescent and iridescent pigment for color cosmetics and personal care products, and can be used to create lustrous or opalescent effects. This product uses thin, precisely controlled films of titanium dioxide on mica to separate white light into its component parts and produce dual colors, one by reflection one by transmission, that then appear as iridescence.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Gold",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Gold is a pearlescent and iridescent pigment for color cosmetics and personal care products, and can be used to create lustrous or opalescent effects. This product uses thin, precisely controlled films of titanium dioxide on mica to separate white light into its component parts and produce dual colors, one by reflection one by transmission, that then appear as iridescence.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Geopearl® C Sparkling Silver",
+//           supplier_name: "Geotech International B.V.",
+//           description:
+//             "Geopearl® C Sparkling Silver is a silver/white natural mica based pearlescent pigment for cosmetic products. Resulting from reflected, refracted and transmitted light patterns developed at the multiple interfaces between layers, Geopearl® C pearlescent pigments provide unsurpassed performance in brightness and colour play. Geopearl® C pearlescent pigments create an infinite range of visual effects that capture your eyes and give unrivaled elegance to cosmetic products.",
+//           functionality_category_tree: [
+//             ["Bulking Agents"],
+//             ["Anti", "Caking Agents"],
+//             ["Colorants"],
+//             ["Opacifying", "Pearlizing Agents"],
+//             ["Slip Modifiers"],
+//             ["Stabilizers", "Light Stabilizers"],
+//             ["Sunscreen Agents"],
+//           ],
+//           chemical_class_category_tree: [["Mixtures"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Green",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Green is a pearlescent and iridescent pigment for color cosmetics and personal care products, and can be used to create lustrous or opalescent effects. This product uses thin, precisely controlled films of titanium dioxide on mica to separate white light into its component parts and produce dual colors, one by reflection one by transmission, that then appear as iridescence.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Geopearl® C Silk Silver",
+//           supplier_name: "Geotech International B.V.",
+//           description:
+//             "Geopearl® C Silk Silver is a silver/white natural mica based pearlescent pigment for cosmetic products. Resulting from reflected, refracted and transmitted light patterns developed at the multiple interfaces between layers, Geopearl® C pearlescent pigments provide unsurpassed performance in brightness and colour play. Geopearl® C pearlescent pigments create an infinite range of visual effects that capture your eyes and give unrivaled elegance to cosmetic products.",
+//           functionality_category_tree: [
+//             ["Bulking Agents"],
+//             ["Anti", "Caking Agents"],
+//             ["Colorants"],
+//             ["Opacifying", "Pearlizing Agents"],
+//             ["Slip Modifiers"],
+//             ["Stabilizers", "Light Stabilizers"],
+//             ["Sunscreen Agents"],
+//           ],
+//           chemical_class_category_tree: [["Mixtures"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Orange",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Orange is a pearlescent and iridescent pigment for color cosmetics and personal care products, and can be used to create lustrous or opalescent effects. This product uses thin, precisely controlled films of titanium dioxide on mica to separate white light into its component parts and produce dual colors, one by reflection one by transmission, that then appear as iridescence.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Geopearl® C Twinkling Silver",
+//           supplier_name: "Geotech International B.V.",
+//           description:
+//             "Geopearl® C Twinkling Silver is a silver/white natural mica-based pearlescent pigment for cosmetic products. Resulting from reflected, refracted and transmitted light patterns developed at the multiple interfaces between layers, Geopearl® C pearlescent pigments provide unsurpassed performance in brightness and colour play. Geopearl® C pearlescent pigments create an infinite range of visual effects that capture your eyes and give unrivaled elegance to cosmetic products.",
+//           functionality_category_tree: [
+//             ["Bulking Agents"],
+//             ["Anti", "Caking Agents"],
+//             ["Colorants"],
+//             ["Opacifying", "Pearlizing Agents"],
+//             ["Slip Modifiers"],
+//             ["Stabilizers", "Light Stabilizers"],
+//             ["Sunscreen Agents"],
+//           ],
+//           chemical_class_category_tree: [["Mixtures"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Satina",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Satina is a pearlescent and iridescent pigment for color cosmetics and personal care products, and can be used to create lustrous or opalescent effects. This product uses thin, precisely controlled films of titanium dioxide on mica to separate white light into its component parts and produce dual colors, one by reflection one by transmission, that then appear as iridescence. Flamenco® Satina offers increased levels of luster, creating a smooth, silky effect while offering great coverage and superior whiteness.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Mixtures"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Geopearl® C Soft Silver",
+//           supplier_name: "Geotech International B.V.",
+//           description:
+//             "Geopearl® C Soft Silver is a silver/white natural mica based pearlescent pigment for cosmetic products. Resulting from reflected, refracted and transmitted light patterns developed at the multiple interfaces between layers, Geopearl® C pearlescent pigments provide unsurpassed performance in brightness and colour play. Geopearl® C pearlescent pigments create an infinite range of visual effects that capture your eyes and give unrivaled elegance to cosmetic products.",
+//           functionality_category_tree: [
+//             ["Bulking Agents"],
+//             ["Anti", "Caking Agents"],
+//             ["Colorants"],
+//             ["Opacifying", "Pearlizing Agents"],
+//             ["Slip Modifiers"],
+//             ["Stabilizers", "Light Stabilizers"],
+//             ["Sunscreen Agents"],
+//           ],
+//           chemical_class_category_tree: [["Mixtures"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Geopearl® C Silver",
+//           supplier_name: "Geotech International B.V.",
+//           description:
+//             "Geopearl® C Silver is an off-white free flowing powder with a pearly reflection. It consists of platelets of mica coated with titanium dioxide and iron oxide, and is ideal for use in the cosmetics industry. Geopearl® C pearlescent pigments disperse well without grinding. They can be added to the powder system while stirring after milling of the organic/inorganic pigments and before the binder is added.",
+//           functionality_category_tree: [
+//             ["Colorants"],
+//             ["Opacifying", "Pearlizing Agents"],
+//             ["Stabilizers", "Light Stabilizers"],
+//             ["Sunscreen Agents"],
+//           ],
+//           chemical_class_category_tree: [["Color Additives"], ["Inorganics"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Sparkle Red",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Sparkle Red is a large particle size effect pigment that adds shimmer and glitter to all types of cosmetics and personal care products. This dispersible powder retains high color intensity, making it ideal for formulations that call for complex color interplay and a glittery appearance.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Red",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Red is a pearlescent and iridescent pigment for color cosmetics and personal care products, and can be used to create lustrous or opalescent effects. This product uses thin, precisely controlled films of titanium dioxide on mica to separate white light into its component parts and produce dual colors, one by reflection one by transmission, that then appear as iridescence.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Silk Orange",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Silk Orange has a fine particle size, and provides subtle luster for matte-type and low luster cosmetics and personal care formulations. It has the smallest particle size of any cosmetic grade interference colors, and provides excellent coverage and a fine, satin appearance.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Mixtures"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Summit Blue",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Summit Blue is an intermediate particle size interference effect pigment that features increased chromaticity at the reflection angle as well as high color purity and clarity. Flamenco® Summit Blue creates dramatic visual effects in all types of cosmetic and personal care products. This products possess attributes that create cleaner shades, more saturated color and stronger angle-dependent interference effects.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Summit Green",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Summit Green is an intermediate particle size interference effect pigment that features increased chromaticity at the reflection angle as well as high color purity and clarity. It creates dramatic visual effects in all types of cosmetic and personal care products. This products possess attributes that create cleaner shades, more saturated color and stronger angle-dependent interference effects.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Sparkle Violet",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Sparkle Violet is a large particle size effect pigment that adds shimmer and glitter to all types of cosmetics and personal care products. This dispersible powder retains high color intensity, making it ideal for formulations that call for complex color interplay and a glittery appearance.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Sparkle Orange",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Sparkle Orange is a large particle size effect pigment that adds shimmer and glitter to all types of cosmetics and personal care products. This dispersible powder retains high color intensity, making it ideal for formulations that call for complex color interplay and a glittery appearance.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Silk Violet",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Silk Violet has a fine particle size, and provides subtle luster for matte-type and low luster cosmetics and personal care formulations. It has the smallest particle size of any cosmetic grade interference colors, and provides excellent coverage and a fine, satin appearance.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Sparkle Green",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Sparkle Green is a large particle size effect pigment that adds shimmer and glitter to all types of cosmetics and personal care products. This dispersible powder retains high color intensity, making it ideal for formulations that call for complex color interplay and a glittery appearance.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Summit Gold",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Summit Gold is an intermediate particle size interference effect pigment that features increased chromaticity at the reflection angle as well as high color purity and clarity. Flamenco® Summit Gold creates dramatic visual effects in all types of cosmetic and personal care products. This products possess attributes that create cleaner shades, more saturated color and stronger angle-dependent interference effects.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Sparkle Blue",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Sparkle Blue is a large particle size effect pigment that adds shimmer and glitter to all types of cosmetics and personal care products. This dispersible powder retains high color intensity, making it ideal for formulations that call for complex color interplay and a glittery appearance.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Satin Pearl",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Satin Pearl is a pearlescent and iridescent pigment for color cosmetics and personal care products, and can be used to create lustrous or opalescent effects. This product uses thin, precisely controlled films of titanium dioxide on mica to separate white light into its component parts and produce dual colors, one by reflection one by transmission, that then appear as iridescence.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Mixtures"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Sparkle Gold",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Sparkle Gold is a large particle size effect pigment that adds shimmer and glitter to all types of cosmetics and personal care products. This dispersible powder retains high color intensity, making it ideal for formulations that call for complex color interplay and a glittery appearance.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Super Blue",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Super Blue is an intermediate particle size interference pigment that can be used alone or combined with other colorants to create novel effects in all types of cosmetics and personal care products. The effects possible with this pigment cannot be matched by conventional pigments and dyes.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Violet",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Violet is a pigment that uses thin, precisely controlled films of titanium dioxide on mica to separate white light into its component parts and produce dual colors, one by reflection one by transmission, that then appear as iridescence. It has a small particle size that produces more subtle luminous effects, including shimmer and sparkle.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Ultra Sparkle",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Ultra Sparkle is a white effect enhancing pigment of titanium dioxide-coated mica platelets. It is used to create lustrous or opalescent effects in all types of cosmetics and personal products.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Super Violet",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Super Violet is an intermediate particle size interference pigment that can be used alone or combined with other colorants to create novel effects in all types of cosmetics and personal care products. The effects possible with this pigment cannot be matched by conventional pigments and dyes.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Velvet",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Velvet is a white effect enhancing pigment of titanium dioxide-coated mica platelets. It is used to create lustrous or opalescent effects in all types of cosmetics and personal products.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Ultra Silk",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Ultra Silk is a white effect enhancing pigment of titanium dioxide-coated mica platelets. It is used to create lustrous or opalescent effects in all types of cosmetics and personal products.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Super Pearl",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Super Pearl is a white effect enhancing pigment of titanium dioxide-coated mica platelets. It is used to create lustrous or opalescent effects in all types of cosmetics and personal products.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Summit Turquoise",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Summit Turquoise is an intermediate particle size interference effect pigment that features increased chromaticity at the reflection angle as well as high color purity and clarity. It creates dramatic visual effects in all types of cosmetic and personal care products. This products possess attributes that create cleaner shades, more saturated color and stronger angle-dependent interference effects.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Geopearl® C Blue",
+//           supplier_name: "Geotech International B.V.",
+//           description:
+//             "Geopearl® C Blue is an off-white free flowing powder with a blue reflection. It consists of platelets of mica coated with titanium dioxide, and is ideal for use in the cosmetics industry. Geopearl® C pearlescent pigments disperse well without grinding. They can be added to the powder system while stirring after milling of the organic/inorganic pigments and before the binder is added.",
+//           functionality_category_tree: [
+//             ["Colorants"],
+//             ["Opacifying", "Pearlizing Agents"],
+//             ["Stabilizers", "Light Stabilizers"],
+//             ["Sunscreen Agents"],
+//           ],
+//           chemical_class_category_tree: [["Color Additives"], ["Inorganics"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Geopearl® C Glittering Silver",
+//           supplier_name: "Geotech International B.V.",
+//           description:
+//             "Geopearl® C Glittering Silver is a silver/white natural mica based pearlescent pigment for cosmetic products. Resulting from reflected, refracted and transmitted light patterns developed at the multiple interfaces between layers, Geopearl® C pearlescent pigments provide unsurpassed performance in brightness and colour play. Geopearl® C pearlescent pigments create an infinite range of visual effects that capture your eyes and give unrivaled elegance to cosmetic products.",
+//           functionality_category_tree: [
+//             ["Bulking Agents"],
+//             ["Anti", "Caking Agents"],
+//             ["Colorants"],
+//             ["Opacifying", "Pearlizing Agents"],
+//             ["Slip Modifiers"],
+//             ["Stabilizers", "Light Stabilizers"],
+//             ["Sunscreen Agents"],
+//           ],
+//           chemical_class_category_tree: [["Mixtures"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Super Gold",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Super Gold is an intermediate particle size interference pigment that can be used alone or combined with other colorants to create novel effects in all types of cosmetics and personal care products. The effects possible with this pigment cannot be matched by conventional pigments and dyes.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Geopearl® C Gold",
+//           supplier_name: "Geotech International B.V.",
+//           description:
+//             "Geopearl® C Gold is an off-white free flowing powder with a gold reflection. It consists of platelets of mica coated with titanium dioxide, and is ideal for use in the cosmetics industry. Geopearl® C pearlescent pigments disperse well without grinding. They can be added to the powder system while stirring after milling of the organic/inorganic pigments and before the binder is added.",
+//           functionality_category_tree: [
+//             ["Colorants"],
+//             ["Opacifying", "Pearlizing Agents"],
+//             ["Stabilizers", "Light Stabilizers"],
+//             ["Sunscreen Agents"],
+//           ],
+//           chemical_class_category_tree: [["Color Additives"], ["Inorganics"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Summit Red",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Summit Red is an intermediate particle size interference effect pigment that features increased chromaticity at the reflection angle as well as high color purity and clarity. It creates dramatic visual effects in all types of cosmetic and personal care products. This products possess attributes that create cleaner shades, more saturated color and stronger angle-dependent interference effects.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Flamenco® Super Red",
+//           supplier_name: "Sun Chemical",
+//           description:
+//             "Flamenco® Super Red is an intermediate particle size interference pigment that can be used alone or combined with other colorants to create novel effects in all types of cosmetics and personal care products. The effects possible with this pigment cannot be matched by conventional pigments and dyes.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Color Additives"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "DP Silver White / M1041",
+//           supplier_name: "Sandream Specialties",
+//           description:
+//             "DP Silver White / M1041 is a mica based pearl pigment with a low micron size. This silvery white powder forms an intense and lustrous pearl pigment that is very smooth and attractive and gives an ideal look to eye shadows.",
+//           functionality_category_tree: [["Colorants"]],
+//           chemical_class_category_tree: [["Mixtures"]],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Cosmetica Velvet White N-8000F",
+//           supplier_name: "DKSH",
+//           description:
+//             "Cosmetica Velvet White N-8000F is a natural mica based pearl pigment. It offers more whiteness and an excellent brilliant reflection and sparkling effect. It is care free from heavy metal regulation has high luster, excellent chroma and high transparency and purity. Cosmetica Velvet White N-8000F has cosmetic applications for lipstick eye shadow and blush, nail arts and bath and body products.",
+//           functionality_category_tree: [],
+//           chemical_class_category_tree: [],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Cosmetica Shimmering White N-8000E",
+//           supplier_name: "DKSH",
+//           description:
+//             "Cosmetica Shimmering White N-8000E is a natural mica based pearl pigment. It offers more whiteness and an excellent brilliant reflection and sparkling effect. It is care free from heavy metal regulation has high luster, excellent chroma and high transparency and purity. Cosmetica Shimmering White N-8000E has cosmetic applications for lipstick eye shadow and blush, nail arts and bath and body products.",
+//           functionality_category_tree: [],
+//           chemical_class_category_tree: [],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Cosmetica Fine White N-8000D",
+//           supplier_name: "DKSH",
+//           description:
+//             "Cosmetica Fine White N-8000D is a natural mica based pearl pigment. It offers more whiteness and an excellent brilliant reflection and sparkling effect. It is care free from heavy metal regulation has high luster, excellent chroma and high transparency and purity. Cosmetica Fine White N-8000D has cosmetic applications for lipstick eye shadow and blush, nail arts and bath and body products.",
+//           functionality_category_tree: [],
+//           chemical_class_category_tree: [],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Colorona® Fine Gold MP-20",
+//           supplier_name: "Merck KGaA",
+//           description:
+//             "Colorona® Fine Gold MP-20 is a pearlescent effect pigment with a satiny golden shine. It is applicable in all kinds of color and care cosmetics.",
+//           functionality_category_tree: [],
+//           chemical_class_category_tree: [],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
+//         {
+//           ingredient_name: "Cosmetica Super White N-8000S",
+//           supplier_name: "DKSH",
+//           description:
+//             "Cosmetica Super White N-8000S is a natural mica based pearl pigment. It offers more whiteness and an excellent brilliant reflection and sparkling effect. It is care free from heavy metal regulation has high luster, excellent chroma and high transparency and purity. Cosmetica Super White N-8000S has cosmetic applications for lipstick eye shadow and blush, nail arts and bath and body products.",
+//           functionality_category_tree: [],
+//           chemical_class_category_tree: [],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide", "mica"],
+//           matched_count: 2,
+//           total_brand_inci: 2,
+//         },
 //       ],
-//       chemical_class_category_tree: [["Mixtures"]],
-//       match_score: 1,
-//       matched_inci: [
-//         "phenoxyethanol",
-//         "tocopherol",
-//         "benzyl alcohol",
-//         "aqua",
-//         "potassium sorbate",
+//       count: 49,
+//     },
+//     {
+//       inci_list: ["iron oxides"],
+//       items: [
+//         {
+//           ingredient_name: "CreaYellow®",
+//           supplier_name: "The Innovation Company®",
+//           description:
+//             "CreaYellow® incorporates iron oxides. It has a yellow, powder appearance and a characteristic odor that is suitable for use in many personal care applications.",
+//           functionality_category_tree: [],
+//           chemical_class_category_tree: [],
+//           match_score: 1,
+//           matched_inci: ["iron oxides"],
+//           matched_count: 1,
+//           total_brand_inci: 1,
+//         },
+//         {
+//           ingredient_name: "Creablack® Super",
+//           supplier_name: "The Innovation Company®",
+//           description:
+//             "Creablack® Super incorporates iron oxides. It has a black, powder appearance with a characteristic odor that is suitable for use in many personal care applications.",
+//           functionality_category_tree: [],
+//           chemical_class_category_tree: [],
+//           match_score: 1,
+//           matched_inci: ["iron oxides"],
+//           matched_count: 1,
+//           total_brand_inci: 1,
+//         },
+//         {
+//           ingredient_name: "Creablack®",
+//           supplier_name: "The Innovation Company®",
+//           description:
+//             "Creablack® incorporates iron oxides. It has a black, powder appearance with a characteristic odor that is suitable for use in many personal care applications.",
+//           functionality_category_tree: [],
+//           chemical_class_category_tree: [],
+//           match_score: 1,
+//           matched_inci: ["iron oxides"],
+//           matched_count: 1,
+//           total_brand_inci: 1,
+//         },
 //       ],
-//       matched_count: 5,
-//       total_brand_inci: 5,
+//       count: 3,
 //     },
 //     {
-//       ingredient_name: "euxyl® K 700",
-//       supplier_name: "DKSH",
-//       description:
-//         "euxyl® K 700 from Ashland is a liquid cosmetic preservative, which can be used in leave-on as well as rinse-off products. It was developed for use in cosmetic formulations with a skin-friendly pH value up to 5.5. euxyl® K 700 has a broad, balanced spectrum of effect against bacteria, yeasts and mould fungi as well as a good vapour phase effectiveness. As a result of the special preparation, the tendency to discolouration known for sorbic acid can be reduced or prevented. In addition euxyl® K 700 can be stored for a longer period.",
-//       functionality_category_tree: [
-//         ["Oral Care Agents"],
-//         ["Antioxidants"],
-//         ["Fragrance Ingredients"],
-//         ["Skin Conditioning Agents", "Miscellaneous"],
-//         ["Skin Conditioning Agents", "Occlusives"],
-//         ["Preservatives"],
-//         ["Solvents"],
-//         ["Viscosity Modifiers", "Decreasing"],
-//         ["External Analgesics"],
+//       inci_list: ["titanium dioxide"],
+//       items: [
+//         {
+//           ingredient_name: "CreaWhite® R",
+//           supplier_name: "The Innovation Company®",
+//           description:
+//             "CreaWhite® R incorporates titanium dioxide. It has a white, powder appearance and a characteristic odor that is suitable for use in many personal care applications.",
+//           functionality_category_tree: [],
+//           chemical_class_category_tree: [],
+//           match_score: 1,
+//           matched_inci: ["titanium dioxide"],
+//           matched_count: 1,
+//           total_brand_inci: 1,
+//         },
 //       ],
-//       chemical_class_category_tree: [["Mixtures"]],
-//       match_score: 1,
-//       matched_inci: [
-//         "phenoxyethanol",
-//         "tocopherol",
-//         "benzyl alcohol",
-//         "aqua",
-//         "potassium sorbate",
+//       count: 1,
+//     },
+//     {
+//       inci_list: ["carmine"],
+//       items: [
+//         {
+//           ingredient_name: "CreaCarmine® 9350",
+//           supplier_name: "The Innovation Company®",
+//           description:
+//             "CreaCarmine® 9350 incorporates carmine. It has a red, powder appearance with a characteristic odor that is suitable for use in many personal care applications.",
+//           functionality_category_tree: [],
+//           chemical_class_category_tree: [],
+//           match_score: 1,
+//           matched_inci: ["carmine"],
+//           matched_count: 1,
+//           total_brand_inci: 1,
+//         },
 //       ],
-//       matched_count: 5,
-//       total_brand_inci: 5,
-//     },
-//     {
-//       ingredient_name: "euxyl® K 900",
-//       supplier_name: "DKSH",
-//       description:
-//         "euxyl® K 900 from Schuelke is a liquid cosmetic preservative based on benzyl alcohol and ethylhexylglycerin. The addition of ethylhexylglycerin affects the interfacial tension at the cell membrane of microorganisms, improving the preservative activity of benzyl alcohol. Its use is permitted both in products that remain on the skin as well as in rinse-off products. It has a broad, balanced spectrum of effect against bacteria, yeasts and mould fungi.",
-//       functionality_category_tree: [
-//         ["Fragrance Ingredients"],
-//         ["Preservatives"],
-//         ["Solvents"],
-//       ],
-//       chemical_class_category_tree: [["Mixtures"]],
-//       match_score: 1,
-//       matched_inci: ["benzyl alcohol", "ethylhexylglycerin", "tocopherol"],
-//       matched_count: 3,
-//       total_brand_inci: 3,
-//     },
-//     {
-//       ingredient_name: "Frulix Guava",
-//       supplier_name: "Assessa Indústria Comércio e Exportação Ltda",
-//       description:
-//         "Frulix Guava is obtained through an exclusive biotechnological process that mimics the natural ripening of fruit. Using the fruits’ native enzymes that change the texture of the fruit during its ripening, it transforms its pulp into a crystalline liquid. FRULIX preserves the properties of each fruit as found in nature. No water is added to the process. Solvent-free. 29 different fruits and 5 fruit complexes containing moisturizing mucilages, antioxidant flavonoids, vitamins, bioflavonoids, organic acids, essential sugars, and anthocyanins.",
-//       functionality_category_tree: [["Bioactives"]],
-//       chemical_class_category_tree: [["Mixtures"]],
-//       match_score: 1,
-//       matched_inci: [
-//         "psidium guajava fruit extract",
-//         "ethylhexylglycerin",
-//         "phenoxyethanol",
-//       ],
-//       matched_count: 3,
-//       total_brand_inci: 3,
-//     },
-//     {
-//       ingredient_name: "GINGER OIL",
-//       supplier_name: "Provital",
-//       description:
-//         "GINGER OIL is an anti-inflammatory. Sensitive and/or irritated skin. Antioxidant. Anti-aging. Photoprotection. Hair color protection.",
-//       functionality_category_tree: [],
-//       chemical_class_category_tree: [],
-//       match_score: 1,
-//       matched_inci: [
-//         "helianthus annuus (sunflower) seed oil",
-//         "tocopherol",
-//         "zingiber officinale (ginger) root extract",
-//       ],
-//       matched_count: 3,
-//       total_brand_inci: 3,
-//     },
-//     {
-//       ingredient_name: "euxyl® K 900",
-//       supplier_name: "DKSH",
-//       description:
-//         "euxyl® K 900 from Schuelke is a liquid cosmetic preservative based on benzyl alcohol and ethylhexylglycerin. The addition of ethylhexylglycerin affects the interfacial tension at the cell membrane of microorganisms, improving the preservative activity of benzyl alcohol. Its use is permitted both in products that remain on the skin as well as in rinse-off products. It has a broad, balanced spectrum of effect against bacteria, yeasts and mould fungi.",
-//       functionality_category_tree: [
-//         ["Fragrance Ingredients"],
-//         ["Preservatives"],
-//         ["Solvents"],
-//       ],
-//       chemical_class_category_tree: [["Mixtures"]],
-//       match_score: 1,
-//       matched_inci: ["benzyl alcohol", "ethylhexylglycerin", "tocopherol"],
-//       matched_count: 3,
-//       total_brand_inci: 3,
-//     },
-//     {
-//       ingredient_name: "Frulix Guava",
-//       supplier_name: "Assessa Indústria Comércio e Exportação Ltda",
-//       description:
-//         "Frulix Guava is obtained through an exclusive biotechnological process that mimics the natural ripening of fruit. Using the fruits’ native enzymes that change the texture of the fruit during its ripening, it transforms its pulp into a crystalline liquid. FRULIX preserves the properties of each fruit as found in nature. No water is added to the process. Solvent-free. 29 different fruits and 5 fruit complexes containing moisturizing mucilages, antioxidant flavonoids, vitamins, bioflavonoids, organic acids, essential sugars, and anthocyanins.",
-//       functionality_category_tree: [["Bioactives"]],
-//       chemical_class_category_tree: [["Mixtures"]],
-//       match_score: 1,
-//       matched_inci: [
-//         "psidium guajava fruit extract",
-//         "ethylhexylglycerin",
-//         "phenoxyethanol",
-//       ],
-//       matched_count: 3,
-//       total_brand_inci: 3,
-//     },
-//     {
-//       ingredient_name: "GINGER OIL",
-//       supplier_name: "Provital",
-//       description:
-//         "GINGER OIL is an anti-inflammatory. Sensitive and/or irritated skin. Antioxidant. Anti-aging. Photoprotection. Hair color protection.",
-//       functionality_category_tree: [],
-//       chemical_class_category_tree: [],
-//       match_score: 1,
-//       matched_inci: [
-//         "helianthus annuus (sunflower) seed oil",
-//         "tocopherol",
-//         "zingiber officinale (ginger) root extract",
-//       ],
-//       matched_count: 3,
-//       total_brand_inci: 3,
-//     },
-//     {
-//       ingredient_name: "Cetearyl Olivate (and) Sorbitan Olivate",
-//       supplier_name: "Suzhou Greenway Biotech Co.,Ltd",
-//       description:
-//         "Cetearyl Olivate (and) Sorbitan Olivate is a natural emulsifier derived from olive oil. It has gentle and stable properties, enhances the texture and moisturizing effects of skincare products, and is suitable for dry and sensitive skin.",
-//       functionality_category_tree: [
-//         ["Hair Conditioning Agents"],
-//         ["Skin Conditioning Agents", "Emollients"],
-//         ["Slip Modifiers"],
-//         ["Stabilizers", "Emulsion Stabilizers"],
-//         ["Surfactants", "Emulsifying Agents"],
-//       ],
-//       chemical_class_category_tree: [["Mixtures"]],
-//       match_score: 1,
-//       matched_inci: ["cetearyl olivate", "sorbitan olivate"],
-//       matched_count: 2,
-//       total_brand_inci: 2,
-//     },
-//     {
-//       ingredient_name: "euxyl® PE 9010",
-//       supplier_name: "DKSH",
-//       description:
-//         "Euxyl® PE9010 from Ashland, is a liquid cosmetic preservative with a broad, balanced spectrum of effect against bacteria, yeasts and mould fungi. It acts even in very low use-concentrations and has good vapor phase effectiveness. It can be used for leave on, rinse off, Leave on, sensitive and wet wipes application. Available in select countries. Please inquire for more details.",
-//       functionality_category_tree: [
-//         ["Anti", "Microbial Agents"],
-//         ["Anti", "Fungal Agents"],
-//         ["Preservatives"],
-//       ],
-//       chemical_class_category_tree: [["Mixtures"]],
-//       match_score: 1,
-//       matched_inci: ["phenoxyethanol", "ethylhexylglycerin"],
-//       matched_count: 2,
-//       total_brand_inci: 2,
-//     },
-//     {
-//       ingredient_name: "Florasun™ 90",
-//       supplier_name: "Cargill Beauty",
-//       description:
-//         "Florasun™ 90 is a natural, triglyceride oil with superb oxidative stability and excellent emollient properties. The unprecedented resistance of Florasun 90 to rancidity is largely due to its high oleic acid content which represents 85% to 90% of the oil. By including this monounsaturated fatty acid and excluding high levels of polyunsaturates, exceptional oxidative stability is achieved without the presence of trans fatty acids.",
-//       functionality_category_tree: [
-//         ["Hair Conditioning Agents"],
-//         ["Skin Conditioning Agents", "Emollients"],
-//       ],
-//       chemical_class_category_tree: [["Fats and Oils"]],
-//       match_score: 1,
-//       matched_inci: ["helianthus annuus (sunflower) seed oil", "tocopherol"],
-//       matched_count: 2,
-//       total_brand_inci: 2,
-//     },
-//     {
-//       ingredient_name: "AE ProTek® Plus",
-//       supplier_name: "AE Chemie",
-//       description:
-//         "New AE ProTek® Plus effectively reduces the surface tension of water, thus the wetting of surface is improved. This phenomenon makes the mixture of phenoxyethanol and ethylhexylglycerin very effective in penetrating the cell membranes of microorganisms resulting in optimized anti- microbial efficacy.",
-//       functionality_category_tree: [
-//         ["Anti", "Microbial Agents", "Cosmetic Biocides"],
-//         ["Fragrance Ingredients"],
-//         ["Skin Conditioning Agents", "Miscellaneous"],
-//         ["Preservatives"],
-//         ["Deodorant Agents"],
-//       ],
-//       chemical_class_category_tree: [["Mixtures"]],
-//       match_score: 1,
-//       matched_inci: ["phenoxyethanol", "ethylhexylglycerin"],
-//       matched_count: 2,
-//       total_brand_inci: 2,
-//     },
-//     {
-//       ingredient_name: "AmviShield® PE 9010",
-//       supplier_name: "AMVIGOR ORGANICS PVT LTD",
-//       description:
-//         "AmviShield® PE 9010 is a liquid cosmetic preservative designed to prevent degradation of ingredients and deterioration of physical and chemical stability. It is used to prevent contamination during formulation, shipment, storage or consumer use in cosmetics. It also has a large spectrum of antimicrobial activity and is effective against various Gram-negative and Gram-positive as well as against yeasts.",
-//       functionality_category_tree: [
-//         ["Anti", "Microbial Agents", "Cosmetic Biocides"],
-//         ["Fragrance Ingredients"],
-//         ["Skin Conditioning Agents", "Miscellaneous"],
-//         ["Preservatives"],
-//         ["Deodorant Agents"],
-//       ],
-//       chemical_class_category_tree: [["Mixtures"]],
-//       match_score: 1,
-//       matched_inci: ["phenoxyethanol", "ethylhexylglycerin"],
-//       matched_count: 2,
-//       total_brand_inci: 2,
-//     },
-//     {
-//       ingredient_name: "AE ProTek® NPB",
-//       supplier_name: "AE Chemie",
-//       description:
-//         "New AE ProTek® NPB has a broad spectrum efficacy against Gram Positive, Gram Negative, Yeast, and Fungi. It has efficacy booster and stabilizer for antimicrobials in combination with other ingredients. Non-Paraben Preservative for Cosmetics and Toiletries.",
-//       functionality_category_tree: [
-//         ["Anti", "Microbial Agents", "Cosmetic Biocides"],
-//         ["Fragrance Ingredients"],
-//         ["Skin Conditioning Agents", "Miscellaneous"],
-//         ["Preservatives"],
-//         ["Deodorant Agents"],
-//       ],
-//       chemical_class_category_tree: [["Mixtures"]],
-//       match_score: 1,
-//       matched_inci: ["phenoxyethanol", "ethylhexylglycerin"],
-//       matched_count: 2,
-//       total_brand_inci: 2,
-//     },
-//     {
-//       ingredient_name: "AdvensProtect PEHG",
-//       supplier_name: "Seqens",
-//       description:
-//         "AdvensProtect PEHG is a combination of phenoxyethanol and ethylhexylglycerin. Phenoxyethanol is a broad-spectrum antimicrobial effective against Gram-negative and Gram-positive bacteria, as well as against yeasts. Ethylhexylglycerin is a multifunctional ingredient with great emollient and preservative booster properties. It is a strong booster for better protection against microbial growth. The boosting effect is due to the surfactant properties of ethylhexylglycerin, which affects the surface tension properties of bacteria, improving the contact between phenoxyethanol and the bacterial membrane.",
-//       functionality_category_tree: [
-//         ["Anti", "Microbial Agents", "Cosmetic Biocides"],
-//         ["Fragrance Ingredients"],
-//         ["Skin Conditioning Agents", "Miscellaneous"],
-//         ["Preservatives"],
-//         ["Deodorant Agents"],
-//       ],
-//       chemical_class_category_tree: [["Mixtures"]],
-//       match_score: 1,
-//       matched_inci: ["phenoxyethanol", "ethylhexylglycerin"],
-//       matched_count: 2,
-//       total_brand_inci: 2,
-//     },
-//     {
-//       ingredient_name: "Biochemica® Sunflower Oil REF",
-//       supplier_name: "Hallstar",
-//       description:
-//         "Biochemica® Sunflower Oil REF exhibits excellent penetrating qualities and good spreadability on the skin, making it ideal as a massage oil or as a carrier oil for cosmetics and treatment products. It adds moisturizing attributes to creams, lotions and bar soaps. This product may be used in cosmetics, toiletries, bar soaps, massage oils, hair care and sun care applications.",
-//       functionality_category_tree: [],
-//       chemical_class_category_tree: [],
-//       match_score: 1,
-//       matched_inci: ["helianthus annuus (sunflower) seed oil"],
-//       matched_count: 1,
-//       total_brand_inci: 1,
-//     },
-//     {
-//       ingredient_name: "Beta-Carotene",
-//       supplier_name: "COSROMA",
-//       description:
-//         "Beta-Carotene offered by COSROMA® is called Cosroma® BCT-S. Cosroma® BCT-S is one of the carotenoids. It serves as an antioxidant and precursor to vitamin A, it is referred to as provitamin A. Cosroma® BCT-S is a wonderful skin conditioning ingredient and is also used as a cosmetic colorant. Cosroma® BCT-S is commonly used into skincare products for protecting against UVA-light induced damage.",
-//       functionality_category_tree: [],
-//       chemical_class_category_tree: [],
-//       match_score: 1,
-//       matched_inci: ["beta-carotene"],
-//       matched_count: 1,
-//       total_brand_inci: 1,
-//     },
-//     {
-//       ingredient_name: "Covi-ox® T-70 C",
-//       supplier_name: "BASF",
-//       description:
-//         "Covi-ox® T 70 C is an active ingredient and antioxidant in skin and hair care preparations.",
-//       functionality_category_tree: [],
-//       chemical_class_category_tree: [],
-//       match_score: 1,
-//       matched_inci: ["tocopherol"],
-//       matched_count: 1,
-//       total_brand_inci: 1,
-//     },
-//     {
-//       ingredient_name: "Covi-ox® T-50 C",
-//       supplier_name: "BASF",
-//       description:
-//         "Covi-ox® T 50 C is an active ingredient and antioxidant in skin and hair care preparations.",
-//       functionality_category_tree: [],
-//       chemical_class_category_tree: [],
-//       match_score: 1,
-//       matched_inci: ["tocopherol"],
-//       matched_count: 1,
-//       total_brand_inci: 1,
-//     },
-//     {
-//       ingredient_name: "Covi-Ox® T-90 EU C",
-//       supplier_name: "BASF",
-//       description:
-//         "Covi-ox® T-90 EU C is an active ingredient and antioxidant in skin and hair care preparations. It is derived from non-genetically modified sources.",
-//       functionality_category_tree: [],
-//       chemical_class_category_tree: [],
-//       match_score: 1,
-//       matched_inci: ["tocopherol"],
-//       matched_count: 1,
-//       total_brand_inci: 1,
-//     },
-//     {
-//       ingredient_name: "Edeta® BD",
-//       supplier_name: "BASF",
-//       description:
-//         "EDETA® BD is a complex builder for sequestering undesirable metal ions in cosmetic preparations.",
-//       functionality_category_tree: [],
-//       chemical_class_category_tree: [],
-//       match_score: 1,
-//       matched_inci: ["disodium edta"],
-//       matched_count: 1,
-//       total_brand_inci: 1,
-//     },
-//     {
-//       ingredient_name: "Copherol® F 1300 C",
-//       supplier_name: "BASF",
-//       description:
-//         "Copherol® F 1300 C is an active ingredient in skin care and hair care preparations",
-//       functionality_category_tree: [],
-//       chemical_class_category_tree: [],
-//       match_score: 1,
-//       matched_inci: ["tocopherol"],
-//       matched_count: 1,
-//       total_brand_inci: 1,
+//       count: 1,
 //     },
 //   ],
-//   unmatched: [
-//     "arisaema amurense extract",
-//     "carica papaya fruit extract",
-//     "citrus limon (lemon) peel extract",
-//     "fragrance",
-//     "lactic acid/glycolic acid copolymer",
-//     "linoleic acid",
-//     "methyl lactate",
-//     "norisoleucyl sh-nonapeptide-1",
-//     "nymphaea alba flower extract",
-//     "palmitoyl sh-octapeptide-24 amide",
-//     "palmitoyl sh-tripeptide-5",
-//     "polyvinyl alcohol",
-//     "saxifraga sarmentosa extract",
-//     "sodium palmitoyl proline",
-//     "xanthophylls",
-//   ],
+//   unmatched: [],
 //   overall_confidence: 1,
-//   processing_time: 3.971,
+//   processing_time: 7.91,
 // };
 
 async function fetchIngredientAnalysis(
@@ -460,7 +1708,7 @@ async function fetchIngredientAnalysis(
 ): Promise<AnalyzeResponse> {
   // simulate an API call (kept synchronous-fast for now)
   //   console.log("Analyze payload", req);
-  //   return Promise.resolve(MOCK_RESPONSE);
+  // return Promise.resolve(MOCK_RESPONSE);
   const response = await axios.post(
     `${basePythonApiUrl}/api/analyze-inci`,
     req,
@@ -513,8 +1761,8 @@ function IngredientAnalyzer() {
   const [loading, setLoading] = useState(false);
   const [resp, setResp] = useState<AnalyzeResponse | null>(null);
   console.log("🚀 ~ IngredientAnalyzer ~ resp:", resp);
-  const [activeTab, setActiveTab] = useState<"matched" | "unmatched">(
-    "matched",
+  const [activeTab, setActiveTab] = useState<"grouped" | "unmatched">(
+    "grouped",
   );
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -536,7 +1784,7 @@ function IngredientAnalyzer() {
       const payload: AnalyzeRequest = { inci_names: parsed };
       const data = await fetchIngredientAnalysis(payload);
       setResp(data);
-      setActiveTab("matched");
+      setActiveTab("grouped");
     } finally {
       setLoading(false);
     }
@@ -622,15 +1870,15 @@ function IngredientAnalyzer() {
           {/* Tabs */}
           <div className="mb-5 flex flex-wrap gap-2">
             <TabButton
-              active={activeTab === "matched"}
-              onClick={() => setActiveTab("matched")}
+              active={activeTab === "grouped"}
+              onClick={() => setActiveTab("grouped")}
               icon={
                 <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-indigo-600 text-[11px] font-bold text-white">
                   ⓘ
                 </span>
               }
               label={"Branded Ingredients"}
-              count={resp.matched?.length}
+              count={resp.grouped?.length}
             />
             <TabButton
               active={activeTab === "unmatched"}
@@ -656,66 +1904,64 @@ function IngredientAnalyzer() {
             /> */}
           </div>
 
-          {activeTab === "matched" && (
+          {activeTab === "grouped" && (
             <div className="space-y-6">
-              {resp.matched?.map((m) => (
-                <article
-                  key={m.ingredient_name}
-                  className="bg-card ring-border hover:ring-primary rounded-lg p-5 shadow-lg ring transition hover:ring-2"
-                >
-                  <div className="flex flex-wrap items-start gap-4">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="truncate text-lg font-semibold capitalize">
-                          {m.ingredient_name}
-                        </h3>
-                        {/* <Badge>High Confidence</Badge> */}
-                      </div>
-                      <div className="text-muted-foreground mt-1 flex gap-1 text-sm">
-                        <BuildingStorefrontIcon className="size-5 capitalize" />{" "}
-                        {m.supplier_name}
-                      </div>
+              {resp.grouped?.map((m: GroupItem) => {
+                return (
+                  <div key={m.inci_list.join("-")}>
+                    {/* {m.inci_list.join("-")} */}
 
-                      <p className="mt-3 max-w-3xl text-sm leading-6 text-gray-700">
-                        {m.description}
-                      </p>
-
-                      <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                        <div>
-                          <SectionTitle>
-                            Matched INCI Names{" "}
-                            {m.matched_count && (
-                              <span className="text-muted-foreground text-sm">
-                                ({m.matched_count})
-                              </span>
-                            )}
-                          </SectionTitle>
-                          <div className="mt-2 flex flex-wrap gap-1.5">
-                            {m.matched_inci?.map((i) => (
-                              //   <Pill key={i}>{i}</Pill>
-                              <Badge
-                                variant={"outline"}
-                                className="text-muted-foreground border-primary capitalize"
-                                key={i}
-                              >
-                                {i}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                        {/* <div className="sm:text-right">
-                          <SectionTitle>Match Count</SectionTitle>
-                          <div className="mt-2 inline-flex items-center gap-4">
-                            {m.matched_count}
-                          </div>
-                        </div> */}
-                      </div>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {m.inci_list?.map((i) => (
+                        <Badge
+                          variant={"outline"}
+                          className="text-muted-foreground border-primary capitalize"
+                          key={i}
+                        >
+                          {i}
+                        </Badge>
+                      ))}
                     </div>
+
+                    <Accordion
+                      type="single"
+                      collapsible
+                      className="mt-5 w-full rounded-2xl border px-5 py-2"
+                      defaultValue="item-1"
+                    >
+                      {m.items.map((item) => (
+                        <AccordionItem
+                          value={item.ingredient_name}
+                          key={item.ingredient_name}
+                        >
+                          <AccordionTrigger>
+                            <div className="flex w-full justify-between">
+                              <h3 className="truncate text-lg capitalize">
+                                {item.ingredient_name}
+                              </h3>
+                              <div className="text-muted-foreground flex items-center gap-1">
+                                <span className="!no-underline">
+                                  {item.supplier_name}
+                                </span>
+                                <BuildingStorefrontIcon className="size-5 capitalize" />{" "}
+                              </div>
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="flex w-full flex-col gap-4 text-balance">
+                            <p className="text-un w-full leading-6">
+                              {item.description}
+                            </p>
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
                   </div>
-                </article>
-              ))}
+                );
+              })}
             </div>
           )}
+
+          {/* */}
 
           {activeTab === "unmatched" && (
             <div>
