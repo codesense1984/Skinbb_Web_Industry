@@ -6,70 +6,63 @@ import {
 } from "@/core/components/ui/form-input";
 import { OtpModal } from "@/core/components/ui/input-otp";
 import { MODE } from "@/core/types";
-import { useCallback, useRef, useState, type FC } from "react";
-import { useFormContext, useWatch } from "react-hook-form";
+import { type FC } from "react";
+import { useFormContext } from "react-hook-form";
 import {
   fullCompanyDetailsSchema,
   type FullCompanyFormType,
 } from "../../schema/fullCompany.schema";
-import { toast } from "sonner";
-import { useMutation } from "@tanstack/react-query";
-import {
-  apiSendMobileOTP,
-  apiVerifyMobileOTP,
-} from "@/modules/panel/services/http/company.service";
-import type { AxiosError } from "axios";
 
 interface PersonalDetailsProps {
   mode: MODE;
 }
-const isValidPhone = (val?: string) => !!val && /^[6-9]\d{9}$/.test(val);
+// const isValidPhone = (val?: string) => !!val && /^[6-9]\d{9}$/.test(val);
 
 const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
   const { control } = useFormContext<FullCompanyFormType>();
-  const [phoneVerified, setPhoneVerified] = useState(false);
+  // const [phoneVerified, setPhoneVerified] = useState(false);
 
-  const phoneNumber = useWatch({
-    control,
-    name: "phoneNumber",
-    defaultValue: "",
-  });
+  // const phoneNumber = useWatch({
+  //   control,
+  //   name: "phoneNumber",
+  //   defaultValue: "",
+  // });
 
   const rawInfoFields = fullCompanyDetailsSchema.personal_information({
     mode,
   }) as FormFieldConfig<FullCompanyFormType>[];
 
   // Send OTP
-  const sendOtpMutation = useMutation({
-    mutationFn: (phoneNumber: string) =>
-      apiSendMobileOTP<{ success: boolean }, { phoneNumber: string }>({
-        phoneNumber,
-      }),
-    onSuccess: () => {
-      toast.success("OTP sent - Check your phone.");
-    },
-    onError: (error: AxiosError) => {
-      toast.error(
-        `Failed to send OTP - ${error?.response?.data?.message || error.message || "Try again later"}`,
-      );
-    },
-  });
+  // const sendOtpMutation = useMutation({
+  //   mutationFn: (phoneNumber: string) =>
+  //     apiSendMobileOTP<{ success: boolean }, { phoneNumber: string }>({
+  //       phoneNumber,
+  //     }),
+  //   onSuccess: () => {
+  //     toast.success("OTP sent - Check your phone.");
+  //   },
+  //   onError: (error: AxiosError) => {
+  //     toast.error(
+  //       `Failed to send OTP - ${error?.response?.data?.message || error.message || "Try again later"}`,
+  //     );
+  //   },
+  // });
 
-  // Verify OTP
-  const verifyOtpMutation = useMutation({
-    mutationFn: (payload: { phoneNumber: string; otp: string }) =>
-      apiVerifyMobileOTP<
-        { verified: boolean },
-        { phoneNumber: string; otp: string }
-      >(payload),
-    onSuccess: () => {
-      toast.success("Phone verified");
-      setPhoneVerified(true);
-    },
-    onError: (error) => {
-      toast.error(`Verification failed - ${error.message || "Invalid OTP"}`);
-    },
-  });
+  // // Verify OTP
+  // const verifyOtpMutation = useMutation({
+  //   mutationFn: (payload: { phoneNumber: string; otp: string }) =>
+  //     apiVerifyMobileOTP<
+  //       { verified: boolean },
+  //       { phoneNumber: string; otp: string }
+  //     >(payload),
+  //   onSuccess: () => {
+  //     toast.success("Phone verified");
+  //     setPhoneVerified(true);
+  //   },
+  //   onError: (error) => {
+  //     toast.error(`Verification failed - ${error.message || "Invalid OTP"}`);
+  //   },
+  // });
 
   return (
     <>
@@ -94,8 +87,10 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
         />
 
         <OtpModal
-          onRequestCode={() => sendOtpMutation.mutate(phoneNumber)}
-          onVerifyCode={(otp) => verifyOtpMutation.mutate({ phoneNumber, otp })}
+          onRequestCode={() => Promise.resolve()}
+          onVerifyCode={() => Promise.resolve(true)}
+          // onRequestCode={() => sendOtpMutation.mutate(phoneNumber)}
+          // onVerifyCode={(otp) => verifyOtpMutation.mutate({ phoneNumber, otp })}
         >
           <Button variant={"contained"} color={"primary"}>
             Send OTP
