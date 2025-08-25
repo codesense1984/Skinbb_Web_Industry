@@ -389,11 +389,13 @@ interface FormFieldsRendererProps<T extends FieldValues>
   extends React.ComponentProps<"div"> {
   control: Control<T>;
   fieldConfigs: FormFieldConfig<T>[];
+  children?: React.ReactNode;
 }
 function FormFieldsRenderer<T extends FieldValues>({
   control,
   fieldConfigs,
   className,
+  children,
   ...props
 }: FormFieldsRendererProps<T>) {
   return (
@@ -407,6 +409,7 @@ function FormFieldsRenderer<T extends FieldValues>({
       {fieldConfigs.map((field) => (
         <FormInput key={field.name} {...field} control={control} />
       ))}
+      {children}
     </div>
   );
 }

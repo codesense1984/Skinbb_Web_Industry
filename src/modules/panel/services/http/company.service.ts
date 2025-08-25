@@ -1,5 +1,6 @@
 import { api } from "@/core/services/http";
 import { ENDPOINTS } from "../../config/endpoint.config";
+import type { ApiResponse } from "@/core/types";
 
 // Get all onboard entries (with params for search, paging, sorting)
 export async function apiGetOnboardList<T, U extends Record<string, unknown>>(
@@ -42,16 +43,20 @@ export async function apiVerifyMailOTP<T, U extends Record<string, unknown>>(
   return api.post<T>(ENDPOINTS.ONBOARDING.VERIFY_MAIL, data);
 }
 
-export async function apiSendMobileOTP<T, U extends Record<string, unknown>>(
-  data: U,
-) {
-  return api.post<T>(ENDPOINTS.ONBOARDING.SEND_MOBILE, data);
+export async function apiSendMobileOTP(data: { phoneNumber: string }) {
+  return api.post<ApiResponse<string>>(ENDPOINTS.ONBOARDING.SEND_MOBILE, data);
 }
 
-export async function apiVerifyMobileOTP<T, U extends Record<string, unknown>>(
-  data: U,
-) {
-  return api.post<T>(ENDPOINTS.ONBOARDING.VERIFY_MOBILE, data);
+export interface VerifyMobileOTPData {
+  phoneNumber: string;
+  otp: string;
+}
+
+export async function apiVerifyMobileOTP(data: VerifyMobileOTPData) {
+  return api.post<ApiResponse<string>>(
+    ENDPOINTS.ONBOARDING.VERIFY_MOBILE,
+    data,
+  );
 }
 
 export async function apiGetOnboardingStatus<

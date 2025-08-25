@@ -214,11 +214,23 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
     const values = watch();
 
     switch (sliceKey) {
-      case StepKey.PERSONAL_INFORMATION:
+      case StepKey.PERSONAL_INFORMATION: {
         names = fullCompanyDetailsSchema
           .personal_information({ mode })
           .map((f) => f.name) as (keyof FullCompanyFormType)[];
+        // add check phoneNumber and for password
+        if (!values.phoneNumber) {
+          names.push("phoneNumber");
+        }
+        if (!values.password) {
+          names.push("password");
+        }
+        if (!values.phoneVerified) {
+          names.push("phoneVerified");
+        }
+
         break;
+      }
 
       case StepKey.COMPANY_DETAILS:
         names = fullCompanyDetailsSchema

@@ -37,7 +37,7 @@ const buttonVariants = cva("btn", {
   defaultVariants: {
     variant: "contained",
     size: "md",
-    color: "primary",
+    color: "default",
     rounded: "md",
   },
   compoundVariants: [
@@ -209,7 +209,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <Comp
         className={cn(
           buttonVariants({ variant, size, color, rounded }),
-          disableAnimation && "active:scale-0",
+          disableAnimation && "active:scale-100",
           noPadding && "h-auto p-0",
           className,
         )}

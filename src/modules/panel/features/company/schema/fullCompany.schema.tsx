@@ -88,6 +88,9 @@ export const fullCompanyZodSchema = z
     email: z.string().email("Invalid email"),
     phoneNumber: z.string().min(10, "Invalid phone"),
     designation: z.string().min(1, "Designation is required"),
+    phoneVerified: z.boolean().refine((val) => val, {
+      message: "Phone number is not verified",
+    }),
     password: z
       .string()
       .nonempty("Password is required") // makes sure it's not empty
@@ -165,6 +168,7 @@ export const fullCompanyZodSchema = z
   .superRefine((data, ctx) => {
     const logoFiles = data?.logo_files;
     const headquarterLocation = data?.headquarterLocation;
+    const phoneVerified = data?.phoneVerified;
     const isSubsidiary = JSON.parse(data?.isSubsidiary) ?? false;
 
     if (logoFiles && logoFiles.length) {
@@ -194,6 +198,14 @@ export const fullCompanyZodSchema = z
         message: "Headquarter location is required for subsidiaries.",
       });
     }
+
+    if (!phoneVerified && data?.phoneNumber) {
+      ctx.addIssue({
+        path: ["phoneNumber"],
+        code: z.ZodIssueCode.custom,
+        message: "Phone number is not verified",
+      });
+    }
   });
 
 export type FullCompanyFormType = z.infer<typeof fullCompanyZodSchema>;
@@ -208,6 +220,7 @@ export function fullCompanyDefaultValues(
     designation: data?.email ?? "",
     password: data?.password ?? "",
     phoneNumber: data?.phoneNumber ?? "",
+    phoneVerified: data?.phoneVerified ?? false,
 
     // Step 1
     logo: data?.logo ?? "",
@@ -303,7 +316,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
   uploadImage: ({ mode }) => [
     {
       name: "logo",
-      label: "Change Logo",
+      label: "Company Logo",
       type: "file",
       disabled: MODE.VIEW === mode,
       placeholder: "Upload company logo",
