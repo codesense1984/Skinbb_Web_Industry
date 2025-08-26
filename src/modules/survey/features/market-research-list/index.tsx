@@ -1,4 +1,4 @@
-import { DataTableToogle } from "@/core/components/table/data-table";
+import { DataTableToogle } from "@/core/components/data-table";
 import { StatusBadge } from "@/core/components/ui/badge";
 import { Button } from "@/core/components/ui/button";
 import { DatePicker } from "@/core/components/ui/date-picker";

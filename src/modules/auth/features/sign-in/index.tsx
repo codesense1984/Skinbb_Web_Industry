@@ -1,7 +1,7 @@
 import logo from "@/core/assets/images/logo-white.png";
 import { Button } from "@/core/components/ui/button";
 import { Form } from "@/core/components/ui/form";
-import { FormInput } from "@/core/components/ui/form-input";
+import { FormInput, INPUT_TYPES } from "@/core/components/ui/form-input";
 import { PhoneIcon } from "@heroicons/react/24/outline";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -81,22 +81,23 @@ const SignIn = () => {
         <div className="flex flex-col gap-5">
           <FormInput
             control={form.control}
-            type="text"
+            type={INPUT_TYPES.TEXT}
             name="phoneNumber"
             label="Phone Number"
             placeholder="Enter phone number"
             disabled={isPending}
             inputProps={{
               autoFocus: true,
-              keyfilter: "num",
+              keyfilter: "int",
               endIcon: <PhoneIcon className="size-5" />,
               className: "py-6",
+              maxLength: 10,
             }}
           />
 
           <FormInput
             control={form.control}
-            type={isDarkMode ? "text" : "password"}
+            type={isDarkMode ? INPUT_TYPES.TEXT : INPUT_TYPES.PASSWORD}
             name="password"
             label="Password"
             placeholder="Enter password"

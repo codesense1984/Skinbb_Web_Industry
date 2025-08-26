@@ -1,6 +1,7 @@
 // schema/companyBrand.schema.ts
 import type { FormFieldConfig } from "@/core/components/ui/form-input";
-import { MODE, type CompanyBrand } from "@/core/types";
+import { MODE } from "@/core/types";
+import { type CompanyBrand } from "@/modules/panel/types";
 import { z } from "zod";
 
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/jpg"];

@@ -1,4 +1,4 @@
-import { DataTableToogle } from "@/core/components/table/data-table";
+import { DataTableToogle } from "@/core/components/data-table";
 import {
   Avatar,
   AvatarFallback,
@@ -8,15 +8,13 @@ import { StatusBadge } from "@/core/components/ui/badge";
 import { Button } from "@/core/components/ui/button";
 import { StatCard } from "@/core/components/ui/stat";
 import { PageContent } from "@/core/components/ui/structure";
-import type { Brand } from "@/modules/panel/types/brand.type";
 import { formatCurrency, formatNumber } from "@/core/utils";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
+import type { Brand } from "@/modules/panel/types/brand.type";
 import { EyeIcon } from "@heroicons/react/24/outline";
 import type { ColumnDef } from "@tanstack/react-table";
 import { NavLink } from "react-router";
 import { BrandCard } from "./BrandCard";
-import { useQuery } from "@tanstack/react-query";
-import { apiGetBrandList } from "@/modules/panel/services/http/company.service";
 
 const statsData = [
   {
@@ -212,11 +210,6 @@ const columns: ColumnDef<Brand>[] = [
   },
 ];
 const BrandList = () => {
-  //call api apiGetBrandList from company.service.ts
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["brands"],
-    queryFn: () => apiGetBrandList({}),
-  });
   return (
     <PageContent
       header={{

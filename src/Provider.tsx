@@ -11,6 +11,7 @@ import { MotionProvider } from "./core/store/motion-provider";
 store.subscribe(() => console.log(store.getState(), "store"));
 
 const Provider = ({ children }: { children: React.ReactNode }) => {
+  console.log(import.meta.env.NODE_ENV, "import.meta.env.NODE_ENV");
   return (
     <ReduxProvider store={store}>
       {/* <PersistGate loading={null} persistor={persistor}> */}
@@ -22,7 +23,7 @@ const Provider = ({ children }: { children: React.ReactNode }) => {
           </ThemeProvider>
         </MotionProvider>
 
-        {import.meta.env.NODE_ENV === "development" && (
+        {import.meta.env.NODE_ENV !== "production" && (
           <ReactQueryDevtools initialIsOpen={false} />
         )}
       </QueryClientProvider>

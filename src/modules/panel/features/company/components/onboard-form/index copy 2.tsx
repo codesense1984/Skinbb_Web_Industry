@@ -6,7 +6,8 @@ import {
   StepperTrigger,
 } from "@/core/components/ui/stepper";
 import { HorizontalLogo } from "@/core/config/svg";
-import { MODE, type CompanyBrand } from "@/core/types";
+import { MODE } from "@/core/types";
+import { type CompanyBrand } from "@/modules/panel/types";
 import {
   createContext,
   useCallback,

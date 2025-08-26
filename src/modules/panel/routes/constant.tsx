@@ -3,6 +3,9 @@ import { ROUTE } from "@/core/routes/constant";
 const BRAND_BASE = "/brand";
 const BRANDS = "/brands";
 
+const ORDER_BASE = "/order";
+const ORDERS = "/orders";
+
 const COMPANY_BASE = "/company";
 const COMPANIES = "/companies";
 
@@ -14,6 +17,14 @@ export const PANEL_ROUTES = {
     CREATE: ROUTE.build(BRAND_BASE, ROUTE.seg.create), // /brand/create
     EDIT: (id: string = ROUTE.seg.id) =>
       ROUTE.build(BRAND_BASE, id, ROUTE.seg.edit), // /brand/edit/:id
+  },
+  // ---- Order ----
+  ORDER: {
+    BASE: ORDER_BASE, // /order
+    LIST: ORDERS, // /orders
+    CREATE: ROUTE.build(ORDER_BASE, ROUTE.seg.create), // /order/create
+    EDIT: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(ORDER_BASE, id, ROUTE.seg.edit), // /order/edit/:id
   },
 
   // ---- Company ----

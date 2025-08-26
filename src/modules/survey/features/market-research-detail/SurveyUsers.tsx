@@ -1,6 +1,6 @@
 import { StatusBadge } from "@/core/components/ui/badge";
 import { Button } from "@/core/components/ui/button";
-import { DataTable } from "@/core/components/table/data-table";
+import { DataTable } from "@/core/components/data-table";
 import type { SurveyUser } from "@/core/types/user.type";
 import { formatDate } from "@/core/utils";
 import { EyeIcon } from "@heroicons/react/24/outline";

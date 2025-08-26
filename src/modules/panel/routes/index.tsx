@@ -45,6 +45,20 @@ export const panelRoutes: RouteObject = {
       Component: lazy(() => import("@/modules/panel/features/company/edit")),
     },
 
+    // orders
+    {
+      path: PANEL_ROUTES.ORDER.LIST,
+      Component: lazy(() => import("@/modules/panel/features/orders/list")),
+    },
+    // {
+    //   path: PANEL_ROUTES.COMPANY.EDIT(),
+    //   Component: lazy(() => import("@/modules/panel/features/company/edit")),
+    // },
+    // {
+    //   path: PANEL_ROUTES.COMPANY.DETAIL(),
+    //   Component: lazy(() => import("@/modules/panel/features/company/edit")),
+    // },
+
     { path: PANEL_ROUTES.INGREDIENT_DETAILS, Component: IngredientDetail },
   ],
 };

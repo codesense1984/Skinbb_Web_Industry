@@ -187,7 +187,7 @@ export const rawItems: Readonly<Record<string, SidebarItem>> = {
   },
   orders: {
     name: "Orders",
-    href: "/listing",
+    href: PANEL_ROUTES.ORDER.LIST,
     requiredPermission: {
       page: PAGE.ORDERS,
       action: [PERMISSION.VIEW, PERMISSION.CREATE],

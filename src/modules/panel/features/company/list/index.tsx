@@ -1,5 +1,5 @@
 import { EntityDialog } from "@/core/components/dialogs/EntityDialog";
-import { DataTableToogle } from "@/core/components/table/data-table";
+import { DataTableToogle } from "@/core/components/data-table";
 import { StatCard } from "@/core/components/ui/stat";
 import { PageContent } from "@/core/components/ui/structure";
 import type { CompanyList as CompanyListProps } from "@/modules/panel/types/company.type";

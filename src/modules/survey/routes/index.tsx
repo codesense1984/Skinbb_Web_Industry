@@ -7,7 +7,7 @@ export const surveyRoutes: RouteObject = {
   element: <MainLayout />,
   children: [
     {
-      path: SURVEY_ROUTES.BASE,
+      path: SURVEY_ROUTES.LIST,
       Component: lazy(
         () => import("@/modules/survey/features/market-research-list"),
       ),
