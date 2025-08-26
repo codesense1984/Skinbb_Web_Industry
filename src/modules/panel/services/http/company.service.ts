@@ -72,3 +72,38 @@ export async function apiGetPageDetails<T, U extends Record<string, unknown>>(
 ) {
   return api.get<T>(ENDPOINTS.PAGE.DETAILS, { params });
 }
+
+// Get all brands (with params for search, paging, sorting)
+export async function apiGetBrandList<T, U extends Record<string, unknown>>(
+  params: U,
+) {
+  return api.get<T>(`${ENDPOINTS.BRAND.MAIN}/all`, { params });
+}
+
+// export async function apiCreateBrand(data: BrandReqData) {
+//   return api.post<BrandResData>(endpointConfig.brand, data);
+//     url: endpointConfig.brand,
+//     method: "post",
+//     data,
+//   });
+// }
+
+// Get brand by ID
+export async function apiGetBrandById<T>(id: string) {
+  return api.get<T>(`${ENDPOINTS.BRAND.MAIN}/${id}`);
+}
+
+// Update brand by ID (PUT)
+// export async function apiUpdateBrandById<T>(id: string, data: BrandReqData) {
+//   return api.put<T>(`${ENDPOINTS.BRAND.MAIN}/${id}`, data);
+// }
+
+// Delete brand by ID (PATCH)
+export async function apiDeleteBrandById<T>(id: string) {
+  return api.patch<T>(`${ENDPOINTS.BRAND.MAIN}/${id}`);
+}
+
+// Toggle active/inactive status (PATCH)
+export async function apiToggleBrandStatus<T>(id: string) {
+  return api.patch<T>(`${ENDPOINTS.BRAND.TOGGLE_STATUS}/${id}`);
+}

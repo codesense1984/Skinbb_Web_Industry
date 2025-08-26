@@ -8,7 +8,7 @@ import type {
   Company,
   CompanyAddress,
   CompanyDocument,
-} from "@/core/types/company.type";
+} from "@/modules/panel/types/company.type";
 import { z } from "zod";
 import { StepKey } from "../components/onboard-form";
 

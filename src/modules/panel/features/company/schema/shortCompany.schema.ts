@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { ShortCompany } from "@/core/types/company.type";
+import type { ShortCompany } from "@/modules/panel/types/company.type";
 import type { FormFieldConfig } from "@/core/components/ui/form-input";
 
 export const shortCompanyZodSchema = z.object({

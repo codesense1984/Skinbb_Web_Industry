@@ -1,5 +1,5 @@
 import { StatusBadge } from "@/core/components/ui/badge";
-import type { CompanyList } from "@/core/types/company.type";
+import type { CompanyList } from "@/modules/panel/types/company.type";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { memo, type FC } from "react";
 import { NavLink } from "react-router";

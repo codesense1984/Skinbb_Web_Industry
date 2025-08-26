@@ -2,7 +2,7 @@ import type { EntityFormComponentProps } from "@/core/components/dialogs/EntityD
 import { Button } from "@/core/components/ui/button";
 import { Form } from "@/core/components/ui/form";
 import { FormInput } from "@/core/components/ui/form-input";
-import type { ShortCompany } from "@/core/types/company.type";
+import type { ShortCompany } from "@/modules/panel/types/company.type";
 import { cn } from "@/core/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";

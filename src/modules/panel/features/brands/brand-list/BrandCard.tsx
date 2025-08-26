@@ -1,5 +1,5 @@
 import { StatusBadge } from "@/core/components/ui/badge";
-import type { Brand } from "@/core/types/brand.type";
+import type { Brand } from "@/modules/panel/types/brand.type";
 import { formatCurrency, formatNumber } from "@/core/utils";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { memo, type FC } from "react";
