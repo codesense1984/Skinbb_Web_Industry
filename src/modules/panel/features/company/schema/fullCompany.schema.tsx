@@ -1,4 +1,3 @@
-import type { Option } from "@/core/components/ui/combo-box";
 import {
   INPUT_TYPES,
   type FormFieldConfig,
@@ -260,8 +259,6 @@ export const fullCompanyZodSchema = z
     }
   });
 
-
-  
 export type FullCompanyFormType = z.infer<typeof fullCompanyZodSchema>;
 
 // Default values function has been merged into transformApiResponseToFormData
@@ -273,7 +270,7 @@ type FieldProps = {
   uploadbrandImage: ModeProps;
   [StepKey.PERSONAL_INFORMATION]: ModeProps;
   [StepKey.COMPANY_DETAILS]: ModeProps & {
-    companyOptions?: Array<Option>;
+    companyOptions?: Array<{ label: string; value: string }>;
     hasCompany: boolean;
   };
   [StepKey.ADDRESS_DETAILS]: ModeProps & {
@@ -281,7 +278,9 @@ type FieldProps = {
     disabled: boolean;
     disabledAddressType: boolean;
   };
-  [StepKey.BRAND_DETAILS]: ModeProps;
+  [StepKey.BRAND_DETAILS]: ModeProps & {
+    productCategoryOptions?: Array<{ label: string; value: string }>;
+  };
   [StepKey.DOCUMENTS_DETAILS]: ModeProps & {
     index: number;
     numberLabel?: string;
@@ -570,7 +569,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
     },
   ],
 
-  brand_information: ({ mode }) => [
+  brand_information: ({ mode, productCategoryOptions = [] }) => [
     {
       name: "brandName",
       label: "Brand Name",
@@ -582,17 +581,12 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
     {
       name: "productCategory",
       label: "Product Category",
-      type: INPUT_TYPES.SELECT,
-      options: [
-        { label: "Skincare", value: "skincare" },
-        { label: "Haircare", value: "haircare" },
-        { label: "Wellness", value: "wellness" },
-        { label: "Makeup", value: "makeup" },
-        { label: "Fragrance", value: "fragrance" },
-      ],
+      type: INPUT_TYPES.COMBOBOX,
+      options: productCategoryOptions,
       placeholder: "Select product category",
       disabled: mode === MODE.VIEW,
-      className: "lg:col-span-3",
+      className: "hide-scrollbars lg:col-span-3",
+      multi: true,
     },
     {
       name: "totalSkus",

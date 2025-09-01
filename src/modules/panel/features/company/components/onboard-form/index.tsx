@@ -204,46 +204,46 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
   // Access check utility (kept for potential future use)
 
   // Validate step navigation when URL changes
-  useEffect(() => {
-    const currentStep = currentValue;
+  // useEffect(() => {
+  //   const currentStep = currentValue;
 
-    // Check if trying to access thank you page without completing all steps
-    if (currentStep === StepKey.THANK_YOU && !areAllStepsCompleted()) {
-      const firstIncompleteStep = getFirstIncompleteStep();
-      toast.error(
-        "Please complete all steps before accessing the thank you page",
-      );
-      setSearchParams({ step: firstIncompleteStep });
-      return;
-    }
+  //   // Check if trying to access thank you page without completing all steps
+  //   if (currentStep === StepKey.THANK_YOU && !areAllStepsCompleted()) {
+  //     const firstIncompleteStep = getFirstIncompleteStep();
+  //     toast.error(
+  //       "Please complete all steps before accessing the thank you page",
+  //     );
+  //     setSearchParams({ step: firstIncompleteStep });
+  //     return;
+  //   }
 
-    // Skip validation for thank you page if all steps are completed
-    if (currentStep === StepKey.THANK_YOU) {
-      return;
-    }
+  //   // Skip validation for thank you page if all steps are completed
+  //   if (currentStep === StepKey.THANK_YOU) {
+  //     return;
+  //   }
 
-    // Allow navigating back or to the first incomplete step
-    const firstIncompleteStep = getFirstIncompleteStep();
-    const targetIndex = STEP_ORDER.indexOf(currentStep);
-    const firstIncompleteIndex = STEP_ORDER.indexOf(firstIncompleteStep);
+  //   // Allow navigating back or to the first incomplete step
+  //   const firstIncompleteStep = getFirstIncompleteStep();
+  //   const targetIndex = STEP_ORDER.indexOf(currentStep);
+  //   const firstIncompleteIndex = STEP_ORDER.indexOf(firstIncompleteStep);
 
-    // If user tries to jump ahead of the first incomplete step, block and redirect
-    if (targetIndex > firstIncompleteIndex) {
-      const stepTitle =
-        STEPS.find((s) => s.value === firstIncompleteStep)?.stepTitle ||
-        "target step";
-      toast.error(
-        `Please complete ${stepTitle} first before proceeding to the next step.`,
-      );
-      setSearchParams({ step: firstIncompleteStep });
-      return;
-    }
-  }, [
-    currentValue,
-    getFirstIncompleteStep,
-    setSearchParams,
-    areAllStepsCompleted,
-  ]);
+  //   // If user tries to jump ahead of the first incomplete step, block and redirect
+  //   if (targetIndex > firstIncompleteIndex) {
+  //     const stepTitle =
+  //       STEPS.find((s) => s.value === firstIncompleteStep)?.stepTitle ||
+  //       "target step";
+  //     toast.error(
+  //       `Please complete ${stepTitle} first before proceeding to the next step.`,
+  //     );
+  //     setSearchParams({ step: firstIncompleteStep });
+  //     return;
+  //   }
+  // }, [
+  //   currentValue,
+  //   getFirstIncompleteStep,
+  //   setSearchParams,
+  //   areAllStepsCompleted,
+  // ]);
 
   // Handle browser back/forward navigation
   useEffect(() => {

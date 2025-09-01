@@ -80,6 +80,11 @@ html {
   }
 }
 
+.hide-scrollbars {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;

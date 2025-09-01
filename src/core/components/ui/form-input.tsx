@@ -17,6 +17,7 @@ import {
 import { cn } from "@/core/utils/index";
 import type { Mode } from "react-day-picker";
 import { Checkbox } from "./checkbox";
+import { ComboBox } from "./combo-box";
 import { DatePicker, type DatePickerProps } from "./date-picker";
 import {
   FormControl,
@@ -39,6 +40,7 @@ import { Slider } from "./slider";
 import { Textarea, type TextareaProps } from "./textarea";
 import { InformationCircleIcon } from "@heroicons/react/24/outline";
 import { Tooltip } from "./tooltip";
+import type { Option } from "@/core/types";
 
 const INPUT_TYPES = {
   TEXT: "text",
@@ -51,6 +53,7 @@ const INPUT_TYPES = {
   SELECT: "select",
   DATEPICKER: "datepicker",
   SLIDER: "slider",
+  COMBOBOX: "combobox",
   CUSTOM: "custom",
 } as const;
 
@@ -91,7 +94,7 @@ type StandardInputProps = InputProps &
   TextareaProps &
   React.ComponentProps<typeof CheckboxPrimitive.Root>;
 
-export type SelectOption = { value: string; label: string };
+export type SelectOption = { value: string; label: string | React.ReactNode };
 type SelectProps<
   T extends FieldValues,
   N extends FieldPath<T>,
@@ -108,6 +111,19 @@ type SliderProps<
   type: typeof INPUT_TYPES.SLIDER;
   inputProps?: React.ComponentProps<typeof SliderPrimitive.Root>;
 };
+
+type ComboBoxProps<
+  T extends FieldValues,
+  N extends FieldPath<T>,
+> = BaseInputProps<T, N> & {
+  type: typeof INPUT_TYPES.COMBOBOX;
+  options: Option[];
+  inputProps?: React.ComponentProps<typeof ComboBox>;
+  multi?: boolean;
+  maxVisibleItems?: number;
+  flexWrap?: boolean;
+};
+
 type NonSelectProps<
   T extends FieldValues,
   N extends FieldPath<T>,
@@ -153,14 +169,16 @@ export type FormInputProps<T extends FieldValues, N extends FieldPath<T>> =
   | NonSelectProps<T, N>
   | CustomProps<T, N>
   | SliderProps<T, N>
-  | DatePickerBaseProps<T, N>;
+  | DatePickerBaseProps<T, N>
+  | ComboBoxProps<T, N>;
 
 export type FormFieldConfig<T extends FieldValues> =
   | Omit<SelectProps<T, FieldPath<T>>, "control">
   | Omit<NonSelectProps<T, FieldPath<T>>, "control">
   | Omit<CustomProps<T, FieldPath<T>>, "control">
   | Omit<DatePickerBaseProps<T, FieldPath<T>>, "control">
-  | Omit<SliderProps<T, FieldPath<T>>, "control">;
+  | Omit<SliderProps<T, FieldPath<T>>, "control">
+  | Omit<ComboBoxProps<T, FieldPath<T>>, "control">;
 
 function FormInput<T extends FieldValues, N extends FieldPath<T>>(
   props: FormInputProps<T, N>,
@@ -332,6 +350,29 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
                 ))}
             </SelectContent>
           </SelectRoot>
+        </FormControl>
+      );
+    }
+
+    case INPUT_TYPES.COMBOBOX: {
+      return (
+        <FormControl {...formControlProps}>
+          <ComboBox
+            {...inputProps}
+            options={("options" in props ? props.options : []) as Option[]}
+            placeholder={placeholder}
+            value={value}
+            disabled={disabled}
+            multi={("multi" in props ? props.multi : false) as boolean}
+            maxVisibleItems={
+              ("maxVisibleItems" in props ? props.maxVisibleItems : 3) as number
+            }
+            flexWrap={("flexWrap" in props ? props.flexWrap : false) as boolean}
+            onChange={(val) => {
+              clearErrors(name);
+              field.onChange(transform ? transform.output(val) : val);
+            }}
+          />
         </FormControl>
       );
     }

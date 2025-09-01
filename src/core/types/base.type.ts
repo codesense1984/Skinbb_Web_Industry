@@ -4,6 +4,13 @@ export enum MODE {
   VIEW = "VIEW",
 }
 
+export type Option = {
+  label: string | React.ReactNode;
+  value: string;
+  [key: string]: unknown;
+};
+
+
 export interface ApiResponse<T> {
   statusCode: number;
   data: T;

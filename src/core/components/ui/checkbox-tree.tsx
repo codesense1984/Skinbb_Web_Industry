@@ -7,101 +7,212 @@
 
 "use client";
 
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
 
-interface TreeNode {
+// Types
+export interface TreeNode {
   id: string;
   label: string;
   defaultChecked?: boolean;
   children?: TreeNode[];
 }
 
-function useCheckboxTree(initialTree: TreeNode) {
-  const initialCheckedNodes = useMemo(() => {
-    const checkedSet = new Set<string>();
-    const initializeCheckedNodes = (node: TreeNode) => {
-      if (node.defaultChecked) {
-        checkedSet.add(node.id);
-      }
-      node.children?.forEach(initializeCheckedNodes);
+export type CheckStatus = boolean | "indeterminate";
+
+export interface CheckboxTreeProps {
+  tree: TreeNode;
+  renderNode: (props: {
+    node: TreeNode;
+    isChecked: CheckStatus;
+    onCheckedChange: () => void;
+    children: React.ReactNode;
+  }) => React.ReactNode;
+  onChange?: (checkedIds: string[]) => void;
+}
+
+// Tree utilities
+class TreeUtils {
+  static buildMaps(tree: TreeNode) {
+    const parentMap = new Map<string, TreeNode | null>();
+    const nodeMap = new Map<string, TreeNode>();
+
+    const walk = (node: TreeNode, parent: TreeNode | null) => {
+      parentMap.set(node.id, parent);
+      nodeMap.set(node.id, node);
+      node.children?.forEach((child) => walk(child, node));
     };
-    initializeCheckedNodes(initialTree);
-    return checkedSet;
-  }, [initialTree]);
+
+    walk(tree, null);
+    return { parentMap, nodeMap };
+  }
+
+  static getInitialCheckedNodes(tree: TreeNode): Set<string> {
+    const checkedNodes = new Set<string>();
+
+    const walk = (node: TreeNode) => {
+      if (node.defaultChecked) {
+        checkedNodes.add(node.id);
+      }
+      node.children?.forEach(walk);
+    };
+
+    walk(tree);
+    return checkedNodes;
+  }
+
+  static computeCheckStatus(
+    node: TreeNode,
+    checkedSet: Set<string>,
+  ): CheckStatus {
+    if (!node.children || node.children.length === 0) {
+      return checkedSet.has(node.id);
+    }
+
+    const childStatuses = node.children.map((child) =>
+      this.computeCheckStatus(child, checkedSet),
+    );
+
+    if (childStatuses.every((status) => status === true)) {
+      return true;
+    }
+
+    if (
+      childStatuses.some(
+        (status) => status === true || status === "indeterminate",
+      )
+    ) {
+      return "indeterminate";
+    }
+
+    return false;
+  }
+}
+
+// Custom hook for checkbox tree logic
+function useCheckboxTree(
+  initialTree: TreeNode,
+  onChange?: (ids: string[]) => void,
+) {
+  // Build tree maps
+  const { parentMap } = useMemo(
+    () => TreeUtils.buildMaps(initialTree),
+    [initialTree],
+  );
+
+  // Initialize checked nodes from defaultChecked flags
+  const initialCheckedNodes = useMemo(
+    () => TreeUtils.getInitialCheckedNodes(initialTree),
+    [initialTree],
+  );
 
   const [checkedNodes, setCheckedNodes] =
     useState<Set<string>>(initialCheckedNodes);
 
-  const isChecked = useCallback(
-    (node: TreeNode): boolean | "indeterminate" => {
-      if (!node.children) {
-        return checkedNodes.has(node.id);
-      }
+  // Normalize ancestors to ensure parent IDs reflect descendants
+  const normalizeUpwards = useCallback(
+    (startNode: TreeNode, set: Set<string>) => {
+      let currentNode: TreeNode | null = startNode;
 
-      const childrenChecked = node.children.map((child) => isChecked(child));
-      if (childrenChecked.every((status) => status === true)) {
-        return true;
+      while (currentNode) {
+        const parent: TreeNode | null = parentMap.get(currentNode.id) ?? null;
+
+        // Re-evaluate current node status
+        const status = TreeUtils.computeCheckStatus(currentNode, set);
+
+        if (status === true) {
+          set.add(currentNode.id);
+        } else {
+          set.delete(currentNode.id);
+        }
+
+        currentNode = parent;
       }
-      if (
-        childrenChecked.some(
-          (status) => status === true || status === "indeterminate",
-        )
-      ) {
-        return "indeterminate";
-      }
-      return false;
+    },
+    [parentMap],
+  );
+
+  // Public method to check node status
+  const isChecked = useCallback(
+    (node: TreeNode): CheckStatus => {
+      return TreeUtils.computeCheckStatus(node, checkedNodes);
     },
     [checkedNodes],
   );
 
+  // Emit changes to parent component
+  const emitChanges = useCallback(
+    (set: Set<string>) => {
+      onChange?.(Array.from(set));
+    },
+    [onChange],
+  );
+
+  // Handle checkbox toggle
   const handleCheck = useCallback(
     (node: TreeNode) => {
-      const newCheckedNodes = new Set(checkedNodes);
+      const nextCheckedNodes = new Set(checkedNodes);
 
-      const toggleNode = (n: TreeNode, check: boolean) => {
-        if (check) {
-          newCheckedNodes.add(n.id);
+      // Toggle node and all descendants
+      const toggleSubtree = (currentNode: TreeNode, shouldCheck: boolean) => {
+        if (shouldCheck) {
+          nextCheckedNodes.add(currentNode.id);
         } else {
-          newCheckedNodes.delete(n.id);
+          nextCheckedNodes.delete(currentNode.id);
         }
-        n.children?.forEach((child) => toggleNode(child, check));
+        currentNode.children?.forEach((child) =>
+          toggleSubtree(child, shouldCheck),
+        );
       };
 
-      const currentStatus = isChecked(node);
-      const newCheck = currentStatus !== true;
+      const currentStatus = TreeUtils.computeCheckStatus(
+        node,
+        nextCheckedNodes,
+      );
+      const newCheckState = currentStatus !== true; // Toggle: if fully checked, uncheck; else check
 
-      toggleNode(node, newCheck);
-      setCheckedNodes(newCheckedNodes);
+      toggleSubtree(node, newCheckState);
+
+      // Normalize ancestors to reflect the new subtree state
+      normalizeUpwards(node, nextCheckedNodes);
+
+      setCheckedNodes(nextCheckedNodes);
+      emitChanges(nextCheckedNodes);
     },
-    [checkedNodes, isChecked],
+    [checkedNodes, normalizeUpwards, emitChanges],
   );
+
+  // One-time normalization on mount to propagate defaultChecked to parents
+  useEffect(() => {
+    const nextCheckedNodes = new Set(checkedNodes);
+    normalizeUpwards(initialTree, nextCheckedNodes);
+    setCheckedNodes(nextCheckedNodes);
+    emitChanges(nextCheckedNodes);
+  }, []); // Run once on mount
 
   return { isChecked, handleCheck };
 }
 
-interface CheckboxTreeProps {
-  tree: TreeNode;
-  renderNode: (props: {
-    node: TreeNode;
-    isChecked: boolean | "indeterminate";
-    onCheckedChange: () => void;
-    children: React.ReactNode;
-  }) => React.ReactNode;
-}
+// Main component
+export function CheckboxTree({
+  tree,
+  renderNode,
+  onChange,
+}: CheckboxTreeProps) {
+  const { isChecked, handleCheck } = useCheckboxTree(tree, onChange);
 
-export function CheckboxTree({ tree, renderNode }: CheckboxTreeProps) {
-  const { isChecked, handleCheck } = useCheckboxTree(tree);
+  const renderTreeNode = useCallback(
+    (node: TreeNode): React.ReactNode => {
+      const children = node.children?.map(renderTreeNode);
 
-  const renderTreeNode = (node: TreeNode): React.ReactNode => {
-    const children = node.children?.map(renderTreeNode);
-
-    return renderNode({
-      node,
-      isChecked: isChecked(node),
-      onCheckedChange: () => handleCheck(node),
-      children,
-    });
-  };
+      return renderNode({
+        node,
+        isChecked: isChecked(node),
+        onCheckedChange: () => handleCheck(node),
+        children,
+      });
+    },
+    [renderNode, isChecked, handleCheck],
+  );
 
   return renderTreeNode(tree);
 }
