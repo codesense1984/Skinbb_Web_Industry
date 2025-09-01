@@ -13,7 +13,7 @@ import type {
 } from "@/modules/panel/types/company.type";
 import { Link } from "react-router";
 import { z } from "zod";
-import { StepKey } from "../components/onboard-form";
+import { StepKey } from "../config/steps.config";
 import { Input } from "@/core/components/ui/input";
 
 export type CompanyFormValues = Omit<
@@ -95,46 +95,16 @@ const DocumentSchema = z
     }
   });
 
-// Constants for validation
-const VALIDATION_CONSTANTS = {
-  PASSWORD: {
-    MIN_LENGTH: 8,
-    MAX_LENGTH: 20,
-    REGEX: /^(?![0-9])(?=.*[0-9])(?=.*[@#$%!*&])([^\s])+$/,
-  },
-  PHONE: {
-    MIN_LENGTH: 10,
-  },
-  POSTAL_CODE: {
-    REGEX: /^\d{6}$/,
-  },
-  URL: {
-    REGEX:
-      /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/,
-  },
-} as const;
-
-// Reusable validation functions
-const createUrlValidator = (platformName: string) => {
-  return z
-    .string()
-    .optional()
-    .or(z.literal(""))
-    .refine(
-      (url) => {
-        if (!url || url.trim() === "") return true;
-        return VALIDATION_CONSTANTS.URL.REGEX.test(url);
-      },
-      {
-        message: `Please enter a valid ${platformName} URL`,
-      },
-    );
-};
-
-const createRequiredString = (fieldName: string) =>
-  z.string().min(1, `${fieldName} is required`);
-
-const createOptionalString = () => z.string().optional().or(z.literal(""));
+import {
+  VALIDATION_CONSTANTS,
+  createUrlValidator,
+  createRequiredString,
+  createOptionalString,
+  createEmailValidator,
+  createPhoneValidator,
+  createPasswordValidator,
+  createPostalCodeValidator,
+} from "@/core/utils/validation.utils";
 
 // Address schema
 const addressSchema = z.object({
@@ -145,10 +115,7 @@ const addressSchema = z.object({
   country: createRequiredString("Country"),
   state: createRequiredString("State"),
   city: createRequiredString("City"),
-  postalCode: z
-    .string()
-    .min(1, "Postal code is required")
-    .regex(VALIDATION_CONSTANTS.POSTAL_CODE.REGEX, "Must be exactly 6 digits"),
+  postalCode: createPostalCodeValidator("Postal code"),
 });
 
 // Selling platform schema
@@ -186,29 +153,13 @@ export const fullCompanyZodSchema = z
     // Basic company information
     _id: z.string().optional(),
     name: createRequiredString("Name"),
-    email: z.string().email("Invalid email"),
-    phoneNumber: z
-      .string()
-      .min(VALIDATION_CONSTANTS.PHONE.MIN_LENGTH, "Invalid phone"),
+    email: createEmailValidator("Email"),
+    phoneNumber: createPhoneValidator("Phone number"),
     designation: createRequiredString("Designation"),
     phoneVerified: z.boolean().refine((val) => val, {
       message: "Phone number is not verified",
     }),
-    password: z
-      .string()
-      .nonempty("Password is required")
-      .min(
-        VALIDATION_CONSTANTS.PASSWORD.MIN_LENGTH,
-        `Password must be at least ${VALIDATION_CONSTANTS.PASSWORD.MIN_LENGTH} characters`,
-      )
-      .max(
-        VALIDATION_CONSTANTS.PASSWORD.MAX_LENGTH,
-        `Password must be at most ${VALIDATION_CONSTANTS.PASSWORD.MAX_LENGTH} characters`,
-      )
-      .regex(
-        VALIDATION_CONSTANTS.PASSWORD.REGEX,
-        "Password must start with a non-digit, include at least one number, one special character (@#$%!*&), and contain no whitespace",
-      ),
+    password: createPasswordValidator(),
 
     // Company assets
     logo: z.any().optional().or(z.literal("")),
@@ -309,83 +260,12 @@ export const fullCompanyZodSchema = z
     }
   });
 
+
+  
 export type FullCompanyFormType = z.infer<typeof fullCompanyZodSchema>;
 
-export function fullCompanyDefaultValues(
-  data?: Partial<FullCompanyFormType>,
-): FullCompanyFormType {
-  return {
-    // personal details
-    name: data?.name ?? "",
-    email: data?.email ?? "",
-    designation: data?.email ?? "",
-    password: data?.password ?? "",
-    phoneNumber: data?.phoneNumber ?? "8424847449",
-    phoneVerified: data?.phoneVerified ?? true,
-
-    // Step 1
-    logo: data?.logo ?? "",
-    logo_files: data?.logo_files ?? undefined,
-    companyName: data?.companyName ?? "",
-    category: data?.category ?? "",
-    businessType: data?.businessType ?? "",
-    establishedIn: data?.establishedIn ?? "",
-    website: data?.website ?? "",
-    isSubsidiary: String(data?.isSubsidiary ?? false),
-    headquarterLocation: data?.headquarterLocation ?? "",
-    description: data?.description ?? "",
-
-    // Brand details
-    brand_logo: data?.brand_logo ?? undefined,
-    brand_logo_files: data?.brand_logo_files ?? undefined,
-    brandName: data?.brandName ?? "",
-    totalSkus: data?.totalSkus ?? "",
-    productCategory: data?.productCategory ?? "",
-    averageSellingPrice: data?.averageSellingPrice ?? "2",
-    sellingOn: data?.sellingOn ?? [
-      {
-        platform: "",
-        url: "",
-      },
-    ],
-    instagramUrl: data?.instagramUrl ?? "",
-    facebookUrl: data?.facebookUrl ?? "",
-    youtubeUrl: data?.youtubeUrl ?? "",
-    marketingBudget: data?.marketingBudget ?? "",
-
-    // Step 2 (single-address array)
-    address:
-      data?.address?.length === 1
-        ? data.address
-        : [
-            {
-              addressType: "registered" as const,
-              address: "",
-              landmark: "",
-              phoneNumber: "",
-              country: "",
-              state: "",
-              city: "",
-              postalCode: "",
-            },
-          ],
-
-    // Step 3 (four documents)
-    documents:
-      data?.documents?.length === 4
-        ? data.documents
-        : [
-            { type: "coi", number: "", url: "" },
-            { type: "pan", number: "", url: "" },
-            { type: "gstLicense", number: "", url: "" },
-            { type: "msme", number: "", url: "" },
-            { type: "brandAuthorisation", number: "", url: "" },
-          ],
-
-    // Terms
-    agreeTermsConditions: data?.agreeTermsConditions ?? false,
-  };
-}
+// Default values function has been merged into transformApiResponseToFormData
+// in /src/modules/panel/features/company/utils/onboarding.utils.ts
 
 type ModeProps = { mode: MODE };
 type FieldProps = {
@@ -394,6 +274,7 @@ type FieldProps = {
   [StepKey.PERSONAL_INFORMATION]: ModeProps;
   [StepKey.COMPANY_DETAILS]: ModeProps & {
     companyOptions?: Array<Option>;
+    hasCompany: boolean;
   };
   [StepKey.ADDRESS_DETAILS]: ModeProps & {
     index: number;
@@ -458,7 +339,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       },
     },
   ],
-  company_information: ({ mode }) => [
+  company_information: ({ mode, hasCompany }) => [
     {
       name: "companyName",
       label: "Company Name",
@@ -476,7 +357,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       type: INPUT_TYPES.SELECT,
       options: COMPANY.CATEGORY_OPTIONS,
       placeholder: "Select category",
-      disabled: mode === MODE.VIEW,
+      disabled: hasCompany || mode === MODE.VIEW,
     },
     {
       name: "businessType",
@@ -484,16 +365,23 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       type: INPUT_TYPES.SELECT,
       options: COMPANY.TYPE_OPTIONS,
       placeholder: "Select business type",
-      disabled: mode === MODE.VIEW,
+      disabled: hasCompany || mode === MODE.VIEW,
     },
     {
       name: "establishedIn",
       label: "Established In",
       type: INPUT_TYPES.CUSTOM,
       placeholder: "Enter year of establishment",
-      disabled: mode === MODE.VIEW,
+      disabled: hasCompany || mode === MODE.VIEW,
       render({ field }) {
-        return <Input className="block w-full" type="month" {...field} />;
+        return (
+          <Input
+            className="block w-full"
+            type="month"
+            disabled={hasCompany || mode === MODE.VIEW}
+            {...field}
+          />
+        );
       },
     },
 
@@ -502,11 +390,11 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       label: "Website (optional)",
       type: INPUT_TYPES.TEXT,
       placeholder: "Enter website URL",
-      disabled: mode === MODE.VIEW,
-      inputProps: {
-        startIcon: <p>https://</p>,
-        className: "pl-17",
-      },
+      disabled: hasCompany || mode === MODE.VIEW,
+      // inputProps: {
+      //   startIcon: <p>https://</p>,
+      //   className: "pl-17",
+      // },
     },
     {
       name: "isSubsidiary",
@@ -517,14 +405,14 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
         { label: "No", value: "false" },
       ],
       placeholder: "Select option",
-      disabled: mode === MODE.VIEW,
+      disabled: hasCompany || mode === MODE.VIEW,
     },
     {
       name: "headquarterLocation",
       label: "Headquarters Location",
       type: INPUT_TYPES.TEXT,
       placeholder: "Enter HQ location",
-      disabled: mode === MODE.VIEW,
+      disabled: hasCompany || mode === MODE.VIEW,
       className: "sm:col-span-2",
     },
     {
@@ -532,7 +420,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       label: "Company Description (optional)",
       type: INPUT_TYPES.TEXTAREA,
       placeholder: "Brief description about the company",
-      disabled: mode === MODE.VIEW,
+      disabled: hasCompany || mode === MODE.VIEW,
       className: "sm:col-span-2",
     },
   ],

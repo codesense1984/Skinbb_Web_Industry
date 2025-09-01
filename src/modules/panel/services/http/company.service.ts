@@ -2,6 +2,7 @@ import { api } from "@/core/services/http";
 import { ENDPOINTS } from "../../config/endpoint.config";
 import type { ApiResponse } from "@/core/types";
 import type { OnboardingSubmitRequest } from "@/modules/panel/types/company.type";
+import { createFormData } from "@/core/utils/formdata.utils";
 
 // Get all onboard entries (with params for search, paging, sorting)
 export async function apiGetOnboardList<T, U extends Record<string, unknown>>(
@@ -27,7 +28,14 @@ export async function apiUpdateOnboardById<
 
 // ---- Onboarding ----
 export async function apiOnboardingSubmit<T>(data: OnboardingSubmitRequest) {
-  return api.post<T>(ENDPOINTS.ONBOARDING.MAIN, data);
+  // Use generic FormData utility with specific array keys for onboarding
+  const formData = createFormData(data, ["addresses", "sellingOn"]);
+
+  return api.post<T>(ENDPOINTS.ONBOARDING.MAIN, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
 }
 
 export async function apiSendMailOTP<T, U extends Record<string, unknown>>(

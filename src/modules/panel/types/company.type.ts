@@ -59,6 +59,7 @@ export interface CompanyList
 
 // Onboarding API request interface
 export interface OnboardingSubmitRequest {
+  _id?: string | null;
   ownerName: string;
   ownerEmail: string;
   phoneNumber: string;
@@ -68,6 +69,7 @@ export interface OnboardingSubmitRequest {
   companyDescription: string;
   businessType: string;
   companyCategory: string;
+  establishedIn: string;
   gstNumber: string;
   panNumber: string;
   cinNumber: string;

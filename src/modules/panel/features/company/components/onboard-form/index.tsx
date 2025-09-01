@@ -13,43 +13,45 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import {
   createContext,
-  memo,
   useCallback,
   useContext,
   useEffect,
   useMemo,
   useState,
-  type FC,
+  type ComponentType,
+  lazy,
+  Suspense,
 } from "react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { useSearchParams } from "react-router";
 import { toast } from "sonner";
 import { apiOnboardingSubmit } from "../../../../services/http/company.service";
 import {
-  fullCompanyDefaultValues,
-  fullCompanyDetailsSchema,
   fullCompanyZodSchema,
   type FullCompanyFormType,
 } from "../../schema/fullCompany.schema";
-import { transformFormDataToApiRequest } from "../../utils/onboarding.utils";
-import { AddressDetails } from "./AddressDetails";
-import BrandDetails from "./BrandDetails";
-import CompanyDetails from "./CompanyDetails";
-import { DocumentDetails } from "./DocumentDetails";
-import PersonalDetails from "./PersonalDetails";
-import Thankyou from "./Thankyou";
-import { cn } from "@/core/utils";
+import {
+  transformFormDataToApiRequest,
+  transformApiResponseToFormData,
+} from "../../utils/onboarding.utils";
+const CompanyDetails = lazy(() => import("./CompanyDetails"));
+const BrandDetails = lazy(() => import("./BrandDetails"));
+const PersonalDetails = lazy(() => import("./PersonalDetails"));
+const Thankyou = lazy(() => import("./Thankyou"));
+const AddressDetails = lazy(() =>
+  import("./AddressDetails").then((m) => ({ default: m.AddressDetails })),
+);
+const DocumentDetails = lazy(() =>
+  import("./DocumentDetails").then((m) => ({ default: m.DocumentDetails })),
+);
+import {
+  areAllStepsCompleted as areAllStepsCompletedUtil,
+  computeFirstIncompleteStep,
+  getFieldNamesForStep,
+} from "../../utils/onboard-steps.utils";
+import { STEP_ORDER } from "../../config/steps.config";
 
-export enum StepKey {
-  // START = "start",
-  PERSONAL_INFORMATION = "personal_information",
-  COMPANY_DETAILS = "company_information",
-  ADDRESS_DETAILS = "address_information",
-  DOCUMENTS_DETAILS = "documents_information",
-  BRAND_DETAILS = "brand_information",
-  // CONFIRMATION = "confirmation",
-  THANK_YOU = "thank_you",
-}
+import { StepKey } from "../../config/steps.config";
 
 const StepCount = {
   // [StepKey.START]: 1,
@@ -68,7 +70,7 @@ interface StepItem {
   value: StepKey;
   title: string;
   description: string;
-  Component: FC<{ mode: MODE }>;
+  Component: ComponentType<{ mode: MODE }>;
 }
 
 const STEPS: StepItem[] = [
@@ -87,7 +89,7 @@ const STEPS: StepItem[] = [
     value: StepKey.COMPANY_DETAILS,
     title: "Build Your Business Identity",
     description: "Lay the foundation with your core company details.",
-    Component: memo(CompanyDetails),
+    Component: CompanyDetails,
   },
   {
     step: StepCount[StepKey.ADDRESS_DETAILS],
@@ -96,7 +98,7 @@ const STEPS: StepItem[] = [
     title: "Tell Us Your Address",
     description:
       "We need your registered address to keep our records accurate and compliant.",
-    Component: memo(AddressDetails),
+    Component: AddressDetails,
   },
   {
     step: StepCount[StepKey.BRAND_DETAILS],
@@ -104,7 +106,7 @@ const STEPS: StepItem[] = [
     value: StepKey.BRAND_DETAILS,
     title: "Brand Identity",
     description: "Define your brand identity and logo.",
-    Component: memo(BrandDetails),
+    Component: BrandDetails,
   },
   {
     step: StepCount[StepKey.DOCUMENTS_DETAILS],
@@ -112,7 +114,7 @@ const STEPS: StepItem[] = [
     value: StepKey.DOCUMENTS_DETAILS,
     title: "Prove Your Legitimacy",
     description: "Upload your legal documents for verification.",
-    Component: memo(DocumentDetails),
+    Component: DocumentDetails,
   },
   {
     step: StepCount[StepKey.PERSONAL_INFORMATION],
@@ -121,7 +123,7 @@ const STEPS: StepItem[] = [
     title: "Build your personal space",
     description:
       "Your journey with SkinBB starts here. We're excited to have you on board!",
-    Component: memo(PersonalDetails),
+    Component: PersonalDetails,
   },
   // {
   //   step: StepCount[StepKey.CONFIRMATION],
@@ -138,7 +140,7 @@ const STEPS: StepItem[] = [
     title: "Thank You for Submitting Your Company Profile!",
     description:
       "Your details have been successfully submitted for review. We'll be in touch soon.",
-    Component: memo(Thankyou),
+    Component: Thankyou,
   },
 ];
 
@@ -177,277 +179,29 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
   >([false, undefined]);
 
   const methods = useForm<FullCompanyFormType>({
-    defaultValues: fullCompanyDefaultValues(),
+    defaultValues: transformApiResponseToFormData(),
     resolver: zodResolver(fullCompanyZodSchema),
     mode: "onTouched",
     reValidateMode: "onChange",
   });
 
-  const { handleSubmit, trigger, watch, formState, setError } = methods;
+  const { handleSubmit, trigger, watch } = methods;
+
+  console.log(watch());
 
   // Function to find the first incomplete step (synchronous for UI)
   const getFirstIncompleteStep = useCallback((): StepKey => {
-    const stepOrder = [
-      StepKey.COMPANY_DETAILS,
-      StepKey.ADDRESS_DETAILS,
-      StepKey.BRAND_DETAILS,
-      StepKey.DOCUMENTS_DETAILS,
-      StepKey.PERSONAL_INFORMATION,
-    ];
-
     const values = watch();
-    for (const step of stepOrder) {
-      let isStepCompleted = false;
-
-      switch (step) {
-        case StepKey.COMPANY_DETAILS:
-          isStepCompleted = !!(
-            values.companyName?.trim() &&
-            values.category?.trim() &&
-            values.businessType?.trim() &&
-            values.establishedIn
-          );
-          break;
-
-        case StepKey.ADDRESS_DETAILS:
-          isStepCompleted =
-            values.address?.every(
-              (addr) =>
-                addr.address?.trim() &&
-                addr.landmark?.trim() &&
-                addr.phoneNumber?.trim() &&
-                addr.country?.trim() &&
-                addr.state?.trim() &&
-                addr.city?.trim() &&
-                addr.postalCode?.trim(),
-            ) || false;
-          break;
-
-        case StepKey.BRAND_DETAILS:
-          isStepCompleted = !!(
-            values.brandName?.trim() &&
-            values.totalSkus?.trim() &&
-            values.productCategory?.trim() &&
-            values.averageSellingPrice?.trim() &&
-            values.marketingBudget?.trim()
-          );
-          break;
-
-        case StepKey.DOCUMENTS_DETAILS:
-          isStepCompleted =
-            values.documents?.every((doc) =>
-              doc.type === "coi"
-                ? doc.number?.trim() && doc.url?.trim()
-                : doc.type === "pan"
-                  ? doc.number?.trim() && doc.url?.trim()
-                  : doc.type === "gstLicense"
-                    ? doc.url?.trim()
-                    : doc.type === "msme"
-                      ? doc.url?.trim()
-                      : doc.type === "brandAuthorisation"
-                        ? doc.url?.trim()
-                        : true,
-            ) || false;
-          break;
-
-        case StepKey.PERSONAL_INFORMATION:
-          isStepCompleted = !!(
-            values.name?.trim() &&
-            values.email?.trim() &&
-            values.designation?.trim() &&
-            values.phoneNumber?.trim() &&
-            values.password?.trim() &&
-            values.phoneVerified
-          );
-          break;
-
-        default:
-          isStepCompleted = false;
-      }
-
-      if (!isStepCompleted) {
-        return step;
-      }
-    }
-    return StepKey.THANK_YOU;
+    return computeFirstIncompleteStep(values);
   }, [watch]);
 
   // Function to check if all form steps are completed (synchronous for UI)
   const areAllStepsCompleted = useCallback((): boolean => {
-    const stepOrder = [
-      StepKey.COMPANY_DETAILS,
-      StepKey.ADDRESS_DETAILS,
-      StepKey.BRAND_DETAILS,
-      StepKey.DOCUMENTS_DETAILS,
-      StepKey.PERSONAL_INFORMATION,
-    ];
-
     const values = watch();
-    return stepOrder.every((step) => {
-      switch (step) {
-        case StepKey.COMPANY_DETAILS:
-          return !!(
-            values.companyName?.trim() &&
-            values.category?.trim() &&
-            values.businessType?.trim() &&
-            values.establishedIn &&
-            values.logo_files?.length
-          );
-
-        case StepKey.ADDRESS_DETAILS:
-          return (
-            values.address?.every(
-              (addr) =>
-                addr.address?.trim() &&
-                addr.landmark?.trim() &&
-                addr.phoneNumber?.trim() &&
-                addr.country?.trim() &&
-                addr.state?.trim() &&
-                addr.city?.trim() &&
-                addr.postalCode?.trim(),
-            ) || false
-          );
-
-        case StepKey.BRAND_DETAILS:
-          return !!(
-            values.brandName?.trim() &&
-            values.totalSkus?.trim() &&
-            values.productCategory?.trim() &&
-            values.averageSellingPrice?.trim() &&
-            values.marketingBudget?.trim()
-          );
-
-        case StepKey.DOCUMENTS_DETAILS:
-          return (
-            values.documents?.every((doc) =>
-              doc.type === "coi"
-                ? doc.number?.trim() && doc.url?.trim()
-                : doc.type === "pan"
-                  ? doc.number?.trim() && doc.url?.trim()
-                  : doc.type === "gstLicense"
-                    ? doc.url?.trim()
-                    : doc.type === "msme"
-                      ? doc.url?.trim()
-                      : doc.type === "brandAuthorisation"
-                        ? doc.url?.trim()
-                        : true,
-            ) || false
-          );
-
-        case StepKey.PERSONAL_INFORMATION:
-          return !!(
-            values.name?.trim() &&
-            values.email?.trim() &&
-            values.designation?.trim() &&
-            values.phoneNumber?.trim() &&
-            values.password?.trim() &&
-            values.phoneVerified
-          );
-
-        default:
-          return false;
-      }
-    });
+    return areAllStepsCompletedUtil(values);
   }, [watch]);
 
-  // Function to check if a step can be accessed (synchronous for UI)
-  const canAccessStep = useCallback(
-    (stepKey: StepKey): boolean => {
-      const stepOrder = [
-        StepKey.COMPANY_DETAILS,
-        StepKey.ADDRESS_DETAILS,
-        StepKey.BRAND_DETAILS,
-        StepKey.DOCUMENTS_DETAILS,
-        StepKey.PERSONAL_INFORMATION,
-      ];
-
-      const stepIndex = stepOrder.indexOf(stepKey);
-
-      // First step is always accessible
-      if (stepIndex === 0) return true;
-
-      // Check if all previous steps are completed using synchronous logic
-      const values = watch();
-      for (let i = 0; i < stepIndex; i++) {
-        const prevStep = stepOrder[i];
-        let isPrevStepCompleted = false;
-
-        switch (prevStep) {
-          case StepKey.COMPANY_DETAILS:
-            isPrevStepCompleted = !!(
-              values.companyName?.trim() &&
-              values.category?.trim() &&
-              values.businessType?.trim() &&
-              values.establishedIn &&
-              values.logo_files?.length
-            );
-            break;
-
-          case StepKey.ADDRESS_DETAILS:
-            isPrevStepCompleted =
-              values.address?.every(
-                (addr) =>
-                  addr.address?.trim() &&
-                  addr.landmark?.trim() &&
-                  addr.phoneNumber?.trim() &&
-                  addr.country?.trim() &&
-                  addr.state?.trim() &&
-                  addr.city?.trim() &&
-                  addr.postalCode?.trim(),
-              ) || false;
-            break;
-
-          case StepKey.BRAND_DETAILS:
-            isPrevStepCompleted = !!(
-              values.brandName?.trim() &&
-              values.totalSkus?.trim() &&
-              values.productCategory?.trim() &&
-              values.averageSellingPrice?.trim() &&
-              values.marketingBudget?.trim()
-            );
-            break;
-
-          case StepKey.DOCUMENTS_DETAILS:
-            isPrevStepCompleted =
-              values.documents?.every((doc) =>
-                doc.type === "coi"
-                  ? doc.number?.trim() && doc.url?.trim()
-                  : doc.type === "pan"
-                    ? doc.number?.trim() && doc.url?.trim()
-                    : doc.type === "gstLicense"
-                      ? doc.url?.trim()
-                      : doc.type === "msme"
-                        ? doc.url?.trim()
-                        : doc.type === "brandAuthorisation"
-                          ? doc.url?.trim()
-                          : true,
-              ) || false;
-            break;
-
-          case StepKey.PERSONAL_INFORMATION:
-            isPrevStepCompleted = !!(
-              values.name?.trim() &&
-              values.email?.trim() &&
-              values.designation?.trim() &&
-              values.phoneNumber?.trim() &&
-              values.password?.trim() &&
-              values.phoneVerified
-            );
-            break;
-
-          default:
-            isPrevStepCompleted = false;
-        }
-
-        if (!isPrevStepCompleted) {
-          return false;
-        }
-      }
-
-      return true;
-    },
-    [watch],
-  );
+  // Access check utility (kept for potential future use)
 
   // Validate step navigation when URL changes
   useEffect(() => {
@@ -468,24 +222,24 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
       return;
     }
 
-    // Check if current step is accessible
-    if (!canAccessStep(currentStep)) {
-      // Redirect to first incomplete step
-      const firstIncompleteStep = getFirstIncompleteStep();
-      if (firstIncompleteStep !== currentStep) {
-        const stepTitle =
-          STEPS.find((s) => s.value === firstIncompleteStep)?.stepTitle ||
-          "previous step";
-        toast.error(
-          `Please complete ${stepTitle} first before proceeding to the next step.`,
-        );
-        setSearchParams({ step: firstIncompleteStep });
-        return;
-      }
+    // Allow navigating back or to the first incomplete step
+    const firstIncompleteStep = getFirstIncompleteStep();
+    const targetIndex = STEP_ORDER.indexOf(currentStep);
+    const firstIncompleteIndex = STEP_ORDER.indexOf(firstIncompleteStep);
+
+    // If user tries to jump ahead of the first incomplete step, block and redirect
+    if (targetIndex > firstIncompleteIndex) {
+      const stepTitle =
+        STEPS.find((s) => s.value === firstIncompleteStep)?.stepTitle ||
+        "target step";
+      toast.error(
+        `Please complete ${stepTitle} first before proceeding to the next step.`,
+      );
+      setSearchParams({ step: firstIncompleteStep });
+      return;
     }
   }, [
     currentValue,
-    canAccessStep,
     getFirstIncompleteStep,
     setSearchParams,
     areAllStepsCompleted,
@@ -506,12 +260,14 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
         return;
       }
 
-      if (currentStep && !canAccessStep(currentStep)) {
+      if (currentStep) {
         const firstIncompleteStep = getFirstIncompleteStep();
-        if (firstIncompleteStep !== currentStep) {
+        const targetIndex = STEP_ORDER.indexOf(currentStep);
+        const firstIncompleteIndex = STEP_ORDER.indexOf(firstIncompleteStep);
+        if (targetIndex > firstIncompleteIndex) {
           const stepTitle =
             STEPS.find((s) => s.value === firstIncompleteStep)?.stepTitle ||
-            "previous step";
+            "target step";
           toast.error(
             `Please complete ${stepTitle} first before proceeding to the next step.`,
           );
@@ -523,7 +279,6 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
   }, [
-    canAccessStep,
     getFirstIncompleteStep,
     setSearchParams,
     searchParams,
@@ -534,7 +289,6 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
     () => STEPS.find((s) => s.value === currentValue) ?? STEPS[0],
     [currentValue],
   );
-  console.log("🚀 ~ OnBoardForm ~ currentItem:", currentItem);
 
   const currentIndex = useMemo(
     () => STEPS.findIndex((s) => s.value === currentValue),
@@ -571,10 +325,10 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
   // Onboarding submission mutation
   const onboardingMutation = useMutation({
     mutationFn: (data: FullCompanyFormType) => {
-      const apiRequestData = transformFormDataToApiRequest(data);
-      console.log("🚀 ~ OnBoardForm ~ apiRequestData:", apiRequestData);
+      const apiData = transformFormDataToApiRequest(data);
+      console.log("🚀 ~ OnBoardForm ~ apiData:", apiData);
       return apiOnboardingSubmit<{ success: boolean; message: string }>(
-        apiRequestData,
+        apiData,
       );
     },
     onSuccess: (response: { success: boolean; message: string }) => {
@@ -593,7 +347,6 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
     },
   });
 
-  console.log(watch(), formState.errors, "watch");
   // Validate current form slice before advancing
   const onNext = useCallback(async () => {
     if (!isFormStep) {
@@ -601,95 +354,8 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
       return;
     }
     const sliceKey = currentItem.value as StepKey;
-    let names: (keyof FullCompanyFormType)[] = [];
     const values = watch();
-
-    switch (sliceKey) {
-      case StepKey.PERSONAL_INFORMATION: {
-        names = fullCompanyDetailsSchema
-          .personal_information({ mode })
-          .map((f) => f.name) as (keyof FullCompanyFormType)[];
-        // add check phoneNumber and for password
-        if (!values.phoneNumber) {
-          names.push("phoneNumber");
-        }
-        if (!values.password) {
-          names.push("password");
-        }
-        if (!values.phoneVerified) {
-          names.push("phoneVerified");
-        }
-
-        break;
-      }
-
-      case StepKey.COMPANY_DETAILS:
-        names = fullCompanyDetailsSchema
-          .company_information({ mode })
-          .map((f) => f.name) as (keyof FullCompanyFormType)[];
-
-        // Manual cross-field check to ensure HQ location when subsidiary is yes
-        try {
-          const isSubsidiarySelected = JSON.parse(
-            String(values.isSubsidiary || "false"),
-          );
-          const isHeadquarterMissing = !String(
-            values.headquarterLocation || "",
-          ).trim();
-          if (isSubsidiarySelected && isHeadquarterMissing) {
-            setError("headquarterLocation", {
-              type: "manual",
-              message: "Headquarter location is required for subsidiaries.",
-            });
-            return;
-          }
-        } catch {}
-        break;
-
-      case StepKey.ADDRESS_DETAILS:
-        values.address.forEach((_, index) => {
-          const dName = fullCompanyDetailsSchema
-            .address_information({
-              mode,
-              index,
-              disabled: false,
-              disabledAddressType: false,
-            })
-            .map((f) => f.name) as (keyof FullCompanyFormType)[];
-          names = [...names, ...dName];
-        });
-        break;
-
-      case StepKey.BRAND_DETAILS:
-        // Add brand information fields
-        const brandInfoNames = fullCompanyDetailsSchema
-          .brand_information({ mode })
-          .map((f) => f.name) as (keyof FullCompanyFormType)[];
-        names = [...names, ...brandInfoNames];
-
-        // Add selling platforms fields
-        values.sellingOn?.forEach((_, index) => {
-          const platformNames = fullCompanyDetailsSchema
-            .selling_platforms({ mode, index })
-            .map((f) => f.name) as (keyof FullCompanyFormType)[];
-          names = [...names, ...platformNames];
-        });
-        break;
-
-      case StepKey.DOCUMENTS_DETAILS: {
-        values.documents.forEach((_, index) => {
-          const dName = fullCompanyDetailsSchema
-            .documents_information({ mode, index })
-            .map((f) => f.name) as (keyof FullCompanyFormType)[];
-          names = [...names, ...dName];
-        });
-        break;
-      }
-
-      default:
-        goNext();
-        return;
-    }
+    const names = getFieldNamesForStep(sliceKey, values, mode);
 
     if (!(await trigger(names))) {
       toast.error(`Please fill all required fields in ${sliceKey}`);
@@ -719,9 +385,9 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
             fieldError &&
             typeof fieldError === "object" &&
             "message" in fieldError &&
-            typeof fieldError.message === "string"
+            typeof (fieldError as any).message === "string"
           ) {
-            errorMessages.push(`${fieldName}: ${fieldError.message}`);
+            errorMessages.push(`${fieldName}: ${(fieldError as any).message}`);
           }
         });
 
@@ -790,19 +456,6 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
                     <div className="flex items-center justify-between gap-2">
                       <p className="font-medium">{currentItem?.stepTitle}</p>
                       <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                          {/* <div className="h-2 w-24 rounded-full bg-gray-200">
-                            <div
-                              className="h-2 rounded-full bg-green-500 transition-all duration-300"
-                              style={{
-                                width: `${getFormCompletionPercentage()}%`,
-                              }}
-                            ></div>
-                          </div> */}
-                          {/* <span className="text-muted-foreground text-xs">
-                            {getFormCompletionPercentage()}% Complete
-                          </span> */}
-                        </div>
                         <p className="text-muted-foreground text-sm">
                           {STEPS[currentIndex].step} / {formStep.length}
                         </p>
@@ -819,25 +472,21 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
                         const targetStep = STEPS[targetIndex]?.value;
 
                         if (targetStep) {
-                          // Allow going back to previous steps
-                          const stepOrder = [
-                            StepKey.COMPANY_DETAILS,
-                            StepKey.ADDRESS_DETAILS,
-                            StepKey.BRAND_DETAILS,
-                            StepKey.DOCUMENTS_DETAILS,
-                            StepKey.PERSONAL_INFORMATION,
-                          ];
-
-                          const targetStepIndex = stepOrder.indexOf(targetStep);
+                          const targetStepIndex =
+                            STEP_ORDER.indexOf(targetStep);
                           const currentStepIndex =
-                            stepOrder.indexOf(currentValue);
+                            STEP_ORDER.indexOf(currentValue);
+                          const firstIncompleteStep = getFirstIncompleteStep();
+                          const firstIncompleteIndex =
+                            STEP_ORDER.indexOf(firstIncompleteStep);
 
-                          if (targetStepIndex < currentStepIndex) {
+                          // Always allow navigating backward or staying within completed range
+                          if (targetStepIndex <= currentStepIndex) {
                             navigateTo(targetIndex);
                             return;
                           }
 
-                          // Check if target step is accessible
+                          // Thank you page guard
                           if (
                             targetStep === StepKey.THANK_YOU &&
                             !areAllStepsCompleted()
@@ -848,11 +497,12 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
                             return;
                           }
 
-                          if (canAccessStep(targetStep)) {
+                          // Allow moving forward only up to the first incomplete step
+                          if (targetStepIndex <= firstIncompleteIndex) {
                             navigateTo(targetIndex);
                           } else {
                             const stepTitle =
-                              STEPS.find((s) => s.value === targetStep)
+                              STEPS.find((s) => s.value === firstIncompleteStep)
                                 ?.stepTitle || "target step";
                             toast.error(
                               `Please complete ${stepTitle} first before proceeding to the next step.`,
@@ -898,7 +548,9 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
                     <p className="text-muted-foreground">{description}</p>
                   </div>
 
-                  <Component mode={mode} />
+                  <Suspense fallback={<div className="py-10">Loading...</div>}>
+                    <Component mode={mode} />
+                  </Suspense>
 
                   <div className="bg-background sticky bottom-0 mt-auto flex justify-between border-t py-4">
                     {!isFirst && (
@@ -953,7 +605,11 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
                 cancelText="Close"
               />
 
-              {isThankYou && <Component mode={mode} />}
+              {isThankYou && (
+                <Suspense fallback={<div className="py-10">Loading...</div>}>
+                  <Component mode={mode} />
+                </Suspense>
+              )}
             </div>
           </div>
         </div>

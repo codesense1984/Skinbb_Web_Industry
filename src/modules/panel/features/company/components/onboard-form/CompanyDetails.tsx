@@ -42,6 +42,11 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
     name: "logo_files",
   })?.[0];
 
+  const companyId = useWatch({
+    control,
+    name: "_id",
+  });
+
   // Fetch company details for dropdown
   const { data: companyDetailsResponse, isLoading: isLoadingCompanies } =
     useQuery<CompanyDetailsResponse>({
@@ -87,12 +92,13 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
   const rawInfoFields = fullCompanyDetailsSchema.company_information({
     mode,
     companyOptions,
+    hasCompany: !!companyId,
   }) as FormFieldConfig<FullCompanyFormType>[];
 
   // Create custom fields with company name field that handles change
   const infoFields = rawInfoFields.map((field) => {
     if (field.name === "companyName") {
-      return {
+      const overridden = {
         ...field,
         type: "custom" as const,
         render: ({
@@ -148,7 +154,8 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
             )}
           </div>
         ),
-      };
+      } as unknown as FormFieldConfig<FullCompanyFormType>;
+      return overridden;
     }
 
     return field;

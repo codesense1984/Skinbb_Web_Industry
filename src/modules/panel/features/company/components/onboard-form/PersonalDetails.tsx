@@ -126,7 +126,7 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
           fieldConfigs={fullCompanyDetailsSchema.terms({
             mode,
           })}
-          className="flex"
+          className="col-span-2 flex"
         />
       </FormFieldsRenderer>
 

@@ -10,7 +10,7 @@ import {
   fullCompanyDetailsSchema,
   type FullCompanyFormType,
 } from "../../schema/fullCompany.schema";
-import { StepKey } from ".";
+import { StepKey } from "../../config/steps.config";
 import { Separator } from "@/core/components/ui/separator";
 
 interface AddressDetailsProps {

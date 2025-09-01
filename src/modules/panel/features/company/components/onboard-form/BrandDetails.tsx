@@ -6,6 +6,8 @@ import {
 } from "@/core/components/ui/form-input";
 import { useImagePreview } from "@/core/hooks/useImagePreview";
 import { MODE } from "@/core/types";
+import { apiGetAllProductCategories } from "@/modules/panel/services/http/master.service";
+import { useQuery } from "@tanstack/react-query";
 import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import {
   fullCompanyDetailsSchema,
@@ -29,6 +31,15 @@ const BrandDetails = ({ mode }: BrandDetailsProps) => {
       control,
       name: "sellingOn",
     }) || [];
+
+  // Fetch company details for dropdown
+  const { data: categoriesResponse, isLoading: isLoadingProductCategories } =
+    useQuery({
+      queryKey: ["productCategories"],
+      queryFn: () => apiGetAllProductCategories(),
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    });
+  console.log("🚀 ~ BrandDetails ~ categoriesResponse:", categoriesResponse?.data)
 
   const { element } = useImagePreview(profileData, {
     clear: () => {
@@ -116,6 +127,8 @@ const BrandDetails = ({ mode }: BrandDetailsProps) => {
           }
         />
       </div>
+
+      
 
       <FormFieldsRenderer<FullCompanyFormType>
         control={control}
