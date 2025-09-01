@@ -1,6 +1,7 @@
 import { api } from "@/core/services/http";
 import { ENDPOINTS } from "../../config/endpoint.config";
 import type { ApiResponse } from "@/core/types";
+import type { OnboardingSubmitRequest } from "@/modules/panel/types/company.type";
 
 // Get all onboard entries (with params for search, paging, sorting)
 export async function apiGetOnboardList<T, U extends Record<string, unknown>>(
@@ -25,9 +26,7 @@ export async function apiUpdateOnboardById<
 }
 
 // ---- Onboarding ----
-export async function apiOnboardingSubmit<T, U extends Record<string, unknown>>(
-  data: U,
-) {
+export async function apiOnboardingSubmit<T>(data: OnboardingSubmitRequest) {
   return api.post<T>(ENDPOINTS.ONBOARDING.MAIN, data);
 }
 
@@ -106,4 +105,9 @@ export async function apiDeleteBrandById<T>(id: string) {
 // Toggle active/inactive status (PATCH)
 export async function apiToggleBrandStatus<T>(id: string) {
   return api.patch<T>(`${ENDPOINTS.BRAND.TOGGLE_STATUS}/${id}`);
+}
+
+// Get company details for dropdown
+export async function apiGetCompanyDetails<T>() {
+  return api.get<T>(ENDPOINTS.SELLER.GET_COMPANY_DETAILS);
 }

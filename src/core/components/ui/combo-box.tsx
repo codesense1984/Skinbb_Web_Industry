@@ -16,7 +16,7 @@ import { CheckIcon, ChevronsUpDownIcon } from "lucide-react";
 import * as React from "react";
 
 export type Option = {
-  label: string;
+  label: string | React.ReactNode;
   value: string;
   [key: string]: unknown;
 };
@@ -30,6 +30,9 @@ interface ComboBoxProps
   className?: string;
   searchable?: boolean;
   clearable?: boolean;
+  disabled?: boolean;
+  loading?: boolean;
+  error?: boolean;
   renderLabel?: (option: Option) => React.ReactNode;
   renderOption?: (option: Option, isSelected: boolean) => React.ReactNode;
   commandProps?: React.ComponentProps<typeof Command>;
@@ -46,6 +49,9 @@ export const ComboBox: React.FC<ComboBoxProps> = ({
   className,
   searchable = true,
   clearable = true,
+  disabled = false,
+  loading = false,
+  error = false,
   renderLabel,
   renderOption,
   commandProps,
@@ -69,23 +75,50 @@ export const ComboBox: React.FC<ComboBoxProps> = ({
 
   const selectedOption = options.find((opt) => opt.value === value);
 
+  // Handle keyboard navigation
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (disabled || loading) return;
+
+    switch (event.key) {
+      case "Enter":
+      case " ":
+        event.preventDefault();
+        setOpen(!open);
+        break;
+      case "Escape":
+        setOpen(false);
+        break;
+    }
+  };
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open && !disabled && !loading} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
           aria-expanded={open}
+          disabled={disabled || loading}
+          onKeyDown={handleKeyDown}
           className={cn(
             "form-control flex items-center justify-between",
+            error && "border-red-500 focus:border-red-500 focus:ring-red-500",
+            disabled && "cursor-not-allowed opacity-50",
+            loading && "cursor-wait",
             className,
           )}
           {...props}
         >
           <span className="truncate text-left">
-            {selectedOption
-              ? (renderLabel?.(selectedOption) ?? selectedOption.label)
-              : placeholder}
+            {loading
+              ? "Loading..."
+              : selectedOption
+                ? (renderLabel?.(selectedOption) ?? selectedOption.label)
+                : placeholder}
           </span>
-          <ChevronsUpDownIcon className="size-4 opacity-50" />
+          {loading ? (
+            <div className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          ) : (
+            <ChevronsUpDownIcon className="size-4 opacity-50" />
+          )}
         </button>
       </PopoverTrigger>
       <PopoverContent
@@ -99,35 +132,43 @@ export const ComboBox: React.FC<ComboBoxProps> = ({
           <CommandList>
             <CommandEmpty>{emptyMessage}</CommandEmpty>
             <CommandGroup>
-              {options.map((option) => {
-                const isSelected = value === option.value;
-                return (
-                  <CommandItem
-                    key={option.value}
-                    value={option.value}
-                    onSelect={() => {
-                      const newVal =
-                        option.value === value && clearable ? "" : option.value;
-                      setValue(newVal);
-                      setOpen(false);
-                    }}
-                  >
-                    {renderOption ? (
-                      renderOption(option, isSelected)
-                    ) : (
-                      <>
-                        {option.label}
-                        <CheckIcon
-                          className={cn(
-                            "ml-auto h-4 w-4",
-                            isSelected ? "opacity-100" : "opacity-0",
-                          )}
-                        />
-                      </>
-                    )}
-                  </CommandItem>
-                );
-              })}
+              {options.length === 0 ? (
+                <div className="text-muted-foreground px-2 py-6 text-center text-sm">
+                  {loading ? "Loading options..." : "No options available"}
+                </div>
+              ) : (
+                options.map((option) => {
+                  const isSelected = value === option.value;
+                  return (
+                    <CommandItem
+                      key={option.value}
+                      value={option.value}
+                      onSelect={() => {
+                        const newVal =
+                          option.value === value && clearable
+                            ? ""
+                            : option.value;
+                        setValue(newVal);
+                        setOpen(false);
+                      }}
+                    >
+                      {renderOption ? (
+                        renderOption(option, isSelected)
+                      ) : (
+                        <>
+                          {option.label}
+                          <CheckIcon
+                            className={cn(
+                              "ml-auto h-4 w-4",
+                              isSelected ? "opacity-100" : "opacity-0",
+                            )}
+                          />
+                        </>
+                      )}
+                    </CommandItem>
+                  );
+                })
+              )}
             </CommandGroup>
           </CommandList>
         </Command>

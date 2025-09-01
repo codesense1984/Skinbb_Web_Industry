@@ -9,7 +9,8 @@ export const ENDPOINTS = {
   },
 
   ONBOARDING: {
-    MAIN: `${API_PREFIX}/brands/on-boarding`,
+    // MAIN: `${API_PREFIX}/brands/on-boarding`,
+    MAIN: `${API_PREFIX}/sellers/onboard`,
     SEND_MAIL: `${API_PREFIX}/otp/send/email`,
     VERIFY_MAIL: `${API_PREFIX}/otp/verify/email`,
     SEND_MOBILE: `${API_PREFIX}/otp/send`,
@@ -69,6 +70,7 @@ export const ENDPOINTS = {
 
   SELLER: {
     MAIN: `${API_PREFIX}/sellers/admin`,
+    GET_COMPANY_DETAILS: `${API_PREFIX}/sellers/getCompanyDetails`,
   },
 
   DISCOUNT: {

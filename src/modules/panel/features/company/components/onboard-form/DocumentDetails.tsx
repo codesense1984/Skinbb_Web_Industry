@@ -1,13 +1,13 @@
 // src/components/onboarding/AddressDetails.tsx
 import { FormFieldsRenderer } from "@/core/components/ui/form-input";
 import { MODE } from "@/core/types";
-import type { CompanyDocument } from "@/modules/panel/types";
 import React, { useMemo } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import {
   fullCompanyDetailsSchema,
   type FullCompanyFormType,
 } from "../../schema/fullCompany.schema";
+import type { CompanyDocument } from "@/modules/panel/types";
 
 interface DocumentDetailsProps {
   mode: MODE;
@@ -34,7 +34,7 @@ const DOC_CONFIGS = [
   },
   {
     key: "gstLicense" as CompanyDocument["type"],
-    title: "Goods & Services Tax (GST)",
+    title: "Goods & Services Tax (GST) (optional)",
     numberLabel: "GST Number",
     numberPlaceholder: "Enter GST number",
     uploadLabel: "Upload GST Certificate",
@@ -43,12 +43,22 @@ const DOC_CONFIGS = [
   },
   {
     key: "msme" as CompanyDocument["type"],
-    title: "MSME Registration",
+    title: "MSME Registration (optional)",
     numberLabel: "MSME Number",
     numberPlaceholder: "Enter MSME number",
     uploadLabel: "Upload MSME Certificate",
     uploadPlaceholder: "Upload file",
     required: false,
+  },
+  {
+    key: "brandAuthorisation" as CompanyDocument["type"],
+    title: "Brand Authorisation Letter",
+    numberLabel: "",
+    numberPlaceholder: "",
+    uploadLabel: "Upload Brand Authorisation Letter",
+    uploadPlaceholder: "Upload file",
+    required: true,
+    showNumber: false,
   },
 ];
 
@@ -70,7 +80,7 @@ export const DocumentDetails: React.FC<DocumentDetailsProps> = ({ mode }) => {
       {DOC_CONFIGS.map(({ key, title, ...labels }) => {
         const idx = fields.findIndex((f) => f.type === key);
         if (idx === -1) {
-          append({ ...blankDoc, type: key });
+          append({ ...blankDoc, type: key as CompanyDocument["type"] });
           return null;
         }
 
@@ -81,6 +91,7 @@ export const DocumentDetails: React.FC<DocumentDetailsProps> = ({ mode }) => {
           numberPlaceholder: labels.numberPlaceholder,
           uploadLabel: labels.uploadLabel,
           uploadPlaceholder: labels.uploadPlaceholder,
+          showNumber: labels.showNumber,
         });
 
         return (
@@ -94,14 +105,6 @@ export const DocumentDetails: React.FC<DocumentDetailsProps> = ({ mode }) => {
           </div>
         );
       })}
-
-      <FormFieldsRenderer<FullCompanyFormType>
-        control={control}
-        fieldConfigs={fullCompanyDetailsSchema.terms({
-          mode,
-        })}
-        className="flex"
-      />
     </div>
   );
 };

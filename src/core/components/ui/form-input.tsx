@@ -75,7 +75,7 @@ interface BaseInputProps<
 > extends React.ComponentProps<"div"> {
   control: Control<T>;
   name: N;
-  label?: string;
+  label?: string | React.ReactElement;
   description?: string;
   placeholder?: string;
   rules?: RegisterOptions<T, N>;
@@ -132,17 +132,19 @@ type DatePickerBaseProps<
   mode: Mode;
 };
 
+export type CustomRenders<T extends FieldValues, N extends FieldPath<T>> = {
+  field: ControllerRenderProps<T, N>;
+  fieldState: ControllerFieldState;
+  formState: UseFormStateReturn<T>;
+};
+
 // Custom element props
-type CustomProps<
+export type CustomProps<
   T extends FieldValues,
   N extends FieldPath<T>,
 > = BaseInputProps<T, N> & {
   type: "custom";
-  render: (args: {
-    field: ControllerRenderProps<T, N>;
-    fieldState: ControllerFieldState;
-    formState: UseFormStateReturn<T>;
-  }) => React.ReactNode;
+  render: (args: CustomRenders<T, N>) => React.ReactNode;
   inputProps?: never;
 };
 
@@ -211,7 +213,7 @@ function FormInput<T extends FieldValues, N extends FieldPath<T>>(
             inputId={inputId}
           />
           {description && <FormDescription>{description}</FormDescription>}
-          <FormMessage />
+          {type !== INPUT_TYPES.CHECKBOX && <FormMessage />}
         </FormItem>
       )}
     />
@@ -270,17 +272,20 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
     case INPUT_TYPES.CHECKBOX:
       return (
         <FormControl {...formControlProps}>
-          <Checkbox
-            checked={!!value}
-            onCheckedChange={(checked) =>
-              field.onChange(transform ? transform.output(checked) : checked)
-            }
-            id={inputId}
-            disabled={disabled}
-            readOnly={readOnly}
-            {...field}
-            {...inputProps}
-          />
+          <div>
+            <Checkbox
+              checked={!!value}
+              onCheckedChange={(checked) =>
+                field.onChange(transform ? transform.output(checked) : checked)
+              }
+              className="order-1"
+              id={inputId}
+              disabled={disabled}
+              readOnly={readOnly}
+              {...field}
+              {...inputProps}
+            />
+          </div>
         </FormControl>
       );
     case INPUT_TYPES.SLIDER:
@@ -347,6 +352,37 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
         />
       );
     }
+    case INPUT_TYPES.FILE:
+      return (
+        <FormControl {...formControlProps}>
+          <label
+            className="form-control"
+            title={value?.split("\\").pop()}
+            htmlFor={inputId}
+          >
+            <input
+              {...field}
+              type="file"
+              hidden
+              id={inputId}
+              value={undefined}
+              onChange={(e) => {
+                field.onChange(transform ? transform.output(e) : e);
+                if (type === INPUT_TYPES.FILE) {
+                  setValue(`${String(name)}_files`, e.target?.files);
+                  trigger(name);
+                }
+              }}
+              {...(inputProps?.accept && { accept: inputProps.accept })}
+            />
+            <p className="text-nowrap">Choose File</p>
+            {value && <span className="text-muted-foreground mx-1">|</span>}
+            <p className="text-foreground truncate">
+              {value?.split("\\").pop()}
+            </p>
+          </label>
+        </FormControl>
+      );
 
     case INPUT_TYPES.CUSTOM:
       return "render" in props
@@ -369,14 +405,7 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
                 : ""
             }
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              //   if (inputProps?.onChange) inputProps.onChange(e);
-
               field.onChange(transform ? transform.output(e) : e.target?.value);
-
-              if (type === INPUT_TYPES.FILE) {
-                setValue(`${String(name)}_files`, e.target?.files);
-                trigger(name);
-              }
             }}
             {...inputProps}
           />

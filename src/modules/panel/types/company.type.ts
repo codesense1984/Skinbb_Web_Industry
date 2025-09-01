@@ -2,7 +2,7 @@ export type CompanyStatus = "active" | "closed" | "pending" | "inactive";
 
 export interface CompanyDocument {
   number: string;
-  type: "coi" | "gstLicense" | "pan" | "msme";
+  type: "coi" | "gstLicense" | "pan" | "msme" | "brandAuthorisation";
   url: string;
 }
 export interface CompanyAddress {
@@ -55,4 +55,83 @@ export interface CompanyList
   surveys: number;
   promotions: number;
   earnings: number;
+}
+
+// Onboarding API request interface
+export interface OnboardingSubmitRequest {
+  ownerName: string;
+  ownerEmail: string;
+  phoneNumber: string;
+  password: string;
+  roleId: string;
+  companyName: string;
+  companyDescription: string;
+  businessType: string;
+  companyCategory: string;
+  gstNumber: string;
+  panNumber: string;
+  cinNumber: string;
+  msmeNumber: string;
+  website: string;
+  instagramUrl: string;
+  facebookUrl: string;
+  youtubeUrl: string;
+  landlineNo: string;
+  isCompanyBrand: boolean;
+  brandName: string;
+  brandDescription: string;
+  brandWebsite: string;
+  brandLogo?: string;
+  addresses: Array<{
+    addressType: "registered" | "warehouse";
+    line1: string;
+    line2?: string;
+    landmark?: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    country: string;
+    isPrimary: boolean;
+    brandIds?: string[];
+  }>;
+  sellingOn: Array<{
+    platform: string;
+    url: string;
+  }>;
+}
+
+// Company details API response types
+export interface CompanyBrandInfo {
+  _id: string;
+  name: string;
+  slug: string;
+}
+
+export interface CompanyAddressInfo {
+  brands: CompanyBrandInfo[];
+  addressId: string;
+  addressType: "registered" | "warehouse";
+  landmark: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+  isPrimary: boolean;
+}
+
+export interface CompanyDetailItem {
+  _id: string;
+  companyName: string;
+  businessType: string;
+  companyCategory: string;
+  website: string;
+  isCompanyBrand: boolean;
+  createdAt: string;
+  companyId: string;
+  addresses: CompanyAddressInfo[];
+}
+
+export interface CompanyDetailsResponse {
+  success: boolean;
+  items: CompanyDetailItem[];
 }

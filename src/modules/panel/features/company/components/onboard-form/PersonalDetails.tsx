@@ -120,6 +120,14 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
           label="Password"
           placeholder="Enter phone number"
         />
+
+        <FormFieldsRenderer<FullCompanyFormType>
+          control={control}
+          fieldConfigs={fullCompanyDetailsSchema.terms({
+            mode,
+          })}
+          className="flex"
+        />
       </FormFieldsRenderer>
 
       <OtpModal
