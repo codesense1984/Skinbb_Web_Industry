@@ -58,7 +58,8 @@ export interface CompanyList
 }
 
 // Onboarding API request interface
-export interface CompanyOnboardingSubmitRequest {
+export interface CompanyOnboardingSubmitRequest
+  extends Record<string, unknown> {
   _id?: string | null;
   ownerName: string;
   ownerEmail: string;
@@ -194,4 +195,19 @@ export interface CompanyOnboading {
   status: string;
   establishedIn?: string;
   addresses: CompanyAddressInfo[];
+}
+
+// API response type for company list (sellers)
+export interface CompanyListItem {
+  _id: string;
+  name: string;
+  email: string;
+  phoneNumber: string;
+  designation: string;
+  companyName: string;
+  brandName: string | null;
+  website: string;
+  marketingBudget: number;
+  status: string;
+  createdAt: string;
 }

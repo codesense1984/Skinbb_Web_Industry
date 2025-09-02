@@ -1,11 +1,10 @@
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/core/components/ui/avatar";
 import { StatusBadge } from "@/core/components/ui/badge";
 import { Button } from "@/core/components/ui/button";
-import type { CompanyList } from "@/modules/panel/types/company.type";
+import { formatDate, formatNumber } from "@/core/utils";
+import type {
+  CompanyList,
+  CompanyListItem,
+} from "@/modules/panel/types/company.type";
 import { EyeIcon } from "@heroicons/react/24/outline";
 import type { ColumnDef } from "@tanstack/react-table";
 
@@ -127,70 +126,92 @@ export const companyData: CompanyList[] = [
   },
 ];
 
-export const columns: ColumnDef<CompanyList>[] = [
+export const columns: ColumnDef<CompanyListItem>[] = [
   {
-    accessorKey: "name",
-    header: "Name",
-    cell: ({ row, getValue }) => (
-      <ul className="flex min-w-40 items-center gap-2">
-        <Avatar className="size-10 rounded-md border">
-          <AvatarImage
-            className="object-contain"
-            src={row.original.logo}
-            alt={`${row.original.companyName} logo`}
-          />
-          <AvatarFallback className="rounded-md capitalize">
-            {(getValue() as string)?.charAt(1)}
-          </AvatarFallback>
-        </Avatar>
-        <span> {getValue() as string}</span>
-      </ul>
+    header: "Company Name",
+    accessorKey: "companyName",
+    cell: ({ row }) => (
+      <div className="w-max font-medium">{row.original.companyName}</div>
     ),
   },
-  //   {
-  //     accessorKey: "category",
-  //     header: "Category",
-  //   },
   {
-    accessorKey: "status",
+    header: "Contact Person",
+    accessorKey: "name",
+    cell: ({ row }) => (
+      <div className="w-max font-medium">{row.original.name}</div>
+    ),
+  },
+  {
+    header: "Email",
+    accessorKey: "email",
+  },
+  {
+    header: "Phone",
+    accessorKey: "phoneNumber",
+  },
+  {
+    header: "Designation",
+    accessorKey: "designation",
+  },
+  {
+    header: "Brand Name",
+    accessorKey: "brandName",
+    cell: ({ row }) => (
+      <div className="w-max font-medium">{row.original.brandName}</div>
+    ),
+  },
+  {
+    header: "Website",
+    accessorKey: "website",
+    cell: ({ row }) => (
+      <a
+        href={row.original.website}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 underline hover:text-blue-800"
+      >
+        {row.original.website}
+      </a>
+    ),
+  },
+  {
+    header: "Marketing Budget",
+    accessorKey: "marketingBudget",
+    cell: ({ row }) => (
+      <span>₹{formatNumber(row.original.marketingBudget)}</span>
+    ),
+  },
+  {
     header: "Status",
+    accessorKey: "status",
+    cell: ({ row }) => (
+      <StatusBadge
+        status={row.original.status}
+        module="company"
+        variant="badge"
+      >
+        {row.original.status}
+      </StatusBadge>
+    ),
+  },
+  {
+    header: "Created Date",
+    accessorKey: "createdAt",
     cell: ({ row }) => {
-      return <StatusBadge module="brand" status={row.original.status} />;
+      const createdAt = row.getValue("createdAt") as string;
+      return <div className="w-max">{formatDate(createdAt)}</div>;
     },
   },
-  //   {
-  //     accessorKey: "products",
-  //     header: "Products",
-  //     meta: {
-  //       type: "number",
-  //     },
-  //   },
-  //   {
-  //     accessorKey: "surveys",
-  //     header: "Surveys",
-  //   },
-  //   {
-  //     accessorKey: "promotions",
-  //     header: "Promotions",
-  //   },
-  //   {
-  //     accessorKey: "earnings",
-  //     header: "Earnings",
-  //     cell: ({ row }) => {
-  //       const amount = parseFloat(row.getValue("earnings"));
-  //       return formatCurrency(amount, { useAbbreviation: false });
-  //     },
-  //   },
   {
     header: "Action",
-    id: "actions",
-    enableHiding: false,
+    accessorKey: "actions",
     cell: () => {
       return (
-        <Button variant="ghost" size="icon" className="">
-          <span className="sr-only">Open Brand Details</span>
-          <EyeIcon />
-        </Button>
+        <div className="w-max">
+          <Button variant="ghost" size="icon">
+            <EyeIcon />
+          </Button>
+        </div>
       );
     },
   },

@@ -1,9 +1,14 @@
 import { api } from "@/core/services/http";
 import { ENDPOINTS } from "../../config/endpoint.config";
-import type { ApiResponse } from "@/core/types";
+import type {
+  ApiResponse,
+  PaginationApiResponse,
+  PaginationParams,
+} from "@/core/types";
 import type {
   CompanyOnboading,
   CompanyOnboardingSubmitRequest,
+  CompanyListItem,
 } from "@/modules/panel/types/company.type";
 import { createFormData } from "@/core/utils/formdata.utils";
 
@@ -126,12 +131,14 @@ export async function apiToggleBrandStatus<T>(id: string) {
 // }
 
 // Get company details for dropdown
-export interface CompanyListItem {
+export interface CompanyDropdownItem {
   _id: string;
   companyName: string;
 }
 
-export async function apiGetCompanyList<T = ApiResponse<CompanyListItem[]>>() {
+export async function apiGetCompanyDropdownList<
+  T = ApiResponse<CompanyDropdownItem[]>,
+>() {
   return api.get<T>(ENDPOINTS.SELLER.GET_COMPANY_LIST);
 }
 
@@ -164,5 +171,16 @@ export async function apiCheckCompanyStatus(
   return api.get<ApiResponse<CompanyStatusData>>(
     ENDPOINTS.SELLER.CHECK_STATUS,
     { params },
+  );
+}
+
+// Get company list with pagination
+export async function apiGetCompanyList(
+  params: PaginationParams,
+  signal?: AbortSignal,
+): Promise<PaginationApiResponse<{ data: CompanyListItem[] }>> {
+  return api.get<PaginationApiResponse<{ data: CompanyListItem[] }>>(
+    ENDPOINTS.SELLER.MAIN,
+    { params, signal },
   );
 }

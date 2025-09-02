@@ -1,42 +1,34 @@
-import { EntityDialog } from "@/core/components/dialogs/EntityDialog";
-import { DataTableToogle } from "@/core/components/data-table";
-import { StatCard } from "@/core/components/ui/stat";
+import { createSimpleFetcher, DataTable } from "@/core/components/data-table";
 import { PageContent } from "@/core/components/ui/structure";
-import type { CompanyList as CompanyListProps } from "@/modules/panel/types/company.type";
-import { formatNumber } from "@/core/utils";
-import { lazy, useCallback } from "react";
-import { CompanyCard } from "./CompanyCard";
-import { columns, companyData, statsData } from "./data";
+import { apiGetCompanyList } from "@/modules/panel/services/http/company.service";
+import { columns } from "./data";
 
-const CompanyForm = lazy(() => import("../components/AddCompanyForm"));
+// const CompanyForm = lazy(() => import("../components/AddCompanyForm"));
+
+// Super simple! Just pass the API function and data paths
+const fetcher = () =>
+  createSimpleFetcher(apiGetCompanyList, {
+    dataPath: "data.data",
+    totalPath: "data.totalRecords",
+  });
 
 const CompanyList = () => {
-  const renderGridItem = useCallback(
-    (row: CompanyListProps) => (
-      <CompanyCard
-        key={row.id}
-        company={row}
-        aria-label={`View ${row.companyName} card`}
-      />
-    ),
-    [],
-  );
   return (
     <PageContent
       header={{
         title: "Company",
         description: "Discover top brands from around the world.",
-        actions: (
-          <EntityDialog
-            title="Add Company"
-            description="Fill in the details below to add a new company."
-            triggerLabel="Add Company"
-            FormComponent={CompanyForm}
-          />
-        ),
+        // actions: (
+        // <EntityDialog
+        //   title="Add Company"
+        //   description="Fill in the details below to add a new company."
+        //   triggerLabel="Add Company"
+        //   FormComponent={CompanyForm}
+        // />
+        // ),
       }}
     >
-      <section
+      {/* <section
         className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:gap-5 lg:grid-cols-4"
         aria-label="Company Statistics"
       >
@@ -48,14 +40,13 @@ const CompanyList = () => {
             barColor={item.barColor}
           />
         ))}
-      </section>
+      </section> */}
 
-      <DataTableToogle
-        rows={companyData}
+      <DataTable
         columns={columns}
-        gridProps={{
-          renderGridItem,
-        }}
+        isServerSide
+        fetcher={fetcher()}
+        queryKeyPrefix="company-list-table"
       />
     </PageContent>
   );

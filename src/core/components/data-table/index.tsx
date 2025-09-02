@@ -445,7 +445,7 @@ export interface UseTableResponse<TData> {
 export function useTable<TData extends object>({
   rows: clientRows,
   columns,
-  pageSize = 5,
+  pageSize = 10,
   filterableKeys = [],
   defaultViewMode = DataViewMode.list,
 
@@ -1019,9 +1019,9 @@ export function DataTable<TData extends object>({
   const tableState = useTable({
     rows,
     columns,
-    defaultViewMode: DataViewMode.list,
     pageSize: !showPagination ? -1 : pageSize,
     ...props,
+    defaultViewMode: DataViewMode.list,
   });
   const { table } = tableState;
   return (

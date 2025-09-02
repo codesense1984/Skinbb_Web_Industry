@@ -49,8 +49,8 @@ export const STATUS_MAP: Record<ModuleType, Record<string, StatusStyle>> = {
     approved: {
       label: "Approved",
       value: "approved",
-      textColor: "text-indigo-700",
-      bgColor: "bg-indigo-100",
+      textColor: "text-blue-500",
+      bgColor: "bg-blue-500",
     },
     pending: {
       label: "Pending",
