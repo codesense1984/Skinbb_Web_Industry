@@ -68,8 +68,40 @@ export const panelOpenRoutes: RouteObject[] = [
     path: PANEL_ROUTES.RELATIONSHIP_PREVIEW,
     Component: lazy(() => import("@/features/relationship-preview")),
   },
+  // {
+  //   path: PANEL_ROUTES.COMPANY.ONBOARD,
+  //   Component: lazy(() => import("@/modules/panel/features/company/onboard")),
+  // },
   {
-    path: PANEL_ROUTES.COMPANY.ONBOARD,
-    Component: lazy(() => import("@/modules/panel/features/company/onboard")),
+    path: PANEL_ROUTES.ONBOARD.BASE,
+    Component: lazy(
+      () =>
+        import(
+          "@/modules/panel/features/company/components/onboard/OnboardingLayout"
+        ),
+    ),
+    children: [
+      {
+        path: PANEL_ROUTES.ONBOARD.COMPANY,
+        Component: lazy(
+          () => import("@/modules/panel/features/company/onboard/create"),
+        ),
+      },
+      {
+        path: PANEL_ROUTES.ONBOARD.COMPANY_CREATE,
+        Component: lazy(
+          () =>
+            import(
+              "@/modules/panel/features/company/components/onboard/onboard-form"
+            ),
+        ),
+      },
+      {
+        path: PANEL_ROUTES.ONBOARD.COMPANY_STATUS,
+        Component: lazy(
+          () => import("@/modules/panel/features/company/onboard/status"),
+        ),
+      },
+    ],
   },
 ];

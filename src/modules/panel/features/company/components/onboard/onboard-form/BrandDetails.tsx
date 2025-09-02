@@ -20,7 +20,7 @@ import { Fragment } from "react/jsx-runtime";
 import {
   fullCompanyDetailsSchema,
   type FullCompanyFormType,
-} from "../../schema/fullCompany.schema";
+} from "../../../schema/fullCompany.schema";
 import { ComboBox, type Option } from "@/core/components/ui/combo-box";
 import MultipleSelector from "@/core/components/ui/multiple-selector";
 

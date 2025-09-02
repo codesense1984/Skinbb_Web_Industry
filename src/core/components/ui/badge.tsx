@@ -43,12 +43,13 @@ function Badge({
   );
 }
 
-type StatusBadgeVariant = "default" | "label" | "badge";
+type StatusBadgeVariant = "default" | "label" | "badge" | "contained";
 
 interface StatusBadgeProps extends React.ComponentProps<"div"> {
   module: ModuleType;
   status: string;
   variant?: StatusBadgeVariant;
+  showDot?: boolean;
 }
 
 const StatusBadge: React.FC<StatusBadgeProps> = ({
@@ -56,9 +57,12 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
   status,
   variant = "default",
   className,
+  showDot = true,
   ...props
 }) => {
-  const statusInfo = STATUS_MAP[module]?.[status];
+  const statusInfo = Object.values(STATUS_MAP[module])?.find(
+    (item) => item.value === status,
+  );
 
   if (!statusInfo) return "Not found";
 
@@ -77,7 +81,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
           )}
           {...props}
         >
-          <span className="h-2 w-2 rounded-full bg-current" />
+          {showDot && <span className="h-2 w-2 rounded-full bg-current" />}
           <span className="capitalize">{label}</span>
         </div>
       );
@@ -108,8 +112,23 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
             className,
           )}
         >
-          <span className="h-2 w-2 rounded-full bg-current" />
-          {status}
+          {showDot && <span className="h-2 w-2 rounded-full bg-current" />}
+          {label}
+        </Badge>
+      );
+    case "contained":
+      return (
+        <Badge
+          variant={"outline"}
+          className={cn(
+            "capitalizela flex items-center gap-2 border-current",
+            colorClasses,
+            // "bg-transparent",
+            className,
+          )}
+        >
+          {showDot && <span className="h-2 w-2 rounded-full bg-current" />}
+          {label}
         </Badge>
       );
 

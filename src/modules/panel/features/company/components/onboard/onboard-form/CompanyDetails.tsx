@@ -13,16 +13,16 @@ import type { FC } from "react";
 import { useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { toast } from "sonner";
-import { apiGetCompanyDetails } from "../../../../services/http/company.service";
+import { apiGetCompanyDetails } from "../../../../../services/http/company.service";
 import type {
   CompanyDetailItem,
   CompanyDetailsResponse,
-} from "../../../../types/company.type";
+} from "../../../../../types/company.type";
 import {
   fullCompanyDetailsSchema,
   type FullCompanyFormType,
-} from "../../schema/fullCompany.schema";
-import { transformApiResponseToFormData } from "../../utils/onboarding.utils";
+} from "../../../schema/fullCompany.schema";
+import { transformApiResponseToFormData } from "../../../utils/onboarding.utils";
 
 interface CompanyDetailsProps {
   mode: MODE;

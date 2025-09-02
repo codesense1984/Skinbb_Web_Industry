@@ -3,8 +3,12 @@ import { ROUTE } from "@/core/routes/constant";
 const BRAND_BASE = "/brand";
 const BRANDS = "/brands";
 
+const ONBOARD_BASE = "/onboard";
+
 const ORDER_BASE = "/order";
 const ORDERS = "/orders";
+
+const STATUS_BASE = "/status";
 
 const COMPANY_BASE = "/company";
 const COMPANIES = "/companies";
@@ -27,6 +31,13 @@ export const PANEL_ROUTES = {
       ROUTE.build(ORDER_BASE, id, ROUTE.seg.edit), // /order/edit/:id
   },
 
+  ONBOARD: {
+    BASE: ONBOARD_BASE, // /onboard
+    COMPANY: ROUTE.build(ONBOARD_BASE, COMPANY_BASE), // /onboard/create
+    COMPANY_STATUS: ROUTE.build(ONBOARD_BASE, COMPANY_BASE, STATUS_BASE), // /onboard/create
+    COMPANY_CREATE: ROUTE.build(ONBOARD_BASE, COMPANY_BASE, ROUTE.seg.create), // /onboard/create
+  },
+
   // ---- Company ----
   COMPANY: {
     BASE: COMPANY_BASE, // /company
@@ -35,7 +46,7 @@ export const PANEL_ROUTES = {
     EDIT: (id: string = ROUTE.seg.id) =>
       ROUTE.build(COMPANY_BASE, id, ROUTE.seg.edit), // /company/edit/:id
     DETAIL: (id: string = ROUTE.seg.id) => ROUTE.build(COMPANY_BASE, id), // /company/:id
-    ONBOARD: ROUTE.build(COMPANY_BASE, ROUTE.seg.onboard), // /company/onboard
+    // ONBOARD: ROUTE.build(COMPANY_BASE, ROUTE.seg.onboard), // /company/onboard
   },
 
   // ---- Misc panel pages ----

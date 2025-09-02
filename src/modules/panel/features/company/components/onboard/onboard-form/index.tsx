@@ -1,4 +1,3 @@
-import onBoarding from "@/core/assets/images/onboard-company.jpg";
 import { ConfirmationDialog } from "@/core/components/ui/alert-dialog";
 import { Button } from "@/core/components/ui/button";
 import {
@@ -7,33 +6,38 @@ import {
   StepperItem,
   StepperTrigger,
 } from "@/core/components/ui/stepper";
-import { HorizontalLogo } from "@/core/config/svg";
 import { MODE } from "@/core/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import {
   createContext,
+  lazy,
+  Suspense,
   useCallback,
   useContext,
   useEffect,
   useMemo,
   useState,
   type ComponentType,
-  lazy,
-  Suspense,
 } from "react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
-import { useSearchParams } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
-import { apiOnboardingSubmit } from "../../../../services/http/company.service";
+import { apiOnboardingSubmit } from "../../../../../services/http/company.service";
+import { STEP_ORDER } from "../../../config/steps.config";
 import {
   fullCompanyZodSchema,
   type FullCompanyFormType,
-} from "../../schema/fullCompany.schema";
+} from "../../../schema/fullCompany.schema";
 import {
-  transformFormDataToApiRequest,
+  areAllStepsCompleted as areAllStepsCompletedUtil,
+  computeFirstIncompleteStep,
+  getFieldNamesForStep,
+} from "../../../utils/onboard-steps.utils";
+import {
   transformApiResponseToFormData,
-} from "../../utils/onboarding.utils";
+  transformFormDataToApiRequest,
+} from "../../../utils/onboarding.utils";
 const CompanyDetails = lazy(() => import("./CompanyDetails"));
 const BrandDetails = lazy(() => import("./BrandDetails"));
 const PersonalDetails = lazy(() => import("./PersonalDetails"));
@@ -44,14 +48,10 @@ const AddressDetails = lazy(() =>
 const DocumentDetails = lazy(() =>
   import("./DocumentDetails").then((m) => ({ default: m.DocumentDetails })),
 );
-import {
-  areAllStepsCompleted as areAllStepsCompletedUtil,
-  computeFirstIncompleteStep,
-  getFieldNamesForStep,
-} from "../../utils/onboard-steps.utils";
-import { STEP_ORDER } from "../../config/steps.config";
 
-import { StepKey } from "../../config/steps.config";
+import { StepKey } from "../../../config/steps.config";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 
 const StepCount = {
   // [StepKey.START]: 1,
@@ -170,6 +170,7 @@ export const useOnBoardContext = () => {
 
 const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   const currentValue =
     (searchParams.get("step") as StepKey) || StepKey.COMPANY_DETAILS;
@@ -411,6 +412,10 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
     onboardingMutation.mutate(confirmation[1]);
   };
 
+  const handleBack = () => {
+    navigate(PANEL_ROUTES.ONBOARD.COMPANY);
+  };
+
   // Pick page-specific component
   const { title, description, Component } = currentItem;
 
@@ -419,200 +424,184 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
       value={{ mode, goNext: onNext, goBack, currentIndex }}
     >
       <FormProvider {...methods}>
-        <div className="w-full gap-4 md:h-[100vh]">
-          <div className="relative grid grid-cols-1 md:grid-cols-12">
-            <div
-              className="relative p-4 py-10 before:absolute before:inset-0 before:bg-linear-to-b before:from-black/90 before:to-black/10 before:content-['*'] md:sticky md:top-0 md:col-span-5 md:h-[100dvh] md:px-8 md:py-12 md:before:z-[-1]"
-              style={{
-                backgroundImage: `url(${onBoarding})`,
-                backgroundSize: "cover",
-              }}
-            >
-              <div className="dark relative z-[1] space-y-6 text-center">
-                <HorizontalLogo className="" />
-                <h1 className="text-foreground h3">Corporate Compliance </h1>
-                <p className="font-normal">
-                  To ensure regulatory alignment and maintain accurate company
-                  records, please complete this form with your organization’s
-                  official details. The information provided will be used solely
-                  for compliance, verification, and onboarding purposes.
-                </p>
-              </div>
-            </div>
-            <div className="col-span-7 mx-auto w-full max-w-2xl space-y-10 p-4 py-6 md:px-6 md:pt-12 md:pb-0">
-              {isFormStep && (
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    if (currentItem.step === lastStep) {
-                      onFinish();
-                    } else {
-                      onNext();
+        {isFormStep && (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (currentItem.step === lastStep) {
+                onFinish();
+              } else {
+                onNext();
+              }
+            }}
+            className="flex-1 space-y-10"
+          >
+            <div className="flex w-full gap-3">
+              <Button
+                className="border-muted-foreground"
+                variant="ghost"
+                color="default"
+                size="icon"
+                onClick={handleBack}
+                aria-label="Go back"
+                type="button"
+              >
+                <ArrowLeftIcon />
+              </Button>
+              <div className="w-full">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-medium">{currentItem?.stepTitle}</p>
+                  <div className="flex items-center gap-4">
+                    <p className="text-muted-foreground text-sm">
+                      {STEPS[currentIndex].step} / {formStep.length}
+                    </p>
+                  </div>
+                </div>
+                <Stepper
+                  value={STEPS[currentIndex].step}
+                  onValueChange={(v) => {
+                    if (onboardingMutation.isPending) return;
+
+                    const targetIndex = STEPS.findIndex(
+                      (s) => s.step === Number(v),
+                    );
+                    const targetStep = STEPS[targetIndex]?.value;
+
+                    if (targetStep) {
+                      const targetStepIndex = STEP_ORDER.indexOf(targetStep);
+                      const currentStepIndex = STEP_ORDER.indexOf(currentValue);
+                      const firstIncompleteStep = getFirstIncompleteStep();
+                      const firstIncompleteIndex =
+                        STEP_ORDER.indexOf(firstIncompleteStep);
+
+                      // Always allow navigating backward or staying within completed range
+                      if (targetStepIndex <= currentStepIndex) {
+                        navigateTo(targetIndex);
+                        return;
+                      }
+
+                      // Thank you page guard
+                      if (
+                        targetStep === StepKey.THANK_YOU &&
+                        !areAllStepsCompleted()
+                      ) {
+                        toast.error(
+                          "Please complete all steps before accessing the thank you page",
+                        );
+                        return;
+                      }
+
+                      // Allow moving forward only up to the first incomplete step
+                      if (targetStepIndex <= firstIncompleteIndex) {
+                        navigateTo(targetIndex);
+                      } else {
+                        const stepTitle =
+                          STEPS.find((s) => s.value === firstIncompleteStep)
+                            ?.stepTitle || "target step";
+                        toast.error(
+                          `Please complete ${stepTitle} first before proceeding to the next step.`,
+                        );
+                      }
                     }
                   }}
-                  className="flex-1 space-y-10"
+                  className="gap-1"
                 >
-                  <div>
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="font-medium">{currentItem?.stepTitle}</p>
-                      <div className="flex items-center gap-4">
-                        <p className="text-muted-foreground text-sm">
-                          {STEPS[currentIndex].step} / {formStep.length}
-                        </p>
-                      </div>
-                    </div>
-                    <Stepper
-                      value={STEPS[currentIndex].step}
-                      onValueChange={(v) => {
-                        if (onboardingMutation.isPending) return;
+                  {formStep.map((n) => {
+                    const stepIndex = n - 1;
+                    const stepKey = [
+                      StepKey.COMPANY_DETAILS,
+                      StepKey.ADDRESS_DETAILS,
+                      StepKey.BRAND_DETAILS,
+                      StepKey.DOCUMENTS_DETAILS,
+                      StepKey.PERSONAL_INFORMATION,
+                    ][stepIndex];
 
-                        const targetIndex = STEPS.findIndex(
-                          (s) => s.step === Number(v),
-                        );
-                        const targetStep = STEPS[targetIndex]?.value;
+                    if (!stepKey) return null;
 
-                        if (targetStep) {
-                          const targetStepIndex =
-                            STEP_ORDER.indexOf(targetStep);
-                          const currentStepIndex =
-                            STEP_ORDER.indexOf(currentValue);
-                          const firstIncompleteStep = getFirstIncompleteStep();
-                          const firstIncompleteIndex =
-                            STEP_ORDER.indexOf(firstIncompleteStep);
-
-                          // Always allow navigating backward or staying within completed range
-                          if (targetStepIndex <= currentStepIndex) {
-                            navigateTo(targetIndex);
-                            return;
-                          }
-
-                          // Thank you page guard
-                          if (
-                            targetStep === StepKey.THANK_YOU &&
-                            !areAllStepsCompleted()
-                          ) {
-                            toast.error(
-                              "Please complete all steps before accessing the thank you page",
-                            );
-                            return;
-                          }
-
-                          // Allow moving forward only up to the first incomplete step
-                          if (targetStepIndex <= firstIncompleteIndex) {
-                            navigateTo(targetIndex);
-                          } else {
-                            const stepTitle =
-                              STEPS.find((s) => s.value === firstIncompleteStep)
-                                ?.stepTitle || "target step";
-                            toast.error(
-                              `Please complete ${stepTitle} first before proceeding to the next step.`,
-                            );
-                          }
-                        }
-                      }}
-                      className="gap-1"
-                    >
-                      {formStep.map((n) => {
-                        const stepIndex = n - 1;
-                        const stepKey = [
-                          StepKey.COMPANY_DETAILS,
-                          StepKey.ADDRESS_DETAILS,
-                          StepKey.BRAND_DETAILS,
-                          StepKey.DOCUMENTS_DETAILS,
-                          StepKey.PERSONAL_INFORMATION,
-                        ][stepIndex];
-
-                        if (!stepKey) return null;
-
-                        return (
-                          <StepperItem key={n} step={n} className="flex-1">
-                            <StepperTrigger
-                              className="w-full flex-col items-start gap-2"
-                              asChild
-                            >
-                              <StepperIndicator
-                                asChild
-                                className={`h-2 w-full transition-colors`}
-                              >
-                                <span className="sr-only">{n}</span>
-                              </StepperIndicator>
-                            </StepperTrigger>
-                          </StepperItem>
-                        );
-                      })}
-                    </Stepper>
-                  </div>
-
-                  <div>
-                    <h4 className="pb-1 font-bold">{title}</h4>
-                    <p className="text-muted-foreground">{description}</p>
-                  </div>
-
-                  <Suspense fallback={<div className="py-10">Loading...</div>}>
-                    <Component mode={mode} />
-                  </Suspense>
-
-                  <div className="bg-background sticky bottom-0 mt-auto flex justify-between border-t py-4">
-                    {!isFirst && (
-                      <Button
-                        type="button"
-                        onClick={goBack}
-                        disabled={isFirst || onboardingMutation.isPending}
-                        className={"button-outline"}
-                      >
-                        Back
-                      </Button>
-                    )}
-                    <Button
-                      type="submit"
-                      variant={"contained"}
-                      color="primary"
-                      disabled={
-                        (currentItem.step === lastStep &&
-                          !agreeTermsConditions) ||
-                        onboardingMutation.isPending
-                      }
-                      className="ml-auto"
-                    >
-                      {currentItem.step === lastStep
-                        ? onboardingMutation.isPending
-                          ? "Submitting..."
-                          : "Submit"
-                        : "Next"}
-                    </Button>
-                  </div>
-                </form>
-              )}
-
-              {/* {isConfirmation && <>COnfirm</>} */}
-
-              <ConfirmationDialog
-                isOpen={confirmation[0]}
-                onClose={() => setConfirmation([false, undefined])}
-                title="Submit Profile?"
-                description="Are you sure you want to submit your company profile for review? Once submitted, your information will be sent to the admin for approval. You’ll be notified after your profile is reviewed."
-                actionButtons={[
-                  {
-                    label: onboardingMutation.isPending
-                      ? "Submitting..."
-                      : "Confirm",
-                    onClick: onConfirm,
-                    color: "primary",
-                    disabled: onboardingMutation.isPending,
-                  },
-                ]}
-                showCancel={true}
-                cancelText="Close"
-              />
-
-              {isThankYou && (
-                <Suspense fallback={<div className="py-10">Loading...</div>}>
-                  <Component mode={mode} />
-                </Suspense>
-              )}
+                    return (
+                      <StepperItem key={n} step={n} className="flex-1">
+                        <StepperTrigger
+                          className="w-full flex-col items-start gap-2"
+                          asChild
+                        >
+                          <StepperIndicator
+                            asChild
+                            className={`h-2 w-full transition-colors`}
+                          >
+                            <span className="sr-only">{n}</span>
+                          </StepperIndicator>
+                        </StepperTrigger>
+                      </StepperItem>
+                    );
+                  })}
+                </Stepper>
+              </div>
             </div>
-          </div>
-        </div>
+
+            <div>
+              <h4 className="pb-1 font-bold">{title}</h4>
+              <p className="text-muted-foreground">{description}</p>
+            </div>
+
+            <Suspense fallback={<div className="py-10">Loading...</div>}>
+              <Component mode={mode} />
+            </Suspense>
+
+            <div className="bg-background sticky bottom-0 mt-auto flex justify-between border-t py-4">
+              {!isFirst && (
+                <Button
+                  type="button"
+                  onClick={goBack}
+                  disabled={isFirst || onboardingMutation.isPending}
+                  className={"button-outline"}
+                >
+                  Back
+                </Button>
+              )}
+              <Button
+                type="submit"
+                variant={"contained"}
+                color="primary"
+                disabled={
+                  (currentItem.step === lastStep && !agreeTermsConditions) ||
+                  onboardingMutation.isPending
+                }
+                className="ml-auto"
+              >
+                {currentItem.step === lastStep
+                  ? onboardingMutation.isPending
+                    ? "Submitting..."
+                    : "Submit"
+                  : "Next"}
+              </Button>
+            </div>
+          </form>
+        )}
+
+        {/* {isConfirmation && <>COnfirm</>} */}
+
+        <ConfirmationDialog
+          isOpen={confirmation[0]}
+          onClose={() => setConfirmation([false, undefined])}
+          title="Submit Profile?"
+          description="Are you sure you want to submit your company profile for review? Once submitted, your information will be sent to the admin for approval. You’ll be notified after your profile is reviewed."
+          actionButtons={[
+            {
+              label: onboardingMutation.isPending ? "Submitting..." : "Confirm",
+              onClick: onConfirm,
+              color: "primary",
+              disabled: onboardingMutation.isPending,
+            },
+          ]}
+          showCancel={true}
+          cancelText="Close"
+        />
+
+        {isThankYou && (
+          <Suspense fallback={<div className="py-10">Loading...</div>}>
+            <Component mode={mode} />
+          </Suspense>
+        )}
       </FormProvider>
     </OnBoardContext.Provider>
   );

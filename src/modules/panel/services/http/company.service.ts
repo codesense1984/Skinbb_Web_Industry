@@ -119,3 +119,26 @@ export async function apiToggleBrandStatus<T>(id: string) {
 export async function apiGetCompanyDetails<T>() {
   return api.get<T>(ENDPOINTS.SELLER.GET_COMPANY_DETAILS);
 }
+
+// Check company status by email or phone
+export interface ApiRequestCheckStatusParams {
+  email?: string;
+  phoneNumber?: string;
+}
+
+export interface CompanyStatusData {
+  _id: string;
+  companyName: string;
+  status: string;
+  statusChangeReason?: string;
+  statusChangedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function apiCheckCompanyStatus(params: ApiRequestCheckStatusParams) {
+  return api.get<ApiResponse<CompanyStatusData>>(
+    ENDPOINTS.SELLER.CHECK_STATUS,
+    { params },
+  );
+}

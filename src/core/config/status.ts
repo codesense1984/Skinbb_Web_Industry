@@ -58,6 +58,18 @@ export const STATUS_MAP: Record<ModuleType, Record<string, StatusStyle>> = {
       textColor: "text-gray-700",
       bgColor: "bg-gray-100",
     },
+    rejected: {
+      label: "Rejected",
+      value: "rejected",
+      textColor: "text-red-700",
+      bgColor: "bg-red-100 ",
+    },
+    "in-progress": {
+      label: "In Progress",
+      value: "in-progress",
+      textColor: "text-blue-700",
+      bgColor: "bg-blue-100",
+    },
   },
 
   survey: {

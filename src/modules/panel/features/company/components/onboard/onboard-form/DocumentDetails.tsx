@@ -6,7 +6,7 @@ import { useFieldArray, useFormContext } from "react-hook-form";
 import {
   fullCompanyDetailsSchema,
   type FullCompanyFormType,
-} from "../../schema/fullCompany.schema";
+} from "../../../schema/fullCompany.schema";
 import type { CompanyDocument } from "@/modules/panel/types";
 
 interface DocumentDetailsProps {

@@ -71,6 +71,7 @@ export const ENDPOINTS = {
   SELLER: {
     MAIN: `${API_PREFIX}/sellers/admin`,
     GET_COMPANY_DETAILS: `${API_PREFIX}/sellers/getCompanyDetails`,
+    CHECK_STATUS: `${API_PREFIX}/sellers/check-status`,
   },
 
   DISCOUNT: {

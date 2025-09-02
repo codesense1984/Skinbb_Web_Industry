@@ -18,7 +18,7 @@ import {
   type SetStateAction,
 } from "react";
 import { useSearchParams } from "react-router";
-import type { FullCompanyFormType } from "../../schema/fullCompany.schema";
+import type { FullCompanyFormType } from "../../../schema/fullCompany.schema";
 
 export enum Step {
   company_details = "company_details",

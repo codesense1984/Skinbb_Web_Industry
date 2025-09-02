@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import {
   fullCompanyDetailsSchema,
   type FullCompanyFormType,
-} from "../../schema/fullCompany.schema";
+} from "../../../schema/fullCompany.schema";
 
 interface PersonalDetailsProps {
   mode: MODE;
