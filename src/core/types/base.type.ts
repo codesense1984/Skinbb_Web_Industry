@@ -1,3 +1,5 @@
+import { type ReactNode } from "react";
+
 export enum MODE {
   ADD = "ADD",
   EDIT = "EDIT",
@@ -5,11 +7,10 @@ export enum MODE {
 }
 
 export type Option = {
-  label: string | React.ReactNode;
+  label: string | ReactNode;
   value: string;
   [key: string]: unknown;
 };
-
 
 export interface ApiResponse<T> {
   statusCode: number;
@@ -18,14 +19,14 @@ export interface ApiResponse<T> {
   success: boolean;
 }
 
-export interface PaginationApiResponse<
+export type PaginationApiResponse<
   K extends Record<string, unknown> = Record<string, unknown>,
-> extends ApiResponse<
-    K & {
-      totalRecords: number;
-      totalPages: number;
-    }
-  > {}
+> = ApiResponse<
+  K & {
+    totalRecords: number;
+    totalPages: number;
+  }
+>;
 
 export interface PaginationParams {
   page?: number;

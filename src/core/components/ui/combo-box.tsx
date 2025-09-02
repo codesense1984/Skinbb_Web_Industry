@@ -11,20 +11,32 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/core/components/ui/popover";
+import type { Option } from "@/core/types";
 import { cn } from "@/core/utils";
 import { CheckIcon, ChevronsUpDownIcon, XIcon } from "lucide-react";
 import * as React from "react";
 import { Badge } from "./badge";
-import type { Option } from "@/core/types";
 
-interface ComboBoxProps
+/**
+ * ComboBox component with conditional typing based on multi prop
+ * @template T - Boolean type indicating if multi-select is enabled
+ *
+ * When multi=false (default):
+ * - value: string
+ * - onChange option: Option | undefined
+ *
+ * When multi=true:
+ * - value: string[]
+ * - onChange option: Option[]
+ */
+interface ComboBoxProps<T extends boolean = false>
   extends Omit<React.ComponentProps<"button">, "onChange"> {
   options: Option[];
   placeholder?: string;
-  value?: string | string[];
+  value?: T extends true ? string[] : string;
   onChange?: (
-    value: string | string[],
-    option: unknown | unknown[] | undefined,
+    value: T extends true ? string[] : string,
+    option: T extends true ? Option[] : Option | undefined,
   ) => void;
   className?: string;
   searchable?: boolean;
@@ -32,7 +44,7 @@ interface ComboBoxProps
   disabled?: boolean;
   loading?: boolean;
   error?: boolean;
-  multi?: boolean;
+  multi?: T;
   maxVisibleItems?: number;
   renderLabel?: (option: Option) => React.ReactNode;
   renderOption?: (option: Option, isSelected: boolean) => React.ReactNode;
@@ -43,7 +55,7 @@ interface ComboBoxProps
   flexWrap?: boolean;
 }
 
-export const ComboBox: React.FC<ComboBoxProps> = ({
+export const ComboBox = <T extends boolean = false>({
   options,
   placeholder = "Select...",
   value: controlledValue,
@@ -54,7 +66,7 @@ export const ComboBox: React.FC<ComboBoxProps> = ({
   disabled = false,
   loading = false,
   error = false,
-  multi = false,
+  multi = false as T,
   maxVisibleItems: propMaxVisibleItems,
   renderLabel,
   renderOption,
@@ -64,7 +76,7 @@ export const ComboBox: React.FC<ComboBoxProps> = ({
   commandInputProps = {},
   flexWrap = false,
   ...props
-}) => {
+}: ComboBoxProps<T>) => {
   const { className: popoverContentClassName, ...popoverContentRest } =
     popoverContentProps;
   const [open, setOpen] = React.useState(false);
@@ -118,11 +130,17 @@ export const ComboBox: React.FC<ComboBoxProps> = ({
         ? options.filter((opt) => val.includes(opt.value))
         : [];
       if (!isControlled) setUncontrolledValue(val);
-      onChange?.(val, selected);
+      onChange?.(
+        val as T extends true ? string[] : string,
+        selected as T extends true ? Option[] : Option | undefined,
+      );
     } else {
       const selected = options.find((opt) => opt.value === val);
       if (!isControlled) setUncontrolledValue(val);
-      onChange?.(val, selected);
+      onChange?.(
+        val as T extends true ? string[] : string,
+        selected as T extends true ? Option[] : Option | undefined,
+      );
     }
   };
 

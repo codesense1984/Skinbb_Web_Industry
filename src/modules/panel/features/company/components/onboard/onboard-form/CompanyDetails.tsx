@@ -7,17 +7,16 @@ import {
 import { Input } from "@/core/components/ui/input";
 import { useImagePreview } from "@/core/hooks/useImagePreview";
 import { MODE } from "@/core/types";
+import {
+  apiGetCompanyList,
+  apiGetCompanyDetailById,
+} from "@/modules/panel/services/http/company.service";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { useQuery } from "@tanstack/react-query";
 import type { FC } from "react";
 import { useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { toast } from "sonner";
-import { apiGetCompanyDetails } from "../../../../../services/http/company.service";
-import type {
-  CompanyDetailItem,
-  CompanyDetailsResponse,
-} from "../../../../../types/company.type";
 import {
   fullCompanyDetailsSchema,
   type FullCompanyFormType,
@@ -30,6 +29,7 @@ interface CompanyDetailsProps {
 const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
   const { control, setValue, reset } = useFormContext<FullCompanyFormType>();
   const [isCreatingNewCompany, setIsCreatingNewCompany] = useState(false);
+  const [isLoadingCompanyDetails, setIsLoadingCompanyDetails] = useState(false);
 
   const isSubsidiary = useWatch({
     control,
@@ -46,12 +46,16 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
     control,
     name: "_id",
   });
+  const companyName = useWatch({
+    control,
+    name: "companyName",
+  });
 
   // Fetch company details for dropdown
   const { data: companyDetailsResponse, isLoading: isLoadingCompanies } =
-    useQuery<CompanyDetailsResponse>({
+    useQuery({
       queryKey: ["companyDetails"],
-      queryFn: () => apiGetCompanyDetails<CompanyDetailsResponse>(),
+      queryFn: () => apiGetCompanyList(),
       staleTime: 5 * 60 * 1000, // 5 minutes
     });
 
@@ -66,41 +70,60 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
       value: "__create_new__",
       data: null,
     },
-    ...(companyDetailsResponse?.items?.map((company: CompanyDetailItem) => ({
+    ...(companyDetailsResponse?.data?.map((company) => ({
       label: company.companyName,
       value: company.companyName,
-      data: company, // Store full company data for auto-fill
+      data: company,
     })) || []),
   ];
 
   // Handle company selection and auto-fill
-  const handleCompanyChange = (companyName: string) => {
-    const selectedCompany = companyDetailsResponse?.items?.find(
-      (company: CompanyDetailItem) => company.companyName === companyName,
+  const handleCompanyChange = async (companyName: string) => {
+    const selectedCompany = companyDetailsResponse?.data?.find(
+      (company) => company.companyName === companyName,
     );
 
     if (selectedCompany) {
-      reset(transformApiResponseToFormData(selectedCompany));
-      toast.success("Company details auto-filled successfully!");
+      setIsLoadingCompanyDetails(true);
+      try {
+        // Call the API to get detailed company information
+        const response = await apiGetCompanyDetailById(selectedCompany._id);
+
+        if (response.data && response.success) {
+          reset(transformApiResponseToFormData(response.data));
+        } else {
+          toast.error("Failed to fetch company details");
+        }
+      } catch (error) {
+        console.error("Error fetching company details:", error);
+        toast.error("Failed to fetch company details");
+      } finally {
+        setIsLoadingCompanyDetails(false);
+      }
     }
   };
 
   const uploadFields = fullCompanyDetailsSchema.uploadImage({
     mode,
+    hasCompany: !!companyId || !companyName,
+  }) as FormFieldConfig<FullCompanyFormType>[];
+
+  const rawCompannyNameFields = fullCompanyDetailsSchema.company_name({
+    mode,
   }) as FormFieldConfig<FullCompanyFormType>[];
 
   const rawInfoFields = fullCompanyDetailsSchema.company_information({
     mode,
-    companyOptions,
-    hasCompany: !!companyId,
+    hasCompany: !!companyId || !companyName,
   }) as FormFieldConfig<FullCompanyFormType>[];
 
   // Create custom fields with company name field that handles change
-  const infoFields = rawInfoFields.map((field) => {
+  const compannyNameFields = rawCompannyNameFields.map((field) => {
     if (field.name === "companyName") {
       const overridden = {
         ...field,
         type: "custom" as const,
+        className: "col-span-2",
         render: ({
           field: formField,
           fieldState,
@@ -110,8 +133,6 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
               <div className="space-y-2">
                 <Input
                   type="text"
-                  // value={formField.value}
-                  // onChange={(e) => formField.onChange(e.target.value)}
                   placeholder="Enter new company name..."
                   className={`form-control ${fieldState.error ? "border-red-500" : ""}`}
                   {...formField}
@@ -139,17 +160,23 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
                       reset(transformApiResponseToFormData());
                     } else {
                       formField.onChange(value);
-                      handleCompanyChange(value);
+                      handleCompanyChange(value as string);
                     }
                   }}
                   placeholder="Select a company..."
                   className={fieldState.error ? "border-red-500" : ""}
                   error={!!fieldState.error}
-                  disabled={isLoadingCompanies}
+                  disabled={isLoadingCompanies || isLoadingCompanyDetails}
                   loading={isLoadingCompanies}
                   clearable={true}
                   searchable={true}
                 />
+                {isLoadingCompanyDetails && (
+                  <div className="border-muted-foreground flex items-center gap-2 text-sm">
+                    <div className="border-muted-foreground h-4 w-4 animate-spin rounded-full border-2 border-t-transparent"></div>
+                    Loading company details...
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -157,7 +184,9 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
       } as unknown as FormFieldConfig<FullCompanyFormType>;
       return overridden;
     }
-
+    return field;
+  });
+  const infoFields = rawInfoFields.map((field) => {
     return field;
   });
 
@@ -174,6 +203,12 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
 
   return (
     <>
+      <FormFieldsRenderer<FullCompanyFormType>
+        className="gap-6 lg:grid-cols-2"
+        control={control}
+        fieldConfigs={compannyNameFields}
+      />
+
       <div className="flex items-center gap-4">
         {element}
         <FormFieldsRenderer<FullCompanyFormType>
@@ -182,7 +217,6 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
           fieldConfigs={uploadFields}
         />
       </div>
-
       <FormFieldsRenderer<FullCompanyFormType>
         className="gap-6 lg:grid-cols-2"
         control={control}

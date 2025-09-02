@@ -42,7 +42,7 @@ export function isStepCompleted(
       return !!(
         values.brandName?.trim() &&
         values.totalSkus?.trim() &&
-        values.productCategory?.trim() &&
+        values.productCategory?.some((cat) => cat?.trim()) &&
         values.averageSellingPrice?.trim() &&
         values.marketingBudget?.trim()
       );
@@ -56,7 +56,7 @@ export function isStepCompleted(
               ? doc.number?.trim() && doc.url?.trim()
               : doc.type === "brandAuthorisation"
                 ? doc.url?.trim()
-                : true
+                : true,
         ) || false
       );
 
@@ -129,9 +129,14 @@ export function getFieldNamesForStep(
     }
 
     case StepKey.COMPANY_DETAILS: {
-      names = fullCompanyDetailsSchema
+      // Combine both company_information and company_name field names
+      const nameNames = fullCompanyDetailsSchema
+        .company_name({ mode })
+        .map((f) => f.name) as Array<keyof FullCompanyFormType>;
+      const infoNames = fullCompanyDetailsSchema
         .company_information({ mode })
         .map((f) => f.name) as Array<keyof FullCompanyFormType>;
+      names = [...infoNames, ...nameNames];
       return names;
     }
 

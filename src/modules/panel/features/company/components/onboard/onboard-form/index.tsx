@@ -49,9 +49,10 @@ const DocumentDetails = lazy(() =>
   import("./DocumentDetails").then((m) => ({ default: m.DocumentDetails })),
 );
 
-import { StepKey } from "../../../config/steps.config";
-import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import type { AxiosError } from "axios";
+import { StepKey } from "../../../config/steps.config";
 
 const StepCount = {
   // [StepKey.START]: 1,
@@ -338,7 +339,7 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
       setConfirmation([false, undefined]);
       goNext();
     },
-    onError: (error: any) => {
+    onError: (error: AxiosError<{ message?: string }>) => {
       console.error("Onboarding submission error:", error);
       toast.error(
         error?.response?.data?.message ||
@@ -386,9 +387,11 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
             fieldError &&
             typeof fieldError === "object" &&
             "message" in fieldError &&
-            typeof (fieldError as any).message === "string"
+            typeof (fieldError as Record<string, unknown>).message === "string"
           ) {
-            errorMessages.push(`${fieldName}: ${(fieldError as any).message}`);
+            errorMessages.push(
+              `${fieldName}: ${(fieldError as Record<string, unknown>).message}`,
+            );
           }
         });
 
@@ -526,7 +529,7 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
                         >
                           <StepperIndicator
                             asChild
-                            className={`h-2 w-full transition-colors`}
+                            className={"h-2 w-full transition-colors"}
                           >
                             <span className="sr-only">{n}</span>
                           </StepperIndicator>

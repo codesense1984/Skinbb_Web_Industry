@@ -1,7 +1,7 @@
 import type { FullCompanyFormType } from "../schema/fullCompany.schema";
 import type {
-  OnboardingSubmitRequest,
-  CompanyDetailItem,
+  CompanyOnboardingSubmitRequest,
+  CompanyOnboading,
 } from "@/modules/panel/types/company.type";
 
 /**
@@ -30,13 +30,38 @@ function formatEstablishedDate(dateString: string): string {
 }
 
 /**
+ * Converts established date from MM/YYYY format to YYYY-MM format for month input
+ */
+function convertEstablishedInToMonthFormat(dateString: string): string {
+  if (!dateString) return "";
+
+  // Handle MM/YYYY format (from API)
+  if (dateString.includes("/")) {
+    const [month, year] = dateString.split("/");
+    return `${year}-${month.padStart(2, "0")}`;
+  }
+
+  // Handle YYYY-MM format (already correct)
+  if (dateString.includes("-")) {
+    return dateString;
+  }
+
+  // Handle YYYY format (assume January)
+  if (dateString.length === 4) {
+    return `${dateString}-01`;
+  }
+
+  return dateString;
+}
+
+/**
  * Transforms the form data to the API request format for onboarding submission
  * Files are merged directly into the data object
  */
 export function transformFormDataToApiRequest(
   formData: FullCompanyFormType,
   roleId: string = "6875fc068683bb026013181b", // Default role ID, can be made configurable
-): OnboardingSubmitRequest & Record<string, any> {
+): CompanyOnboardingSubmitRequest & Record<string, unknown> {
   // Get the first address (assuming it's the registered address)
   const primaryAddress = formData.address?.[0] || {};
 
@@ -48,7 +73,7 @@ export function transformFormDataToApiRequest(
   const msmeDoc = documents.find((doc) => doc.type === "msme");
   const authDoc = documents.find((doc) => doc.type === "brandAuthorisation");
 
-  const apiData: OnboardingSubmitRequest & Record<string, any> = {
+  const apiData: CompanyOnboardingSubmitRequest & Record<string, unknown> = {
     _id: formData?._id || null,
     ownerName: formData.name || "",
     ownerEmail: formData.email || "",
@@ -137,7 +162,7 @@ export function transformFormDataToApiRequest(
  * Also provides default values when no API data is available
  */
 export function transformApiResponseToFormData(
-  apiData?: CompanyDetailItem,
+  apiData?: CompanyOnboading,
 ): FullCompanyFormType {
   // Default values structure
   const defaultValues: FullCompanyFormType = {
@@ -166,7 +191,7 @@ export function transformApiResponseToFormData(
     brand_logo_files: undefined,
     brandName: "",
     totalSkus: "",
-    productCategory: "",
+    productCategory: [],
     averageSellingPrice: "2",
     sellingOn: [
       {
@@ -210,55 +235,37 @@ export function transformApiResponseToFormData(
     return defaultValues;
   }
 
-  // Get the primary address (usually the first one or marked as primary)
-  // const primaryAddress =
-  //   apiData.addresses?.find((addr) => addr.isPrimary) || apiData.addresses?.[0];
-
-  // Get the first brand from the primary address
-  // const primaryBrand = primaryAddress?.brands?.[0];
-
   // Merge API data with default values
   const mergedData: FullCompanyFormType = {
     ...defaultValues,
     _id: apiData._id || defaultValues._id,
-    // Company details - only use properties that exist in CompanyDetailItem
+    brand_logo: apiData?.brandLogo || defaultValues.brand_logo,
+    logo: apiData?.logo || defaultValues.logo,
+    brands:
+      apiData?.addresses?.flatMap(
+        (address) => address.brands?.map((brand) => brand.name) || [],
+      ) || [],
+    // Company details - map to new API response structure
     companyName: apiData.companyName || defaultValues.companyName,
     businessType: apiData.businessType || defaultValues.businessType,
     category: apiData.companyCategory || defaultValues.category,
     website: apiData.website || defaultValues.website,
-    isSubsidiary: String(apiData.isCompanyBrand || false),
-    headquarterLocation:
-      apiData?.headquarterLocation ||
-      defaultValues.headquarterLocation ||
-      "Empty",
-    establishedIn: String(apiData?.establishedIn || "2005-07"),
-    description: apiData.description || defaultValues.description,
-    instagramUrl: apiData.instagramUrl || defaultValues.instagramUrl,
-    facebookUrl: apiData.facebookUrl || defaultValues.facebookUrl,
-    youtubeUrl: apiData.youtubeUrl || defaultValues.youtubeUrl,
-    marketingBudget: apiData.marketingBudget || defaultValues.marketingBudget,
-    brandName: apiData.brandName || defaultValues.brandName,
-    totalSkus: apiData.totalSkus || defaultValues.totalSkus,
-    productCategory: apiData.productCategory || defaultValues.productCategory,
-    averageSellingPrice:
-      apiData.averageSellingPrice || defaultValues.averageSellingPrice,
-    sellingOn: apiData.sellingOn || defaultValues.sellingOn,
-    logo: apiData.logo || defaultValues.logo,
-    // brand_logo: apiData.brandLogo || defaultValues.brand_logo,
-    brand_logo_files: apiData.brandLogoFiles || defaultValues.brand_logo_files,
-    // documents: apiData.documents || defaultValues.documents,
-    // agreeTermsConditions: apiData.agreeTermsConditions || defaultValues.agreeTermsConditions,
-    // // Address details
+    isSubsidiary: String(apiData.subsidiaryOfGlobalBusiness || false),
+    headquarterLocation: defaultValues.headquarterLocation,
+    establishedIn: apiData.establishedIn
+      ? convertEstablishedInToMonthFormat(apiData.establishedIn)
+      : defaultValues.establishedIn,
+    description: defaultValues.description,
     address:
-      apiData.addresses.length && apiData._id
+      apiData.addresses && apiData.addresses.length > 0
         ? [
             ...apiData.addresses.map((address) => ({
               addressType: (address.addressType === "warehouse"
                 ? "operational"
                 : "registered") as "registered" | "operational",
-              address: address.landmark || "empty", // Using landmark as address since line1 doesn't exist
+              address: address.landmark || "",
               landmark: address.landmark || "",
-              phoneNumber: "8424847449", // phoneNumber doesn't exist in CompanyAddressInfo
+              phoneNumber: apiData.landlineNo || "",
               country: address.country || "",
               state: address.state || "",
               city: address.city || "",
@@ -276,9 +283,6 @@ export function transformApiResponseToFormData(
             },
           ]
         : defaultValues.address,
-
-    // Documents - API doesn't provide document details, so these will be empty
-    documents: defaultValues.documents,
   };
 
   return mergedData;

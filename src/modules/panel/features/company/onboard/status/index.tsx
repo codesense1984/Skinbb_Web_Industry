@@ -3,6 +3,7 @@ import { Button } from "@/core/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/core/components/ui/card";
 import { Input } from "@/core/components/ui/input";
 import { PageHeader } from "@/core/components/ui/structure";
+import { fadeInUp } from "@/core/styles/animation/presets";
 import { formatDate } from "@/core/utils";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import {
@@ -10,10 +11,10 @@ import {
   type CompanyStatusData,
 } from "@/modules/panel/services/http/company.service";
 import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
-import { toast } from "sonner";
+import type { AxiosError } from "axios";
 import { AnimatePresence, motion } from "motion/react";
-import { fadeInUp } from "@/core/styles/animation/presets";
+import { type ChangeEvent, type FormEvent, useState } from "react";
+import { toast } from "sonner";
 const OnboardStatus = () => {
   const [inputValue, setInputValue] = useState("");
   const [statusData, setStatusData] = useState<CompanyStatusData | null>(null);
@@ -30,7 +31,7 @@ const OnboardStatus = () => {
         setStatusData(null);
       }
     },
-    onError: (error: any) => {
+    onError: (error: AxiosError<{ message?: string }>) => {
       setError(
         error?.response?.data?.message ||
           error.message ||
@@ -40,7 +41,7 @@ const OnboardStatus = () => {
     },
   });
 
-  const handleCheckStatus = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleCheckStatus = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!inputValue.trim()) {
       setError("Please enter an email or phone number");
@@ -63,7 +64,7 @@ const OnboardStatus = () => {
     checkStatusMutation.mutate(params);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     // Allow only digits for phone or email format
     if (

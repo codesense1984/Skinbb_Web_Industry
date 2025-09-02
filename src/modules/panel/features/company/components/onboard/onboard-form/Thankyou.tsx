@@ -26,7 +26,9 @@ const Thankyou = () => {
         at connect@skinbb.com.
       </p>
       <Button color={"primary"} asChild>
-        <Link to={PANEL_ROUTES.COMPANY.ONBOARD} replace>Back to Home</Link>
+        <Link to={PANEL_ROUTES.ONBOARD.COMPANY} replace>
+          Back to Home
+        </Link>
       </Button>
     </div>
   );

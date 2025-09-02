@@ -140,7 +140,7 @@ type Elem<T> =
   T extends ReadonlyArray<infer U> ? U : T extends Array<infer U> ? U : never;
 
 export function createSimpleFetcher<
-  TPayload,
+  TPayload extends Record<string, unknown>,
   TApiResponse,
   DPath extends string,
   TData extends Elem<PathValue<TApiResponse, DPath>>,
@@ -175,7 +175,13 @@ export function createSimpleFetcher<
     transformResult: options.transformResult,
   };
 
-  return createGenericFetcher(apiCall, config);
+  return createGenericFetcher(
+    apiCall as (
+      payload: Record<string, unknown>,
+      signal?: AbortSignal,
+    ) => Promise<TApiResponse>,
+    config,
+  );
 }
 
 /**
@@ -226,8 +232,11 @@ export function createSimpleFetcher<
  *   }
  * );
  */
-export function createGenericFetcher<TData, TApiResponse = any>(
-  apiCall: (payload: any, signal?: AbortSignal) => Promise<TApiResponse>,
+export function createGenericFetcher<TData, TApiResponse = unknown>(
+  apiCall: (
+    payload: Record<string, unknown>,
+    signal?: AbortSignal,
+  ) => Promise<TApiResponse>,
   options: {
     /** Path to the data array in the API response (e.g., 'data.orders', 'users', etc.) */
     dataPath: string;
@@ -246,7 +255,7 @@ export function createGenericFetcher<TData, TApiResponse = any>(
     /** Mapping of column filter IDs to API parameter names or custom functions */
     filterMapping?: Record<
       string,
-      string | ((value: any) => Record<string, any>)
+      string | ((value: unknown) => Record<string, unknown>)
     >;
     /** Custom payload builder function for advanced use cases */
     customPayloadBuilder?: (params: {
@@ -255,7 +264,7 @@ export function createGenericFetcher<TData, TApiResponse = any>(
       sorting: SortingState;
       columnFilters: ColumnFiltersState;
       globalFilter: string;
-    }) => any;
+    }) => Record<string, unknown>;
     /** Transform function for the final result */
     transformResult?: (apiResponse: TApiResponse) => {
       rows: TData[];
@@ -271,7 +280,7 @@ export function createGenericFetcher<TData, TApiResponse = any>(
     globalFilter,
     signal,
   }) => {
-    let payload: any = {};
+    let payload: Record<string, unknown> = {};
 
     if (options.customPayloadBuilder) {
       // Use custom payload builder if provided
@@ -334,12 +343,17 @@ export function createGenericFetcher<TData, TApiResponse = any>(
     }
 
     // Default transformation using paths
-    const getNestedValue = (obj: any, path: string) => {
-      return path.split(".").reduce((current, key) => current?.[key], obj);
+    const getNestedValue = (obj: unknown, path: string) => {
+      return path
+        .split(".")
+        .reduce(
+          (current, key) => (current as Record<string, unknown>)?.[key],
+          obj,
+        );
     };
 
-    const rows = getNestedValue(response, options.dataPath) || [];
-    const total = getNestedValue(response, options.totalPath) || 0;
+    const rows = (getNestedValue(response, options.dataPath) as TData[]) || [];
+    const total = (getNestedValue(response, options.totalPath) as number) || 0;
 
     return { rows, total };
   };
@@ -472,81 +486,82 @@ export function useTable<TData extends object>({
     if (viewMode) localStorage.setItem(storageKeyFinal, viewMode);
   }, [viewMode, storageKeyFinal]);
 
-  // Server-side functionality
-  let serverData: { rows: TData[]; total: number } | undefined;
-  let isLoading = false;
-  let isRefetching = false;
-  let error: string | null = null;
-  let total = 0;
-  let refetch: (() => void) | undefined;
+  // Always call hooks, but conditionally use their results
+  // Debounce the search string so we don't spam the API while typing
+  const debouncedGlobal = useDebounce(globalFilter, searchDebounceMs);
 
-  if (isServerSide && fetcher) {
-    // Debounce the search string so we don't spam the API while typing
-    const debouncedGlobal = useDebounce(globalFilter, searchDebounceMs);
-
-    // Reset to first page whenever filters/sorting/search change (classic UX)
-    useEffect(() => {
+  // Reset to first page whenever filters/sorting/search change (classic UX)
+  useEffect(() => {
+    if (isServerSide && fetcher) {
       setPagination((p) => ({ ...p, pageIndex: 0 }));
-    }, [sorting, columnFilters, debouncedGlobal]);
+    }
+  }, [isServerSide, fetcher, sorting, columnFilters, debouncedGlobal]);
 
-    const queryKey = useMemo<
-      [
-        string,
-        string,
-        {
-          p: typeof pagination;
-          s: SortingState;
-          f: ColumnFiltersState;
-          g: string;
-        },
-      ]
-    >(
-      () => [
-        queryKeyPrefix ?? "server-table",
-        storageKeyFinal,
-        { p: pagination, s: sorting, f: columnFilters, g: debouncedGlobal },
-      ],
-      [
-        queryKeyPrefix,
-        storageKeyFinal,
-        pagination,
+  const queryKey = useMemo<
+    [
+      string,
+      string,
+      {
+        p: typeof pagination;
+        s: SortingState;
+        f: ColumnFiltersState;
+        g: string;
+      },
+    ]
+  >(
+    () => [
+      queryKeyPrefix ?? "server-table",
+      storageKeyFinal,
+      { p: pagination, s: sorting, f: columnFilters, g: debouncedGlobal },
+    ],
+    [
+      queryKeyPrefix,
+      storageKeyFinal,
+      pagination,
+      sorting,
+      columnFilters,
+      debouncedGlobal,
+    ],
+  );
+
+  // Always call useQuery, but conditionally enable it
+  const {
+    data,
+    error: queryError,
+    isFetching,
+    isPending,
+    refetch: queryRefetch,
+  } = useQuery<ServerTableResult<TData>>({
+    queryKey,
+    queryFn: ({ signal }) => {
+      if (!isServerSide || !fetcher) {
+        throw new Error("Server-side mode not properly configured");
+      }
+      return fetcher({
+        pageIndex: pagination.pageIndex,
+        pageSize: pagination.pageSize,
         sorting,
         columnFilters,
-        debouncedGlobal,
-      ],
-    );
+        globalFilter: debouncedGlobal,
+        signal,
+      });
+    },
+    // Only enable the query if we're in server-side mode with a fetcher
+    enabled: isServerSide && !!fetcher,
+    // Cache & UX tuning
+    staleTime: 30_000, // keep cached data fresh for 30s
+    gcTime: 5 * 60_000, // cache garbage-collect after 5min
+    placeholderData: (prev) => prev,
+    refetchOnWindowFocus: false,
+  });
 
-    const {
-      data,
-      error: queryError,
-      isFetching,
-      isPending,
-      refetch: queryRefetch,
-    } = useQuery<ServerTableResult<TData>>({
-      queryKey,
-      queryFn: ({ signal }) =>
-        fetcher({
-          pageIndex: pagination.pageIndex,
-          pageSize: pagination.pageSize,
-          sorting,
-          columnFilters,
-          globalFilter: debouncedGlobal,
-          signal,
-        }),
-      // Cache & UX tuning
-      staleTime: 30_000, // keep cached data fresh for 30s
-      gcTime: 5 * 60_000, // cache garbage-collect after 5min
-      placeholderData: (prev) => prev,
-      refetchOnWindowFocus: false,
-    });
-
-    serverData = data;
-    isLoading = isPending;
-    isRefetching = isFetching;
-    error = queryError?.message ?? null;
-    total = data?.total ?? 0;
-    refetch = queryRefetch;
-  }
+  // Server-side functionality - conditionally assign values
+  const serverData = isServerSide && fetcher ? data : undefined;
+  const isLoading = isServerSide && fetcher ? isPending : false;
+  const isRefetching = isServerSide && fetcher ? isFetching : false;
+  const error = isServerSide && fetcher ? (queryError?.message ?? null) : null;
+  const total = isServerSide && fetcher ? (data?.total ?? 0) : 0;
+  const refetch = isServerSide && fetcher ? queryRefetch : undefined;
 
   // Determine which data to use
   const finalRows = isServerSide

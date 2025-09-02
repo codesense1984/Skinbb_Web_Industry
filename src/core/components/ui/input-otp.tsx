@@ -340,4 +340,6 @@ export const OtpModal = React.forwardRef<OtpModalRef, OtpModalProps>(
   },
 );
 
+OtpModal.displayName = "OtpModal";
+
 export { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot };

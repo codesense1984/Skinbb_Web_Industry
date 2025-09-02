@@ -58,7 +58,7 @@ export interface CompanyList
 }
 
 // Onboarding API request interface
-export interface OnboardingSubmitRequest {
+export interface CompanyOnboardingSubmitRequest {
   _id?: string | null;
   ownerName: string;
   ownerEmail: string;
@@ -103,6 +103,42 @@ export interface OnboardingSubmitRequest {
 }
 
 // Company details API response types
+// export interface CompanyBrandInfo {
+//   _id: string;
+//   name: string;
+//   slug: string;
+// }
+
+// export interface CompanyAddressInfo {
+//   brands: CompanyBrandInfo[];
+//   addressId: string;
+//   addressType: "registered" | "warehouse";
+//   landmark: string;
+//   city: string;
+//   state: string;
+//   postalCode: string;
+//   country: string;
+//   isPrimary: boolean;
+// }
+
+// export interface CompanyDetailItem {
+//   _id: string;
+//   companyName: string;
+//   businessType: string;
+//   companyCategory: string;
+//   website: string;
+//   isCompanyBrand: boolean;
+//   createdAt: string;
+//   companyId: string;
+//   addresses: CompanyAddressInfo[];
+// }
+
+// export interface CompanyDetailsResponse {
+//   success: boolean;
+//   items: CompanyDetailItem[];
+// }
+
+// Company detail by ID API response types
 export interface CompanyBrandInfo {
   _id: string;
   name: string;
@@ -110,30 +146,52 @@ export interface CompanyBrandInfo {
 }
 
 export interface CompanyAddressInfo {
-  brands: CompanyBrandInfo[];
   addressId: string;
   addressType: "registered" | "warehouse";
-  landmark: string;
+  landmark?: string;
   city: string;
   state: string;
   postalCode: string;
   country: string;
   isPrimary: boolean;
+  brands: CompanyBrandInfo[];
 }
 
-export interface CompanyDetailItem {
+export interface CompanyOnboading {
   _id: string;
+  brandLogo?: string;
+  logo?: string;
+  ownerUserId: string;
   companyName: string;
+  designation?: string;
   businessType: string;
   companyCategory: string;
+  subsidiaryOfGlobalBusiness: boolean;
+  cinNumber: string;
+  msmeNumber: string;
+  coiCertificate?: string;
+  msmeCertificate?: string;
+  totalSKU: number;
+  productCategory: string[];
+  averageSellingPrice: number;
+  marketingBudget: number;
+  sellingOn: Array<{
+    platform: string;
+    url: string;
+  }>;
   website: string;
+  instagramUrl: string;
+  facebookUrl: string;
+  youtubeUrl: string;
+  landlineNo: string;
   isCompanyBrand: boolean;
+  isDeleted: boolean;
   createdAt: string;
+  updatedAt: string;
+  statusChangeReason?: string;
+  statusChangedAt?: string;
   companyId: string;
+  status: string;
+  establishedIn?: string;
   addresses: CompanyAddressInfo[];
-}
-
-export interface CompanyDetailsResponse {
-  success: boolean;
-  items: CompanyDetailItem[];
 }

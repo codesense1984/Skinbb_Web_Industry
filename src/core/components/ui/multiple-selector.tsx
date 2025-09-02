@@ -160,7 +160,6 @@ const CommandEmpty = forwardRef<
     <div
       ref={forwardedRef}
       className={cn("py-6 text-center text-sm", className)}
-      cmdk-empty=""
       role="presentation"
       {...props}
     />
@@ -457,13 +456,27 @@ const MultipleSelector = React.forwardRef<
             },
             className,
           )}
+          role="button"
+          tabIndex={disabled ? -1 : 0}
+          aria-disabled={disabled}
           onClick={() => {
+            if (disabled) return;
+            inputRef?.current?.focus();
+          }}
+          onKeyDown={(e) => {
+            if (disabled) return;
+            if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+              e.preventDefault();
+              inputRef?.current?.focus();
+            }
+          }}
+          onTouchEnd={() => {
             if (disabled) return;
             inputRef?.current?.focus();
           }}
         >
           <div className="relative flex flex-wrap gap-1">
-            {(selected).map((option) => {
+            {selected.map((option) => {
               return (
                 <Badge
                   key={option.value}

@@ -9,7 +9,7 @@
  * @returns FormData object
  */
 export function createFormData(
-  data: Record<string, any>,
+  data: Record<string, unknown>,
   arrayKeys: string[] = ["addresses", "sellingOn"],
 ): FormData {
   const formData = new FormData();
@@ -75,8 +75,8 @@ export function createFormData(
  * @param formData - The FormData object to convert
  * @returns Plain object representation
  */
-export function formDataToObject(formData: FormData): Record<string, any> {
-  const obj: Record<string, any> = {};
+export function formDataToObject(formData: FormData): Record<string, unknown> {
+  const obj: Record<string, unknown> = {};
 
   for (const [key, value] of formData.entries()) {
     if (value instanceof File) {

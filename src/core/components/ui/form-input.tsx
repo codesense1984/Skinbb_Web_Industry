@@ -267,6 +267,9 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
 
   const rawValue = (inputProps?.value ?? field.value) as PathValue<T, N>;
   const value = transform ? transform.input(rawValue) : rawValue;
+  if (type === INPUT_TYPES.FILE) {
+    console.log("value", { value, field, props, disabled });
+  }
 
   switch (type) {
     case INPUT_TYPES.TEXTAREA:
@@ -400,6 +403,8 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
             className="form-control"
             title={value?.split("\\").pop()}
             htmlFor={inputId}
+            data-disabled={disabled}
+            data-readOnly={readOnly}
           >
             <input
               {...field}
@@ -414,9 +419,11 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
                   trigger(name);
                 }
               }}
+              readOnly={readOnly}
+              disabled={disabled}
               {...(inputProps?.accept && { accept: inputProps.accept })}
             />
-            <p className="text-nowrap">Choose File</p>
+            <p className="text-nowrap">{placeholder ?? "Choose File"}</p>
             {value && <span className="text-muted-foreground mx-1">|</span>}
             <p className="text-foreground truncate">
               {value?.split("\\").pop()}

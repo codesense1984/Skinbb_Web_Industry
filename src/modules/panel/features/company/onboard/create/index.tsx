@@ -1,22 +1,23 @@
 import { Button } from "@/core/components/ui/button.tsx";
-import {
-  GlobeAltIcon,
-  DevicePhoneMobileIcon,
-  CurrencyDollarIcon,
-  ChartBarIcon,
-} from "@heroicons/react/24/outline";
-import { Link } from "react-router";
-import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
-import { motion } from "motion/react";
 import { fadeInUp } from "@/core/styles/animation/presets";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
+import {
+  ChartBarIcon,
+  CurrencyDollarIcon,
+  DevicePhoneMobileIcon,
+  GlobeAltIcon,
+} from "@heroicons/react/24/outline";
+import { motion } from "motion/react";
+import { type ComponentType, type FC } from "react";
+import { Link } from "react-router";
 
 interface FeatureCardProps {
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
   title: string;
   description: string;
 }
 
-const FeatureCard: React.FC<FeatureCardProps> = ({
+const FeatureCard: FC<FeatureCardProps> = ({
   icon: Icon,
   title,
   description,
@@ -74,10 +75,10 @@ const CompanyOnboard = () => {
           transition: { ...fadeInUp.transition, delay: 0.01 },
         }}
       >
-        Let's get started with your journey. Our onboarding helps you register
-        your business, verify compliance, and make your brand visible to
-        millions of potential customers. You can either begin a new onboarding
-        or check the status of your existing submission.
+        Let&apos;s get started with your journey. Our onboarding helps you
+        register your business, verify compliance, and make your brand visible
+        to millions of potential customers. You can either begin a new
+        onboarding or check the status of your existing submission.
       </motion.p>
 
       <motion.h1

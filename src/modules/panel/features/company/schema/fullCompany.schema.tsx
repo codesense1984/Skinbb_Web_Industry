@@ -180,7 +180,7 @@ export const fullCompanyZodSchema = z
     // Brand details
     brandName: createRequiredString("Brand name"),
     totalSkus: createRequiredString("Total number of SKUs"),
-    productCategory: createRequiredString("Product category"),
+    productCategory: z.array(z.string().optional()).optional(),
     averageSellingPrice: createRequiredString("Average selling price"),
     sellingOn: z.array(sellingPlatformSchema).optional(),
 
@@ -212,6 +212,8 @@ export const fullCompanyZodSchema = z
     agreeTermsConditions: z.boolean().refine((val) => val === true, {
       message: "You must agree to the Terms & Conditions",
     }),
+
+    brands: z.array(z.string()).optional(),
   })
   .superRefine((data, ctx) => {
     // Logo file validation
@@ -257,6 +259,16 @@ export const fullCompanyZodSchema = z
         message: "Phone number is not verified",
       });
     }
+
+    const brands = data?.brands;
+    const brandName = data?.brandName?.toLowerCase();
+    if (brands && brands.length && brands?.includes(brandName?.toLowerCase())) {
+      ctx.addIssue({
+        path: ["brandName"],
+        code: z.ZodIssueCode.custom,
+        message: "Brand name already exists",
+      });
+    }
   });
 
 export type FullCompanyFormType = z.infer<typeof fullCompanyZodSchema>;
@@ -266,12 +278,13 @@ export type FullCompanyFormType = z.infer<typeof fullCompanyZodSchema>;
 
 type ModeProps = { mode: MODE };
 type FieldProps = {
-  uploadImage: ModeProps;
+  uploadImage: ModeProps & {
+    hasCompany: boolean;
+  };
   uploadbrandImage: ModeProps;
   [StepKey.PERSONAL_INFORMATION]: ModeProps;
   [StepKey.COMPANY_DETAILS]: ModeProps & {
-    companyOptions?: Array<{ label: string; value: string }>;
-    hasCompany: boolean;
+    hasCompany?: boolean;
   };
   [StepKey.ADDRESS_DETAILS]: ModeProps & {
     index: number;
@@ -294,6 +307,7 @@ type FieldProps = {
     availableOptions?: Array<{ label: string; value: string }>;
   };
   terms: ModeProps;
+  company_name: ModeProps;
 };
 
 export type FullCompanyDetailsSchemaProps = {
@@ -326,30 +340,41 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       disabled: mode === MODE.VIEW,
     },
   ],
-  uploadImage: ({ mode }) => [
+  uploadImage: ({ mode, hasCompany }) => [
     {
       name: "logo",
       label: "Company Logo",
       type: "file",
-      disabled: MODE.VIEW === mode,
-      placeholder: "Upload company logo",
+      disabled: hasCompany || mode === MODE.VIEW,
+      // placeholder: "Upload company logo",
       inputProps: {
         accept: ACCEPTED_IMAGE_TYPES.join(", "),
       },
     },
   ],
-  company_information: ({ mode, hasCompany }) => [
+  company_name: () => [
     {
       name: "companyName",
       label: "Company Name",
       type: INPUT_TYPES.CUSTOM,
-      // options: companyOptions,
-      placeholder: "Select company name",
-      disabled: mode === MODE.VIEW,
       render() {
-        return <div>Hello</div>;
+        return <div>Company</div>;
       },
     },
+  ],
+  company_information: ({ mode, hasCompany }) => [
+    // {
+    //   name: "companyName",
+    //   label: "Company Name",
+    //   type: INPUT_TYPES.CUSTOM,
+    //   // options: companyOptions,
+    //   placeholder: "Select company name",
+    //   disabled: mode === MODE.VIEW,
+
+    //   render() {
+    //     return <div>Hello</div>;
+    //   },
+    // },
     {
       name: "category",
       label: "Category",

@@ -1,7 +1,10 @@
 import { api } from "@/core/services/http";
 import { ENDPOINTS } from "../../config/endpoint.config";
 import type { ApiResponse } from "@/core/types";
-import type { OnboardingSubmitRequest } from "@/modules/panel/types/company.type";
+import type {
+  CompanyOnboading,
+  CompanyOnboardingSubmitRequest,
+} from "@/modules/panel/types/company.type";
 import { createFormData } from "@/core/utils/formdata.utils";
 
 // Get all onboard entries (with params for search, paging, sorting)
@@ -27,7 +30,9 @@ export async function apiUpdateOnboardById<
 }
 
 // ---- Onboarding ----
-export async function apiOnboardingSubmit<T>(data: OnboardingSubmitRequest) {
+export async function apiOnboardingSubmit<T>(
+  data: CompanyOnboardingSubmitRequest,
+) {
   // Use generic FormData utility with specific array keys for onboarding
   const formData = createFormData(data, ["addresses", "sellingOn"]);
 
@@ -116,8 +121,25 @@ export async function apiToggleBrandStatus<T>(id: string) {
 }
 
 // Get company details for dropdown
-export async function apiGetCompanyDetails<T>() {
-  return api.get<T>(ENDPOINTS.SELLER.GET_COMPANY_DETAILS);
+// export async function apiGetCompanyDetails<T>() {
+//   return api.get<T>(ENDPOINTS.SELLER.GET_COMPANY_DETAILS);
+// }
+
+// Get company details for dropdown
+export interface CompanyListItem {
+  _id: string;
+  companyName: string;
+}
+
+export async function apiGetCompanyList<T = ApiResponse<CompanyListItem[]>>() {
+  return api.get<T>(ENDPOINTS.SELLER.GET_COMPANY_LIST);
+}
+
+// Get company details by ID
+export async function apiGetCompanyDetailById<
+  T = ApiResponse<CompanyOnboading>,
+>(companyId: string) {
+  return api.get<T>(`${ENDPOINTS.SELLER.GET_COMPANY_DETAILS}/${companyId}`);
 }
 
 // Check company status by email or phone
@@ -136,7 +158,9 @@ export interface CompanyStatusData {
   updatedAt: string;
 }
 
-export async function apiCheckCompanyStatus(params: ApiRequestCheckStatusParams) {
+export async function apiCheckCompanyStatus(
+  params: ApiRequestCheckStatusParams,
+) {
   return api.get<ApiResponse<CompanyStatusData>>(
     ENDPOINTS.SELLER.CHECK_STATUS,
     { params },

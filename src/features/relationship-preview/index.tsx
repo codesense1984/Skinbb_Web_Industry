@@ -1,6 +1,6 @@
 import { GraphControls } from "@/core/components/cytoscape/GraphControls";
 import { Button } from "@/core/components/ui/button";
-import { ComboBox, type Option } from "@/core/components/ui/combo-box";
+import { ComboBox } from "@/core/components/ui/combo-box";
 import { DropdownMenu } from "@/core/components/ui/dropdown-menu";
 import { Tooltip } from "@/core/components/ui/tooltip";
 import { useDebounce } from "@/core/hooks/useDebounce";
@@ -23,6 +23,7 @@ import {
   type Node,
   type NodeType,
 } from "./data";
+import type { Option } from "@/core/types";
 
 const RelationshipPreview = ({
   className,

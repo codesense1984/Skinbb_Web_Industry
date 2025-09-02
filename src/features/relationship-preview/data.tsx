@@ -1,6 +1,6 @@
-import type { Option } from "@/core/components/ui/combo-box";
 import type { Core, EventObject, LayoutOptions, NodeSingular } from "cytoscape";
 import DATA from "./cleaned-data.json";
+import type { Option } from "@/core/types";
 export type Product = {
   brand_name: string;
   product_name: string;

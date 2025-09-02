@@ -187,7 +187,7 @@ function useCheckboxTree(
     normalizeUpwards(initialTree, nextCheckedNodes);
     setCheckedNodes(nextCheckedNodes);
     emitChanges(nextCheckedNodes);
-  }, []); // Run once on mount
+  }, [checkedNodes, emitChanges, initialTree, normalizeUpwards]); // Run once on mount
 
   return { isChecked, handleCheck };
 }
