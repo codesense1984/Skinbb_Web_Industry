@@ -328,7 +328,7 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
   const onboardingMutation = useMutation({
     mutationFn: (data: FullCompanyFormType) => {
       const apiData = transformFormDataToApiRequest(data);
-      console.log("🚀 ~ OnBoardForm ~ apiData:", apiData);
+      console.log("🚀 ~ OnBoardForm ~ apiData:", data, apiData);
       return apiOnboardingSubmit<{ success: boolean; message: string }>(
         apiData,
       );
@@ -550,7 +550,7 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
               <Component mode={mode} />
             </Suspense>
 
-            <div className="bg-background sticky bottom-0 mt-auto flex justify-between border-t py-4">
+            <div className="bg-background sticky bottom-0 mt-auto flex justify-between border-t pt-4">
               {!isFirst && (
                 <Button
                   type="button"

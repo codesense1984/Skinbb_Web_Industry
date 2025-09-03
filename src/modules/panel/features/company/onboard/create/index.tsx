@@ -23,8 +23,8 @@ const FeatureCard: FC<FeatureCardProps> = ({
   description,
 }) => (
   <div className="flex max-w-full gap-4">
-    <div className="bg-muted border-border flex h-15 w-15 items-center justify-center rounded-full border">
-      <Icon className="text-primary h-8 w-8" />
+    <div className="bg-muted border-primary flex h-12 w-12 items-center justify-center rounded-full border">
+      <Icon className="text-primary h-6 w-6" />
     </div>
     <div className="flex-1">
       <h6 className="text-lg font-medium">{title}</h6>
@@ -37,23 +37,27 @@ const CompanyOnboard = () => {
   const features = [
     {
       icon: GlobeAltIcon,
-      title: "Higher Reach",
-      description: "Access millions of buyers across India",
+      title: "Real-Time Consumer Insights",
+      description:
+        "Ingredient-level data, routine analysis, and predictive trends.",
     },
     {
       icon: DevicePhoneMobileIcon,
-      title: "Business on the go",
-      description: "No upfront cost to get started",
+      title: "Doctor-Backed Credibility",
+      description:
+        "Dermatologist validation builds trust where influencers can’t.",
     },
     {
       icon: CurrencyDollarIcon,
-      title: "Simplified Fee Structure",
-      description: "Start selling products in a matter of minutes",
+      title: "Targeted Marketing",
+      description:
+        "Reach exactly the right audience with hyper-segmented campaigns.",
     },
     {
       icon: ChartBarIcon,
-      title: "Grow your business",
-      description: "Promote your business with our webpage",
+      title: "Integrated Commerce",
+      description:
+        "Integrated Commerce → From discovery → validation → purchase, all within one ecosystem.",
     },
   ];
 
@@ -66,7 +70,7 @@ const CompanyOnboard = () => {
           transition: { ...fadeInUp.transition, delay: 0 },
         }}
       >
-        👋 Welcome to SkinBB Onboarding
+        Join the Skincare Metaverse — Where Knowledge, Trust & Commerce Converge
       </motion.h4>
       <motion.p
         className="text-lg"
@@ -75,10 +79,10 @@ const CompanyOnboard = () => {
           transition: { ...fadeInUp.transition, delay: 0.01 },
         }}
       >
-        Let&apos;s get started with your journey. Our onboarding helps you
-        register your business, verify compliance, and make your brand visible
-        to millions of potential customers. You can either begin a new
-        onboarding or check the status of your existing submission.
+        SkinBB is more than a platform — it&apos;s the operating system for
+        skincare brands. From consumer intelligence to dermatologist validation
+        and seamless commerce, we help you cut through noise, build trust, and
+        drive measurable growth.
       </motion.p>
 
       <motion.h1
@@ -88,7 +92,7 @@ const CompanyOnboard = () => {
           transition: { ...fadeInUp.transition, delay: 0.03 },
         }}
       >
-        Grow your business on SkinBB
+        Why Partner with Us
       </motion.h1>
 
       <motion.div
@@ -108,17 +112,21 @@ const CompanyOnboard = () => {
         ))}
       </motion.div>
 
+      <p>
+        Be an early mover. Join <b>SkinBB</b> today and redefine the future of
+        skincare with us. 🚀
+      </p>
       <motion.div
-        className="mt-10 flex gap-4"
+        className="mt-5 flex gap-4"
         {...{
           ...fadeInUp,
           transition: { ...fadeInUp.transition, delay: 0.07 },
         }}
       >
-        <Button variant="contained" color="primary" asChild>
+        <Button variant="contained" color="secondary" asChild>
           <Link to={PANEL_ROUTES.ONBOARD.COMPANY_CREATE}>Begin Onboarding</Link>
         </Button>
-        <Button variant="outlined" color="primary" asChild>
+        <Button variant="outlined" color="secondary" asChild>
           <Link to={PANEL_ROUTES.ONBOARD.COMPANY_STATUS}>Check Status</Link>
         </Button>
       </motion.div>

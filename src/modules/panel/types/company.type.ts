@@ -6,7 +6,7 @@ export interface CompanyDocument {
   url: string;
 }
 export interface CompanyAddress {
-  addressType: "registered" | "operational";
+  addressType: "registered" | "office";
   address: string;
   landmark: string;
   phoneNumber: string;
@@ -71,8 +71,6 @@ export interface CompanyOnboardingSubmitRequest
   businessType: string;
   companyCategory: string;
   establishedIn: string;
-  gstNumber: string;
-  panNumber: string;
   cinNumber: string;
   msmeNumber: string;
   website: string;
@@ -86,7 +84,9 @@ export interface CompanyOnboardingSubmitRequest
   brandWebsite: string;
   brandLogo?: string;
   addresses: Array<{
-    addressType: "registered" | "warehouse";
+    gstNumber: string;
+    panNumber: string;
+    addressType: string;
     line1: string;
     line2?: string;
     landmark?: string;
@@ -148,7 +148,7 @@ export interface CompanyBrandInfo {
 
 export interface CompanyAddressInfo {
   addressId: string;
-  addressType: "registered" | "warehouse";
+  addressType: "registered" | "office";
   landmark?: string;
   city: string;
   state: string;

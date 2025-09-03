@@ -1,8 +1,8 @@
-import type { FullCompanyFormType } from "../schema/fullCompany.schema";
 import type {
-  CompanyOnboardingSubmitRequest,
   CompanyOnboading,
+  CompanyOnboardingSubmitRequest,
 } from "@/modules/panel/types/company.type";
+import type { FullCompanyFormType } from "../schema/fullCompany.schema";
 
 /**
  * Formats established date from YYYY-MM to MM/YYYY format
@@ -61,9 +61,9 @@ function convertEstablishedInToMonthFormat(dateString: string): string {
 export function transformFormDataToApiRequest(
   formData: FullCompanyFormType,
   roleId: string = "6875fc068683bb026013181b", // Default role ID, can be made configurable
-): CompanyOnboardingSubmitRequest & Record<string, unknown> {
+): CompanyOnboardingSubmitRequest {
   // Get the first address (assuming it's the registered address)
-  const primaryAddress = formData.address?.[0] || {};
+  const primaryAddress = formData.address.find((addr) => !addr.addressId);
 
   // Get document numbers and files
   const documents = formData.documents || [];
@@ -73,7 +73,7 @@ export function transformFormDataToApiRequest(
   const msmeDoc = documents.find((doc) => doc.type === "msme");
   const authDoc = documents.find((doc) => doc.type === "brandAuthorisation");
 
-  const apiData: CompanyOnboardingSubmitRequest & Record<string, unknown> = {
+  const apiData: CompanyOnboardingSubmitRequest = {
     _id: formData?._id || null,
     ownerName: formData.name || "",
     ownerEmail: formData.email || "",
@@ -87,34 +87,37 @@ export function transformFormDataToApiRequest(
     establishedIn: formData.establishedIn
       ? formatEstablishedDate(String(formData.establishedIn))
       : "",
+    subsidiaryOfGlobalBusiness: formData.isSubsidiary === "true",
     companyCategory: formData.category || "",
-    gstNumber: gstDoc?.number || "",
-    panNumber: panDoc?.number || "",
     cinNumber: coiDoc?.number || "",
     msmeNumber: msmeDoc?.number || "",
     website: formData.website || "",
     instagramUrl: formData.instagramUrl || "",
     facebookUrl: formData.facebookUrl || "",
     youtubeUrl: formData.youtubeUrl || "",
-    landlineNo: primaryAddress.phoneNumber || "",
+    landlineNo: formData.phoneNumber || "",
     isCompanyBrand: false, // Assuming true since brand details are required
     brandName: formData.brandName || "",
     brandDescription: formData.description || "",
     brandWebsite: formData.website || "",
-    addresses: [
-      {
-        addressType: "registered",
-        line1: primaryAddress.address || "",
-        line2: "",
-        landmark: primaryAddress.landmark || "",
-        city: primaryAddress.city || "",
-        state: primaryAddress.state || "",
-        postalCode: primaryAddress.postalCode || "",
-        country: primaryAddress.country || "",
-        isPrimary: true,
-        brandIds: [],
-      },
-    ],
+    addresses: primaryAddress
+      ? [
+          {
+            addressType: primaryAddress.addressType,
+            gstNumber: gstDoc?.number || "",
+            panNumber: panDoc?.number || "",
+            line1: primaryAddress.address || "",
+            line2: "",
+            landmark: primaryAddress.landmark || "",
+            city: primaryAddress.city || "",
+            state: primaryAddress.state || "",
+            postalCode: primaryAddress.postalCode || "",
+            country: primaryAddress.country || "",
+            isPrimary: false,
+            // brandIds: [],
+          },
+        ]
+      : [],
     sellingOn:
       formData?.sellingOn?.filter(Boolean).map((item) => ({
         platform: item?.platform || "",
@@ -207,6 +210,7 @@ export function transformApiResponseToFormData(
     // Step 2 (single-address array)
     address: [
       {
+        addressId: "",
         addressType: "registered" as const,
         address: "",
         landmark: "",
@@ -239,8 +243,8 @@ export function transformApiResponseToFormData(
   const mergedData: FullCompanyFormType = {
     ...defaultValues,
     _id: apiData._id || defaultValues._id,
-    brand_logo: apiData?.brandLogo || defaultValues.brand_logo,
-    logo: apiData?.logo || defaultValues.logo,
+    logo: apiData?.brandLogo || defaultValues.brand_logo,
+    // logo: apiData?.logo || defaultValues.logo,
     brands:
       apiData?.addresses?.flatMap(
         (address) => address.brands?.map((brand) => brand.name) || [],
@@ -260,9 +264,7 @@ export function transformApiResponseToFormData(
       apiData.addresses && apiData.addresses.length > 0
         ? [
             ...apiData.addresses.map((address) => ({
-              addressType: (address.addressType === "warehouse"
-                ? "operational"
-                : "registered") as "registered" | "operational",
+              addressType: address.addressType,
               address: address.landmark || "",
               landmark: address.landmark || "",
               phoneNumber: apiData.landlineNo || "",
@@ -270,9 +272,11 @@ export function transformApiResponseToFormData(
               state: address.state || "",
               city: address.city || "",
               postalCode: address.postalCode || "",
+              addressId: address.addressId || "",
             })),
             {
-              addressType: "operational" as "registered" | "operational",
+              addressId: "",
+              addressType: "office",
               address: "",
               landmark: "",
               phoneNumber: "",
@@ -286,4 +290,89 @@ export function transformApiResponseToFormData(
   };
 
   return mergedData;
+
+  return {
+    name: "Rohit Sharma",
+    email: "rohit.sharma@example.com",
+    designation: "Founder & CEO",
+    password: "Pass@1234",
+    phoneNumber: "8424847449",
+    phoneVerified: true,
+    logo: "C:\\fakepath\\is3.png",
+    logo_files: undefined,
+    companyName: "TechNova Solutions Pvt. Ltd.",
+    category: "principal",
+    businessType: "public",
+    establishedIn: "2007-06",
+    website: "https://www.technova.com",
+    isSubsidiary: "true",
+    headquarterLocation: "London",
+    description:
+      "TechNova Solutions is a leading provider of AI-driven business automation tools, helping enterprises streamline operations and accelerate growth.",
+    brand_logo: "",
+    brand_logo_files: undefined,
+    brandName: "NovaAI",
+    totalSkus: "40",
+    productCategory: ["68652e98d559321c67d22fd8", "68652e84d559321c67d22fc2"],
+    averageSellingPrice: "40",
+    sellingOn: [
+      {
+        platform: "flipkart",
+        url: "https://google.com",
+      },
+    ],
+    instagramUrl: "",
+    facebookUrl: "",
+    youtubeUrl: "",
+    marketingBudget: "49999",
+    address: [
+      {
+        addressType: "registered",
+        address: "5th Floor, Tech Park, Whitefield",
+        landmark: "Near ITPL",
+        phoneNumber: "8045671234",
+        country: "india",
+        state: "delhi",
+        city: "Mumbai",
+        postalCode: "400019",
+      },
+    ],
+    documents: [
+      {
+        type: "coi",
+        number: "785",
+        // url: "C:\\fakepath\\pdf-sample_2.pdf",
+        // url_files: {
+        //   "0": {},
+        // },
+      },
+      {
+        type: "pan",
+        number: "747",
+        // url: "C:\\fakepath\\pdf-sample_2.pdf",
+        // url_files: {
+        //   "0": {},
+        // },
+      },
+      {
+        type: "gstLicense",
+        number: "922",
+        url: "",
+      },
+      {
+        type: "msme",
+        number: "720",
+        url: "",
+      },
+      {
+        type: "brandAuthorisation",
+        number: "",
+        // url: "C:\\fakepath\\pdf-sample_2.pdf",
+        // url_files: {
+        //   "0": {},
+        // },
+      },
+    ],
+    agreeTermsConditions: true,
+  };
 }

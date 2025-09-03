@@ -267,9 +267,6 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
 
   const rawValue = (inputProps?.value ?? field.value) as PathValue<T, N>;
   const value = transform ? transform.input(rawValue) : rawValue;
-  if (type === INPUT_TYPES.FILE) {
-    console.log("value", { value, field, props, disabled });
-  }
 
   switch (type) {
     case INPUT_TYPES.TEXTAREA:

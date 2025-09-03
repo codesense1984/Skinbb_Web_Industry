@@ -177,9 +177,7 @@ export const columns: ColumnDef<CompanyListItem>[] = [
   {
     header: "Marketing Budget",
     accessorKey: "marketingBudget",
-    cell: ({ row }) => (
-      <div >₹{formatNumber(row.original.marketingBudget)}</div>
-    ),
+    cell: ({ row }) => <div>₹{formatNumber(row.original.marketingBudget)}</div>,
     meta: {
       className: "w-max",
     },
@@ -196,6 +194,9 @@ export const columns: ColumnDef<CompanyListItem>[] = [
         {row.original.status}
       </StatusBadge>
     ),
+    filterFn: (row, id, value) => {
+      return value.includes(row.getValue(id));
+    },
   },
   {
     header: "Created Date",

@@ -58,7 +58,7 @@ html {
 
   .btn {
     @apply [&_svg]:shrink-0;
-    @apply inline-flex shrink-0 cursor-pointer flex-wrap items-center justify-center gap-2 border-transparent text-center leading-[1em] no-underline shadow transition-[color,background-color,border-color,opacity,box-shadow,transform,scale] duration-[0.2s] ease-out select-none focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-95 disabled:scale-100 disabled:cursor-not-allowed disabled:opacity-70 motion-reduce:hidden [&_svg]:pointer-events-none;
+    @apply inline-flex shrink-0 cursor-pointer flex-wrap items-center justify-center gap-1 border-transparent text-center leading-[1em] no-underline shadow transition-[color,background-color,border-color,opacity,box-shadow,transform,scale] duration-[0.2s] ease-out select-none focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-98 disabled:scale-100 disabled:cursor-not-allowed disabled:opacity-70 motion-reduce:hidden [&_svg]:pointer-events-none;
   }
   .btn.contained {
     @apply bg-background text-foreground hover:bg-muted;

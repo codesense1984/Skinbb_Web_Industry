@@ -2,6 +2,7 @@ import {
   INPUT_TYPES,
   type FormFieldConfig,
 } from "@/core/components/ui/form-input";
+import { Input } from "@/core/components/ui/input";
 import { MAX_FILE_SIZE } from "@/core/config/constants";
 import { MODE } from "@/core/types";
 import { COMPANY } from "@/modules/panel/config/constant.config";
@@ -13,7 +14,6 @@ import type {
 import { Link } from "react-router";
 import { z } from "zod";
 import { StepKey } from "../config/steps.config";
-import { Input } from "@/core/components/ui/input";
 
 export type CompanyFormValues = Omit<
   Company,
@@ -32,82 +32,85 @@ const DocumentSchema = z
     url: z.string().optional(),
     url_files: z.any().optional(),
   })
-  .superRefine((doc, ctx) => {
-    if (doc.type === "coi") {
-      if (!doc.number?.trim()) {
-        ctx.addIssue({
-          path: ["number"],
-          code: z.ZodIssueCode.custom,
-          message: "CIN number is required",
-        });
-      }
-      if (doc?.url_files && doc?.url_files.length) {
-        const file = doc?.url_files[0];
-        if (!ACCEPTED_FILE_TYPES.includes(file.type)) {
-          ctx.addIssue({
-            path: ["url"],
-            code: z.ZodIssueCode.custom,
-            message: "Only .pdf files are accepted.",
-          });
-        }
-
-        if (file.size > MAX_FILE_SIZE) {
-          ctx.addIssue({
-            path: ["url"],
-            code: z.ZodIssueCode.custom,
-            message: `Max file size is ${MAX_FILE_SIZE}MB.`,
-          });
-        }
-      }
-      if (!doc.url?.trim()) {
-        ctx.addIssue({
-          path: ["url"],
-          code: z.ZodIssueCode.custom,
-          message: "CIN document upload is required",
-        });
-      }
-    }
-    if (doc.type === "pan") {
-      if (!doc.number?.trim()) {
-        ctx.addIssue({
-          path: ["number"],
-          code: z.ZodIssueCode.custom,
-          message: "PAN number is required",
-        });
-      }
-      if (!doc.url?.trim()) {
-        ctx.addIssue({
-          path: ["url"],
-          code: z.ZodIssueCode.custom,
-          message: "PAN document upload is required",
-        });
-      }
-    }
-    if (doc.type === "brandAuthorisation") {
-      if (!doc.url?.trim()) {
-        ctx.addIssue({
-          path: ["url"],
-          code: z.ZodIssueCode.custom,
-          message: "Brand authorisation document upload is required",
-        });
-      }
-    }
-  });
+  .superRefine(() =>
+    // doc, ctx
+    {
+      // if (doc.type === "coi") {
+      //   if (!doc.number?.trim()) {
+      //     ctx.addIssue({
+      //       path: ["number"],
+      //       code: z.ZodIssueCode.custom,
+      //       message: "CIN number is required",
+      //     });
+      //   }
+      //   if (doc?.url_files && doc?.url_files.length) {
+      //     const file = doc?.url_files[0];
+      //     if (!ACCEPTED_FILE_TYPES.includes(file.type)) {
+      //       ctx.addIssue({
+      //         path: ["url"],
+      //         code: z.ZodIssueCode.custom,
+      //         message: "Only .pdf files are accepted.",
+      //       });
+      //     }
+      //     if (file.size > MAX_FILE_SIZE) {
+      //       ctx.addIssue({
+      //         path: ["url"],
+      //         code: z.ZodIssueCode.custom,
+      //         message: `Max file size is ${MAX_FILE_SIZE}MB.`,
+      //       });
+      //     }
+      //   }
+      //   if (!doc.url?.trim()) {
+      //     ctx.addIssue({
+      //       path: ["url"],
+      //       code: z.ZodIssueCode.custom,
+      //       message: "CIN document upload is required",
+      //     });
+      //   }
+      // }
+      // if (doc.type === "pan") {
+      //   if (!doc.number?.trim()) {
+      //     ctx.addIssue({
+      //       path: ["number"],
+      //       code: z.ZodIssueCode.custom,
+      //       message: "PAN number is required",
+      //     });
+      //   }
+      //   if (!doc.url?.trim()) {
+      //     ctx.addIssue({
+      //       path: ["url"],
+      //       code: z.ZodIssueCode.custom,
+      //       message: "PAN document upload is required",
+      //     });
+      //   }
+      // }
+      // if (doc.type === "brandAuthorisation") {
+      //   if (!doc.url?.trim()) {
+      //     ctx.addIssue({
+      //       path: ["url"],
+      //       code: z.ZodIssueCode.custom,
+      //       message: "Brand authorisation document upload is required",
+      //     });
+      //   }
+      // }
+    },
+  );
 
 import {
   VALIDATION_CONSTANTS,
-  createUrlValidator,
-  createRequiredString,
-  createOptionalString,
   createEmailValidator,
-  createPhoneValidator,
+  createOptionalString,
   createPasswordValidator,
+  createPhoneValidator,
   createPostalCodeValidator,
+  createRequiredString,
+  createUrlValidator,
 } from "@/core/utils/validation.utils";
 
 // Address schema
 const addressSchema = z.object({
-  addressType: z.enum(["registered", "operational"]),
+  addressId: z.string().optional(),
+  addressType: z.enum(["registered", "office"]),
   address: createRequiredString("Address"),
   landmark: createRequiredString("Landmark"),
   phoneNumber: createRequiredString("Phone number"),
@@ -506,7 +509,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
         type: INPUT_TYPES.SELECT,
         options: [
           { label: "Registered", value: "registered" },
-          { label: "Operational", value: "operational" },
+          { label: "Office", value: "office" },
         ],
         placeholder: "Enter address",
         disabled: disabled || disabledAddressType || mode === MODE.VIEW,

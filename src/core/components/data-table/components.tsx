@@ -1,10 +1,10 @@
 import { Button } from "@/core/components/ui/button";
-import {
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuRoot,
-  DropdownMenuTrigger,
-} from "@/core/components/ui/dropdown-menu";
+// import {
+//   DropdownMenuCheckboxItem,
+//   DropdownMenuContent,
+//   DropdownMenuRoot,
+//   DropdownMenuTrigger,
+// } from "@/core/components/ui/dropdown-menu";
 import { Input } from "@/core/components/ui/input";
 import {
   SelectContent,
@@ -26,7 +26,6 @@ import { cn } from "@/core/utils";
 import {
   ArrowDownIcon,
   ArrowUpIcon,
-  ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   MagnifyingGlassIcon,
@@ -46,6 +45,7 @@ import {
   type DataTableToggleProps,
 } from "./types";
 import { useTable } from "./hooks";
+import { TableFilter } from "./components/table-filter";
 
 function SortableHeader<TData>({ header }: { header: Header<TData, unknown> }) {
   const isSorted = header.column.getIsSorted() as string;
@@ -248,7 +248,13 @@ export function DataPagination<TData>({
 
   // Avoid "1 to 0 of 0" when total is zero
   const startEntry = total > 0 ? pageIndex * pageSize + 1 : 0;
-  const endEntry = Math.min((pageIndex + 1) * pageSize, total);
+  // If there are fewer entries on the current page than pageSize, show the actual count
+  // const currentPageRowCount = table.getRowModel().rows.length;
+  // Ensure endEntry never less than startEntry, even if on a page past the last entry
+  let endEntry = Math.min((pageIndex + 1) * pageSize, total);
+  if (endEntry < startEntry) {
+    endEntry = startEntry;
+  }
 
   return (
     <div
@@ -326,32 +332,25 @@ export function DataTableAction<TData>({
 
   const columnFilter = () => {
     if (viewMode === DataViewMode.grid) return;
-    return (
-      <DropdownMenuRoot>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outlined" className="ml-auto">
-            Columns <ChevronDownIcon />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          {table
-            ?.getAllColumns()
-            .filter((column) => column.getCanHide())
-            .map((column) => {
-              return (
-                <DropdownMenuCheckboxItem
-                  key={column.id}
-                  className="capitalize"
-                  checked={column.getIsVisible()}
-                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                >
-                  {column.id}
-                </DropdownMenuCheckboxItem>
-              );
-            })}
-        </DropdownMenuContent>
-      </DropdownMenuRoot>
-    );
+
+    console.log("columnOptions", table?.getAllColumns());
+    const columnOptions =
+      table
+        ?.getAllColumns()
+        .filter((column) => column.getCanHide())
+        .map((column) => ({
+          label: column.columnDef.header?.toString() ?? "",
+          value: column.id,
+          checked: column.getIsVisible(),
+          onToggle: (value: string, checked: boolean) => {
+            const col = table.getColumn(value);
+            if (col) {
+              col.toggleVisibility(checked);
+            }
+          },
+        })) || [];
+
+    return <TableFilter options={columnOptions} label="View" />;
   };
   return (
     <div
@@ -412,7 +411,7 @@ export function DataTable<TData extends object>({
         <DataTableAction
           tableState={tableState}
           showViewToggle={false}
-          {...actionProps}
+          {...(actionProps ? actionProps(tableState) : {})}
           tableHeading={tableHeading}
         ></DataTableAction>
       )}
@@ -446,7 +445,7 @@ export function DataTableToogle<TData extends object>({
       {showAction && (
         <DataTableAction
           tableState={tableState}
-          {...actionProps}
+          {...(actionProps ? actionProps(tableState) : {})}
         ></DataTableAction>
       )}
 

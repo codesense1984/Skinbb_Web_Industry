@@ -24,7 +24,7 @@ const OnboardLayout = () => {
             </p>
           </div>
         </div>
-        <div className="col-span-7 mx-auto w-full max-w-2xl space-y-10 p-4 py-6 md:px-6 md:pt-12 md:pb-0">
+        <div className="col-span-7 mx-auto w-full max-w-2xl space-y-10 p-4 py-6 md:px-6 md:pt-12">
           <Outlet />
         </div>
       </div>

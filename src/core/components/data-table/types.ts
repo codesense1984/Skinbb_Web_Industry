@@ -117,7 +117,9 @@ export interface DataTableProps<TData extends object>
   extends Omit<UseTableOptions<TData>, "defaultViewMode"> {
   bodyProps?: Omit<DataTableBodyProps<TData>, "table">;
   paginationProps?: Omit<DataPaginationProps<TData>, "table">;
-  actionProps?: Omit<DataTableActionProps<TData>, "tableState">; // Optional custom actions (e.g. filters, buttons)
+  actionProps?: (
+    table: UseTableResponse<TData>,
+  ) => Omit<DataTableActionProps<TData>, "tableState">; // Optional custom actions (e.g. filters, buttons)
   showPagination?: boolean;
   showAction?: boolean;
   tableHeading?: string;
@@ -129,7 +131,9 @@ export interface DataTableToggleProps<TData extends object>
   bodyProps?: Omit<DataTableBodyProps<TData>, "table">;
   gridProps?: Omit<DataGridViewProps<TData>, "table">;
   paginationProps?: Omit<DataPaginationProps<TData>, "table">;
-  actionProps?: Omit<DataTableActionProps<TData>, "tableState">; // Optional custom actions (e.g. filters, buttons)
+  actionProps?: (
+    table: UseTableResponse<TData>,
+  ) => Omit<DataTableActionProps<TData>, "tableState">; // Optional custom actions (e.g. filters, buttons)
   showPagination?: boolean;
   showAction?: boolean;
 }

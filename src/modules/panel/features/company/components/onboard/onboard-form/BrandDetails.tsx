@@ -133,45 +133,7 @@ const BrandDetails = ({ mode }: BrandDetailsProps) => {
           }
         />
       </div>
-
-      {/* <MultipleSelector
-        defaultOptions={OPTIONS}
-        placeholder="Select frameworks you like..."
-        emptyIndicator={
-          <p className="text-center text-lg">no results found.</p>
-        }
-      /> */}
-      <ComboBox
-        multi
-        loading={isLoadingProductCategories}
-        options={formatted}
-        placeholder="Select frameworks you like..."
-        onChange={(value) => {
-          console.log(value);
-        }}
-        maxVisibleItems={5}
-      />
-
-      {/* <CheckboxTree
-        tree={initialTree}
-        onChange={(checkedIds) => {
-          console.log(checkedIds);
-        }}
-        renderNode={({ node, isChecked, onCheckedChange, children }) => (
-          <Fragment key={`${id}-${node.id}`}>
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id={`${id}-${node.id}`}
-                checked={isChecked}
-                onCheckedChange={onCheckedChange}
-              />
-              <Label htmlFor={`${id}-${node.id}`}>{node.label}</Label>
-            </div>
-            {children && <div className="ms-6 space-y-3">{children}</div>}
-          </Fragment>
-        )}
-      /> */}
-
+      
       <FormFieldsRenderer<FullCompanyFormType>
         control={control}
         fieldConfigs={

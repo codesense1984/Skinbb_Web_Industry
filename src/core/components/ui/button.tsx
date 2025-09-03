@@ -16,13 +16,14 @@ const buttonVariants = cva("btn", {
     color: {
       default: "focus-visible:outline-muted",
       primary: "focus-visible:outline-primary",
+      secondary: "focus-visible:outline-secondary",
       success: "focus-visible:outline-success",
       destructive: "focus-visible:outline-destructive",
     },
     size: {
       tiny: "h-7 px-2 py-0 text-xs [&_svg]:size-3 gap-1",
       sm: "h-8 px-3 text-sm [&_svg]:size-4 gap-1.5",
-      md: "h-10 px-4 text-base [&_svg]:size-5 ",
+      md: "h-10 px-4 text-base [&_svg]:size-4",
       lg: "h-12 px-8 text-lg [&_svg]:size-5",
       icon: "h-10 w-10 text-muted-foreground [&_svg]:size-5",
     },
@@ -50,6 +51,12 @@ const buttonVariants = cva("btn", {
     },
     {
       variant: "contained",
+      color: "secondary",
+      className:
+        "bg-secondary text-secondary-foreground hover:bg-secondary/80 disabled:hover:bg-secondary",
+    },
+    {
+      variant: "contained",
       color: "destructive",
       className:
         "bg-destructive text-destructive-foreground hover:bg-destructive/80 disabled:hover:bg-destructive",
@@ -67,6 +74,12 @@ const buttonVariants = cva("btn", {
       color: "primary",
       className:
         "border-primary text-primary hover:bg-primary hover:text-primary-foreground",
+    },
+    {
+      variant: "outlined",
+      color: "secondary",
+      className:
+        "border-secondary text-secondary hover:bg-secondary hover:text-secondary-foreground",
     },
     {
       variant: "outlined",

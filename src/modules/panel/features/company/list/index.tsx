@@ -1,6 +1,8 @@
 import { createSimpleFetcher, DataTable } from "@/core/components/data-table";
+import { StatusFilter } from "@/core/components/data-table/components/table-filter";
 import { PageContent } from "@/core/components/ui/structure";
 import { apiGetCompanyList } from "@/modules/panel/services/http/company.service";
+import { useState } from "react";
 import { columns } from "./data";
 
 // const CompanyForm = lazy(() => import("../components/AddCompanyForm"));
@@ -10,9 +12,14 @@ const fetcher = () =>
   createSimpleFetcher(apiGetCompanyList, {
     dataPath: "data.data",
     totalPath: "data.totalRecords",
+    filterMapping: {
+      status: "status", // Map the status column filter to the status API parameter
+    },
   });
 
 const CompanyList = () => {
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+
   return (
     <PageContent
       header={{
@@ -47,6 +54,15 @@ const CompanyList = () => {
         isServerSide
         fetcher={fetcher()}
         queryKeyPrefix="company-list-table"
+        actionProps={(tableState) => ({
+          children: (
+            <StatusFilter
+              tableState={tableState}
+              module="company"
+              multi={false} // Single selection mode
+            />
+          ),
+        })}
       />
     </PageContent>
   );
