@@ -2,6 +2,7 @@ import { Button } from "@/core/components/ui/button";
 import { STATUS_MAP, type ModuleType } from "@/core/config/status";
 import { cn } from "@/core/utils";
 import { FunnelIcon } from "@heroicons/react/24/outline";
+import type { ComponentType } from "react";
 import { Checkbox } from "../../ui/checkbox";
 import { Label } from "../../ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover";
@@ -47,6 +48,8 @@ interface TableFilterProps {
   label?: string;
   /** Additional CSS classes */
   className?: string;
+  /** Icon component to display in the filter button */
+  icon?: ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
 }
 
 /**
@@ -61,6 +64,8 @@ interface StatusFilterProps<T> {
   multi?: boolean;
   /** Additional CSS classes */
   className?: string;
+  /** Icon component to display in the filter button */
+  icon?: ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
 }
 
 /**
@@ -134,6 +139,7 @@ export function TableFilter({
   multi = true,
   label = DEFAULT_FILTER_LABEL,
   className,
+  icon: Icon = FunnelIcon,
 }: TableFilterProps) {
   const selectionCount = calculateSelectionCount(options, selectedValues);
   const hasSelection =
@@ -143,7 +149,7 @@ export function TableFilter({
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="outlined" className={cn("ml-auto", className)}>
-          <FunnelIcon className="text-muted-foreground" aria-hidden="true" />
+          <Icon className="text-muted-foreground" aria-hidden={true} />
           {label}
           {hasSelection && (
             <span className={FILTER_BADGE_CLASSES}>
@@ -270,6 +276,7 @@ export function StatusFilter<T>({
   module,
   multi = true,
   className,
+  icon,
 }: StatusFilterProps<T>) {
   const statusOptions = STATUS_MAP[module] || {};
   const statusEntries = Object.entries(statusOptions);
@@ -290,6 +297,7 @@ export function StatusFilter<T>({
       className={className}
       options={optionsWithState}
       label={DEFAULT_STATUS_LABEL}
+      icon={icon}
     />
   );
 }

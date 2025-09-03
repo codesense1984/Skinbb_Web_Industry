@@ -2,7 +2,6 @@ import { createSimpleFetcher, DataTable } from "@/core/components/data-table";
 import { StatusFilter } from "@/core/components/data-table/components/table-filter";
 import { PageContent } from "@/core/components/ui/structure";
 import { apiGetCompanyList } from "@/modules/panel/services/http/company.service";
-import { useState } from "react";
 import { columns } from "./data";
 
 // const CompanyForm = lazy(() => import("../components/AddCompanyForm"));
@@ -18,7 +17,6 @@ const fetcher = () =>
   });
 
 const CompanyList = () => {
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
 
   return (
     <PageContent
@@ -26,12 +24,15 @@ const CompanyList = () => {
         title: "Company",
         description: "Discover top brands from around the world.",
         // actions: (
-        // <EntityDialog
-        //   title="Add Company"
-        //   description="Fill in the details below to add a new company."
-        //   triggerLabel="Add Company"
-        //   FormComponent={CompanyForm}
-        // />
+        //   <Button variant="contained" color={"secondary"} startIcon={<PlusIcon/>} aria-label="Add Company">
+        //     Add Company
+        //   </Button>
+        //   // <EntityDialog
+        //   //   title="Add Company"
+        //   //   description="Fill in the details below to add a new company."
+        //   //   triggerLabel="Add Company"
+        //   //   FormComponent={CompanyForm}
+        //   // />
         // ),
       }}
     >

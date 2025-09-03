@@ -31,6 +31,7 @@ import {
   MagnifyingGlassIcon,
   Squares2X2Icon,
   TableCellsIcon,
+  ViewColumnsIcon,
 } from "@heroicons/react/24/outline";
 import { flexRender, type Header } from "@tanstack/react-table";
 import { useMemo, type KeyboardEvent } from "react";
@@ -350,7 +351,13 @@ export function DataTableAction<TData>({
           },
         })) || [];
 
-    return <TableFilter options={columnOptions} label="View" />;
+    return (
+      <TableFilter
+        options={columnOptions}
+        label="View"
+        icon={ViewColumnsIcon}
+      />
+    );
   };
   return (
     <div

@@ -1,11 +1,10 @@
+import { TableAction } from "@/core/components/data-table/components/table-action";
 import { StatusBadge } from "@/core/components/ui/badge";
-import { Button } from "@/core/components/ui/button";
 import { formatDate, formatNumber } from "@/core/utils";
 import type {
   CompanyList,
   CompanyListItem,
 } from "@/modules/panel/types/company.type";
-import { EyeIcon } from "@heroicons/react/24/outline";
 import type { ColumnDef } from "@tanstack/react-table";
 
 export const statsData = [
@@ -209,13 +208,24 @@ export const columns: ColumnDef<CompanyListItem>[] = [
   {
     header: "Action",
     accessorKey: "actions",
-    cell: () => {
+    enableSorting: false,
+    enableHiding: false,
+    cell: ({ row }) => {
       return (
-        <div className="w-max">
-          <Button variant="ghost" size="icon">
-            <EyeIcon />
-          </Button>
-        </div>
+        <TableAction
+          view={{
+            onClick: () => console.log("View company:", row.original._id),
+            tooltip: "View company details",
+          }}
+          edit={{
+            onClick: () => console.log("Edit company:", row.original._id),
+            tooltip: "Edit company",
+          }}
+          delete={{
+            onClick: () => console.log("Delete company:", row.original._id),
+            tooltip: "Delete company",
+          }}
+        />
       );
     },
   },
