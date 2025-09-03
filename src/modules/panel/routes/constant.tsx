@@ -9,6 +9,11 @@ const ORDERS = "/orders";
 const COMPANY_BASE = "/company";
 const COMPANIES = "/companies";
 
+const CUSTOMER_BASE = "/customer";
+const CUSTOMERS = "/customers";
+
+const LISTING_BASE = "/listing";
+
 export const PANEL_ROUTES = {
   // ---- Brand ----
   BRAND: {
@@ -36,6 +41,26 @@ export const PANEL_ROUTES = {
       ROUTE.build(COMPANY_BASE, id, ROUTE.seg.edit), // /company/edit/:id
     DETAIL: (id: string = ROUTE.seg.id) => ROUTE.build(COMPANY_BASE, id), // /company/:id
     ONBOARD: ROUTE.build(COMPANY_BASE, ROUTE.seg.onboard), // /company/onboard
+  },
+
+  // ---- Customer ----
+  CUSTOMER: {
+    BASE: CUSTOMER_BASE, // /customer
+    LIST: CUSTOMERS, // /customers
+    CREATE: ROUTE.build(CUSTOMER_BASE, ROUTE.seg.create), // /customer/create
+    EDIT: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(CUSTOMER_BASE, id, ROUTE.seg.edit), // /customer/edit/:id
+    DETAIL: (id: string = ROUTE.seg.id) => ROUTE.build(CUSTOMER_BASE, id), // /customer/:id
+  },
+
+  // ---- Listing/Products ----
+  LISTING: {
+    BASE: LISTING_BASE, // /listing
+    LIST: LISTING_BASE, // /listing
+    CREATE: ROUTE.build(LISTING_BASE, ROUTE.seg.create), // /listing/create
+    EDIT: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(LISTING_BASE, id, ROUTE.seg.edit), // /listing/edit/:id
+    DETAIL: (id: string = ROUTE.seg.id) => ROUTE.build(LISTING_BASE, id), // /listing/:id
   },
 
   // ---- Misc panel pages ----
