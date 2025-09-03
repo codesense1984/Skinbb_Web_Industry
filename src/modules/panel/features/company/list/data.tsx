@@ -178,8 +178,11 @@ export const columns: ColumnDef<CompanyListItem>[] = [
     header: "Marketing Budget",
     accessorKey: "marketingBudget",
     cell: ({ row }) => (
-      <span>₹{formatNumber(row.original.marketingBudget)}</span>
+      <div >₹{formatNumber(row.original.marketingBudget)}</div>
     ),
+    meta: {
+      className: "w-max",
+    },
   },
   {
     header: "Status",

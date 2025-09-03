@@ -8,8 +8,8 @@ import { Input } from "@/core/components/ui/input";
 import { useImagePreview } from "@/core/hooks/useImagePreview";
 import { MODE } from "@/core/types";
 import {
-  apiGetCompanyList,
   apiGetCompanyDetailById,
+  apiGetCompanyDropdownList,
 } from "@/modules/panel/services/http/company.service";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { useQuery } from "@tanstack/react-query";
@@ -54,8 +54,8 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
   // Fetch company details for dropdown
   const { data: companyDetailsResponse, isLoading: isLoadingCompanies } =
     useQuery({
-      queryKey: ["companyDetails"],
-      queryFn: () => apiGetCompanyList(),
+      queryKey: ["apiGetCompanyDropdownList"],
+      queryFn: () => apiGetCompanyDropdownList(),
       staleTime: 5 * 60 * 1000, // 5 minutes
     });
 
