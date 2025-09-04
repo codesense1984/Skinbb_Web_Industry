@@ -126,6 +126,7 @@ export const rawItems: Readonly<Record<string, SidebarItem>> = {
       "user insight",
       "market trends",
       "ingredient analysis",
+      "ecommerce analysis",
     ],
   },
   "platform analysis": {
@@ -151,6 +152,11 @@ export const rawItems: Readonly<Record<string, SidebarItem>> = {
   "ingredient analysis": {
     name: "Ingredient insight",
     href: ANALYTICS_ROUTES.INGREDIENT.BASE,
+    requiredRoles: [ROLE.ADMIN],
+  },
+  "ecommerce analysis": {
+    name: "Ecommerce insight",
+    href: ANALYTICS_ROUTES.ECOMMERCE.BASE,
     requiredRoles: [ROLE.ADMIN],
   },
   listing: {

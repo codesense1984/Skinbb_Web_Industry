@@ -1,4 +1,4 @@
-import { DataTableToogle } from "@/core/components/data-table";
+import { createSimpleFetcher, DataTable } from "@/core/components/data-table";
 import {
   Avatar,
   AvatarFallback,
@@ -14,10 +14,8 @@ import type { Brand } from "@/modules/panel/types/brand.type";
 import { EyeIcon } from "@heroicons/react/24/outline";
 import type { ColumnDef } from "@tanstack/react-table";
 import { NavLink } from "react-router";
-import { BrandCard } from "./BrandCard";
 import { useCallback, useEffect, useState } from "react";
 import { apiGetBrands } from "@/modules/panel/services/http/brand.service";
-import type { BrandListParams } from "@/modules/panel/types/brand.type";
 
 // Legacy static data - commented out
 // const statsData = [
@@ -181,20 +179,26 @@ const columns: ColumnDef<Brand>[] = [
     },
   },
 ];
+
+// Create fetcher for server-side data
+const fetcher = () =>
+  createSimpleFetcher(apiGetBrands, {
+    dataPath: "data.brands",
+    totalPath: "data.totalRecords",
+    filterMapping: {
+      isActive: "isActive",
+    },
+  });
+
 const BrandList = () => {
-  const [brands, setBrands] = useState<Brand[]>([]);
-  const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(initialStatsData);
 
-  const fetchBrands = useCallback(async (params?: BrandListParams) => {
+  // Fetch stats separately since we need them for the summary cards
+  const fetchStats = useCallback(async () => {
     try {
-      setLoading(true);
-      const response = await apiGetBrands(params);
+      const response = await apiGetBrands({ page: 1, limit: 1000 }); // Get all for stats
       
       if (response.success) {
-        setBrands(response.data.brands);
-        
-        // Update stats with real data
         const totalProducts = response.data.brands.reduce((sum, brand) => sum + brand.associatedProductsCount, 0);
         const totalUsers = response.data.brands.reduce((sum, brand) => sum + brand.associatedUsers, 0);
         const activeBrands = response.data.brands.filter(brand => brand.isActive).length;
@@ -227,26 +231,13 @@ const BrandList = () => {
         ]);
       }
     } catch (error) {
-      console.error("Failed to fetch brands:", error);
-    } finally {
-      setLoading(false);
+      console.error("Failed to fetch brand stats:", error);
     }
   }, []);
 
   useEffect(() => {
-    fetchBrands({ page: 1, limit: 10 });
-  }, [fetchBrands]);
-
-  const renderGridItem = useCallback(
-    (row: Brand) => (
-      <BrandCard
-        key={row._id}
-        brand={row}
-        aria-label={`View ${row.name} card`}
-      />
-    ),
-    [],
-  );
+    fetchStats();
+  }, [fetchStats]);
 
   return (
     <PageContent
@@ -271,15 +262,11 @@ const BrandList = () => {
         ))}
       </section>
 
-      <DataTableToogle
-        rows={brands}
+      <DataTable
         columns={columns}
-        gridProps={{
-          renderGridItem,
-        }}
-        bodyProps={{
-          isLoading: loading,
-        }}
+        isServerSide
+        fetcher={fetcher()}
+        queryKeyPrefix={PANEL_ROUTES.BRAND.LIST}
       />
     </PageContent>
   );

@@ -1,31 +1,36 @@
-import { DataTableToogle } from "@/core/components/data-table";
+import { createSimpleFetcher, DataTable } from "@/core/components/data-table";
 import { StatCard } from "@/core/components/ui/stat";
 import { PageContent } from "@/core/components/ui/structure";
 import { Button } from "@/core/components/ui/button";
-import type { Product } from "@/modules/panel/types/product.type";
 import { formatNumber } from "@/core/utils";
 import { useCallback, useEffect, useState } from "react";
-import { ProductCard } from "./ProductCard";
 import { columns, initialStatsData } from "./data";
 import { apiGetProducts } from "@/modules/panel/services/http/product.service";
-import type { ProductListParams } from "@/modules/panel/types/product.type";
 import { NavLink } from "react-router";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 
+// Create fetcher for server-side data
+const fetcher = () =>
+  createSimpleFetcher(apiGetProducts, {
+    dataPath: "data.products",
+    totalPath: "data.totalRecords",
+    filterMapping: {
+      status: "status",
+      category: "category",
+      brand: "brand",
+      tag: "tag",
+    },
+  });
+
 const ProductList = () => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(initialStatsData);
 
-  const fetchProducts = useCallback(async (params?: ProductListParams) => {
+  // Fetch stats separately since we need them for the summary cards
+  const fetchStats = useCallback(async () => {
     try {
-      setLoading(true);
-      const response = await apiGetProducts(params);
+      const response = await apiGetProducts({ page: 1, limit: 1000 }); // Get all for stats
       
       if (response.success) {
-        setProducts(response.data.products);
-        
-        // Update stats with real data
         const publishedProducts = response.data.products.filter(p => p.status === 'publish').length;
         const draftProducts = response.data.products.filter(p => p.status === 'draft').length;
         const totalVariants = response.data.products.reduce((sum, product) => sum + (product.variants?.length || 0), 0);
@@ -58,26 +63,13 @@ const ProductList = () => {
         ]);
       }
     } catch (error) {
-      console.error("Failed to fetch products:", error);
-    } finally {
-      setLoading(false);
+      console.error("Failed to fetch product stats:", error);
     }
   }, []);
 
   useEffect(() => {
-    fetchProducts({ page: 1, limit: 10 });
-  }, [fetchProducts]);
-
-  const renderGridItem = useCallback(
-    (row: Product) => (
-      <ProductCard
-        key={row._id}
-        product={row}
-        aria-label={`View ${row.productName} card`}
-      />
-    ),
-    [],
-  );
+    fetchStats();
+  }, [fetchStats]);
 
   return (
     <PageContent
@@ -105,15 +97,11 @@ const ProductList = () => {
         ))}
       </section>
 
-      <DataTableToogle
-        rows={products}
+      <DataTable
         columns={columns}
-        gridProps={{
-          renderGridItem,
-        }}
-        bodyProps={{
-          isLoading: loading,
-        }}
+        isServerSide
+        fetcher={fetcher()}
+        queryKeyPrefix={PANEL_ROUTES.LISTING.LIST}
       />
     </PageContent>
   );

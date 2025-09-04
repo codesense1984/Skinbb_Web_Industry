@@ -70,6 +70,10 @@ const cardData: CardConfig[] = [
         name: "Brand",
         href: `${ANALYTICS_ROUTES.BRAND.BASE}`,
       },
+      {
+        name: "Ecommerce",
+        href: `${ANALYTICS_ROUTES.ECOMMERCE.BASE}`,
+      },
     ],
     icon: (
       <svg

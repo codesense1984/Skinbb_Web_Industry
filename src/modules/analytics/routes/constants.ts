@@ -16,4 +16,7 @@ export const ANALYTICS_ROUTES = {
   INGREDIENT: {
     BASE: ROUTE.build(ANALYTIC_BASE, "ingredient"), // /analytic/ingredient
   },
+  ECOMMERCE: {
+    BASE: ROUTE.build(ANALYTIC_BASE, "ecommerce"), // /analytic/ecommerce
+  },
 };
