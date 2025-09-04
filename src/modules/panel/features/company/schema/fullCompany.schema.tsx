@@ -32,69 +32,84 @@ const DocumentSchema = z
     url: z.string().optional(),
     url_files: z.any().optional(),
   })
-  .superRefine(() =>
-    // doc, ctx
-    {
-      // if (doc.type === "coi") {
-      //   if (!doc.number?.trim()) {
-      //     ctx.addIssue({
-      //       path: ["number"],
-      //       code: z.ZodIssueCode.custom,
-      //       message: "CIN number is required",
-      //     });
-      //   }
-      //   if (doc?.url_files && doc?.url_files.length) {
-      //     const file = doc?.url_files[0];
-      //     if (!ACCEPTED_FILE_TYPES.includes(file.type)) {
-      //       ctx.addIssue({
-      //         path: ["url"],
-      //         code: z.ZodIssueCode.custom,
-      //         message: "Only .pdf files are accepted.",
-      //       });
-      //     }
-      //     if (file.size > MAX_FILE_SIZE) {
-      //       ctx.addIssue({
-      //         path: ["url"],
-      //         code: z.ZodIssueCode.custom,
-      //         message: `Max file size is ${MAX_FILE_SIZE}MB.`,
-      //       });
-      //     }
-      //   }
-      //   if (!doc.url?.trim()) {
-      //     ctx.addIssue({
-      //       path: ["url"],
-      //       code: z.ZodIssueCode.custom,
-      //       message: "CIN document upload is required",
-      //     });
-      //   }
-      // }
-      // if (doc.type === "pan") {
-      //   if (!doc.number?.trim()) {
-      //     ctx.addIssue({
-      //       path: ["number"],
-      //       code: z.ZodIssueCode.custom,
-      //       message: "PAN number is required",
-      //     });
-      //   }
-      //   if (!doc.url?.trim()) {
-      //     ctx.addIssue({
-      //       path: ["url"],
-      //       code: z.ZodIssueCode.custom,
-      //       message: "PAN document upload is required",
-      //     });
-      //   }
-      // }
-      // if (doc.type === "brandAuthorisation") {
-      //   if (!doc.url?.trim()) {
-      //     ctx.addIssue({
-      //       path: ["url"],
-      //       code: z.ZodIssueCode.custom,
-      //       message: "Brand authorisation document upload is required",
-      //     });
-      //   }
-      // }
-    },
-  );
+  .superRefine((doc, ctx) => {
+    if (doc.type === "coi") {
+      if (!doc.number?.trim()) {
+        ctx.addIssue({
+          path: ["number"],
+          code: z.ZodIssueCode.custom,
+          message: "CIN number is required",
+        });
+      }
+      if (doc?.url_files && doc?.url_files.length) {
+        const file = doc?.url_files[0];
+        if (!ACCEPTED_FILE_TYPES.includes(file.type)) {
+          ctx.addIssue({
+            path: ["url"],
+            code: z.ZodIssueCode.custom,
+            message: "Only .pdf files are accepted.",
+          });
+        }
+        if (file.size > MAX_FILE_SIZE) {
+          ctx.addIssue({
+            path: ["url"],
+            code: z.ZodIssueCode.custom,
+            message: `Max file size is ${MAX_FILE_SIZE}MB.`,
+          });
+        }
+      }
+      if (!doc.url?.trim()) {
+        ctx.addIssue({
+          path: ["url"],
+          code: z.ZodIssueCode.custom,
+          message: "CIN document upload is required",
+        });
+      }
+    }
+    if (doc.type === "pan") {
+      if (!doc.number?.trim()) {
+        ctx.addIssue({
+          path: ["number"],
+          code: z.ZodIssueCode.custom,
+          message: "PAN number is required",
+        });
+      }
+
+      if (!doc.url?.trim()) {
+        ctx.addIssue({
+          path: ["url"],
+          code: z.ZodIssueCode.custom,
+          message: "PAN document upload is required",
+        });
+      }
+    }
+    if (doc.type === "gstLicense") {
+      if (!doc.number?.trim()) {
+        ctx.addIssue({
+          path: ["number"],
+          code: z.ZodIssueCode.custom,
+          message: "PAN number is required",
+        });
+      }
+
+      if (!doc.url?.trim()) {
+        ctx.addIssue({
+          path: ["url"],
+          code: z.ZodIssueCode.custom,
+          message: "PAN document upload is required",
+        });
+      }
+    }
+    if (doc.type === "brandAuthorisation") {
+      if (!doc.url?.trim()) {
+        ctx.addIssue({
+          path: ["url"],
+          code: z.ZodIssueCode.custom,
+          message: "Brand authorisation document upload is required",
+        });
+      }
+    }
+  });
 
 import {
   VALIDATION_CONSTANTS,

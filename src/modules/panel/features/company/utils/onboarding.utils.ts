@@ -175,8 +175,8 @@ export function transformApiResponseToFormData(
     email: "",
     designation: "",
     password: "",
-    phoneNumber: "8424847449",
-    phoneVerified: true,
+    phoneNumber: "",
+    phoneVerified: false,
 
     // Step 1
     logo: "",
