@@ -3,10 +3,8 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/core/components/ui/avatar";
-import { Button } from "@/core/components/ui/button";
 import type { CustomerList } from "@/modules/panel/types/customer.type";
-import { formatCurrency } from "@/core/utils";
-import { EyeIcon } from "@heroicons/react/24/outline";
+import { formatCurrency, formatDate } from "@/core/utils";
 import type { ColumnDef } from "@tanstack/react-table";
 
 export const statsData = [
@@ -72,9 +70,9 @@ export const columns: ColumnDef<CustomerList>[] = [
     cell: ({ getValue }) => {
       const email = getValue() as string;
       return email ? (
-        <span className="text-sm">{email}</span>
+        <div className="w-max">{email}</div>
       ) : (
-        <span className="text-sm text-muted-foreground">-</span>
+        <div className="w-max text-muted-foreground">-</div>
       );
     },
   },
@@ -84,9 +82,9 @@ export const columns: ColumnDef<CustomerList>[] = [
     cell: ({ getValue }) => {
       const city = getValue() as string;
       return city ? (
-        <span className="text-sm">{city}</span>
+        <div className="w-max">{city}</div>
       ) : (
-        <span className="text-sm text-muted-foreground">-</span>
+        <div className="w-max text-muted-foreground">-</div>
       );
     },
   },
@@ -96,7 +94,7 @@ export const columns: ColumnDef<CustomerList>[] = [
     cell: ({ getValue }) => {
       const orders = getValue() as number;
       return (
-        <span className="font-medium">{orders}</span>
+        <div className="w-max font-medium">{orders}</div>
       );
     },
   },
@@ -106,9 +104,9 @@ export const columns: ColumnDef<CustomerList>[] = [
     cell: ({ getValue }) => {
       const amount = getValue() as number;
       return (
-        <span className="font-medium text-green-600">
+        <div className="w-max font-medium text-green-600">
           {formatCurrency(amount, { useAbbreviation: false })}
-        </span>
+        </div>
       );
     },
   },
@@ -116,25 +114,8 @@ export const columns: ColumnDef<CustomerList>[] = [
     accessorKey: "createdAt",
     header: "Joined",
     cell: ({ getValue }) => {
-      const date = new Date(getValue() as string);
-      return (
-        <span className="text-sm">
-          {date.toLocaleDateString()}
-        </span>
-      );
-    },
-  },
-  {
-    header: "Action",
-    id: "actions",
-    enableHiding: false,
-    cell: () => {
-      return (
-        <Button variant="ghost" size="icon" className="">
-          <span className="sr-only">View Customer Details</span>
-          <EyeIcon />
-        </Button>
-      );
+      const createdAt = getValue() as string;
+      return <div className="w-max">{formatDate(createdAt)}</div>;
     },
   },
 ];

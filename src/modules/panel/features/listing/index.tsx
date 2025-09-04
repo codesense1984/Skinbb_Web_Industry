@@ -1,4 +1,5 @@
 import { createSimpleFetcher, DataTable } from "@/core/components/data-table";
+import { StatusFilter } from "@/core/components/data-table/components/table-filter";
 import { StatCard } from "@/core/components/ui/stat";
 import { PageContent } from "@/core/components/ui/structure";
 import { Button } from "@/core/components/ui/button";
@@ -102,6 +103,15 @@ const ProductList = () => {
         isServerSide
         fetcher={fetcher()}
         queryKeyPrefix={PANEL_ROUTES.LISTING.LIST}
+        actionProps={(tableState) => ({
+          children: (
+            <StatusFilter
+              tableState={tableState}
+              module="product"
+              multi={false} // Single selection mode
+            />
+          ),
+        })}
       />
     </PageContent>
   );

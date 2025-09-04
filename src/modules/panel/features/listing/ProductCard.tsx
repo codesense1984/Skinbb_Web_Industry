@@ -5,7 +5,7 @@ import {
 } from "@/core/components/ui/avatar";
 import { StatusBadge } from "@/core/components/ui/badge";
 import type { Product } from "@/modules/panel/types/product.type";
-import { formatCurrency } from "@/core/utils";
+import { formatCurrency, formatDate } from "@/core/utils";
 import { memo, type FC } from "react";
 
 const Stat = memo(
@@ -80,10 +80,11 @@ export const ProductCard: FC<ProductCardProps> = ({ product }) => {
       )}
       
       <div className="flex items-center justify-between text-xs text-muted-foreground">
-        <span>Added {product.capturedDate ? new Date(product.capturedDate).toLocaleDateString() : 'Unknown'}</span>
+        <span>Added {product.capturedDate ? formatDate(product.capturedDate) : 'Unknown'}</span>
         <StatusBadge 
-          module="brand" 
-          status={product.status || 'draft'} 
+          module="product" 
+          status={product.status || 'draft'}
+          variant="badge"
         />
       </div>
     </article>

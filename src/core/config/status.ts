@@ -3,7 +3,8 @@ export type ModuleType =
   | "survey"
   | "product"
   | "survey_user"
-  | "company";
+  | "company"
+  | "customer";
 
 export interface StatusStyle {
   label: string;
@@ -145,41 +146,56 @@ export const STATUS_MAP: Record<ModuleType, Record<string, StatusStyle>> = {
   },
 
   product: {
-    "in-stock": {
-      label: "In Stock",
-      value: "in-stock",
+    draft: {
+      label: "Draft",
+      value: "draft",
+      textColor: "text-gray-700",
+      bgColor: "bg-gray-100",
+    },
+    publish: {
+      label: "Published",
+      value: "publish",
       textColor: "text-emerald-700",
       bgColor: "bg-emerald-100",
     },
-    "low-stock": {
-      label: "Low Stock",
-      value: "low-stock",
+    pending: {
+      label: "Pending",
+      value: "pending",
       textColor: "text-yellow-700",
       bgColor: "bg-yellow-100",
     },
-    "out-of-stock": {
-      label: "Out of Stock",
-      value: "out-of-stock",
-      textColor: "text-orange-700",
-      bgColor: "bg-orange-100",
-    },
-    discontinued: {
-      label: "Discontinued",
-      value: "discontinued",
+    inactive: {
+      label: "Inactive",
+      value: "inactive",
       textColor: "text-red-700",
       bgColor: "bg-red-100",
     },
-    upcoming: {
-      label: "Upcoming",
-      value: "upcoming",
-      textColor: "text-blue-700",
-      bgColor: "bg-blue-100",
+  },
+
+  customer: {
+    active: {
+      label: "Active",
+      value: "active",
+      textColor: "text-emerald-700",
+      bgColor: "bg-emerald-100",
     },
-    hidden: {
-      label: "Hidden",
-      value: "hidden",
-      textColor: "text-gray-600",
+    inactive: {
+      label: "Inactive",
+      value: "inactive",
+      textColor: "text-gray-700",
       bgColor: "bg-gray-100",
+    },
+    suspended: {
+      label: "Suspended",
+      value: "suspended",
+      textColor: "text-orange-700",
+      bgColor: "bg-orange-100",
+    },
+    blocked: {
+      label: "Blocked",
+      value: "blocked",
+      textColor: "text-red-700",
+      bgColor: "bg-red-100",
     },
   },
 };

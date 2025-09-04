@@ -1,4 +1,6 @@
 import { createSimpleFetcher, DataTable } from "@/core/components/data-table";
+import { StatusFilter } from "@/core/components/data-table/components/table-filter";
+import { TableAction } from "@/core/components/data-table/components/table-action";
 import {
   Avatar,
   AvatarFallback,
@@ -8,10 +10,9 @@ import { StatusBadge } from "@/core/components/ui/badge";
 import { Button } from "@/core/components/ui/button";
 import { StatCard } from "@/core/components/ui/stat";
 import { PageContent } from "@/core/components/ui/structure";
-import { formatNumber } from "@/core/utils";
+import { formatNumber, formatDate } from "@/core/utils";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import type { Brand } from "@/modules/panel/types/brand.type";
-import { EyeIcon } from "@heroicons/react/24/outline";
 import type { ColumnDef } from "@tanstack/react-table";
 import { NavLink } from "react-router";
 import { useCallback, useEffect, useState } from "react";
@@ -118,9 +119,9 @@ const columns: ColumnDef<Brand>[] = [
       const description = getValue() as string;
       const cleanDescription = description.replace(/<[^>]*>/g, ''); // Remove HTML tags
       return (
-        <span className="text-sm max-w-xs truncate" title={cleanDescription}>
+        <div className="w-max max-w-xs truncate" title={cleanDescription}>
           {cleanDescription || 'No description'}
-        </span>
+        </div>
       );
     },
   },
@@ -132,9 +133,13 @@ const columns: ColumnDef<Brand>[] = [
       return (
         <StatusBadge 
           module="brand" 
-          status={isActive ? "active" : "inactive"} 
+          status={isActive ? "active" : "inactive"}
+          variant="badge"
         />
       );
+    },
+    filterFn: (row, id, value) => {
+      return value.includes(row.getValue(id));
     },
   },
   {
@@ -142,7 +147,7 @@ const columns: ColumnDef<Brand>[] = [
     header: "Products",
     cell: ({ getValue }) => {
       const count = getValue() as number;
-      return <span className="font-medium">{count}</span>;
+      return <div className="w-max font-medium">{count}</div>;
     },
   },
   {
@@ -150,31 +155,34 @@ const columns: ColumnDef<Brand>[] = [
     header: "Users",
     cell: ({ getValue }) => {
       const count = getValue() as number;
-      return <span className="font-medium">{count}</span>;
+      return <div className="w-max font-medium">{count}</div>;
     },
   },
   {
     accessorKey: "createdAt",
     header: "Created",
     cell: ({ getValue }) => {
-      const date = new Date(getValue() as string);
-      return (
-        <span className="text-sm">
-          {date.toLocaleDateString()}
-        </span>
-      );
+      const createdAt = getValue() as string;
+      return <div className="w-max">{formatDate(createdAt)}</div>;
     },
   },
   {
     header: "Action",
-    id: "actions",
+    accessorKey: "actions",
+    enableSorting: false,
     enableHiding: false,
-    cell: () => {
+    cell: ({ row }) => {
       return (
-        <Button variant="ghost" size="icon" className="">
-          <span className="sr-only">View Brand Details</span>
-          <EyeIcon />
-        </Button>
+        <TableAction
+          view={{
+            to: PANEL_ROUTES.BRAND.EDIT(row.original._id),
+            tooltip: "View brand details",
+          }}
+          edit={{
+            to: PANEL_ROUTES.BRAND.EDIT(row.original._id),
+            tooltip: "Edit brand",
+          }}
+        />
       );
     },
   },
@@ -187,6 +195,7 @@ const fetcher = () =>
     totalPath: "data.totalRecords",
     filterMapping: {
       isActive: "isActive",
+      status: "status", // Map the status column filter to the status API parameter
     },
   });
 
@@ -267,6 +276,15 @@ const BrandList = () => {
         isServerSide
         fetcher={fetcher()}
         queryKeyPrefix={PANEL_ROUTES.BRAND.LIST}
+        actionProps={(tableState) => ({
+          children: (
+            <StatusFilter
+              tableState={tableState}
+              module="brand"
+              multi={false} // Single selection mode
+            />
+          ),
+        })}
       />
     </PageContent>
   );

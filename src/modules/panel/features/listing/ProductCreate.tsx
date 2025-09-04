@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router'
+import { useNavigate, useSearchParams } from 'react-router'
 import { Button } from '@/core/components/ui/button'
 import { PageContent } from '@/core/components/ui/structure'
 import { SelectRoot, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/core/components/ui/select'
 import { Input } from '@/core/components/ui/input'
 import { Label } from '@/core/components/ui/label'
-import { Textarea } from '@/core/components/ui/textarea'
+import { RichTextEditor } from '@/core/components/ui/rich-text-editor'
 
 import { PANEL_ROUTES } from '@/modules/panel/routes/constant'
 import { api } from '@/core/services/http'
@@ -20,7 +20,8 @@ import {
     apiGetImportedBy,
     apiGetIngredients,
     apiGetBenefits,
-    apiGetProductAttributeValues
+    apiGetProductAttributeValues,
+    apiGetProductById
 } from '@/modules/panel/services/http/product.service'
 
 interface ProductCreateData {
@@ -89,8 +90,15 @@ interface DropdownOption {
 
 const ProductCreate = () => {
     const navigate = useNavigate()
+    const [searchParams] = useSearchParams()
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    
+    // Get mode and id from URL parameters
+    const mode = searchParams.get('mode') // 'view' or 'edit'
+    const productId = searchParams.get('id')
+    const isEditMode = mode === 'edit'
+    const isViewMode = mode === 'view'
     const [isDragOver, setIsDragOver] = useState(false)
     const [uploadedImages, setUploadedImages] = useState<File[]>([])
     const [thumbnailImage, setThumbnailImage] = useState<File | null>(null)
@@ -277,6 +285,77 @@ const ProductCreate = () => {
         loadDropdownData()
     }, [])
 
+    // Fetch product data for edit/view mode
+    useEffect(() => {
+        const fetchProductData = async () => {
+            if (productId && (isEditMode || isViewMode)) {
+                try {
+                    const response = await apiGetProductById<{ success: boolean; data: any }>(productId)
+                    if (response.success && response.data) {
+                        const product = response.data
+                        
+                        // Populate form data with existing product data
+                        setFormData({
+                            productName: product.productName || '',
+                            slug: product.slug || '',
+                            description: product.description || '',
+                            status: product.status || 'draft',
+                            price: product.price || 0,
+                            salePrice: product.salePrice || 0,
+                            quantity: product.quantity || 0,
+                            sku: product.sku || '',
+                            brand: product.brand?._id || '',
+                            productVariationType: product.productVariationType?._id || '',
+                            productCategory: product.productCategory?.map((cat: any) => cat._id) || [],
+                            tags: product.tags?.map((tag: any) => tag._id) || [],
+                            marketedBy: product.marketedBy?._id || '',
+                            marketedByAddress: product.marketedByAddress || '',
+                            manufacturedBy: product.manufacturedBy?._id || '',
+                            manufacturedByAddress: product.manufacturedByAddress || '',
+                            importedBy: product.importedBy?._id || '',
+                            importedByAddress: product.importedByAddress || '',
+                            targetConcerns: product.targetConcerns?.map((concern: any) => concern._id) || [],
+                            productFeatures: product.productFeatures?.map((feature: any) => feature._id) || [],
+                            countryOfOrigin: product.countryOfOrigin?._id || '',
+                            benefits: product.benefits?.map((benefit: any) => benefit._id) || [],
+                            certifications: product.certifications?.map((cert: any) => cert._id) || [],
+                            productForm: product.productForm?._id || '',
+                            gender: product.gender?._id || '',
+                            productType: product.productType?._id || '',
+                            targetArea: product.targetArea?._id || '',
+                            finish: product.finish?._id || '',
+                            fragrance: product.fragrance?._id || '',
+                            skinConcerns: product.skinConcerns?.map((concern: any) => concern._id) || [],
+                            hairType: product.hairType?._id || '',
+                            skinType: product.skinType?._id || '',
+                            shelfLife: product.shelfLife || '',
+                            licenseNo: product.licenseNo || '',
+                            manufacturingDate: product.manufacturingDate || '',
+                            expiryDate: product.expiryDate || '',
+                            length: product.length || 0,
+                            width: product.width || 0,
+                            height: product.height || 0,
+                            safetyPrecaution: product.safetyPrecaution || '',
+                            howToUse: product.howToUse || '',
+                            customerCareEmail: product.customerCareEmail || '',
+                            customerCareNumber: product.customerCareNumber || '',
+                            ingredient: product.ingredient || '',
+                            keyIngredients: product.keyIngredients || '',
+                            benefitsSingle: product.benefitsSingle || '',
+                            captureBy: product.captureBy || 'admin',
+                            capturedDate: product.capturedDate || new Date().toISOString(),
+                        })
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch product data:', error)
+                    setError('Failed to load product data')
+                }
+            }
+        }
+
+        fetchProductData()
+    }, [productId, isEditMode, isViewMode])
+
     const handleInputChange = (field: keyof ProductCreateData, value: any) => {
         setFormData(prev => ({
             ...prev,
@@ -319,20 +398,77 @@ const ProductCreate = () => {
                 submitData.append('barcodeImage', barcodeImage)
             }
             
-            const result = await api.post(ENDPOINTS.PRODUCT.MAIN, submitData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            }) as { success: boolean; message?: string }
+            let result: { success: boolean; message?: string }
+            
+            if (isEditMode && productId) {
+                // Update existing product
+                console.log('Updating product with ID:', productId)
+                console.log('Form data:', formData)
+                
+                // For updates, try sending JSON data instead of FormData
+                const updateData = {
+                    ...formData,
+                    // Convert arrays to proper format if needed
+                    productCategory: formData.productCategory,
+                    tags: formData.tags,
+                    targetConcerns: formData.targetConcerns,
+                    productFeatures: formData.productFeatures,
+                    benefits: formData.benefits,
+                    certifications: formData.certifications,
+                    skinConcerns: formData.skinConcerns,
+                }
+                
+                console.log('Update data being sent:', updateData)
+                
+                try {
+                    // Try PATCH with JSON data first
+                    result = await api.patch(`${ENDPOINTS.PRODUCT.MAIN}/${productId}`, updateData) as { success: boolean; message?: string }
+                } catch (patchError) {
+                    console.log('PATCH failed, trying PUT:', patchError)
+                    // Fallback to PUT with FormData
+                    result = await api.put(`${ENDPOINTS.PRODUCT.MAIN}/${productId}`, submitData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data',
+                        },
+                    }) as { success: boolean; message?: string }
+                }
+                
+                if (result.success) {
+                    console.log('Product updated successfully:', result.message)
+                }
+            } else {
+                // Create new product
+                result = await api.post(ENDPOINTS.PRODUCT.MAIN, submitData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                }) as { success: boolean; message?: string }
+                
+                if (result.success) {
+                    console.log('Product created successfully:', result.message)
+                }
+            }
             
             if (result.success) {
-                console.log('Product created successfully:', result.message)
                 // Navigate back to product list
                 navigate(PANEL_ROUTES.LISTING.LIST)
             }
         } catch (error: any) {
-            console.error('Failed to create product:', error)
-            setError(error?.response?.data?.message || error?.message || 'Failed to create product. Please check your input and try again.')
+            console.error('Failed to create/update product:', error)
+            console.error('Error response:', error?.response?.data)
+            console.error('Error status:', error?.response?.status)
+            
+            const errorMessage = isEditMode 
+                ? 'Failed to update product. Please check your input and try again.'
+                : 'Failed to create product. Please check your input and try again.'
+            
+            // Get more detailed error message
+            const detailedError = error?.response?.data?.message || 
+                                error?.response?.data?.error || 
+                                error?.message || 
+                                errorMessage
+                                
+            setError(detailedError)
         } finally {
             setIsSubmitting(false)
         }
@@ -466,14 +602,27 @@ const ProductCreate = () => {
         setFormData(prev => ({ ...prev, slug }))
     }
 
+    // Dynamic title and description based on mode
+    const getPageTitle = () => {
+        if (isViewMode) return "View Product"
+        if (isEditMode) return "Edit Product"
+        return "Create Product"
+    }
+
+    const getPageDescription = () => {
+        if (isViewMode) return "View product details and information."
+        if (isEditMode) return "Edit product information and details."
+        return "Add a new product to your catalog."
+    }
+
     return (
         <PageContent
             header={{
-                title: "Create Product",
-                description: "Add a new product to your catalog.",
+                title: getPageTitle(),
+                description: getPageDescription(),
             }}
         >
-            <div className="max-w-5xl mx-auto">
+            <div className="w-full">
                 <div className="bg-background rounded-xl border shadow-sm p-8">
                     <form onSubmit={handleFormSubmit}>
                         <div className="space-y-8">
@@ -498,6 +647,7 @@ const ProductCreate = () => {
                                         placeholder="Enter product name"
                                         required
                                         className="h-10"
+                                        disabled={isViewMode}
                                     />
                                 </div>
                                 
@@ -511,12 +661,14 @@ const ProductCreate = () => {
                                             placeholder="product-slug"
                                             required
                                             className="h-10 flex-1"
+                                            disabled={isViewMode}
                                         />
                                         <Button
                                             type="button"
                                             variant="outlined"
                                             onClick={generateSlug}
                                             className="h-10 px-4"
+                                            disabled={isViewMode}
                                         >
                                             Create Slug
                                         </Button>
@@ -526,13 +678,11 @@ const ProductCreate = () => {
                                 
                                 <div className="space-y-2">
                                     <Label htmlFor="description" className="text-sm font-medium text-gray-700">Description</Label>
-                                    <Textarea
-                                        id="description"
+                                    <RichTextEditor
                                         value={formData.description}
-                                        onChange={(e) => handleInputChange('description', e.target.value)}
+                                        onChange={(value) => handleInputChange('description', value)}
                                         placeholder="Enter product description"
-                                        rows={4}
-                                        className="resize-none"
+                                        disabled={isViewMode}
                                     />
                                 </div>
                                 
@@ -544,6 +694,7 @@ const ProductCreate = () => {
                                         onChange={(e) => handleInputChange('sku', e.target.value)}
                                         placeholder="Enter SKU"
                                         className="h-10"
+                                        disabled={isViewMode}
                                     />
                                 </div>
                             </div>
@@ -563,6 +714,7 @@ const ProductCreate = () => {
                                         placeholder="0.00"
                                         required
                                         className="h-10"
+                                        disabled={isViewMode}
                                     />
                                 </div>
 
@@ -576,6 +728,7 @@ const ProductCreate = () => {
                                         onChange={(e) => handleInputChange('salePrice', parseFloat(e.target.value) || 0)}
                                         placeholder="0.00"
                                         className="h-10"
+                                        disabled={isViewMode}
                                     />
                                 </div>
 
@@ -589,6 +742,7 @@ const ProductCreate = () => {
                                         placeholder="0"
                                         required
                                         className="h-10"
+                                        disabled={isViewMode}
                                     />
                                 </div>
                                 </div>
@@ -600,7 +754,7 @@ const ProductCreate = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <Label htmlFor="brand" className="text-sm font-medium text-gray-700">Brand *</Label>
-                                    <SelectRoot value={formData.brand} onValueChange={(value) => handleInputChange('brand', value)}>
+                                    <SelectRoot value={formData.brand} onValueChange={(value) => handleInputChange('brand', value)} disabled={isViewMode}>
                                         <SelectTrigger className="h-10">
                                             <SelectValue placeholder="Select a brand" />
                                         </SelectTrigger>
@@ -616,7 +770,7 @@ const ProductCreate = () => {
 
                                 <div className="space-y-2">
                                     <Label htmlFor="productVariationType" className="text-sm font-medium text-gray-700">Variation Type *</Label>
-                                    <SelectRoot value={formData.productVariationType} onValueChange={(value) => handleInputChange('productVariationType', value)}>
+                                    <SelectRoot value={formData.productVariationType} onValueChange={(value) => handleInputChange('productVariationType', value)} disabled={isViewMode}>
                                         <SelectTrigger className="h-10">
                                             <SelectValue placeholder="Select variation type" />
                                         </SelectTrigger>
@@ -634,7 +788,7 @@ const ProductCreate = () => {
                                 {/* Category */}
                                 <div className="space-y-2">
                                     <Label htmlFor="productCategory" className="text-sm font-medium text-gray-700">Category *</Label>
-                                    <SelectRoot value={formData.productCategory[0] || ''} onValueChange={(value) => handleInputChange('productCategory', [value])}>
+                                    <SelectRoot value={formData.productCategory[0] || ''} onValueChange={(value) => handleInputChange('productCategory', [value])} disabled={isViewMode}>
                                         <SelectTrigger className="h-10">
                                             <SelectValue placeholder="Select a category" />
                                         </SelectTrigger>
@@ -650,7 +804,7 @@ const ProductCreate = () => {
 
                                 <div className="space-y-2">
                                     <Label htmlFor="tags" className="text-sm font-medium text-gray-700">Tags</Label>
-                                    <SelectRoot value={formData.tags?.[0] || ''} onValueChange={(value) => handleInputChange('tags', [value])}>
+                                    <SelectRoot value={formData.tags?.[0] || ''} onValueChange={(value) => handleInputChange('tags', [value])} disabled={isViewMode}>
                                         <SelectTrigger className="h-10">
                                             <SelectValue placeholder="Select or create tags" />
                                         </SelectTrigger>
@@ -667,7 +821,7 @@ const ProductCreate = () => {
                                 {/* Status */}
                                 <div className="space-y-2">
                                     <Label htmlFor="status" className="text-sm font-medium text-gray-700">Status *</Label>
-                                    <SelectRoot value={formData.status} onValueChange={(value) => handleInputChange('status', value)}>
+                                    <SelectRoot value={formData.status} onValueChange={(value) => handleInputChange('status', value)} disabled={isViewMode}>
                                         <SelectTrigger className="h-10">
                                             <SelectValue placeholder="Select status" />
                                         </SelectTrigger>
@@ -685,7 +839,7 @@ const ProductCreate = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <Label htmlFor="marketedBy" className="text-sm font-medium text-gray-700">Marketed By</Label>
-                                    <SelectRoot value={formData.marketedBy || ''} onValueChange={(value) => handleInputChange('marketedBy', value)}>
+                                    <SelectRoot value={formData.marketedBy || ''} onValueChange={(value) => handleInputChange('marketedBy', value)} disabled={isViewMode}>
                                         <SelectTrigger className="h-10">
                                             <SelectValue placeholder="Select Market By" />
                                         </SelectTrigger>
@@ -701,7 +855,7 @@ const ProductCreate = () => {
 
                                 <div className="space-y-2">
                                     <Label htmlFor="manufacturedBy" className="text-sm font-medium text-gray-700">Manufacture By</Label>
-                                    <SelectRoot value={formData.manufacturedBy || ''} onValueChange={(value) => handleInputChange('manufacturedBy', value)}>
+                                    <SelectRoot value={formData.manufacturedBy || ''} onValueChange={(value) => handleInputChange('manufacturedBy', value)} disabled={isViewMode}>
                                         <SelectTrigger className="h-10">
                                             <SelectValue placeholder="Select Manufacture By" />
                                         </SelectTrigger>
@@ -718,7 +872,7 @@ const ProductCreate = () => {
 
                                 <div className="space-y-2">
                                     <Label htmlFor="importedBy" className="text-sm font-medium text-gray-700">Import By</Label>
-                                    <SelectRoot value={formData.importedBy || ''} onValueChange={(value) => handleInputChange('importedBy', value)}>
+                                    <SelectRoot value={formData.importedBy || ''} onValueChange={(value) => handleInputChange('importedBy', value)} disabled={isViewMode}>
                                         <SelectTrigger className="h-10">
                                             <SelectValue placeholder="Select Import By" />
                                         </SelectTrigger>
@@ -742,6 +896,7 @@ const ProductCreate = () => {
                                         onChange={(e) => handleInputChange('marketedByAddress', e.target.value)}
                                         placeholder="Enter Marketed By Address"
                                         className="h-10"
+                                        disabled={isViewMode}
                                     />
                                 </div>
 
@@ -753,6 +908,7 @@ const ProductCreate = () => {
                                         onChange={(e) => handleInputChange('manufacturedByAddress', e.target.value)}
                                         placeholder="Enter Manufacture By Address"
                                         className="h-10"
+                                        disabled={isViewMode}
                                     />
                                 </div>
                                 </div>
@@ -765,6 +921,7 @@ const ProductCreate = () => {
                                         onChange={(e) => handleInputChange('importedByAddress', e.target.value)}
                                         placeholder="Enter Import By Address"
                                         className="h-10"
+                                        disabled={isViewMode}
                                     />
                                 </div>
                             </div>
@@ -781,6 +938,7 @@ const ProductCreate = () => {
                                         onChange={(e) => handleInputChange('shelfLife', e.target.value)}
                                         placeholder="Enter Shelf Life"
                                         className="h-10"
+                                        disabled={isViewMode}
                                     />
                                 </div>
 
@@ -792,6 +950,7 @@ const ProductCreate = () => {
                                         onChange={(e) => handleInputChange('licenseNo', e.target.value)}
                                         placeholder="Enter License No"
                                         className="h-10"
+                                        disabled={isViewMode}
                                     />
                                 </div>
                                 </div>
@@ -805,6 +964,7 @@ const ProductCreate = () => {
                                         value={formData.manufacturingDate || ''}
                                         onChange={(e) => handleInputChange('manufacturingDate', e.target.value)}
                                         className="h-10"
+                                        disabled={isViewMode}
                                     />
                                 </div>
 
@@ -816,6 +976,7 @@ const ProductCreate = () => {
                                         value={formData.expiryDate || ''}
                                         onChange={(e) => handleInputChange('expiryDate', e.target.value)}
                                         className="h-10"
+                                        disabled={isViewMode}
                                     />
                                 </div>
                                 </div>
@@ -831,6 +992,7 @@ const ProductCreate = () => {
                                         onChange={(e) => handleInputChange('length', parseFloat(e.target.value) || 0)}
                                         placeholder="Length"
                                         className="h-10"
+                                        disabled={isViewMode}
                                     />
                                 </div>
 
@@ -844,6 +1006,7 @@ const ProductCreate = () => {
                                         onChange={(e) => handleInputChange('width', parseFloat(e.target.value) || 0)}
                                         placeholder="Width"
                                         className="h-10"
+                                        disabled={isViewMode}
                                     />
                                 </div>
 
@@ -857,31 +1020,28 @@ const ProductCreate = () => {
                                         onChange={(e) => handleInputChange('height', parseFloat(e.target.value) || 0)}
                                         placeholder="Height"
                                         className="h-10"
+                                        disabled={isViewMode}
                                     />
                                 </div>
                                 </div>
 
                                 <div className="space-y-2">
                                     <Label htmlFor="safetyPrecaution" className="text-sm font-medium text-gray-700">Safety Precaution</Label>
-                                    <Textarea
-                                        id="safetyPrecaution"
+                                    <RichTextEditor
                                         value={formData.safetyPrecaution || ''}
-                                        onChange={(e) => handleInputChange('safetyPrecaution', e.target.value)}
+                                        onChange={(value) => handleInputChange('safetyPrecaution', value)}
                                         placeholder="Enter safety precaution"
-                                        rows={4}
-                                        className="resize-none"
+                                        disabled={isViewMode}
                                     />
                                 </div>
 
                                 <div className="space-y-2">
                                     <Label htmlFor="howToUse" className="text-sm font-medium text-gray-700">How To Use</Label>
-                                    <Textarea
-                                        id="howToUse"
+                                    <RichTextEditor
                                         value={formData.howToUse || ''}
-                                        onChange={(e) => handleInputChange('howToUse', e.target.value)}
+                                        onChange={(value) => handleInputChange('howToUse', value)}
                                         placeholder="Enter how to use instructions"
-                                        rows={4}
-                                        className="resize-none"
+                                        disabled={isViewMode}
                                     />
                                 </div>
 
@@ -895,6 +1055,7 @@ const ProductCreate = () => {
                                         onChange={(e) => handleInputChange('customerCareEmail', e.target.value)}
                                         placeholder="Enter customer care email"
                                         className="h-10"
+                                        disabled={isViewMode}
                                     />
                                 </div>
 
@@ -906,6 +1067,7 @@ const ProductCreate = () => {
                                         onChange={(e) => handleInputChange('customerCareNumber', e.target.value)}
                                         placeholder="Enter customer care number"
                                         className="h-10"
+                                        disabled={isViewMode}
                                     />
                                 </div>
                                 </div>
@@ -917,7 +1079,7 @@ const ProductCreate = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <Label htmlFor="ingredient" className="text-sm font-medium text-gray-700">Ingredient</Label>
-                                    <SelectRoot value={formData.ingredient || ''} onValueChange={(value) => handleInputChange('ingredient', value)}>
+                                    <SelectRoot value={formData.ingredient || ''} onValueChange={(value) => handleInputChange('ingredient', value)} disabled={isViewMode}>
                                         <SelectTrigger className="h-10">
                                             <SelectValue placeholder="Select an Ingredient" />
                                         </SelectTrigger>
@@ -933,7 +1095,7 @@ const ProductCreate = () => {
 
                                 <div className="space-y-2">
                                     <Label htmlFor="keyIngredients" className="text-sm font-medium text-gray-700">Key Ingredients</Label>
-                                    <SelectRoot value={formData.keyIngredients || ''} onValueChange={(value) => handleInputChange('keyIngredients', value)}>
+                                    <SelectRoot value={formData.keyIngredients || ''} onValueChange={(value) => handleInputChange('keyIngredients', value)} disabled={isViewMode}>
                                         <SelectTrigger className="h-10">
                                             <SelectValue placeholder="Select a Key Ingredient" />
                                         </SelectTrigger>
@@ -950,7 +1112,7 @@ const ProductCreate = () => {
 
                                 <div className="space-y-2">
                                     <Label htmlFor="benefitsSingle" className="text-sm font-medium text-gray-700">Benefits</Label>
-                                    <SelectRoot value={formData.benefitsSingle || ''} onValueChange={(value) => handleInputChange('benefitsSingle', value)}>
+                                    <SelectRoot value={formData.benefitsSingle || ''} onValueChange={(value) => handleInputChange('benefitsSingle', value)} disabled={isViewMode}>
                                         <SelectTrigger className="h-10">
                                             <SelectValue placeholder="Select a benefit" />
                                         </SelectTrigger>
@@ -971,7 +1133,7 @@ const ProductCreate = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <Label htmlFor="captureBy" className="text-sm font-medium text-gray-700">Capture By</Label>
-                                    <SelectRoot value={formData.captureBy || 'admin'} onValueChange={(value) => handleInputChange('captureBy', value)}>
+                                    <SelectRoot value={formData.captureBy || 'admin'} onValueChange={(value) => handleInputChange('captureBy', value)} disabled={isViewMode}>
                                         <SelectTrigger className="h-10">
                                             <SelectValue placeholder="Select capture by" />
                                         </SelectTrigger>
@@ -990,6 +1152,7 @@ const ProductCreate = () => {
                                         value={formData.capturedDate ? formData.capturedDate.split('T')[0] : ''}
                                         onChange={(e) => handleInputChange('capturedDate', new Date(e.target.value).toISOString())}
                                         className="h-10"
+                                        disabled={isViewMode}
                                     />
                                 </div>
                                 </div>
@@ -1002,7 +1165,7 @@ const ProductCreate = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
                                         <Label htmlFor="countryOfOrigin">Country of Origin</Label>
-                                        <SelectRoot value={formData.countryOfOrigin || ''} onValueChange={(value) => handleInputChange('countryOfOrigin', value)}>
+                                        <SelectRoot value={formData.countryOfOrigin || ''} onValueChange={(value) => handleInputChange('countryOfOrigin', value)} disabled={isViewMode}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select country of origin" />
                                             </SelectTrigger>
@@ -1018,7 +1181,7 @@ const ProductCreate = () => {
 
                                     <div>
                                         <Label htmlFor="productForm">Product Form</Label>
-                                        <SelectRoot value={formData.productForm || ''} onValueChange={(value) => handleInputChange('productForm', value)}>
+                                        <SelectRoot value={formData.productForm || ''} onValueChange={(value) => handleInputChange('productForm', value)} disabled={isViewMode}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select product form" />
                                             </SelectTrigger>
@@ -1034,7 +1197,7 @@ const ProductCreate = () => {
 
                                     <div>
                                         <Label htmlFor="gender">Gender</Label>
-                                        <SelectRoot value={formData.gender || ''} onValueChange={(value) => handleInputChange('gender', value)}>
+                                        <SelectRoot value={formData.gender || ''} onValueChange={(value) => handleInputChange('gender', value)} disabled={isViewMode}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select gender" />
                                             </SelectTrigger>
@@ -1050,7 +1213,7 @@ const ProductCreate = () => {
 
                                     <div>
                                         <Label htmlFor="productType">Product Type</Label>
-                                        <SelectRoot value={formData.productType || ''} onValueChange={(value) => handleInputChange('productType', value)}>
+                                        <SelectRoot value={formData.productType || ''} onValueChange={(value) => handleInputChange('productType', value)} disabled={isViewMode}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select product type" />
                                             </SelectTrigger>
@@ -1066,7 +1229,7 @@ const ProductCreate = () => {
 
                                     <div>
                                         <Label htmlFor="targetArea">Target Area</Label>
-                                        <SelectRoot value={formData.targetArea || ''} onValueChange={(value) => handleInputChange('targetArea', value)}>
+                                        <SelectRoot value={formData.targetArea || ''} onValueChange={(value) => handleInputChange('targetArea', value)} disabled={isViewMode}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select target area" />
                                             </SelectTrigger>
@@ -1082,7 +1245,7 @@ const ProductCreate = () => {
 
                                     <div>
                                         <Label htmlFor="finish">Finish</Label>
-                                        <SelectRoot value={formData.finish || ''} onValueChange={(value) => handleInputChange('finish', value)}>
+                                        <SelectRoot value={formData.finish || ''} onValueChange={(value) => handleInputChange('finish', value)} disabled={isViewMode}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select finish" />
                                             </SelectTrigger>
@@ -1098,7 +1261,7 @@ const ProductCreate = () => {
 
                                     <div>
                                         <Label htmlFor="fragrance">Fragrance</Label>
-                                        <SelectRoot value={formData.fragrance || ''} onValueChange={(value) => handleInputChange('fragrance', value)}>
+                                        <SelectRoot value={formData.fragrance || ''} onValueChange={(value) => handleInputChange('fragrance', value)} disabled={isViewMode}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select fragrance" />
                                             </SelectTrigger>
@@ -1114,7 +1277,7 @@ const ProductCreate = () => {
 
                                     <div>
                                         <Label htmlFor="hairType">Hair Type</Label>
-                                        <SelectRoot value={formData.hairType || ''} onValueChange={(value) => handleInputChange('hairType', value)}>
+                                        <SelectRoot value={formData.hairType || ''} onValueChange={(value) => handleInputChange('hairType', value)} disabled={isViewMode}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select hair type" />
                                             </SelectTrigger>
@@ -1130,7 +1293,7 @@ const ProductCreate = () => {
 
                                     <div>
                                         <Label htmlFor="skinType">Skin Type</Label>
-                                        <SelectRoot value={formData.skinType || ''} onValueChange={(value) => handleInputChange('skinType', value)}>
+                                        <SelectRoot value={formData.skinType || ''} onValueChange={(value) => handleInputChange('skinType', value)} disabled={isViewMode}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select skin type" />
                                             </SelectTrigger>
@@ -1164,6 +1327,7 @@ const ProductCreate = () => {
                                                             }
                                                         }}
                                                         className="rounded"
+                                                        disabled={isViewMode}
                                                     />
                                                     <span className="text-sm">{concern.label}</span>
                                                 </label>
@@ -1188,6 +1352,7 @@ const ProductCreate = () => {
                                                             }
                                                         }}
                                                         className="rounded"
+                                                        disabled={isViewMode}
                                                     />
                                                     <span className="text-sm">{feature.label}</span>
                                                 </label>
@@ -1212,6 +1377,7 @@ const ProductCreate = () => {
                                                             }
                                                         }}
                                                         className="rounded"
+                                                        disabled={isViewMode}
                                                     />
                                                     <span className="text-sm">{benefit.label}</span>
                                                 </label>
@@ -1236,6 +1402,7 @@ const ProductCreate = () => {
                                                             }
                                                         }}
                                                         className="rounded"
+                                                        disabled={isViewMode}
                                                     />
                                                     <span className="text-sm">{cert.label}</span>
                                                 </label>
@@ -1260,6 +1427,7 @@ const ProductCreate = () => {
                                                             }
                                                         }}
                                                         className="rounded"
+                                                        disabled={isViewMode}
                                                     />
                                                     <span className="text-sm">{concern.label}</span>
                                                 </label>
@@ -1272,11 +1440,15 @@ const ProductCreate = () => {
                             {/* Thumbnail Upload Section */}
                             <div className="space-y-4">
                                 <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Thumbnail</h3>
-                                <p className="text-sm text-gray-600">Max 1 image(s), up to 10MB each. Allowed: image/jpeg, image/png</p>
+                                {!isViewMode && (
+                                    <p className="text-sm text-gray-600">Max 1 image(s), up to 10MB each. Allowed: image/jpeg, image/png</p>
+                                )}
                                 
                                 <div
-                                    className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer"
-                                    onClick={openThumbnailDialog}
+                                    className={`border-2 border-dashed border-gray-300 rounded-lg p-8 text-center transition-colors ${
+                                        isViewMode ? 'cursor-default' : 'hover:border-gray-400 cursor-pointer'
+                                    }`}
+                                    onClick={isViewMode ? undefined : openThumbnailDialog}
                                 >
                                     {thumbnailImage ? (
                                         <div className="space-y-4">
@@ -1295,8 +1467,9 @@ const ProductCreate = () => {
                                                     size="sm"
                                                     onClick={(e) => {
                                                         e.stopPropagation()
-                                                        removeThumbnail()
+                                                        if (!isViewMode) removeThumbnail()
                                                     }}
+                                                    disabled={isViewMode}
                                                 >
                                                     Remove
                                                 </Button>
@@ -1310,7 +1483,10 @@ const ProductCreate = () => {
                                                 </svg>
                                             </div>
                                             <div>
-                                                <p className="text-gray-600">Drop image here or <span className="text-blue-600">Click to browse</span></p>
+                                                <p className="text-gray-600">
+                                                    {isViewMode ? 'No thumbnail uploaded' : 'Drop image here or '}
+                                                    {!isViewMode && <span className="text-blue-600">Click to browse</span>}
+                                                </p>
                                             </div>
                                         </div>
                                     )}
@@ -1328,11 +1504,15 @@ const ProductCreate = () => {
                             {/* Barcode Image Upload Section */}
                             <div className="space-y-4">
                                 <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Barcode Image</h3>
-                                <p className="text-sm text-gray-600">Max 1 image(s), up to 10MB each. Allowed: image/jpeg, image/png</p>
+                                {!isViewMode && (
+                                    <p className="text-sm text-gray-600">Max 1 image(s), up to 10MB each. Allowed: image/jpeg, image/png</p>
+                                )}
                                 
                                 <div
-                                    className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer"
-                                    onClick={openBarcodeDialog}
+                                    className={`border-2 border-dashed border-gray-300 rounded-lg p-8 text-center transition-colors ${
+                                        isViewMode ? 'cursor-default' : 'hover:border-gray-400 cursor-pointer'
+                                    }`}
+                                    onClick={isViewMode ? undefined : openBarcodeDialog}
                                 >
                                     {barcodeImage ? (
                                         <div className="space-y-4">
@@ -1351,8 +1531,9 @@ const ProductCreate = () => {
                                                     size="sm"
                                                     onClick={(e) => {
                                                         e.stopPropagation()
-                                                        removeBarcode()
+                                                        if (!isViewMode) removeBarcode()
                                                     }}
+                                                    disabled={isViewMode}
                                                 >
                                                     Remove
                                                 </Button>
@@ -1366,7 +1547,10 @@ const ProductCreate = () => {
                                                 </svg>
                                             </div>
                                             <div>
-                                                <p className="text-gray-600">Drop image here or <span className="text-blue-600">Click to browse</span></p>
+                                                <p className="text-gray-600">
+                                                    {isViewMode ? 'No barcode uploaded' : 'Drop image here or '}
+                                                    {!isViewMode && <span className="text-blue-600">Click to browse</span>}
+                                                </p>
                                             </div>
                                         </div>
                                     )}
@@ -1390,11 +1574,13 @@ const ProductCreate = () => {
                                     className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
                                         isDragOver 
                                             ? 'border-blue-400 bg-blue-50' 
-                                            : 'border-gray-300 hover:border-gray-400'
+                                            : isViewMode 
+                                                ? 'border-gray-300 cursor-default' 
+                                                : 'border-gray-300 hover:border-gray-400 cursor-pointer'
                                     }`}
-                                    onDragOver={handleDragOver}
-                                    onDragLeave={handleDragLeave}
-                                    onDrop={handleDrop}
+                                    onDragOver={isViewMode ? undefined : handleDragOver}
+                                    onDragLeave={isViewMode ? undefined : handleDragLeave}
+                                    onDrop={isViewMode ? undefined : handleDrop}
                                 >
                                     <div className="flex flex-col items-center space-y-4">
                                         {/* Upload Icon */}
@@ -1407,18 +1593,22 @@ const ProductCreate = () => {
                                         {/* Upload Text */}
                                         <div className="space-y-2">
                                             <p className="text-gray-600">
-                                                Drop image here or{' '}
-                                                <button
-                                                    type="button"
-                                                    onClick={openFileDialog}
-                                                    className="text-blue-600 hover:text-blue-700 underline"
-                                                >
-                                                    Click to browse
-                                                </button>
+                                                {isViewMode ? 'No images uploaded' : 'Drop image here or '}
+                                                {!isViewMode && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={openFileDialog}
+                                                        className="text-blue-600 hover:text-blue-700 underline"
+                                                    >
+                                                        Click to browse
+                                                    </button>
+                                                )}
                                             </p>
-                                            <p className="text-sm text-gray-500">
-                                                Max 10 image(s) • up to 10MB each • Allowed: image/jpeg, image/png
-                                            </p>
+                                            {!isViewMode && (
+                                                <p className="text-sm text-gray-500">
+                                                    Max 10 image(s) • up to 10MB each • Allowed: image/jpeg, image/png
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
                                     
@@ -1449,8 +1639,9 @@ const ProductCreate = () => {
                                                     </div>
                                                     <button
                                                         type="button"
-                                                        onClick={() => removeImage(index)}
+                                                        onClick={() => !isViewMode && removeImage(index)}
                                                         className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                                                        disabled={isViewMode}
                                                     >
                                                         ×
                                                     </button>
@@ -1474,13 +1665,18 @@ const ProductCreate = () => {
                                 >
                                     Cancel
                             </Button>
-                            <Button
-                                type="submit"
+                            {!isViewMode && (
+                                <Button
+                                    type="submit"
                                     disabled={isSubmitting}
                                     className="px-6 py-2"
-                            >
-                                    {isSubmitting ? 'Creating...' : 'Create Product'}
-                            </Button>
+                                >
+                                    {isSubmitting 
+                                        ? (isEditMode ? 'Updating...' : 'Creating...') 
+                                        : (isEditMode ? 'Update Product' : 'Create Product')
+                                    }
+                                </Button>
+                            )}
                             </div>
                         </div>
                     </form>

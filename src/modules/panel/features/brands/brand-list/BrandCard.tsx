@@ -1,6 +1,6 @@
 import { StatusBadge } from "@/core/components/ui/badge";
 import type { Brand } from "@/modules/panel/types/brand.type";
-import { formatNumber } from "@/core/utils";
+import { formatNumber, formatDate } from "@/core/utils";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { memo, type FC } from "react";
 import { NavLink } from "react-router";
@@ -54,10 +54,11 @@ export const BrandCard: FC<BrandCardProps> = ({ brand }) => {
         </div>
         
         <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>Created {new Date(brand.createdAt).toLocaleDateString()}</span>
+          <span>Created {formatDate(brand.createdAt)}</span>
           <StatusBadge 
             module="brand" 
-            status={brand.isActive ? "active" : "inactive"} 
+            status={brand.isActive ? "active" : "inactive"}
+            variant="badge"
           />
         </div>
       </article>

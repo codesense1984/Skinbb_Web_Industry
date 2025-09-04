@@ -30,6 +30,11 @@ export async function apiGetProducts(
   return api.get<ProductListResponse>(url, { signal });
 }
 
+// Get single product by ID
+export async function apiGetProductById<T>(id: string) {
+  return api.get<T>(`${ENDPOINTS.PRODUCT.MAIN}/${id}`);
+}
+
 export async function apiGetBrandsForDropdown(
   params?: { search?: string; page?: number; limit?: number },
   signal?: AbortSignal,

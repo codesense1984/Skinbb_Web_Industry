@@ -4,10 +4,10 @@ import {
   AvatarImage,
 } from "@/core/components/ui/avatar";
 import { StatusBadge } from "@/core/components/ui/badge";
-import { Button } from "@/core/components/ui/button";
+import { TableAction } from "@/core/components/data-table/components/table-action";
 import type { Product } from "@/modules/panel/types/product.type";
-import { formatCurrency } from "@/core/utils";
-import { EyeIcon } from "@heroicons/react/24/outline";
+import { formatCurrency, formatDate } from "@/core/utils";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import type { ColumnDef } from "@tanstack/react-table";
 
 export const initialStatsData = [
@@ -69,7 +69,7 @@ export const columns: ColumnDef<Product>[] = [
     header: "Brand",
     cell: ({ getValue }) => {
       const brand = (getValue() as { name: string }) || { name: 'Unknown' };
-      return <span className="text-sm font-medium">{brand.name}</span>;
+      return <div className="w-max font-medium">{brand.name}</div>;
     },
   },
   {
@@ -78,7 +78,7 @@ export const columns: ColumnDef<Product>[] = [
     cell: ({ getValue }) => {
       const categories = (getValue() as Array<{ name: string }>) || [];
       return (
-        <div className="flex flex-wrap gap-1">
+        <div className="w-max flex flex-wrap gap-1">
           {categories.slice(0, 2).map((category, index) => (
             <span key={index} className="text-xs bg-gray-100 px-2 py-1 rounded">
               {category.name}
@@ -98,7 +98,16 @@ export const columns: ColumnDef<Product>[] = [
     header: "Status",
     cell: ({ getValue }) => {
       const status = getValue() as string;
-      return <StatusBadge module="brand" status={status} />;
+      return (
+        <StatusBadge 
+          module="product" 
+          status={status}
+          variant="badge"
+        />
+      );
+    },
+    filterFn: (row, id, value) => {
+      return value.includes(row.getValue(id));
     },
   },
   {
@@ -109,8 +118,8 @@ export const columns: ColumnDef<Product>[] = [
       const salePriceRange = row.original.salePriceRange || { min: 0, max: 0 };
       
       return (
-        <div className="flex flex-col">
-          <span className="text-sm font-medium">
+        <div className="w-max flex flex-col">
+          <span className="font-medium">
             {formatCurrency(priceRange.min, { useAbbreviation: true })} - {formatCurrency(priceRange.max, { useAbbreviation: true })}
           </span>
           {salePriceRange && (salePriceRange.min > 0 || salePriceRange.max > 0) && (
@@ -128,9 +137,9 @@ export const columns: ColumnDef<Product>[] = [
     cell: ({ getValue }) => {
       const variants = (getValue() as Array<any>) || [];
       return (
-        <span className="font-medium">
+        <div className="w-max font-medium">
           {variants.length} variant{variants.length !== 1 ? 's' : ''}
-        </span>
+        </div>
       );
     },
   },
@@ -138,24 +147,27 @@ export const columns: ColumnDef<Product>[] = [
     accessorKey: "capturedDate",
     header: "Added",
     cell: ({ getValue }) => {
-      const date = new Date(getValue() as string);
-      return (
-        <span className="text-sm">
-          {date.toLocaleDateString()}
-        </span>
-      );
+      const capturedDate = getValue() as string;
+      return <div className="w-max">{formatDate(capturedDate)}</div>;
     },
   },
   {
     header: "Action",
-    id: "actions",
+    accessorKey: "actions",
+    enableSorting: false,
     enableHiding: false,
-    cell: () => {
+    cell: ({ row }) => {
       return (
-        <Button variant="ghost" size="icon" className="">
-          <span className="sr-only">View Product Details</span>
-          <EyeIcon />
-        </Button>
+        <TableAction
+          view={{
+            to: PANEL_ROUTES.LISTING.CREATE + `?mode=view&id=${row.original._id}`,
+            tooltip: "View product details",
+          }}
+          edit={{
+            to: PANEL_ROUTES.LISTING.CREATE + `?mode=edit&id=${row.original._id}`,
+            tooltip: "Edit product",
+          }}
+        />
       );
     },
   },
