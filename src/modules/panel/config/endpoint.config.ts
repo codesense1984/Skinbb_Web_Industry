@@ -73,6 +73,7 @@ export const ENDPOINTS = {
     GET_COMPANY_DETAILS: `${API_PREFIX}/sellers/companyDetailById`,
     GET_COMPANY_LIST: `${API_PREFIX}/sellers/getCompanyNameList`,
     CHECK_STATUS: `${API_PREFIX}/sellers/check-status`,
+    UPDATE_INFO: `${API_PREFIX}/sellers/info`,
   },
 
   DISCOUNT: {

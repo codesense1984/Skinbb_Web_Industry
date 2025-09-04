@@ -2,7 +2,8 @@ import cookieStorage, { type CookieOptions } from "@/core/store/cookieStorage";
 import localStorage from "@/core/store/localStorage";
 import { QueryClient } from "@tanstack/react-query";
 import type { LoggedUser } from "../types/user.type";
-import type { LoginSuccess } from "./http/auth.service";
+import type { SellerInfo } from "../types/seller.type";
+import { getSellerInfo, type LoginSuccess } from "./http/auth.service";
 
 /* -------------------------------------------------------------------------- */
 /*                               Storage section                               */
@@ -20,6 +21,7 @@ export type AuthSnapshot = {
 
 export type AuthQueryData = Required<AuthSnapshot> & {
   user: LoggedUser;
+  sellerInfo?: SellerInfo;
 };
 
 export const COOKIE_KEY = {
@@ -92,28 +94,58 @@ export function clearUserLS() {
   localStorage.removeItem(LS_KEY.USER);
 }
 
-export async function fetchAndCacheSellerInfo(qc: QueryClient) {
-  try {
-    const { getSellerInfo } = await import("./http/auth.service");
-    const response = await getSellerInfo();
-    qc.setQueryData(QK.SELLER_INFO, response.data);
-    return response.data;
-  } catch (error) {
-    console.error("Failed to fetch seller info:", error);
-    throw error;
-  }
+/**
+ * Checks if a user has seller or seller-member role
+ * @param roleValue - User's role value
+ * @returns boolean - True if user is seller or seller-member
+ */
+function isSellerRole(roleValue: string): boolean {
+  return ["seller-member", "seller"].includes(roleValue);
 }
 
-export async function ensureSellerInfo(qc: QueryClient) {
-  // Check if seller info is already cached
-  const cachedSellerInfo = qc.getQueryData(QK.SELLER_INFO);
+/**
+ * Fetches seller info only when cache is empty for seller/seller-member roles
+ * @param qc - Query client instance
+ * @param userId - User ID to fetch seller info for
+ * @param me - Current auth data object
+ * @returns Promise<SellerInfo | undefined> - Seller info or undefined if not needed
+ */
+async function fetchSellerInfoIfNeeded(
+  qc: QueryClient,
+  userId: string,
+  me: AuthQueryData,
+): Promise<SellerInfo | undefined> {
+  // Check if seller info already exists in cache
+  const existingSellerInfo = qc.getQueryData<SellerInfo>([
+    ...QK.SELLER_INFO,
+    userId,
+  ]);
 
-  if (!cachedSellerInfo) {
-    // If not cached, fetch it
-    return await fetchAndCacheSellerInfo(qc);
+  if (existingSellerInfo) {
+    return existingSellerInfo;
   }
 
-  return cachedSellerInfo;
+  try {
+    console.log(`Fetching seller info for user: ${userId}`);
+    const response = await getSellerInfo(userId);
+
+    // Update both the seller info cache and the ME query
+    qc.setQueryData([...QK.SELLER_INFO, userId], response.data);
+    qc.setQueryData(QK.ME, {
+      ...me,
+      sellerInfo: response.data,
+    });
+
+    console.log(
+      `Successfully fetched and cached seller info for user: ${userId}`,
+    );
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to fetch seller info for user ${userId}:`, error);
+    // Clear auth and throw error to redirect to login
+    logout(qc);
+    throw new Error("Authentication failed - please login again");
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -143,18 +175,9 @@ export async function onLoginSuccess(
     };
     qc.setQueryData(QK.ME, me);
 
-    // Fetch seller info if user role is seller-member
-    if (u.roleValue === "seller-member") {
-      try {
-        await fetchAndCacheSellerInfo(qc);
-      } catch (error) {
-        console.error("Failed to fetch seller info on login:", error);
-        // Clear auth and throw error to prevent login success
-        logout(qc);
-        throw new Error(
-          "Failed to fetch seller information - please try again",
-        );
-      }
+    // Automatically fetch seller info for seller and seller-member roles (only if cache is empty)
+    if (isSellerRole(u.roleValue)) {
+      await fetchSellerInfoIfNeeded(qc, u._id, me);
     }
   }
 }
@@ -182,16 +205,9 @@ export async function bootstrapAuthCache(qc: QueryClient) {
     };
     qc.setQueryData(QK.ME, me);
 
-    // Fetch seller info if user role is seller-member (for page reload)
-    if (user.roleValue === "seller-member") {
-      try {
-        await fetchAndCacheSellerInfo(qc);
-      } catch (error) {
-        console.error("Failed to fetch seller info on bootstrap:", error);
-        // Clear auth and throw error to redirect to login
-        logout(qc);
-        throw new Error("Authentication failed - please login again");
-      }
+    // Fetch seller info if user role is seller-member or seller (only if cache is empty)
+    if (isSellerRole(user.roleValue)) {
+      await fetchSellerInfoIfNeeded(qc, user._id, me);
     }
 
     return me;

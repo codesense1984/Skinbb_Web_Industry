@@ -177,8 +177,9 @@ const getAllUsers = async (
   return await api.get(url);
 };
 
-const getSellerInfo = async (): Promise<SellerInfoResponse> => {
-  return await api.get<SellerInfoResponse>("/api/v1/sellers/info");
+const getSellerInfo = async (userId: string): Promise<SellerInfoResponse> => {
+  const url = `/api/v1/sellers/info/${userId}`;
+  return await api.get<SellerInfoResponse>(url);
 };
 
 export { getAllUsers, getUserById, getSellerInfo, login };

@@ -1,57 +1,57 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import {
-  QK,
-  ensureSellerInfo,
-  type AuthQueryData,
-} from "../services/auth.service";
+import { useNavigate } from "react-router";
+import { QK, type AuthQueryData, logout } from "../services/auth.service";
+import { getSellerInfo } from "../services/http/auth.service";
 import type { SellerInfo } from "../types/seller.type";
+import { AUTH_ROUTES } from "../routes/constants";
 
 export const useSellerAuth = () => {
   const qc = useQueryClient();
+  const navigate = useNavigate();
 
   // Get current user data
   const authData = qc.getQueryData<AuthQueryData>(QK.ME);
-  const isSellerMember = authData?.user?.roleValue === "seller-member";
+  const isSellerMember = ["seller-member", "seller"].includes(
+    authData?.user?.roleValue || "",
+  );
 
-  // Query for seller info
+  // Query for seller info using useQuery
   const sellerQuery = useQuery<SellerInfo>({
-    queryKey: QK.SELLER_INFO,
+    queryKey: [...QK.SELLER_INFO, authData?.user?._id],
     queryFn: async () => {
-      const result = await ensureSellerInfo(qc);
-      return result as SellerInfo;
+      if (!authData?.user?._id) {
+        throw new Error("User ID not found in auth data");
+      }
+
+      const response = await getSellerInfo(authData.user._id);
+      return response.data;
     },
-    enabled: isSellerMember, // Only run if user is seller-member
-    staleTime: 0, // Always refetch to ensure fresh data
+    enabled: isSellerMember && !!authData?.user?._id,
+    staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 30 * 60 * 1000, // 30 minutes
     retry: 1,
   });
 
-  // Handle errors - but don't redirect to login since same pages can be accessed by other user types
+  // Update ME query data when seller info is successfully fetched
+  useEffect(() => {
+    if (sellerQuery.data && authData) {
+      qc.setQueryData(QK.ME, {
+        ...authData,
+        sellerInfo: sellerQuery.data,
+      });
+    }
+  }, [sellerQuery.data, authData, qc]);
+
+  // Handle errors - redirect to logout if API fails
   useEffect(() => {
     if (sellerQuery.isError) {
       console.error("Seller info fetch failed:", sellerQuery.error);
-      // Log error but don't redirect - let the component handle the error state
+      // Clear auth and redirect to login
+      logout(qc);
+      navigate(AUTH_ROUTES.SIGN_IN, { replace: true });
     }
-  }, [sellerQuery.isError, sellerQuery.error]);
-
-  // If user is seller-member but seller info is not loading and not available, fetch it
-  useEffect(() => {
-    if (
-      isSellerMember &&
-      !sellerQuery.isLoading &&
-      !sellerQuery.data &&
-      !sellerQuery.isError
-    ) {
-      sellerQuery.refetch();
-    }
-  }, [
-    isSellerMember,
-    sellerQuery.isLoading,
-    sellerQuery.data,
-    sellerQuery.isError,
-    sellerQuery.refetch,
-  ]);
+  }, [sellerQuery.isError, sellerQuery.error, qc, navigate]);
 
   // Helper functions
   const getAssignedAddresses = () => {
