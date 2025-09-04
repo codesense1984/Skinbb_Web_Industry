@@ -126,9 +126,9 @@ export async function apiToggleBrandStatus<T>(id: string) {
 }
 
 // Get company details for dropdown
-// export async function apiGetCompanyDetails<T>() {
-//   return api.get<T>(ENDPOINTS.SELLER.GET_COMPANY_DETAILS);
-// }
+export async function apiGetCompanyDetails<T>() {
+  return api.get<T>(ENDPOINTS.SELLER.GET_COMPANY_DETAILS_LIST);
+}
 
 // Get company details for dropdown
 export interface CompanyDropdownItem {

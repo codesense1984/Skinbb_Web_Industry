@@ -1,6 +1,6 @@
 import { TableAction } from "@/core/components/data-table/components/table-action";
 import { StatusBadge } from "@/core/components/ui/badge";
-import { formatDate, formatNumber } from "@/core/utils";
+import { formatDate } from "@/core/utils";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import type {
   CompanyList,
@@ -150,35 +150,35 @@ export const columns: ColumnDef<CompanyListItem>[] = [
     accessorKey: "phoneNumber",
   },
 
-  {
-    header: "Brand Name",
-    accessorKey: "brandName",
-    cell: ({ row }) => (
-      <div className="w-max font-medium">{row.original.brandName}</div>
-    ),
-  },
-  {
-    header: "Website",
-    accessorKey: "website",
-    cell: ({ row }) => (
-      <a
-        href={row.original.website}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-blue-600 underline hover:text-blue-800"
-      >
-        {row.original.website}
-      </a>
-    ),
-  },
-  {
-    header: "Marketing Budget",
-    accessorKey: "marketingBudget",
-    cell: ({ row }) => <div>₹{formatNumber(row.original.marketingBudget)}</div>,
-    meta: {
-      className: "w-max",
-    },
-  },
+  // {
+  //   header: "Brand Name",
+  //   accessorKey: "brandName",
+  //   cell: ({ row }) => (
+  //     <div className="w-max font-medium">{row.original.brandName}</div>
+  //   ),
+  // },
+  // {
+  //   header: "Website",
+  //   accessorKey: "website",
+  //   cell: ({ row }) => (
+  //     <a
+  //       href={row.original.website}
+  //       target="_blank"
+  //       rel="noopener noreferrer"
+  //       className="text-blue-600 underline hover:text-blue-800"
+  //     >
+  //       {row.original.website}
+  //     </a>
+  //   ),
+  // },
+  // {
+  //   header: "Marketing Budget",
+  //   accessorKey: "marketingBudget",
+  //   cell: ({ row }) => <div>₹{formatNumber(row.original.marketingBudget)}</div>,
+  //   meta: {
+  //     className: "w-max",
+  //   },
+  // },
   {
     header: "Status",
     accessorKey: "status",

@@ -72,6 +72,7 @@ export const ENDPOINTS = {
     MAIN: `${API_PREFIX}/sellers/admin`,
     GET_COMPANY_DETAILS: `${API_PREFIX}/sellers/companyDetailById`,
     GET_COMPANY_LIST: `${API_PREFIX}/sellers/getCompanyNameList`,
+    GET_COMPANY_DETAILS_LIST: `${API_PREFIX}/sellers/getCompanyDetails`,
     CHECK_STATUS: `${API_PREFIX}/sellers/check-status`,
     UPDATE_INFO: `${API_PREFIX}/sellers/info`,
   },

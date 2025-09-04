@@ -167,6 +167,7 @@ export interface CompanyOnboading {
   designation?: string;
   businessType: string;
   companyCategory: string;
+  companyDescription?: string;
   subsidiaryOfGlobalBusiness: boolean;
   cinNumber: string;
   msmeNumber: string;
