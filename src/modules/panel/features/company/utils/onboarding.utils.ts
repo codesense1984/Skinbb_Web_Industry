@@ -74,7 +74,7 @@ export function transformFormDataToApiRequest(
   const authDoc = documents.find((doc) => doc.type === "brandAuthorisation");
 
   const apiData: CompanyOnboardingSubmitRequest = {
-    _id: formData?._id || null,
+    companyId: formData?._id || null,
     ownerName: formData.name || "",
     ownerEmail: formData.email || "",
     phoneNumber: formData.phoneNumber || "",
@@ -84,6 +84,7 @@ export function transformFormDataToApiRequest(
     companyDescription:
       formData.description || "Company description not provided",
     businessType: formData.businessType || "",
+    headquartersAddress: formData.headquarterLocation || "",
     establishedIn: formData.establishedIn
       ? formatEstablishedDate(String(formData.establishedIn))
       : "",
@@ -106,8 +107,8 @@ export function transformFormDataToApiRequest(
             addressType: primaryAddress.addressType,
             gstNumber: gstDoc?.number || "",
             panNumber: panDoc?.number || "",
-            line1: primaryAddress.address || "",
-            line2: "",
+            addressLine1: primaryAddress.address || "",
+            addressLine2: "",
             landmark: primaryAddress.landmark || "",
             city: primaryAddress.city || "",
             state: primaryAddress.state || "",
@@ -181,6 +182,7 @@ export function transformApiResponseToFormData(
     logo: "",
     logo_files: undefined,
     companyName: "",
+    isCreatingNewCompany: false,
     category: "",
     businessType: "",
     establishedIn: "",
@@ -255,11 +257,12 @@ export function transformApiResponseToFormData(
     category: apiData.companyCategory || defaultValues.category,
     website: apiData.website || defaultValues.website,
     isSubsidiary: String(apiData.subsidiaryOfGlobalBusiness || false),
-    headquarterLocation: defaultValues.headquarterLocation,
+    headquarterLocation:
+      apiData.headquartersAddress || defaultValues.headquarterLocation,
     establishedIn: apiData.establishedIn
       ? convertEstablishedInToMonthFormat(apiData.establishedIn)
       : defaultValues.establishedIn,
-    description: defaultValues.description,
+    description: apiData.companyDescription || defaultValues.description,
     address:
       apiData.addresses && apiData.addresses.length > 0
         ? [
@@ -290,89 +293,4 @@ export function transformApiResponseToFormData(
   };
 
   return mergedData;
-
-  return {
-    name: "Rohit Sharma",
-    email: "rohit.sharma@example.com",
-    designation: "Founder & CEO",
-    password: "Pass@1234",
-    phoneNumber: "8424847449",
-    phoneVerified: true,
-    logo: "C:\\fakepath\\is3.png",
-    logo_files: undefined,
-    companyName: "TechNova Solutions Pvt. Ltd.",
-    category: "principal",
-    businessType: "public",
-    establishedIn: "2007-06",
-    website: "https://www.technova.com",
-    isSubsidiary: "true",
-    headquarterLocation: "London",
-    description:
-      "TechNova Solutions is a leading provider of AI-driven business automation tools, helping enterprises streamline operations and accelerate growth.",
-    brand_logo: "",
-    brand_logo_files: undefined,
-    brandName: "NovaAI",
-    totalSkus: "40",
-    productCategory: ["68652e98d559321c67d22fd8", "68652e84d559321c67d22fc2"],
-    averageSellingPrice: "40",
-    sellingOn: [
-      {
-        platform: "flipkart",
-        url: "https://google.com",
-      },
-    ],
-    instagramUrl: "",
-    facebookUrl: "",
-    youtubeUrl: "",
-    marketingBudget: "49999",
-    address: [
-      {
-        addressType: "registered",
-        address: "5th Floor, Tech Park, Whitefield",
-        landmark: "Near ITPL",
-        phoneNumber: "8045671234",
-        country: "india",
-        state: "delhi",
-        city: "Mumbai",
-        postalCode: "400019",
-      },
-    ],
-    documents: [
-      {
-        type: "coi",
-        number: "785",
-        // url: "C:\\fakepath\\pdf-sample_2.pdf",
-        // url_files: {
-        //   "0": {},
-        // },
-      },
-      {
-        type: "pan",
-        number: "747",
-        // url: "C:\\fakepath\\pdf-sample_2.pdf",
-        // url_files: {
-        //   "0": {},
-        // },
-      },
-      {
-        type: "gstLicense",
-        number: "922",
-        url: "",
-      },
-      {
-        type: "msme",
-        number: "720",
-        url: "",
-      },
-      {
-        type: "brandAuthorisation",
-        number: "",
-        // url: "C:\\fakepath\\pdf-sample_2.pdf",
-        // url_files: {
-        //   "0": {},
-        // },
-      },
-    ],
-    agreeTermsConditions: true,
-  };
 }

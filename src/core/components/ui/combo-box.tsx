@@ -294,7 +294,7 @@ export const ComboBox = <T extends boolean = false>({
             "form-control flex items-center justify-between",
             error && "border-red-500 focus:border-red-500 focus:ring-red-500",
             flexWrap && "h-auto",
-            disabled && "cursor-not-allowed opacity-50",
+            disabled && "cursor-not-allowed bg-muted/50",
             loading && "cursor-wait",
             className,
           )}
@@ -314,7 +314,22 @@ export const ComboBox = <T extends boolean = false>({
         className={cn("p-0", popoverContentClassName)}
         {...popoverContentRest}
       >
-        <Command {...commandProps}>
+        <Command
+          {...commandProps}
+          filter={(value, search) => {
+            if (!search) return 1;
+            const option = options.find((opt) => opt.value === value);
+            if (!option) return 0;
+
+            const searchLower = search.toLowerCase();
+            const labelMatch = String(option.label)
+              .toLowerCase()
+              .includes(searchLower);
+            const valueMatch = option.value.toLowerCase().includes(searchLower);
+
+            return labelMatch || valueMatch ? 1 : 0;
+          }}
+        >
           {searchable && (
             <CommandInput placeholder="Search..." {...commandInputProps} />
           )}

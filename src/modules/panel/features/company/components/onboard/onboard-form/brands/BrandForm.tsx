@@ -28,8 +28,9 @@
 //   const { control, setValue, watch, handleSubmit, reset } = form;
 
 //   const profileData = watch("logo_files")?.[0];
+//   const profileDataLogo = watch("logo");
 
-//   const { element } = useImagePreview(profileData, {
+//   const { element } = useImagePreview(profileData, profileDataLogo, {
 //     clear: () => {
 //       setValue("logo_files", []);
 //       setValue("logo", undefined);

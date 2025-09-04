@@ -7,6 +7,7 @@ import {
 import { Input } from "@/core/components/ui/input";
 import { useImagePreview } from "@/core/hooks/useImagePreview";
 import { MODE } from "@/core/types";
+import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
 import {
   apiGetCompanyDetailById,
   apiGetCompanyDropdownList,
@@ -28,7 +29,6 @@ interface CompanyDetailsProps {
 }
 const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
   const { control, setValue, reset } = useFormContext<FullCompanyFormType>();
-  const [isCreatingNewCompany, setIsCreatingNewCompany] = useState(false);
   const [isLoadingCompanyDetails, setIsLoadingCompanyDetails] = useState(false);
 
   const isSubsidiary = useWatch({
@@ -41,20 +41,30 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
     control,
     name: "logo_files",
   })?.[0];
+  const profileDataLogo = useWatch({
+    control,
+    name: "logo",
+  });
 
   const companyId = useWatch({
     control,
     name: "_id",
   });
+
   const companyName = useWatch({
     control,
     name: "companyName",
   });
 
+  const isCreatingNewCompany = useWatch({
+    control,
+    name: "isCreatingNewCompany",
+  });
+
   // Fetch company details for dropdown
   const { data: companyDetailsResponse, isLoading: isLoadingCompanies } =
     useQuery({
-      queryKey: ["apiGetCompanyDropdownList"],
+      queryKey: [ENDPOINTS.SELLER.GET_COMPANY_LIST],
       queryFn: () => apiGetCompanyDropdownList(),
       staleTime: 5 * 60 * 1000, // 5 minutes
     });
@@ -140,7 +150,10 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
           field: formField,
           fieldState,
         }: CustomRenders<FullCompanyFormType, "companyName">) => (
-          <div className="space-y-2">
+          <div
+            className="space-y-2"
+            key={`company-field-${isCreatingNewCompany}`}
+          >
             {isCreatingNewCompany ? (
               <div className="space-y-2">
                 <Input
@@ -152,7 +165,14 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
                 <button
                   type="button"
                   onClick={() => {
-                    setIsCreatingNewCompany(false);
+                    console.log(
+                      "Back button clicked, setting isCreatingNewCompany to false",
+                    );
+                    // setLocalIsCreatingNewCompany(false);
+                    setValue("isCreatingNewCompany", false, {
+                      shouldDirty: true,
+                      shouldTouch: true,
+                    });
                     formField.onChange("");
                   }}
                   className="text-sm text-blue-600 underline hover:text-blue-800"
@@ -167,10 +187,17 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
                   value={formField.value}
                   onChange={(value) => {
                     if (value === "__create_new__") {
-                      setIsCreatingNewCompany(true);
-                      formField.onChange("");
                       reset(transformApiResponseToFormData());
+                      formField.onChange("");
+                      setValue("isCreatingNewCompany", true, {
+                        shouldDirty: true,
+                        shouldTouch: true,
+                      });
                     } else {
+                      setValue("isCreatingNewCompany", false, {
+                        shouldDirty: true,
+                        shouldTouch: true,
+                      });
                       formField.onChange(value);
                       handleCompanyChange(value as string);
                     }
@@ -206,7 +233,7 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
     (field) => field.name !== "headquarterLocation" || JSON.parse(isSubsidiary),
   );
 
-  const { element } = useImagePreview(profileData, {
+  const { element } = useImagePreview(profileData, profileDataLogo, {
     clear: () => {
       setValue("logo_files", undefined);
       setValue("logo", "");

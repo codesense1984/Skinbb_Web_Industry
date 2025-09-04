@@ -33,23 +33,31 @@ type UseImagePreviewResult = {
 
 export function useImagePreview(
   file?: File | null,
+  url?: string | null,
   options: UseImagePreviewOptions = {},
 ): UseImagePreviewResult {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!file) {
-      setPreviewUrl(options?.placeholder ?? null);
+    // If URL is provided, use it directly
+    if (url) {
+      setPreviewUrl(url);
       return;
     }
 
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
+    // If file is provided, create object URL
+    if (file) {
+      const objectUrl = URL.createObjectURL(file);
+      setPreviewUrl(objectUrl);
 
-    return () => {
-      URL.revokeObjectURL(url);
-    };
-  }, [file, options.placeholder]);
+      return () => {
+        URL.revokeObjectURL(objectUrl);
+      };
+    }
+
+    // Fallback to placeholder
+    setPreviewUrl(options?.placeholder ?? null);
+  }, [file, url, options.placeholder]);
 
   const clear = useCallback(() => {
     setPreviewUrl(options.placeholder ?? null);

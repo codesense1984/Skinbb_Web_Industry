@@ -30,6 +30,10 @@ const CompanyEditDetails: React.FC<CompanyEditDetailsProps> = ({ mode }) => {
     control,
     name: "logo_files",
   })?.[0];
+  const profileDataLogo = useWatch({
+    control,
+    name: "logo",
+  });
 
   const uploadFields = companyEditDetailsSchema.uploadImage({
     mode,
@@ -41,7 +45,7 @@ const CompanyEditDetails: React.FC<CompanyEditDetailsProps> = ({ mode }) => {
     hasCompany: !!companyId || !companyName,
   }) as FormFieldConfig<CompanyEditFormType>[];
 
-  const { element } = useImagePreview(profileData, {
+  const { element } = useImagePreview(profileData, profileDataLogo, {
     clear: () => {
       setValue("logo_files", undefined);
       setValue("logo", "");
@@ -60,7 +64,7 @@ const CompanyEditDetails: React.FC<CompanyEditDetailsProps> = ({ mode }) => {
       </div>
       <br />
       <FormFieldsRenderer<CompanyEditFormType>
-        className="gap-6 "
+        className="gap-6"
         control={control}
         fieldConfigs={infoFields}
       />

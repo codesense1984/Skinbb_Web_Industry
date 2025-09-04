@@ -169,6 +169,7 @@ export const fullCompanyZodSchema = z
 
     // Company details
     companyName: createRequiredString("Company name"),
+    isCreatingNewCompany: z.boolean().optional().default(false),
     category: createRequiredString("Category"),
     businessType: createRequiredString("Business type"),
     establishedIn: z.union([
@@ -293,6 +294,11 @@ type FieldProps = {
     index: number;
     disabled: boolean;
     disabledAddressType: boolean;
+    isCountrySelected?: boolean;
+    dynamicOptions?: {
+      countries?: Array<{ label: string; value: string }>;
+      states?: Array<{ label: string; value: string }>;
+    };
   };
   [StepKey.BRAND_DETAILS]: ModeProps & {
     productCategoryOptions?: Array<{ label: string; value: string }>;
@@ -496,6 +502,8 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
     index = 0,
     disabled = false,
     disabledAddressType = false,
+    isCountrySelected = false,
+    dynamicOptions,
   }) => {
     const prefix = `address.${index}`; // dynamic prefix
 
@@ -544,10 +552,10 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       {
         name: makeName("country"),
         label: "Country",
-        type: INPUT_TYPES.SELECT,
-        options: [
-          { label: "India", value: "india" },
-          { label: "USA", value: "usa" },
+        type: INPUT_TYPES.COMBOBOX,
+        options: dynamicOptions?.countries || [
+          { label: "India", value: "IN" },
+          { label: "USA", value: "US" },
         ],
         placeholder: "Select country",
         disabled: disabled || mode === MODE.VIEW,
@@ -555,27 +563,27 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       {
         name: makeName("state"),
         label: "State",
-        type: INPUT_TYPES.SELECT,
-        options: [
-          { label: "Delhi", value: "delhi" },
-          { label: "California", value: "california" },
+        type: INPUT_TYPES.COMBOBOX,
+        options: dynamicOptions?.states || [
+          { label: "Delhi", value: "DL" },
+          { label: "California", value: "CA" },
         ],
         placeholder: "Select state",
-        disabled: disabled || mode === MODE.VIEW,
+        disabled: disabled || !isCountrySelected || mode === MODE.VIEW,
       },
       {
         name: makeName("city"),
         label: "City",
         type: INPUT_TYPES.TEXT,
         placeholder: "Enter city",
-        disabled: disabled || mode === MODE.VIEW,
+        disabled: disabled || !isCountrySelected || mode === MODE.VIEW,
       },
       {
         name: makeName("postalCode"),
         label: "Postal Code",
         type: INPUT_TYPES.TEXT,
         placeholder: "Enter postal code",
-        disabled: disabled || mode === MODE.VIEW,
+        disabled: disabled || !isCountrySelected || mode === MODE.VIEW,
         inputProps: {
           keyfilter: "int",
           maxLength: 6,

@@ -8,20 +8,19 @@ import {
 } from "@/core/components/ui/stepper";
 import { MODE } from "@/core/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   createContext,
   lazy,
   Suspense,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useState,
   type ComponentType,
 } from "react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
-import { useNavigate, useSearchParams } from "react-router";
+import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { apiOnboardingSubmit } from "../../../../../services/http/company.service";
 import { STEP_ORDER } from "../../../config/steps.config";
@@ -53,6 +52,7 @@ import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import type { AxiosError } from "axios";
 import { StepKey } from "../../../config/steps.config";
+import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
 
 const StepCount = {
   // [StepKey.START]: 1,
@@ -170,11 +170,11 @@ export const useOnBoardContext = () => {
 };
 
 const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
-  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-
-  const currentValue =
-    (searchParams.get("step") as StepKey) || StepKey.COMPANY_DETAILS;
+  const qc = useQueryClient();
+  const [currentValue, setCurrentValue] = useState<StepKey>(
+    StepKey.COMPANY_DETAILS,
+  );
 
   const [confirmation, setConfirmation] = useState<
     [boolean, FullCompanyFormType | undefined]
@@ -187,9 +187,9 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
     reValidateMode: "onChange",
   });
 
-  const { handleSubmit, trigger, watch } = methods;
+  const { handleSubmit, trigger, watch, reset } = methods;
 
-  console.log(watch());
+  console.log(watch(), "formdata");
 
   // Function to find the first incomplete step (synchronous for UI)
   const getFirstIncompleteStep = useCallback((): StepKey => {
@@ -202,90 +202,6 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
     const values = watch();
     return areAllStepsCompletedUtil(values);
   }, [watch]);
-
-  // Access check utility (kept for potential future use)
-
-  // Validate step navigation when URL changes
-  // useEffect(() => {
-  //   const currentStep = currentValue;
-
-  //   // Check if trying to access thank you page without completing all steps
-  //   if (currentStep === StepKey.THANK_YOU && !areAllStepsCompleted()) {
-  //     const firstIncompleteStep = getFirstIncompleteStep();
-  //     toast.error(
-  //       "Please complete all steps before accessing the thank you page",
-  //     );
-  //     setSearchParams({ step: firstIncompleteStep });
-  //     return;
-  //   }
-
-  //   // Skip validation for thank you page if all steps are completed
-  //   if (currentStep === StepKey.THANK_YOU) {
-  //     return;
-  //   }
-
-  //   // Allow navigating back or to the first incomplete step
-  //   const firstIncompleteStep = getFirstIncompleteStep();
-  //   const targetIndex = STEP_ORDER.indexOf(currentStep);
-  //   const firstIncompleteIndex = STEP_ORDER.indexOf(firstIncompleteStep);
-
-  //   // If user tries to jump ahead of the first incomplete step, block and redirect
-  //   if (targetIndex > firstIncompleteIndex) {
-  //     const stepTitle =
-  //       STEPS.find((s) => s.value === firstIncompleteStep)?.stepTitle ||
-  //       "target step";
-  //     toast.error(
-  //       `Please complete ${stepTitle} first before proceeding to the next step.`,
-  //     );
-  //     setSearchParams({ step: firstIncompleteStep });
-  //     return;
-  //   }
-  // }, [
-  //   currentValue,
-  //   getFirstIncompleteStep,
-  //   setSearchParams,
-  //   areAllStepsCompleted,
-  // ]);
-
-  // Handle browser back/forward navigation
-  useEffect(() => {
-    const handlePopState = () => {
-      const currentStep = searchParams.get("step") as StepKey;
-
-      // Check if trying to access thank you page without completing all steps
-      if (currentStep === StepKey.THANK_YOU && !areAllStepsCompleted()) {
-        const firstIncompleteStep = getFirstIncompleteStep();
-        toast.error(
-          "Please complete all steps before accessing the thank you page",
-        );
-        setSearchParams({ step: firstIncompleteStep });
-        return;
-      }
-
-      if (currentStep) {
-        const firstIncompleteStep = getFirstIncompleteStep();
-        const targetIndex = STEP_ORDER.indexOf(currentStep);
-        const firstIncompleteIndex = STEP_ORDER.indexOf(firstIncompleteStep);
-        if (targetIndex > firstIncompleteIndex) {
-          const stepTitle =
-            STEPS.find((s) => s.value === firstIncompleteStep)?.stepTitle ||
-            "target step";
-          toast.error(
-            `Please complete ${stepTitle} first before proceeding to the next step.`,
-          );
-          setSearchParams({ step: firstIncompleteStep });
-        }
-      }
-    };
-
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, [
-    getFirstIncompleteStep,
-    setSearchParams,
-    searchParams,
-    areAllStepsCompleted,
-  ]);
 
   const currentItem = useMemo(
     () => STEPS.find((s) => s.value === currentValue) ?? STEPS[0],
@@ -306,8 +222,8 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
   const isThankYou = currentItem.step === StepCount[StepKey.THANK_YOU];
 
   const navigateTo = useCallback(
-    (idx: number) => setSearchParams({ step: STEPS[idx].value }),
-    [setSearchParams],
+    (idx: number) => setCurrentValue(STEPS[idx].value),
+    [],
   );
 
   const goNext = useCallback(() => {
@@ -334,9 +250,10 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
       );
     },
     onSuccess: (response: { success: boolean; message: string }) => {
-      console.log("🚀 ~ OnBoardForm ~ response:", response);
       toast.success(response.message || "Profile submitted successfully!");
       setConfirmation([false, undefined]);
+      reset(transformApiResponseToFormData());
+      qc.invalidateQueries({ queryKey: [ENDPOINTS.SELLER.GET_COMPANY_LIST] });
       goNext();
     },
     onError: (error: AxiosError<{ message?: string }>) => {
@@ -424,7 +341,12 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
 
   return (
     <OnBoardContext.Provider
-      value={{ mode, goNext: onNext, goBack, currentIndex }}
+      value={{
+        mode,
+        goNext: onNext,
+        goBack,
+        currentIndex,
+      }}
     >
       <FormProvider {...methods}>
         {isFormStep && (
@@ -546,14 +468,38 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
               <p className="text-muted-foreground">{description}</p>
             </div>
 
-            <Suspense fallback={<div className="py-10">Loading...</div>}>
+            <Suspense
+              fallback={
+                <div className="space-y-6 bg-white">
+                  <div className="animate-pulse gap-6 lg:grid lg:grid-cols-2">
+                    <div className="h-10 rounded bg-gray-200"></div>
+                    <div className="h-10 rounded bg-gray-200"></div>
+                  </div>
+
+                  <div className="animate-pulse gap-6 lg:grid lg:grid-cols-2">
+                    <div className="h-10 rounded bg-gray-200"></div>
+                    <div className="h-10 rounded bg-gray-200"></div>
+                  </div>
+
+                  <div className="animate-pulse gap-6 lg:grid lg:grid-cols-2">
+                    <div className="h-10 rounded bg-gray-200"></div>
+                    <div className="h-10 rounded bg-gray-200"></div>
+                  </div>
+
+                  <div className="animate-pulse">
+                    <div className="h-20 rounded bg-gray-200"></div>
+                  </div>
+                </div>
+              }
+            >
               <Component mode={mode} />
             </Suspense>
 
-            <div className="bg-background sticky bottom-0 mt-auto flex justify-between border-t pt-4">
+            <div className="bg-background sticky bottom-0 mt-auto flex justify-between border-t py-4">
               {!isFirst && (
                 <Button
                   type="button"
+                  color={"secondary"}
                   onClick={goBack}
                   disabled={isFirst || onboardingMutation.isPending}
                   className={"button-outline"}
@@ -564,7 +510,7 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
               <Button
                 type="submit"
                 variant={"contained"}
-                color="primary"
+                color={"secondary"}
                 disabled={
                   (currentItem.step === lastStep && !agreeTermsConditions) ||
                   onboardingMutation.isPending

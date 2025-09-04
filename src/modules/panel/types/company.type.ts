@@ -87,8 +87,8 @@ export interface CompanyOnboardingSubmitRequest
     gstNumber: string;
     panNumber: string;
     addressType: string;
-    line1: string;
-    line2?: string;
+    addressLine1: string;
+    addressLine2?: string;
     landmark?: string;
     city: string;
     state: string;
@@ -169,6 +169,7 @@ export interface CompanyOnboading {
   companyCategory: string;
   companyDescription?: string;
   subsidiaryOfGlobalBusiness: boolean;
+  headquartersAddress: string;
   cinNumber: string;
   msmeNumber: string;
   coiCertificate?: string;

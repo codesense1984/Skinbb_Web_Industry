@@ -62,8 +62,8 @@ const CompanyOnboard = () => {
   ];
 
   return (
-    <div className="space-y-4">
-      <motion.h4
+    <div className="space-y-4 md:space-y-8 flex flex-col justify-center h-full">
+      {/* <motion.h4
         className="font-bold"
         {...{
           ...fadeInUp,
@@ -83,10 +83,10 @@ const CompanyOnboard = () => {
         skincare brands. From consumer intelligence to dermatologist validation
         and seamless commerce, we help you cut through noise, build trust, and
         drive measurable growth.
-      </motion.p>
+      </motion.p> */}
 
       <motion.h1
-        className="text-2xl font-semibold"
+        className="h4 font-semibold"
         {...{
           ...fadeInUp,
           transition: { ...fadeInUp.transition, delay: 0.03 },
@@ -96,7 +96,7 @@ const CompanyOnboard = () => {
       </motion.h1>
 
       <motion.div
-        className="grid grid-cols-2 gap-4"
+        className="grid grid-cols-1 gap-8"
         {...{
           ...fadeInUp,
           transition: { ...fadeInUp.transition, delay: 0.05 },
@@ -112,10 +112,7 @@ const CompanyOnboard = () => {
         ))}
       </motion.div>
 
-      <p>
-        Be an early mover. Join <b>SkinBB</b> today and redefine the future of
-        skincare with us. 🚀
-      </p>
+    
       <motion.div
         className="mt-5 flex gap-4"
         {...{
@@ -123,10 +120,10 @@ const CompanyOnboard = () => {
           transition: { ...fadeInUp.transition, delay: 0.07 },
         }}
       >
-        <Button variant="contained" color="secondary" asChild>
+        <Button variant="contained" size={"lg"} color="secondary" asChild>
           <Link to={PANEL_ROUTES.ONBOARD.COMPANY_CREATE}>Begin Onboarding</Link>
         </Button>
-        <Button variant="outlined" color="secondary" asChild>
+        <Button variant="outlined" size={"lg"} color="secondary" asChild>
           <Link to={PANEL_ROUTES.ONBOARD.COMPANY_STATUS}>Check Status</Link>
         </Button>
       </motion.div>

@@ -1,6 +1,5 @@
 import { Alert } from "@/core/components/ui/alert";
 import { Button } from "@/core/components/ui/button";
-import { ComboBox } from "@/core/components/ui/combo-box";
 import {
   FormFieldsRenderer,
   type FormFieldConfig,
@@ -26,6 +25,10 @@ const BrandDetails = ({ mode }: BrandDetailsProps) => {
     control,
     name: "brand_logo_files",
   })?.[0];
+  const profileDataLogo = useWatch({
+    control,
+    name: "brand_logo",
+  });
 
   const sellingOn =
     useWatch({
@@ -34,12 +37,11 @@ const BrandDetails = ({ mode }: BrandDetailsProps) => {
     }) || [];
 
   // Fetch company details for dropdown
-  const { data: categoriesResponse, isLoading: isLoadingProductCategories } =
-    useQuery({
-      queryKey: ["productCategories"],
-      queryFn: () => apiGetAllProductCategories(),
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    });
+  const { data: categoriesResponse } = useQuery({
+    queryKey: ["productCategories"],
+    queryFn: () => apiGetAllProductCategories(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
   const formatted =
     categoriesResponse?.data.map((item) => ({
@@ -47,7 +49,7 @@ const BrandDetails = ({ mode }: BrandDetailsProps) => {
       label: item.name,
     })) ?? [];
 
-  const { element } = useImagePreview(profileData, {
+  const { element } = useImagePreview(profileData, profileDataLogo, {
     clear: () => {
       setValue("brand_logo_files", undefined);
       setValue("brand_logo", "");
@@ -133,7 +135,7 @@ const BrandDetails = ({ mode }: BrandDetailsProps) => {
           }
         />
       </div>
-      
+
       <FormFieldsRenderer<FullCompanyFormType>
         control={control}
         fieldConfigs={

@@ -70,7 +70,7 @@ export const ENDPOINTS = {
 
   SELLER: {
     MAIN: `${API_PREFIX}/sellers/admin`,
-    GET_COMPANY_DETAILS: `${API_PREFIX}/sellers/companyDetailById`,
+    GET_COMPANY_DETAILS: `${API_PREFIX}/sellers`,
     GET_COMPANY_LIST: `${API_PREFIX}/sellers/getCompanyNameList`,
     GET_COMPANY_DETAILS_LIST: `${API_PREFIX}/sellers/getCompanyDetails`,
     CHECK_STATUS: `${API_PREFIX}/sellers/check-status`,

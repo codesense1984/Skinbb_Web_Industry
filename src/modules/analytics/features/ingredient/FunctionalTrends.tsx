@@ -697,9 +697,9 @@ const FunctionalTrends = () => {
           pageSize={-1}
           className="col-span-4 space-y-3"
           bodyProps={{
-            containerProps: {
-              className: "rounded-lg border",
-            },
+            // containerProps: {
+            //   className: "rounded-lg border",
+            // },
           }}
           rows={
             categoryData.find(
