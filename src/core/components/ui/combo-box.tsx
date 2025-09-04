@@ -294,7 +294,7 @@ export const ComboBox = <T extends boolean = false>({
             "form-control flex items-center justify-between",
             error && "border-red-500 focus:border-red-500 focus:ring-red-500",
             flexWrap && "h-auto",
-            disabled && "cursor-not-allowed bg-muted/50",
+            disabled && "bg-muted/50 cursor-not-allowed",
             loading && "cursor-wait",
             className,
           )}

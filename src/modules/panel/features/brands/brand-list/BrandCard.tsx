@@ -8,7 +8,7 @@ import { NavLink } from "react-router";
 const Stat = memo(
   ({ label, value }: { label: string; value: string | number }) => (
     <div>
-      <p className="text-sm text-muted-foreground">{label}</p>
+      <p className="text-muted-foreground text-sm">{label}</p>
       <p className="text-foreground font-medium">{value}</p>
     </div>
   ),
@@ -20,8 +20,8 @@ interface BrandCardProps {
 }
 
 export const BrandCard: FC<BrandCardProps> = ({ brand }) => {
-  const cleanDescription = brand.aboutTheBrand.replace(/<[^>]*>/g, ''); // Remove HTML tags
-  
+  const cleanDescription = brand.aboutTheBrand.replace(/<[^>]*>/g, ""); // Remove HTML tags
+
   return (
     <NavLink to={PANEL_ROUTES.BRAND.EDIT(brand._id)}>
       <article className="bg-background hover:ring-primary flex flex-col gap-4 rounded-md p-4 shadow-md hover:ring-3 md:p-5">
@@ -31,33 +31,30 @@ export const BrandCard: FC<BrandCardProps> = ({ brand }) => {
             alt={`${brand.name} logo`}
             className="h-15 w-15 rounded-md border object-contain p-1"
           />
-          <div className="flex-1 min-w-0">
-            <h6 className="font-medium truncate">{brand.name}</h6>
-            <p className="text-sm text-muted-foreground">{brand.slug}</p>
+          <div className="min-w-0 flex-1">
+            <h6 className="truncate font-medium">{brand.name}</h6>
+            <p className="text-muted-foreground text-sm">{brand.slug}</p>
             {cleanDescription && (
-              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+              <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">
                 {cleanDescription}
               </p>
             )}
           </div>
         </header>
 
-        <div className="grid grid-cols-2 gap-4 pt-2 border-t">
-          <Stat 
-            label="Products" 
-            value={formatNumber(brand.associatedProductsCount)} 
+        <div className="grid grid-cols-2 gap-4 border-t pt-2">
+          <Stat
+            label="Products"
+            value={formatNumber(brand.associatedProductsCount)}
           />
-          <Stat 
-            label="Users" 
-            value={formatNumber(brand.associatedUsers)} 
-          />
+          <Stat label="Users" value={formatNumber(brand.associatedUsers)} />
         </div>
-        
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
+
+        <div className="text-muted-foreground flex items-center justify-between text-xs">
           <span>Created {new Date(brand.createdAt).toLocaleDateString()}</span>
-          <StatusBadge 
-            module="brand" 
-            status={brand.isActive ? "active" : "inactive"} 
+          <StatusBadge
+            module="brand"
+            status={brand.isActive ? "active" : "inactive"}
           />
         </div>
       </article>

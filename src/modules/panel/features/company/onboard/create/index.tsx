@@ -62,7 +62,7 @@ const CompanyOnboard = () => {
   ];
 
   return (
-    <div className="space-y-4 md:space-y-8 flex flex-col justify-center h-full">
+    <div className="flex h-full flex-col justify-center space-y-4 md:space-y-8">
       {/* <motion.h4
         className="font-bold"
         {...{
@@ -112,7 +112,6 @@ const CompanyOnboard = () => {
         ))}
       </motion.div>
 
-    
       <motion.div
         className="mt-5 flex gap-4"
         {...{

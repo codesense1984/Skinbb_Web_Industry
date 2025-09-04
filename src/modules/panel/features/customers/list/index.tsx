@@ -24,11 +24,17 @@ const CustomerList = () => {
   const fetchStats = useCallback(async () => {
     try {
       const response = await apiGetCustomers({ page: 1, limit: 1000 }); // Get all for stats
-      
+
       if (response.success) {
-        const totalOrders = response.data.customers.reduce((sum, customer) => sum + customer.totalOrders, 0);
-        const totalRevenue = response.data.customers.reduce((sum, customer) => sum + customer.totalSpent, 0);
-        
+        const totalOrders = response.data.customers.reduce(
+          (sum, customer) => sum + customer.totalOrders,
+          0,
+        );
+        const totalRevenue = response.data.customers.reduce(
+          (sum, customer) => sum + customer.totalSpent,
+          0,
+        );
+
         setStats([
           {
             title: "Total Customers",
@@ -38,7 +44,8 @@ const CustomerList = () => {
           },
           {
             title: "Active Customers",
-            value: response.data.customers.filter(c => c.totalOrders > 0).length,
+            value: response.data.customers.filter((c) => c.totalOrders > 0)
+              .length,
             barColor: "bg-blue-300",
             icon: false,
           },

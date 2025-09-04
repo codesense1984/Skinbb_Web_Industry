@@ -48,11 +48,15 @@ const DocumentDetails = lazy(() =>
   import("./DocumentDetails").then((m) => ({ default: m.DocumentDetails })),
 );
 
+import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
-import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  DocumentIcon,
+} from "@heroicons/react/24/outline";
 import type { AxiosError } from "axios";
 import { StepKey } from "../../../config/steps.config";
-import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
 
 const StepCount = {
   // [StepKey.START]: 1,
@@ -471,17 +475,17 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
             <Suspense
               fallback={
                 <div className="space-y-6 bg-white">
-                  <div className="animate-pulse gap-6 lg:grid lg:grid-cols-2">
+                  <div className="flex animate-pulse flex-col gap-6 lg:grid lg:grid-cols-2">
                     <div className="h-10 rounded bg-gray-200"></div>
                     <div className="h-10 rounded bg-gray-200"></div>
                   </div>
 
-                  <div className="animate-pulse gap-6 lg:grid lg:grid-cols-2">
+                  <div className="flex animate-pulse flex-col gap-6 lg:grid lg:grid-cols-2">
                     <div className="h-10 rounded bg-gray-200"></div>
                     <div className="h-10 rounded bg-gray-200"></div>
                   </div>
 
-                  <div className="animate-pulse gap-6 lg:grid lg:grid-cols-2">
+                  <div className="flex animate-pulse flex-col gap-6 lg:grid lg:grid-cols-2">
                     <div className="h-10 rounded bg-gray-200"></div>
                     <div className="h-10 rounded bg-gray-200"></div>
                   </div>
@@ -498,19 +502,29 @@ const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
             <div className="bg-background sticky bottom-0 mt-auto flex justify-between border-t py-4">
               {!isFirst && (
                 <Button
+                  size={"lg"}
                   type="button"
                   color={"secondary"}
                   onClick={goBack}
                   disabled={isFirst || onboardingMutation.isPending}
                   className={"button-outline"}
+                  startIcon={<ArrowLeftIcon />}
                 >
                   Back
                 </Button>
               )}
               <Button
+                size={"lg"}
                 type="submit"
                 variant={"contained"}
                 color={"secondary"}
+                endIcon={
+                  currentItem.step === lastStep ? (
+                    <DocumentIcon />
+                  ) : (
+                    <ArrowRightIcon />
+                  )
+                }
                 disabled={
                   (currentItem.step === lastStep && !agreeTermsConditions) ||
                   onboardingMutation.isPending

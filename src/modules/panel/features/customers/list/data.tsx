@@ -43,23 +43,25 @@ export const columns: ColumnDef<CustomerList>[] = [
     cell: ({ row, getValue }) => {
       const name = getValue() as string;
       const customer = row.original;
-      
+
       return (
         <ul className="flex min-w-40 items-center gap-2">
           <Avatar className="size-10 rounded-md border">
             <AvatarImage
               className="object-cover"
               src={customer.profilePic?.url}
-              alt={`${name || 'Customer'} profile`}
+              alt={`${name || "Customer"} profile`}
             />
             <AvatarFallback className="rounded-md capitalize">
-              {name ? name.charAt(0) : customer.phoneNumber?.charAt(0) || 'C'}
+              {name ? name.charAt(0) : customer.phoneNumber?.charAt(0) || "C"}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
-            <span className="font-medium">{name || 'Unknown Customer'}</span>
+            <span className="font-medium">{name || "Unknown Customer"}</span>
             {customer.phoneNumber && (
-              <span className="text-sm text-muted-foreground">{customer.phoneNumber}</span>
+              <span className="text-muted-foreground text-sm">
+                {customer.phoneNumber}
+              </span>
             )}
           </div>
         </ul>
@@ -74,7 +76,7 @@ export const columns: ColumnDef<CustomerList>[] = [
       return email ? (
         <span className="text-sm">{email}</span>
       ) : (
-        <span className="text-sm text-muted-foreground">-</span>
+        <span className="text-muted-foreground text-sm">-</span>
       );
     },
   },
@@ -86,7 +88,7 @@ export const columns: ColumnDef<CustomerList>[] = [
       return city ? (
         <span className="text-sm">{city}</span>
       ) : (
-        <span className="text-sm text-muted-foreground">-</span>
+        <span className="text-muted-foreground text-sm">-</span>
       );
     },
   },
@@ -95,9 +97,7 @@ export const columns: ColumnDef<CustomerList>[] = [
     header: "Orders",
     cell: ({ getValue }) => {
       const orders = getValue() as number;
-      return (
-        <span className="font-medium">{orders}</span>
-      );
+      return <span className="font-medium">{orders}</span>;
     },
   },
   {
@@ -117,11 +117,7 @@ export const columns: ColumnDef<CustomerList>[] = [
     header: "Joined",
     cell: ({ getValue }) => {
       const date = new Date(getValue() as string);
-      return (
-        <span className="text-sm">
-          {date.toLocaleDateString()}
-        </span>
-      );
+      return <span className="text-sm">{date.toLocaleDateString()}</span>;
     },
   },
   {

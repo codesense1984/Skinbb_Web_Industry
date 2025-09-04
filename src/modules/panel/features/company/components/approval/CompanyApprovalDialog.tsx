@@ -98,9 +98,7 @@ export const CompanyApprovalDialog: React.FC<CompanyApprovalDialogProps> = ({
             <div className="flex gap-2">
               <Button
                 type="button"
-                variant={
-                  status === "approved" ? "contained" : "outlined"
-                }
+                variant={status === "approved" ? "contained" : "outlined"}
                 color={"secondary"}
                 onClick={() => handleStatusChange("approved")}
                 className="flex-1"
@@ -109,9 +107,7 @@ export const CompanyApprovalDialog: React.FC<CompanyApprovalDialogProps> = ({
               </Button>
               <Button
                 type="button"
-                variant={
-                  status === "rejected" ? "contained" : "outlined"
-                }
+                variant={status === "rejected" ? "contained" : "outlined"}
                 color={"secondary"}
                 onClick={() => handleStatusChange("rejected")}
                 className="flex-1"

@@ -106,7 +106,9 @@ const columns: ColumnDef<Brand>[] = [
         </Avatar>
         <div className="flex flex-col">
           <span className="font-medium">{getValue() as string}</span>
-          <span className="text-sm text-muted-foreground">{row.original.slug}</span>
+          <span className="text-muted-foreground text-sm">
+            {row.original.slug}
+          </span>
         </div>
       </ul>
     ),
@@ -116,10 +118,10 @@ const columns: ColumnDef<Brand>[] = [
     header: "Description",
     cell: ({ getValue }) => {
       const description = getValue() as string;
-      const cleanDescription = description.replace(/<[^>]*>/g, ''); // Remove HTML tags
+      const cleanDescription = description.replace(/<[^>]*>/g, ""); // Remove HTML tags
       return (
-        <span className="text-sm max-w-xs truncate" title={cleanDescription}>
-          {cleanDescription || 'No description'}
+        <span className="max-w-xs truncate text-sm" title={cleanDescription}>
+          {cleanDescription || "No description"}
         </span>
       );
     },
@@ -130,10 +132,7 @@ const columns: ColumnDef<Brand>[] = [
     cell: ({ getValue }) => {
       const isActive = getValue() as boolean;
       return (
-        <StatusBadge 
-          module="brand" 
-          status={isActive ? "active" : "inactive"} 
-        />
+        <StatusBadge module="brand" status={isActive ? "active" : "inactive"} />
       );
     },
   },
@@ -158,11 +157,7 @@ const columns: ColumnDef<Brand>[] = [
     header: "Created",
     cell: ({ getValue }) => {
       const date = new Date(getValue() as string);
-      return (
-        <span className="text-sm">
-          {date.toLocaleDateString()}
-        </span>
-      );
+      return <span className="text-sm">{date.toLocaleDateString()}</span>;
     },
   },
   {
@@ -197,12 +192,20 @@ const BrandList = () => {
   const fetchStats = useCallback(async () => {
     try {
       const response = await apiGetBrands({ page: 1, limit: 1000 }); // Get all for stats
-      
+
       if (response.success) {
-        const totalProducts = response.data.brands.reduce((sum, brand) => sum + brand.associatedProductsCount, 0);
-        const totalUsers = response.data.brands.reduce((sum, brand) => sum + brand.associatedUsers, 0);
-        const activeBrands = response.data.brands.filter(brand => brand.isActive).length;
-        
+        const totalProducts = response.data.brands.reduce(
+          (sum, brand) => sum + brand.associatedProductsCount,
+          0,
+        );
+        const totalUsers = response.data.brands.reduce(
+          (sum, brand) => sum + brand.associatedUsers,
+          0,
+        );
+        const activeBrands = response.data.brands.filter(
+          (brand) => brand.isActive,
+        ).length;
+
         setStats([
           {
             title: "Total Brands",

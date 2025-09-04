@@ -54,10 +54,10 @@ export const columns: ColumnDef<Product>[] = [
           </AvatarFallback>
         </Avatar>
         <div className="flex flex-col">
-          <span className="font-medium truncate max-w-xs">
+          <span className="max-w-xs truncate font-medium">
             {getValue() as string}
           </span>
-          <span className="text-sm text-muted-foreground">
+          <span className="text-muted-foreground text-sm">
             {row.original.slug}
           </span>
         </div>
@@ -68,7 +68,7 @@ export const columns: ColumnDef<Product>[] = [
     accessorKey: "brand",
     header: "Brand",
     cell: ({ getValue }) => {
-      const brand = (getValue() as { name: string }) || { name: 'Unknown' };
+      const brand = (getValue() as { name: string }) || { name: "Unknown" };
       return <span className="text-sm font-medium">{brand.name}</span>;
     },
   },
@@ -80,12 +80,12 @@ export const columns: ColumnDef<Product>[] = [
       return (
         <div className="flex flex-wrap gap-1">
           {categories.slice(0, 2).map((category, index) => (
-            <span key={index} className="text-xs bg-gray-100 px-2 py-1 rounded">
+            <span key={index} className="rounded bg-gray-100 px-2 py-1 text-xs">
               {category.name}
             </span>
           ))}
           {categories.length > 2 && (
-            <span className="text-xs text-muted-foreground">
+            <span className="text-muted-foreground text-xs">
               +{categories.length - 2} more
             </span>
           )}
@@ -105,19 +105,27 @@ export const columns: ColumnDef<Product>[] = [
     accessorKey: "priceRange",
     header: "Price Range",
     cell: ({ row, getValue }) => {
-      const priceRange = (getValue() as { min: number; max: number }) || { min: 0, max: 0 };
+      const priceRange = (getValue() as { min: number; max: number }) || {
+        min: 0,
+        max: 0,
+      };
       const salePriceRange = row.original.salePriceRange || { min: 0, max: 0 };
-      
+
       return (
         <div className="flex flex-col">
           <span className="text-sm font-medium">
-            {formatCurrency(priceRange.min, { useAbbreviation: true })} - {formatCurrency(priceRange.max, { useAbbreviation: true })}
+            {formatCurrency(priceRange.min, { useAbbreviation: true })} -{" "}
+            {formatCurrency(priceRange.max, { useAbbreviation: true })}
           </span>
-          {salePriceRange && (salePriceRange.min > 0 || salePriceRange.max > 0) && (
-            <span className="text-xs text-green-600">
-              Sale: {formatCurrency(salePriceRange.min, { useAbbreviation: true })} - {formatCurrency(salePriceRange.max, { useAbbreviation: true })}
-            </span>
-          )}
+          {salePriceRange &&
+            (salePriceRange.min > 0 || salePriceRange.max > 0) && (
+              <span className="text-xs text-green-600">
+                Sale:{" "}
+                {formatCurrency(salePriceRange.min, { useAbbreviation: true })}{" "}
+                -{" "}
+                {formatCurrency(salePriceRange.max, { useAbbreviation: true })}
+              </span>
+            )}
         </div>
       );
     },
@@ -126,10 +134,10 @@ export const columns: ColumnDef<Product>[] = [
     accessorKey: "variants",
     header: "Variants",
     cell: ({ getValue }) => {
-      const variants = (getValue() as Array<any>) || [];
+      const variants = (getValue() as Array<unknown>) || [];
       return (
         <span className="font-medium">
-          {variants.length} variant{variants.length !== 1 ? 's' : ''}
+          {variants.length} variant{variants.length !== 1 ? "s" : ""}
         </span>
       );
     },
@@ -139,11 +147,7 @@ export const columns: ColumnDef<Product>[] = [
     header: "Added",
     cell: ({ getValue }) => {
       const date = new Date(getValue() as string);
-      return (
-        <span className="text-sm">
-          {date.toLocaleDateString()}
-        </span>
-      );
+      return <span className="text-sm">{date.toLocaleDateString()}</span>;
     },
   },
   {

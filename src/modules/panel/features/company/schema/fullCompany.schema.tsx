@@ -184,7 +184,7 @@ export const fullCompanyZodSchema = z
 
     // Company details
     companyName: createRequiredString("Company name"),
-    isCreatingNewCompany: z.boolean().optional().default(false),
+    isCreatingNewCompany: z.boolean(),
     category: createRequiredString("Category"),
     businessType: createRequiredString("Business type"),
     establishedIn: z.union([
@@ -461,7 +461,6 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       type: INPUT_TYPES.TEXT,
       placeholder: "Enter HQ location",
       disabled: hasCompany || mode === MODE.VIEW,
-      className: "sm:col-span-2",
     },
     {
       name: "description",

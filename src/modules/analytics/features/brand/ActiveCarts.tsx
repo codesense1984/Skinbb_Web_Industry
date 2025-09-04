@@ -113,9 +113,6 @@ const ActiveCarts = () => {
   return (
     <div>
       <DataTable
-        bodyProps={{
-          className: "[&_th]:bg-muted border-b",
-        }}
         rows={rows}
         columns={columns}
         showAction={false}

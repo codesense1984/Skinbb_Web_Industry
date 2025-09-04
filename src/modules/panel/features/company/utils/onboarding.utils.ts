@@ -263,6 +263,7 @@ export function transformApiResponseToFormData(
       ? convertEstablishedInToMonthFormat(apiData.establishedIn)
       : defaultValues.establishedIn,
     description: apiData.companyDescription || defaultValues.description,
+    isCreatingNewCompany: defaultValues.isCreatingNewCompany,
     address:
       apiData.addresses && apiData.addresses.length > 0
         ? [

@@ -51,7 +51,8 @@ export const AddressForm: React.FC<AddressFormProps> = ({
     mode,
     index: addressIndex,
     disabledAddressType: isCurrentRegistered && !!companyId,
-    disabled: field.addressType === "registered" && !!companyId,
+    disabled:
+      (field.addressType === "registered" && !!companyId) || !!field.addressId,
     isCountrySelected,
     dynamicOptions: {
       countries: locationData.countries,

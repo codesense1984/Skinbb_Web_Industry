@@ -29,12 +29,19 @@ const ProductList = () => {
   const fetchStats = useCallback(async () => {
     try {
       const response = await apiGetProducts({ page: 1, limit: 1000 }); // Get all for stats
-      
+
       if (response.success) {
-        const publishedProducts = response.data.products.filter(p => p.status === 'publish').length;
-        const draftProducts = response.data.products.filter(p => p.status === 'draft').length;
-        const totalVariants = response.data.products.reduce((sum, product) => sum + (product.variants?.length || 0), 0);
-        
+        const publishedProducts = response.data.products.filter(
+          (p) => p.status === "publish",
+        ).length;
+        const draftProducts = response.data.products.filter(
+          (p) => p.status === "draft",
+        ).length;
+        const totalVariants = response.data.products.reduce(
+          (sum, product) => sum + (product.variants?.length || 0),
+          0,
+        );
+
         setStats([
           {
             title: "Total Products",
@@ -75,7 +82,8 @@ const ProductList = () => {
     <PageContent
       header={{
         title: "Product Listing",
-        description: "Manage your product catalog, pricing, descriptions and media assets.",
+        description:
+          "Manage your product catalog, pricing, descriptions and media assets.",
         actions: (
           <Button color={"primary"} asChild>
             <NavLink to={PANEL_ROUTES.LISTING.CREATE}>Add Product</NavLink>
