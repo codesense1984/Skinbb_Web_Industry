@@ -9,6 +9,8 @@ import { ProductCard } from "./ProductCard";
 import { columns, initialStatsData } from "./data";
 import { apiGetProducts } from "@/modules/panel/services/http/product.service";
 import type { ProductListParams } from "@/modules/panel/types/product.type";
+import { NavLink } from "react-router";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 
 const ProductList = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -83,8 +85,8 @@ const ProductList = () => {
         title: "Product Listing",
         description: "Manage your product catalog, pricing, descriptions and media assets.",
         actions: (
-          <Button color={"primary"}>
-            Add Product
+          <Button color={"primary"} asChild>
+            <NavLink to={PANEL_ROUTES.LISTING.CREATE}>Add Product</NavLink>
           </Button>
         ),
       }}

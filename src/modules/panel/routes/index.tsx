@@ -57,11 +57,15 @@ export const panelRoutes: RouteObject = {
       Component: lazy(() => import("@/modules/panel/features/customers/list")),
     },
 
-    // listing/products
-    {
-      path: PANEL_ROUTES.LISTING.LIST,
-      Component: lazy(() => import("@/modules/panel/features/listing")),
-    },
+            // listing/products
+        {
+          path: PANEL_ROUTES.LISTING.LIST,
+          Component: lazy(() => import("@/modules/panel/features/listing")),
+        },
+        {
+          path: PANEL_ROUTES.LISTING.CREATE,
+          Component: lazy(() => import("@/modules/panel/features/listing/ProductCreate")),
+        },
     // {
     //   path: PANEL_ROUTES.COMPANY.EDIT(),
     //   Component: lazy(() => import("@/modules/panel/features/company/edit")),
