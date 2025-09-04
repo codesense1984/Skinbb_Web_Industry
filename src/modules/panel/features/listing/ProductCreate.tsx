@@ -5,6 +5,7 @@ import { PageContent } from '@/core/components/ui/structure'
 import { SelectRoot, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/core/components/ui/select'
 import { Input } from '@/core/components/ui/input'
 import { Label } from '@/core/components/ui/label'
+import { Textarea } from '@/core/components/ui/textarea'
 
 import { PANEL_ROUTES } from '@/modules/panel/routes/constant'
 import { api } from '@/core/services/http'
@@ -12,26 +13,35 @@ import { ENDPOINTS } from '@/modules/panel/config/endpoint.config'
 import { 
     apiGetBrandsForDropdown, 
     apiGetCategoriesForDropdown, 
+    apiGetTagsForDropdown,
     apiGetVariationTypes,
     apiGetMarketedBy,
     apiGetManufacturedBy,
     apiGetImportedBy,
+    apiGetIngredients,
+    apiGetBenefits,
     apiGetProductAttributeValues
 } from '@/modules/panel/services/http/product.service'
 
 interface ProductCreateData {
     productName: string;
     slug: string;
+    description?: string;
     status: 'draft' | 'publish';
     price: number;
     salePrice: number;
     quantity: number;
+    sku?: string;
     brand: string;
     productVariationType: string;
     productCategory: string[];
+    tags?: string[];
     marketedBy?: string;
+    marketedByAddress?: string;
     manufacturedBy?: string;
+    manufacturedByAddress?: string;
     importedBy?: string;
+    importedByAddress?: string;
     // Product Attributes
     targetConcerns?: string[]; // 685545232be6a9f5abc15be4
     productFeatures?: string[]; // 685544f12be6a9f5abc15bdd
@@ -48,6 +58,24 @@ interface ProductCreateData {
     skinConcerns?: string[]; // 685547672be6a9f5abc15c1a
     hairType?: string; // 685547372be6a9f5abc15c13
     skinType?: string; // 685547232be6a9f5abc15c0c
+    // Product Details
+    shelfLife?: string;
+    licenseNo?: string;
+    manufacturingDate?: string;
+    expiryDate?: string;
+    length?: number;
+    width?: number;
+    height?: number;
+    safetyPrecaution?: string;
+    howToUse?: string;
+    customerCareEmail?: string;
+    customerCareNumber?: string;
+    // Key Information
+    ingredient?: string;
+    keyIngredients?: string;
+    benefitsSingle?: string;
+    // Capture Details
+    captureBy?: string;
     capturedDate: string;
 }
 
@@ -65,21 +93,28 @@ const ProductCreate = () => {
     const [error, setError] = useState<string | null>(null)
     const [isDragOver, setIsDragOver] = useState(false)
     const [uploadedImages, setUploadedImages] = useState<File[]>([])
+    const [thumbnailImage, setThumbnailImage] = useState<File | null>(null)
+    const [barcodeImage, setBarcodeImage] = useState<File | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
+    const thumbnailInputRef = useRef<HTMLInputElement>(null)
+    const barcodeInputRef = useRef<HTMLInputElement>(null)
     
     // Dropdown data states
     const [brands, setBrands] = useState<DropdownOption[]>([])
     const [categories, setCategories] = useState<DropdownOption[]>([])
+    const [tags, setTags] = useState<DropdownOption[]>([])
     const [variationTypes, setVariationTypes] = useState<DropdownOption[]>([])
     const [marketedBy, setMarketedBy] = useState<DropdownOption[]>([])
     const [manufacturedBy, setManufacturedBy] = useState<DropdownOption[]>([])
     const [importedBy, setImportedBy] = useState<DropdownOption[]>([])
+    const [ingredients, setIngredients] = useState<DropdownOption[]>([])
+    const [benefitsOptions, setBenefitsOptions] = useState<DropdownOption[]>([])
     
     // Product Attribute states
     const [targetConcerns, setTargetConcerns] = useState<DropdownOption[]>([])
     const [productFeatures, setProductFeatures] = useState<DropdownOption[]>([])
     const [countryOfOrigin, setCountryOfOrigin] = useState<DropdownOption[]>([])
-    const [benefits, setBenefits] = useState<DropdownOption[]>([])
+    const [benefitsAttribute, setBenefitsAttribute] = useState<DropdownOption[]>([])
     const [certifications, setCertifications] = useState<DropdownOption[]>([])
     const [productForm, setProductForm] = useState<DropdownOption[]>([])
     const [gender, setGender] = useState<DropdownOption[]>([])
@@ -96,16 +131,22 @@ const ProductCreate = () => {
     const [formData, setFormData] = useState<ProductCreateData>({
         productName: '',
         slug: '',
+        description: '',
         status: 'draft',
         price: 0,
         salePrice: 0,
         quantity: 0,
+        sku: '',
         brand: '',
         productVariationType: '',
         productCategory: [],
+        tags: [],
         marketedBy: '',
+        marketedByAddress: '',
         manufacturedBy: '',
+        manufacturedByAddress: '',
         importedBy: '',
+        importedByAddress: '',
         // Product Attributes
         targetConcerns: [],
         productFeatures: [],
@@ -122,6 +163,24 @@ const ProductCreate = () => {
         skinConcerns: [],
         hairType: '',
         skinType: '',
+        // Product Details
+        shelfLife: '',
+        licenseNo: '',
+        manufacturingDate: '',
+        expiryDate: '',
+        length: 0,
+        width: 0,
+        height: 0,
+        safetyPrecaution: '',
+        howToUse: '',
+        customerCareEmail: '',
+        customerCareNumber: '',
+        // Key Information
+        ingredient: '',
+        keyIngredients: '',
+        benefitsSingle: '',
+        // Capture Details
+        captureBy: 'admin',
         capturedDate: new Date().toISOString(),
     })
 
@@ -132,15 +191,18 @@ const ProductCreate = () => {
                 const [
                     brandsRes,
                     categoriesRes,
+                    tagsRes,
                     variationTypesRes,
                     marketedByRes,
                     manufacturedByRes,
                     importedByRes,
+                    ingredientsRes,
+                    benefitsRes,
                     // Product Attributes
                     targetConcernsRes,
                     productFeaturesRes,
                     countryOfOriginRes,
-                    benefitsRes,
+                    benefitsAttributeRes,
                     certificationsRes,
                     productFormRes,
                     genderRes,
@@ -155,10 +217,13 @@ const ProductCreate = () => {
                 ] = await Promise.all([
                     apiGetBrandsForDropdown({ page: 1, limit: 50 }),
                     apiGetCategoriesForDropdown({ page: 1, limit: 50, parentCategory: 'all' }),
+                    apiGetTagsForDropdown({ page: 1, limit: 50 }),
                     apiGetVariationTypes(),
                     apiGetMarketedBy({ page: 1, limit: 50 }),
                     apiGetManufacturedBy({ page: 1, limit: 50 }),
                     apiGetImportedBy({ page: 1, limit: 50 }),
+                    apiGetIngredients({ page: 1, limit: 50 }),
+                    apiGetBenefits({ page: 1, limit: 50 }),
                     // Product Attributes
                     apiGetProductAttributeValues('685545232be6a9f5abc15be4'), // Target Concerns
                     apiGetProductAttributeValues('685544f12be6a9f5abc15bdd'), // Product Features
@@ -180,16 +245,19 @@ const ProductCreate = () => {
                 // Basic dropdowns
                 if (brandsRes.success) setBrands(brandsRes.data.brands)
                 if (categoriesRes.success) setCategories(categoriesRes.data.productCategories)
+                if (tagsRes.success) setTags(tagsRes.data.tags)
                 if (variationTypesRes.success) setVariationTypes(variationTypesRes.data.productVariationTypes)
                 if (marketedByRes.success) setMarketedBy(marketedByRes.data.marketedBy)
                 if (manufacturedByRes.success) setManufacturedBy(manufacturedByRes.data.manufacturedBy)
                 if (importedByRes.success) setImportedBy(importedByRes.data.importedBys)
+                if (ingredientsRes.success) setIngredients(ingredientsRes.data.ingredientLists)
+                if (benefitsRes.success) setBenefitsOptions(benefitsRes.data.benefits)
                 
                 // Product Attributes
                 if (targetConcernsRes.success) setTargetConcerns(targetConcernsRes.data.productAttributeValues)
                 if (productFeaturesRes.success) setProductFeatures(productFeaturesRes.data.productAttributeValues)
                 if (countryOfOriginRes.success) setCountryOfOrigin(countryOfOriginRes.data.productAttributeValues)
-                if (benefitsRes.success) setBenefits(benefitsRes.data.productAttributeValues)
+                if (benefitsAttributeRes.success) setBenefitsAttribute(benefitsAttributeRes.data.productAttributeValues)
                 if (certificationsRes.success) setCertifications(certificationsRes.data.productAttributeValues)
                 if (productFormRes.success) setProductForm(productFormRes.data.productAttributeValues)
                 if (genderRes.success) setGender(genderRes.data.productAttributeValues)
@@ -201,7 +269,7 @@ const ProductCreate = () => {
                 if (skinConcernsRes.success) setSkinConcerns(skinConcernsRes.data.productAttributeValues)
                 if (hairTypeRes.success) setHairType(hairTypeRes.data.productAttributeValues)
                 if (skinTypeRes.success) setSkinType(skinTypeRes.data.productAttributeValues)
-            } catch (error) {
+        } catch (error) {
                 console.error('Failed to load dropdown data:', error)
             }
         }
@@ -240,6 +308,16 @@ const ProductCreate = () => {
             uploadedImages.forEach((file) => {
                 submitData.append('images', file)
             })
+            
+            // Add thumbnail image
+            if (thumbnailImage) {
+                submitData.append('thumbnail', thumbnailImage)
+            }
+            
+            // Add barcode image
+            if (barcodeImage) {
+                submitData.append('barcodeImage', barcodeImage)
+            }
             
             const result = await api.post(ENDPOINTS.PRODUCT.MAIN, submitData, {
                 headers: {
@@ -326,6 +404,68 @@ const ProductCreate = () => {
         fileInputRef.current?.click()
     }
 
+    const openThumbnailDialog = () => {
+        thumbnailInputRef.current?.click()
+    }
+
+    const openBarcodeDialog = () => {
+        barcodeInputRef.current?.click()
+    }
+
+    const handleThumbnailSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (file) {
+            if (file.size > 10 * 1024 * 1024) {
+                setError('Thumbnail image size must be less than 10MB')
+                return
+            }
+            if (!file.type.startsWith('image/')) {
+                setError('Thumbnail must be an image file')
+                return
+            }
+            setThumbnailImage(file)
+        }
+    }
+
+    const handleBarcodeSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (file) {
+            if (file.size > 10 * 1024 * 1024) {
+                setError('Barcode image size must be less than 10MB')
+                return
+            }
+            if (!file.type.startsWith('image/')) {
+                setError('Barcode must be an image file')
+                return
+            }
+            setBarcodeImage(file)
+        }
+    }
+
+    const removeThumbnail = () => {
+        setThumbnailImage(null)
+        if (thumbnailInputRef.current) {
+            thumbnailInputRef.current.value = ''
+        }
+    }
+
+    const removeBarcode = () => {
+        setBarcodeImage(null)
+        if (barcodeInputRef.current) {
+            barcodeInputRef.current.value = ''
+        }
+    }
+
+    const generateSlug = () => {
+        const slug = formData.productName
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .trim()
+        setFormData(prev => ({ ...prev, slug }))
+    }
+
     return (
         <PageContent
             header={{
@@ -362,16 +502,49 @@ const ProductCreate = () => {
                                 </div>
                                 
                                 <div className="space-y-2">
-                                    <Label htmlFor="slug" className="text-sm font-medium text-gray-700">Slug *</Label>
-                                    <Input
-                                        id="slug"
-                                        value={formData.slug}
-                                        onChange={(e) => handleInputChange('slug', e.target.value)}
-                                        placeholder="product-slug"
-                                        required
-                                        className="h-10"
+                                    <Label htmlFor="slug" className="text-sm font-medium text-gray-700">Product Slug *</Label>
+                                    <div className="flex gap-2">
+                                        <Input
+                                            id="slug"
+                                            value={formData.slug}
+                                            onChange={(e) => handleInputChange('slug', e.target.value)}
+                                            placeholder="product-slug"
+                                            required
+                                            className="h-10 flex-1"
+                                        />
+                                        <Button
+                                            type="button"
+                                            variant="outlined"
+                                            onClick={generateSlug}
+                                            className="h-10 px-4"
+                                        >
+                                            Create Slug
+                                        </Button>
+                                    </div>
+                                </div>
+                                </div>
+                                
+                                <div className="space-y-2">
+                                    <Label htmlFor="description" className="text-sm font-medium text-gray-700">Description</Label>
+                                    <Textarea
+                                        id="description"
+                                        value={formData.description}
+                                        onChange={(e) => handleInputChange('description', e.target.value)}
+                                        placeholder="Enter product description"
+                                        rows={4}
+                                        className="resize-none"
                                     />
                                 </div>
+                                
+                                <div className="space-y-2">
+                                    <Label htmlFor="sku" className="text-sm font-medium text-gray-700">SKU</Label>
+                                    <Input
+                                        id="sku"
+                                        value={formData.sku}
+                                        onChange={(e) => handleInputChange('sku', e.target.value)}
+                                        placeholder="Enter SKU"
+                                        className="h-10"
+                                    />
                                 </div>
                             </div>
 
@@ -475,6 +648,22 @@ const ProductCreate = () => {
                                     </SelectRoot>
                                 </div>
 
+                                <div className="space-y-2">
+                                    <Label htmlFor="tags" className="text-sm font-medium text-gray-700">Tags</Label>
+                                    <SelectRoot value={formData.tags?.[0] || ''} onValueChange={(value) => handleInputChange('tags', [value])}>
+                                        <SelectTrigger className="h-10">
+                                            <SelectValue placeholder="Select or create tags" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {tags.map((tag) => (
+                                                <SelectItem key={tag._id} value={tag._id}>
+                                                    {tag.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </SelectRoot>
+                                </div>
+
                                 {/* Status */}
                                 <div className="space-y-2">
                                     <Label htmlFor="status" className="text-sm font-medium text-gray-700">Status *</Label>
@@ -490,15 +679,15 @@ const ProductCreate = () => {
                                 </div>
                             </div>
 
-                            {/* Optional Fields */}
+                            {/* Company Information */}
                             <div className="space-y-4">
                                 <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Company Information</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <Label htmlFor="marketedBy">Marketed By</Label>
+                                <div className="space-y-2">
+                                    <Label htmlFor="marketedBy" className="text-sm font-medium text-gray-700">Marketed By</Label>
                                     <SelectRoot value={formData.marketedBy || ''} onValueChange={(value) => handleInputChange('marketedBy', value)}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select marketed by" />
+                                        <SelectTrigger className="h-10">
+                                            <SelectValue placeholder="Select Market By" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {marketedBy.map((item) => (
@@ -510,11 +699,11 @@ const ProductCreate = () => {
                                     </SelectRoot>
                                 </div>
 
-                                <div>
-                                    <Label htmlFor="manufacturedBy">Manufactured By</Label>
+                                <div className="space-y-2">
+                                    <Label htmlFor="manufacturedBy" className="text-sm font-medium text-gray-700">Manufacture By</Label>
                                     <SelectRoot value={formData.manufacturedBy || ''} onValueChange={(value) => handleInputChange('manufacturedBy', value)}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select manufactured by" />
+                                        <SelectTrigger className="h-10">
+                                            <SelectValue placeholder="Select Manufacture By" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {manufacturedBy.map((item) => (
@@ -527,11 +716,11 @@ const ProductCreate = () => {
                                 </div>
                                 </div>
 
-                                <div>
-                                    <Label htmlFor="importedBy">Imported By</Label>
+                                <div className="space-y-2">
+                                    <Label htmlFor="importedBy" className="text-sm font-medium text-gray-700">Import By</Label>
                                     <SelectRoot value={formData.importedBy || ''} onValueChange={(value) => handleInputChange('importedBy', value)}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select imported by" />
+                                        <SelectTrigger className="h-10">
+                                            <SelectValue placeholder="Select Import By" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {importedBy.map((item) => (
@@ -541,6 +730,268 @@ const ProductCreate = () => {
                                             ))}
                                         </SelectContent>
                                     </SelectRoot>
+                                </div>
+
+                                {/* Address Fields */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <Label htmlFor="marketedByAddress" className="text-sm font-medium text-gray-700">Market By Address</Label>
+                                    <Input
+                                        id="marketedByAddress"
+                                        value={formData.marketedByAddress || ''}
+                                        onChange={(e) => handleInputChange('marketedByAddress', e.target.value)}
+                                        placeholder="Enter Marketed By Address"
+                                        className="h-10"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="manufacturedByAddress" className="text-sm font-medium text-gray-700">Manufacture By Address</Label>
+                                    <Input
+                                        id="manufacturedByAddress"
+                                        value={formData.manufacturedByAddress || ''}
+                                        onChange={(e) => handleInputChange('manufacturedByAddress', e.target.value)}
+                                        placeholder="Enter Manufacture By Address"
+                                        className="h-10"
+                                    />
+                                </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="importedByAddress" className="text-sm font-medium text-gray-700">Import By Address</Label>
+                                    <Input
+                                        id="importedByAddress"
+                                        value={formData.importedByAddress || ''}
+                                        onChange={(e) => handleInputChange('importedByAddress', e.target.value)}
+                                        placeholder="Enter Import By Address"
+                                        className="h-10"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Product Details */}
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Product Details</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <Label htmlFor="shelfLife" className="text-sm font-medium text-gray-700">Shelf Life</Label>
+                                    <Input
+                                        id="shelfLife"
+                                        value={formData.shelfLife || ''}
+                                        onChange={(e) => handleInputChange('shelfLife', e.target.value)}
+                                        placeholder="Enter Shelf Life"
+                                        className="h-10"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="licenseNo" className="text-sm font-medium text-gray-700">License No</Label>
+                                    <Input
+                                        id="licenseNo"
+                                        value={formData.licenseNo || ''}
+                                        onChange={(e) => handleInputChange('licenseNo', e.target.value)}
+                                        placeholder="Enter License No"
+                                        className="h-10"
+                                    />
+                                </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <Label htmlFor="manufacturingDate" className="text-sm font-medium text-gray-700">Manufacturing Date</Label>
+                                    <Input
+                                        id="manufacturingDate"
+                                        type="date"
+                                        value={formData.manufacturingDate || ''}
+                                        onChange={(e) => handleInputChange('manufacturingDate', e.target.value)}
+                                        className="h-10"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="expiryDate" className="text-sm font-medium text-gray-700">Expiry Date</Label>
+                                    <Input
+                                        id="expiryDate"
+                                        type="date"
+                                        value={formData.expiryDate || ''}
+                                        onChange={(e) => handleInputChange('expiryDate', e.target.value)}
+                                        className="h-10"
+                                    />
+                                </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="space-y-2">
+                                    <Label htmlFor="length" className="text-sm font-medium text-gray-700">Length (cm)</Label>
+                                    <Input
+                                        id="length"
+                                        type="number"
+                                        step="0.1"
+                                        value={formData.length || ''}
+                                        onChange={(e) => handleInputChange('length', parseFloat(e.target.value) || 0)}
+                                        placeholder="Length"
+                                        className="h-10"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="width" className="text-sm font-medium text-gray-700">Width (cm)</Label>
+                                    <Input
+                                        id="width"
+                                        type="number"
+                                        step="0.1"
+                                        value={formData.width || ''}
+                                        onChange={(e) => handleInputChange('width', parseFloat(e.target.value) || 0)}
+                                        placeholder="Width"
+                                        className="h-10"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="height" className="text-sm font-medium text-gray-700">Height (cm)</Label>
+                                    <Input
+                                        id="height"
+                                        type="number"
+                                        step="0.1"
+                                        value={formData.height || ''}
+                                        onChange={(e) => handleInputChange('height', parseFloat(e.target.value) || 0)}
+                                        placeholder="Height"
+                                        className="h-10"
+                                    />
+                                </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="safetyPrecaution" className="text-sm font-medium text-gray-700">Safety Precaution</Label>
+                                    <Textarea
+                                        id="safetyPrecaution"
+                                        value={formData.safetyPrecaution || ''}
+                                        onChange={(e) => handleInputChange('safetyPrecaution', e.target.value)}
+                                        placeholder="Enter safety precaution"
+                                        rows={4}
+                                        className="resize-none"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="howToUse" className="text-sm font-medium text-gray-700">How To Use</Label>
+                                    <Textarea
+                                        id="howToUse"
+                                        value={formData.howToUse || ''}
+                                        onChange={(e) => handleInputChange('howToUse', e.target.value)}
+                                        placeholder="Enter how to use instructions"
+                                        rows={4}
+                                        className="resize-none"
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <Label htmlFor="customerCareEmail" className="text-sm font-medium text-gray-700">Customer Care Email</Label>
+                                    <Input
+                                        id="customerCareEmail"
+                                        type="email"
+                                        value={formData.customerCareEmail || ''}
+                                        onChange={(e) => handleInputChange('customerCareEmail', e.target.value)}
+                                        placeholder="Enter customer care email"
+                                        className="h-10"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="customerCareNumber" className="text-sm font-medium text-gray-700">Customer Care Number</Label>
+                                    <Input
+                                        id="customerCareNumber"
+                                        value={formData.customerCareNumber || ''}
+                                        onChange={(e) => handleInputChange('customerCareNumber', e.target.value)}
+                                        placeholder="Enter customer care number"
+                                        className="h-10"
+                                    />
+                                </div>
+                                </div>
+                            </div>
+
+                            {/* Key Information */}
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Key Information</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <Label htmlFor="ingredient" className="text-sm font-medium text-gray-700">Ingredient</Label>
+                                    <SelectRoot value={formData.ingredient || ''} onValueChange={(value) => handleInputChange('ingredient', value)}>
+                                        <SelectTrigger className="h-10">
+                                            <SelectValue placeholder="Select an Ingredient" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {ingredients.map((ingredient) => (
+                                                <SelectItem key={ingredient._id} value={ingredient._id}>
+                                                    {ingredient.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </SelectRoot>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="keyIngredients" className="text-sm font-medium text-gray-700">Key Ingredients</Label>
+                                    <SelectRoot value={formData.keyIngredients || ''} onValueChange={(value) => handleInputChange('keyIngredients', value)}>
+                                        <SelectTrigger className="h-10">
+                                            <SelectValue placeholder="Select a Key Ingredient" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {ingredients.map((ingredient) => (
+                                                <SelectItem key={ingredient._id} value={ingredient._id}>
+                                                    {ingredient.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </SelectRoot>
+                                </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="benefitsSingle" className="text-sm font-medium text-gray-700">Benefits</Label>
+                                    <SelectRoot value={formData.benefitsSingle || ''} onValueChange={(value) => handleInputChange('benefitsSingle', value)}>
+                                        <SelectTrigger className="h-10">
+                                            <SelectValue placeholder="Select a benefit" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {benefitsOptions.map((benefit) => (
+                                                <SelectItem key={benefit._id} value={benefit._id}>
+                                                    {benefit.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </SelectRoot>
+                                </div>
+                            </div>
+
+                            {/* Capture Details */}
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Capture Details</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <Label htmlFor="captureBy" className="text-sm font-medium text-gray-700">Capture By</Label>
+                                    <SelectRoot value={formData.captureBy || 'admin'} onValueChange={(value) => handleInputChange('captureBy', value)}>
+                                        <SelectTrigger className="h-10">
+                                            <SelectValue placeholder="Select capture by" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="admin">Admin</SelectItem>
+                                            <SelectItem value="user">User</SelectItem>
+                                        </SelectContent>
+                                    </SelectRoot>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="capturedDate" className="text-sm font-medium text-gray-700">Captured Date</Label>
+                                    <Input
+                                        id="capturedDate"
+                                        type="date"
+                                        value={formData.capturedDate ? formData.capturedDate.split('T')[0] : ''}
+                                        onChange={(e) => handleInputChange('capturedDate', new Date(e.target.value).toISOString())}
+                                        className="h-10"
+                                    />
+                                </div>
                                 </div>
                             </div>
 
@@ -747,7 +1198,7 @@ const ProductCreate = () => {
                                     <div>
                                         <Label>Benefits</Label>
                                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
-                                            {benefits.map((benefit) => (
+                                            {benefitsAttribute.map((benefit) => (
                                                 <label key={benefit._id} className="flex items-center space-x-2">
                                                     <input
                                                         type="checkbox"
@@ -816,6 +1267,118 @@ const ProductCreate = () => {
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+
+                            {/* Thumbnail Upload Section */}
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Thumbnail</h3>
+                                <p className="text-sm text-gray-600">Max 1 image(s), up to 10MB each. Allowed: image/jpeg, image/png</p>
+                                
+                                <div
+                                    className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer"
+                                    onClick={openThumbnailDialog}
+                                >
+                                    {thumbnailImage ? (
+                                        <div className="space-y-4">
+                                            <div className="aspect-square w-32 mx-auto rounded-lg overflow-hidden bg-gray-100">
+                                                <img
+                                                    src={URL.createObjectURL(thumbnailImage)}
+                                                    alt="Thumbnail preview"
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <p className="text-sm text-gray-600">{thumbnailImage.name}</p>
+                                                <Button
+                                                    type="button"
+                                                    variant="outlined"
+                                                    size="sm"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                        removeThumbnail()
+                                                    }}
+                                                >
+                                                    Remove
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-4">
+                                            <div className="mx-auto w-16 h-16 text-gray-400">
+                                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <p className="text-gray-600">Drop image here or <span className="text-blue-600">Click to browse</span></p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                <input
+                                    ref={thumbnailInputRef}
+                                    type="file"
+                                    accept="image/jpeg,image/png"
+                                    onChange={handleThumbnailSelect}
+                                    className="hidden"
+                                />
+                            </div>
+
+                            {/* Barcode Image Upload Section */}
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Barcode Image</h3>
+                                <p className="text-sm text-gray-600">Max 1 image(s), up to 10MB each. Allowed: image/jpeg, image/png</p>
+                                
+                                <div
+                                    className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer"
+                                    onClick={openBarcodeDialog}
+                                >
+                                    {barcodeImage ? (
+                                        <div className="space-y-4">
+                                            <div className="aspect-square w-32 mx-auto rounded-lg overflow-hidden bg-gray-100">
+                                                <img
+                                                    src={URL.createObjectURL(barcodeImage)}
+                                                    alt="Barcode preview"
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <p className="text-sm text-gray-600">{barcodeImage.name}</p>
+                                                <Button
+                                                    type="button"
+                                                    variant="outlined"
+                                                    size="sm"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                        removeBarcode()
+                                                    }}
+                                                >
+                                                    Remove
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-4">
+                                            <div className="mx-auto w-16 h-16 text-gray-400">
+                                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <p className="text-gray-600">Drop image here or <span className="text-blue-600">Click to browse</span></p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                <input
+                                    ref={barcodeInputRef}
+                                    type="file"
+                                    accept="image/jpeg,image/png"
+                                    onChange={handleBarcodeSelect}
+                                    className="hidden"
+                                />
                             </div>
 
                             {/* Image Upload Section */}
