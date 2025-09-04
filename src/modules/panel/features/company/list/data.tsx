@@ -1,6 +1,7 @@
 import { TableAction } from "@/core/components/data-table/components/table-action";
 import { StatusBadge } from "@/core/components/ui/badge";
 import { formatDate, formatNumber } from "@/core/utils";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import type {
   CompanyList,
   CompanyListItem,
@@ -214,11 +215,13 @@ export const columns: ColumnDef<CompanyListItem>[] = [
       return (
         <TableAction
           view={{
-            onClick: () => console.log("View company:", row.original._id),
+            // onClick: () => console.log("View company:", row.original._id),
+            to: PANEL_ROUTES.COMPANY.EDIT(row.original._id),
             tooltip: "View company details",
           }}
           edit={{
-            onClick: () => console.log("Edit company:", row.original._id),
+            // onClick: () => console.log("Edit company:", row.original._id),
+            to: PANEL_ROUTES.COMPANY.EDIT(row.original._id),
             tooltip: "Edit company",
           }}
           delete={{

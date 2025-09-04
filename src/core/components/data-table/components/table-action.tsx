@@ -2,9 +2,11 @@ import { Button } from "@/core/components/ui/button";
 import { cn } from "@/core/utils";
 import { EyeIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
 import type { ReactNode } from "react";
+import { Link } from "react-router";
 
 export interface ActionButtonProps {
   onClick?: () => void;
+  to?: string;
   disabled?: boolean;
   loading?: boolean;
   variant?: "contained" | "outlined" | "ghost" | "text" | "link";
@@ -46,6 +48,7 @@ export function TableAction({
 
     const {
       onClick,
+      to,
       disabled = false,
       loading = false,
       variant = defaultVariant,
@@ -56,7 +59,7 @@ export function TableAction({
       ...restProps
     } = action;
 
-    return (
+    const buttonElement = (
       <Button
         variant={variant}
         size={size}
@@ -73,6 +76,13 @@ export function TableAction({
         )}
       </Button>
     );
+
+    // If 'to' prop is provided, wrap the button with Link
+    if (to) {
+      return <Link to={to}>{buttonElement}</Link>;
+    }
+
+    return buttonElement;
   };
 
   return (
