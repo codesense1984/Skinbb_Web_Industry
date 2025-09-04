@@ -188,11 +188,11 @@ export function TableFilter({
                     className="flex grow justify-between gap-2 font-normal"
                   >
                     <span className="flex items-center gap-2">
-                      {option.bgColor && (
+                      {/* {option.bgColor && (
                         <div
                           className={cn("h-2 w-2 rounded-full", option.bgColor)}
                         />
-                      )}
+                      )} */}
                       {option.label}
                     </span>
                   </Label>

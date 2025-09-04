@@ -149,10 +149,7 @@ export const columns: ColumnDef<CompanyListItem>[] = [
     header: "Phone",
     accessorKey: "phoneNumber",
   },
-  {
-    header: "Designation",
-    accessorKey: "designation",
-  },
+
   {
     header: "Brand Name",
     accessorKey: "brandName",
@@ -216,7 +213,7 @@ export const columns: ColumnDef<CompanyListItem>[] = [
         <TableAction
           view={{
             // onClick: () => console.log("View company:", row.original._id),
-            to: PANEL_ROUTES.COMPANY.EDIT(row.original._id),
+            to: PANEL_ROUTES.COMPANY.VIEW(row.original._id),
             tooltip: "View company details",
           }}
           edit={{
@@ -224,10 +221,10 @@ export const columns: ColumnDef<CompanyListItem>[] = [
             to: PANEL_ROUTES.COMPANY.EDIT(row.original._id),
             tooltip: "Edit company",
           }}
-          delete={{
-            onClick: () => console.log("Delete company:", row.original._id),
-            tooltip: "Delete company",
-          }}
+          // delete={{
+          //   onClick: () => console.log("Delete company:", row.original._id),
+          //   tooltip: "Delete company",
+          // }}
         />
       );
     },

@@ -14,6 +14,7 @@ export const ROUTE = {
   seg: {
     create: "create",
     edit: "edit",
+    view: "view",
     detail: "detail",
     onboard: "onboard",
     id: ":id",
@@ -26,6 +27,7 @@ export const ROUTES = {
   DASHBOARD: "/",
   CREATE: "/create",
   EDIT: "/edit",
+  VIEW: "/edit",
   DETAIL: "/:id",
 } as const;
 

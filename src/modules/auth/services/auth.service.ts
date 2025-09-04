@@ -10,6 +10,7 @@ import type { LoginSuccess } from "./http/auth.service";
 
 export const QK = {
   ME: ["me"] as const,
+  SELLER_INFO: ["seller-info"] as const,
 };
 
 export type AuthSnapshot = {
@@ -91,11 +92,35 @@ export function clearUserLS() {
   localStorage.removeItem(LS_KEY.USER);
 }
 
+export async function fetchAndCacheSellerInfo(qc: QueryClient) {
+  try {
+    const { getSellerInfo } = await import("./http/auth.service");
+    const response = await getSellerInfo();
+    qc.setQueryData(QK.SELLER_INFO, response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch seller info:", error);
+    throw error;
+  }
+}
+
+export async function ensureSellerInfo(qc: QueryClient) {
+  // Check if seller info is already cached
+  const cachedSellerInfo = qc.getQueryData(QK.SELLER_INFO);
+
+  if (!cachedSellerInfo) {
+    // If not cached, fetch it
+    return await fetchAndCacheSellerInfo(qc);
+  }
+
+  return cachedSellerInfo;
+}
+
 /* -------------------------------------------------------------------------- */
 /*                             Service / public API                            */
 /* -------------------------------------------------------------------------- */
 
-export function onLoginSuccess(
+export async function onLoginSuccess(
   qc: QueryClient,
   data: LoginSuccess,
   remember?: boolean,
@@ -117,6 +142,20 @@ export function onLoginSuccess(
       refreshToken: data.data.refreshToken,
     };
     qc.setQueryData(QK.ME, me);
+
+    // Fetch seller info if user role is seller-member
+    if (u.roleValue === "seller-member") {
+      try {
+        await fetchAndCacheSellerInfo(qc);
+      } catch (error) {
+        console.error("Failed to fetch seller info on login:", error);
+        // Clear auth and throw error to prevent login success
+        logout(qc);
+        throw new Error(
+          "Failed to fetch seller information - please try again",
+        );
+      }
+    }
   }
 }
 
@@ -124,6 +163,7 @@ export function logout(qc?: QueryClient) {
   clearAuthCookies();
   clearUserLS();
   qc?.removeQueries({ queryKey: QK.ME, exact: true });
+  qc?.removeQueries({ queryKey: QK.SELLER_INFO, exact: true });
 }
 
 export function hasAuth() {
@@ -131,7 +171,7 @@ export function hasAuth() {
   return Boolean(accessToken && refreshToken && userId);
 }
 
-export function bootstrapAuthCache(qc: QueryClient) {
+export async function bootstrapAuthCache(qc: QueryClient) {
   const cookies = getAuthCookies();
   const user = getUserFromLS();
   if (cookies.accessToken && cookies.refreshToken && cookies.userId && user) {
@@ -141,6 +181,19 @@ export function bootstrapAuthCache(qc: QueryClient) {
       refreshToken: cookies.refreshToken,
     };
     qc.setQueryData(QK.ME, me);
+
+    // Fetch seller info if user role is seller-member (for page reload)
+    if (user.roleValue === "seller-member") {
+      try {
+        await fetchAndCacheSellerInfo(qc);
+      } catch (error) {
+        console.error("Failed to fetch seller info on bootstrap:", error);
+        // Clear auth and throw error to redirect to login
+        logout(qc);
+        throw new Error("Authentication failed - please login again");
+      }
+    }
+
     return me;
   }
   throw new Error("Unauthenticated");

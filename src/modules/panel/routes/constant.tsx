@@ -45,6 +45,8 @@ export const PANEL_ROUTES = {
     CREATE: ROUTE.build(COMPANY_BASE, ROUTE.seg.create), // /company/create
     EDIT: (id: string = ROUTE.seg.id) =>
       ROUTE.build(COMPANY_BASE, id, ROUTE.seg.edit), // /company/edit/:id
+    VIEW: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(COMPANY_BASE, id, ROUTE.seg.view), // /company/edit/:id
     DETAIL: (id: string = ROUTE.seg.id) => ROUTE.build(COMPANY_BASE, id), // /company/:id
     // ONBOARD: ROUTE.build(COMPANY_BASE, ROUTE.seg.onboard), // /company/onboard
   },

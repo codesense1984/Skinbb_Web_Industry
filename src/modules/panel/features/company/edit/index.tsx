@@ -1,13 +1,8 @@
-import { PageContent } from "@/core/components/ui/structure.tsx";
-import OnBoardForm from "../components/onboard/onboard-form/index.tsx";
-import { MODE } from "@/core/types/index.ts";
+import { MODE } from "@/core/types";
+import CompanyForm from "../components/form/CompanyForm";
 
-const CompantEdit = () => {
-  return (
-    <PageContent header={{ title: "Company Edit" }}>
-      <OnBoardForm mode={MODE.VIEW} />
-    </PageContent>
-  );
+const CompanyEdit = () => {
+  return <CompanyForm mode={MODE.EDIT} />;
 };
 
-export default CompantEdit;
+export default CompanyEdit;

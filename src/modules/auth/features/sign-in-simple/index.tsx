@@ -53,8 +53,8 @@ const SignIn = () => {
     mutationKey: ["auth", "login"],
     retry: 0,
     mutationFn: login,
-    onSuccess(data) {
-      onLoginSuccess(qc, data, form.getValues("remember"));
+    async onSuccess(data) {
+      await onLoginSuccess(qc, data, form.getValues("remember"));
       toast.success("Login successful!", { duration: 900 });
       navigate("/", { replace: true });
     },

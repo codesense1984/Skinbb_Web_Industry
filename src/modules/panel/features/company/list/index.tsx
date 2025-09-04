@@ -3,6 +3,7 @@ import { StatusFilter } from "@/core/components/data-table/components/table-filt
 import { PageContent } from "@/core/components/ui/structure";
 import { apiGetCompanyList } from "@/modules/panel/services/http/company.service";
 import { columns } from "./data";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 
 // const CompanyForm = lazy(() => import("../components/AddCompanyForm"));
 
@@ -17,7 +18,6 @@ const fetcher = () =>
   });
 
 const CompanyList = () => {
-
   return (
     <PageContent
       header={{
@@ -54,7 +54,7 @@ const CompanyList = () => {
         columns={columns}
         isServerSide
         fetcher={fetcher()}
-        queryKeyPrefix="company-list-table"
+        queryKeyPrefix={PANEL_ROUTES.COMPANY.LIST}
         actionProps={(tableState) => ({
           children: (
             <StatusFilter

@@ -41,8 +41,8 @@ export const panelRoutes: RouteObject = {
       Component: lazy(() => import("@/modules/panel/features/company/edit")),
     },
     {
-      path: PANEL_ROUTES.COMPANY.DETAIL(),
-      Component: lazy(() => import("@/modules/panel/features/company/edit")),
+      path: PANEL_ROUTES.COMPANY.VIEW(),
+      Component: lazy(() => import("@/modules/panel/features/company/view")),
     },
 
     // orders

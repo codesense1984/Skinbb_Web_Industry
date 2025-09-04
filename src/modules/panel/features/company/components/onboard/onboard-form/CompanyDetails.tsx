@@ -120,6 +120,18 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
   // Create custom fields with company name field that handles change
   const compannyNameFields = rawCompannyNameFields.map((field) => {
     if (field.name === "companyName") {
+      // In edit mode, show a simple text input instead of the company selector
+      if (mode === MODE.EDIT) {
+        const overridden = {
+          ...field,
+          type: "text" as const,
+          className: "col-span-2",
+          placeholder: "Enter company name",
+          disabled: true, // Company name should not be editable in edit mode
+        } as FormFieldConfig<FullCompanyFormType>;
+        return overridden;
+      }
+
       const overridden = {
         ...field,
         type: "custom" as const,

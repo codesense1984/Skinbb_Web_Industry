@@ -84,31 +84,38 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
             inputProps={{
               keyfilter: "int",
               maxLength: 10,
-              endIcon: (
-                <Button
-                  variant={"contained"}
-                  color={"primary"}
-                  disableAnimation
-                  type="button"
-                  className="text-background !mr-0 rounded-l-none"
-                  disabled={
-                    phoneVerified ||
-                    sendOtpMutation.isPending ||
-                    verifyOtpMutation.isPending ||
-                    phoneNumber.length !== 10
-                  }
-                  onClick={() => otpModalRef.current?.setOpen(true)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      otpModalRef.current?.setOpen(true);
+              endIcon:
+                mode !== MODE.EDIT ? (
+                  <Button
+                    variant={"contained"}
+                    color={"primary"}
+                    disableAnimation
+                    type="button"
+                    className="text-background !mr-0 rounded-l-none"
+                    disabled={
+                      phoneVerified ||
+                      sendOtpMutation.isPending ||
+                      verifyOtpMutation.isPending ||
+                      phoneNumber.length !== 10
                     }
-                  }}
-                >
-                  {sendOtpMutation.isPending ? "Sending..." : "Send OTP"}
-                </Button>
-              ),
+                    onClick={() => otpModalRef.current?.setOpen(true)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        otpModalRef.current?.setOpen(true);
+                      }
+                    }}
+                  >
+                    {sendOtpMutation.isPending ? "Sending..." : "Send OTP"}
+                  </Button>
+                ) : phoneVerified ? (
+                  <span className="px-2 text-sm text-green-600">
+                    ✓ Verified
+                  </span>
+                ) : undefined,
             }}
-            disabled={phoneVerified || sendOtpMutation.isPending}
+            disabled={
+              mode === MODE.EDIT || phoneVerified || sendOtpMutation.isPending
+            }
           />
         </div>
 

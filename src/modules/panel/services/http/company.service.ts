@@ -184,3 +184,28 @@ export async function apiGetCompanyList(
     { params, signal },
   );
 }
+
+// Update company status (approval/rejection)
+export interface CompanyStatusUpdateRequest {
+  status: string;
+  reason: string;
+}
+
+export interface CompanyStatusUpdateResponse {
+  _id: string;
+  companyName: string;
+  status: string;
+  statusChangeReason: string;
+  statusChangedAt: string;
+  updatedAt: string;
+}
+
+export async function apiUpdateCompanyStatus(
+  companyId: string,
+  data: CompanyStatusUpdateRequest,
+) {
+  return api.put<ApiResponse<CompanyStatusUpdateResponse>>(
+    `https://api.skintruth.in/api/v1/sellers/admin/status/${companyId}`,
+    data,
+  );
+}

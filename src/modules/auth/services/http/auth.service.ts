@@ -1,5 +1,6 @@
 import { api } from "@/core/services/http";
 import type { LoggedUser } from "../../types/user.type";
+import type { SellerInfoResponse } from "../../types/seller.type";
 
 export interface LoginPayload {
   phoneNumber: string;
@@ -176,4 +177,8 @@ const getAllUsers = async (
   return await api.get(url);
 };
 
-export { getAllUsers, getUserById, login };
+const getSellerInfo = async (): Promise<SellerInfoResponse> => {
+  return await api.get<SellerInfoResponse>("/api/v1/sellers/info");
+};
+
+export { getAllUsers, getUserById, getSellerInfo, login };
