@@ -128,20 +128,27 @@ and performance`,
                   navigate(`${value}`);
                 }}
               >
-                <ToggleGroupItem
-                  className="aspect-auto h-full flex-auto px-3"
-                  value={`${ANALYTICS_ROUTES.PLATFORM.BASE}`}
-                  aria-label="Toggle Platform"
-                >
-                  Platform
-                </ToggleGroupItem>
-                <ToggleGroupItem
-                  className="aspect-auto h-full flex-auto px-3"
-                  value={`${ANALYTICS_ROUTES.BRAND.BASE}`}
-                  aria-label="Toggle Brand"
-                >
-                  Brand
-                </ToggleGroupItem>
+                              <ToggleGroupItem
+                className="aspect-auto h-full flex-auto px-3"
+                value={`${ANALYTICS_ROUTES.PLATFORM.BASE}`}
+                aria-label="Toggle Platform"
+              >
+                Platform
+              </ToggleGroupItem>
+              <ToggleGroupItem
+                className="aspect-auto h-full flex-auto px-3"
+                value={`${ANALYTICS_ROUTES.BRAND.BASE}`}
+                aria-label="Toggle Brand"
+              >
+                Brand
+              </ToggleGroupItem>
+              <ToggleGroupItem
+                className="aspect-auto h-full flex-auto px-3"
+                value={`${ANALYTICS_ROUTES.ECOMMERCE.BASE}`}
+                aria-label="Toggle Ecommerce"
+              >
+                Ecommerce
+              </ToggleGroupItem>
               </ToggleGroup>
             </div>
           ),

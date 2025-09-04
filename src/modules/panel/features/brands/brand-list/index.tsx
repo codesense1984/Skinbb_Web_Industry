@@ -1,4 +1,4 @@
-import { DataTableToogle } from "@/core/components/data-table";
+import { createSimpleFetcher, DataTable } from "@/core/components/data-table";
 import {
   Avatar,
   AvatarFallback,
@@ -8,191 +8,161 @@ import { StatusBadge } from "@/core/components/ui/badge";
 import { Button } from "@/core/components/ui/button";
 import { StatCard } from "@/core/components/ui/stat";
 import { PageContent } from "@/core/components/ui/structure";
-import { formatCurrency, formatNumber } from "@/core/utils";
+import { formatNumber } from "@/core/utils";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import type { Brand } from "@/modules/panel/types/brand.type";
 import { EyeIcon } from "@heroicons/react/24/outline";
 import type { ColumnDef } from "@tanstack/react-table";
 import { NavLink } from "react-router";
-import { BrandCard } from "./BrandCard";
+import { useCallback, useEffect, useState } from "react";
+import { apiGetBrands } from "@/modules/panel/services/http/brand.service";
 
-const statsData = [
+// Legacy static data - commented out
+// const statsData = [
+//   {
+//     title: "Listed brands",
+//     value: 380,
+//     barColor: "bg-primary",
+//     icon: true,
+//   },
+//   {
+//     title: "Inactive Brands",
+//     value: 350,
+//     barColor: "bg-blue-300",
+//     icon: false,
+//   },
+//   {
+//     title: "Total Surveys",
+//     value: 550,
+//     barColor: "bg-violet-300",
+//     icon: false,
+//   },
+//   {
+//     title: "Total Products",
+//     value: 860,
+//     barColor: "bg-red-300",
+//     icon: true,
+//   },
+// ];
+
+// export const brandData: Brand[] = [
+//   {
+//     id: 1,
+//     name: "The Derma",
+//     category: "Sensitive Skin",
+//     image: "https://images.thedermaco.com/TheDermaCoLogo2-min.png",
+//     status: "active",
+//     products: 50,
+//     surveys: 50,
+//     promotions: 50,
+//     earnings: 125500,
+//   },
+//   // ... other static data
+// ];
+
+// New dynamic stats data
+const initialStatsData = [
   {
-    title: "Listed brands",
-    value: 380,
+    title: "Total Brands",
+    value: 0, // Will be updated from API
     barColor: "bg-primary",
     icon: true,
   },
   {
-    title: "Inactive Brands",
-    value: 350,
+    title: "Active Brands",
+    value: 0, // Will be updated from API
     barColor: "bg-blue-300",
     icon: false,
   },
   {
-    title: "Total Surveys",
-    value: 550,
+    title: "Total Products",
+    value: 0, // Will be updated from API
     barColor: "bg-violet-300",
     icon: false,
   },
   {
-    title: "Total Products",
-    value: 860,
+    title: "Associated Users",
+    value: 0, // Will be updated from API
     barColor: "bg-red-300",
     icon: true,
-  },
-];
-
-export const brandData: Brand[] = [
-  {
-    id: 1,
-    name: "The Derma",
-    category: "Sensitive Skin",
-    image: "https://images.thedermaco.com/TheDermaCoLogo2-min.png",
-    status: "active",
-    products: 50,
-    surveys: 50,
-    promotions: 50,
-    earnings: 125500,
-  },
-  {
-    id: 2,
-    name: "Glow Essentials",
-    category: "Oily Skin",
-    image:
-      "https://glow-essentials.com/cdn/shop/files/1_8d8dcce1-c8f8-4b82-a871-9144ca10035b_360x.png",
-    status: "inactive",
-    products: 32,
-    surveys: 25,
-    promotions: 12,
-    earnings: 64040,
-  },
-  {
-    id: 3,
-    name: "AcneFix Labs",
-    category: "Acne Treatment",
-    image:
-      "https://www.acnefix.com/cdn/shop/files/ACNEFIX_logo_black_web_ready.png?height=168&v=1681153016",
-    status: "active",
-    products: 35,
-    surveys: 42,
-    promotions: 20,
-    earnings: 94002,
-  },
-  {
-    id: 4,
-    name: "SkinScience Pro",
-    category: "Medical Skincare",
-    image:
-      "https://skinscience.md/wp-content/uploads/2022/07/ss-logo-2022-retina.png",
-    status: "inactive",
-    products: 40,
-    surveys: 38,
-    promotions: 15,
-    earnings: 87000,
-  },
-  {
-    id: 5,
-    name: "EpiGlow",
-    category: "Pigmentation Care",
-    image:
-      "https://images.apollo247.in/images/pharmacy_logo.svg?tr=q-80,w-100,dpr-2,c-at_max",
-    status: "active",
-    products: 28,
-    surveys: 30,
-    promotions: 18,
-    earnings: 65000,
-  },
-  {
-    id: 6,
-    name: "RejuvaDerm",
-    category: "Anti-Aging",
-    image:
-      "https://www.rejuvaderm.ca/wp-content/uploads/2024/04/logonew@1x.png",
-    status: "active",
-    products: 60,
-    surveys: 55,
-    promotions: 40,
-    earnings: 160000,
-  },
-  {
-    id: 7,
-    name: "RejuvaDerm1",
-    category: "Anti-Aging",
-    image:
-      "https://www.rejuvaderm.ca/wp-content/uploads/2024/04/logonew@1x.png",
-    status: "active",
-    products: 60,
-    surveys: 55,
-    promotions: 40,
-    earnings: 160000,
-  },
-  {
-    id: 8,
-    name: "RejuvaDerm2",
-    category: "Anti-Aging",
-    image:
-      "https://www.rejuvaderm.ca/wp-content/uploads/2024/04/logonew@1x.png",
-    status: "active",
-    products: 60,
-    surveys: 55,
-    promotions: 40,
-    earnings: 160000,
   },
 ];
 
 const columns: ColumnDef<Brand>[] = [
   {
     accessorKey: "name",
-    header: "Name",
+    header: "Brand",
     cell: ({ row, getValue }) => (
       <ul className="flex min-w-40 items-center gap-2">
         <Avatar className="size-10 rounded-md border">
           <AvatarImage
             className="object-contain"
-            src={row.original.image}
+            src={row.original.logoImage?.url}
             alt={`${row.original.name} logo`}
           />
           <AvatarFallback className="rounded-md capitalize">
-            {(getValue() as string)?.charAt(1)}
+            {(getValue() as string)?.charAt(0)}
           </AvatarFallback>
         </Avatar>
-        <span> {getValue() as string}</span>
+        <div className="flex flex-col">
+          <span className="font-medium">{getValue() as string}</span>
+          <span className="text-sm text-muted-foreground">{row.original.slug}</span>
+        </div>
       </ul>
     ),
   },
   {
-    accessorKey: "category",
-    header: "Category",
+    accessorKey: "aboutTheBrand",
+    header: "Description",
+    cell: ({ getValue }) => {
+      const description = getValue() as string;
+      const cleanDescription = description.replace(/<[^>]*>/g, ''); // Remove HTML tags
+      return (
+        <span className="text-sm max-w-xs truncate" title={cleanDescription}>
+          {cleanDescription || 'No description'}
+        </span>
+      );
+    },
   },
   {
-    accessorKey: "status",
+    accessorKey: "isActive",
     header: "Status",
-    cell: ({ row }) => {
-      return <StatusBadge module="brand" status={row.original.status} />;
+    cell: ({ getValue }) => {
+      const isActive = getValue() as boolean;
+      return (
+        <StatusBadge 
+          module="brand" 
+          status={isActive ? "active" : "inactive"} 
+        />
+      );
     },
   },
   {
-    accessorKey: "products",
+    accessorKey: "associatedProductsCount",
     header: "Products",
-    meta: {
-      type: "number",
+    cell: ({ getValue }) => {
+      const count = getValue() as number;
+      return <span className="font-medium">{count}</span>;
     },
   },
   {
-    accessorKey: "surveys",
-    header: "Surveys",
+    accessorKey: "associatedUsers",
+    header: "Users",
+    cell: ({ getValue }) => {
+      const count = getValue() as number;
+      return <span className="font-medium">{count}</span>;
+    },
   },
   {
-    accessorKey: "promotions",
-    header: "Promotions",
-  },
-  {
-    accessorKey: "earnings",
-    header: "Earnings",
-    cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("earnings"));
-      return formatCurrency(amount, { useAbbreviation: false });
+    accessorKey: "createdAt",
+    header: "Created",
+    cell: ({ getValue }) => {
+      const date = new Date(getValue() as string);
+      return (
+        <span className="text-sm">
+          {date.toLocaleDateString()}
+        </span>
+      );
     },
   },
   {
@@ -202,14 +172,73 @@ const columns: ColumnDef<Brand>[] = [
     cell: () => {
       return (
         <Button variant="ghost" size="icon" className="">
-          <span className="sr-only">Open Brand Details</span>
+          <span className="sr-only">View Brand Details</span>
           <EyeIcon />
         </Button>
       );
     },
   },
 ];
+
+// Create fetcher for server-side data
+const fetcher = () =>
+  createSimpleFetcher(apiGetBrands, {
+    dataPath: "data.brands",
+    totalPath: "data.totalRecords",
+    filterMapping: {
+      isActive: "isActive",
+    },
+  });
+
 const BrandList = () => {
+  const [stats, setStats] = useState(initialStatsData);
+
+  // Fetch stats separately since we need them for the summary cards
+  const fetchStats = useCallback(async () => {
+    try {
+      const response = await apiGetBrands({ page: 1, limit: 1000 }); // Get all for stats
+      
+      if (response.success) {
+        const totalProducts = response.data.brands.reduce((sum, brand) => sum + brand.associatedProductsCount, 0);
+        const totalUsers = response.data.brands.reduce((sum, brand) => sum + brand.associatedUsers, 0);
+        const activeBrands = response.data.brands.filter(brand => brand.isActive).length;
+        
+        setStats([
+          {
+            title: "Total Brands",
+            value: response.data.totalRecords,
+            barColor: "bg-primary",
+            icon: true,
+          },
+          {
+            title: "Active Brands",
+            value: activeBrands,
+            barColor: "bg-blue-300",
+            icon: false,
+          },
+          {
+            title: "Total Products",
+            value: totalProducts,
+            barColor: "bg-violet-300",
+            icon: false,
+          },
+          {
+            title: "Associated Users",
+            value: totalUsers,
+            barColor: "bg-red-300",
+            icon: true,
+          },
+        ]);
+      }
+    } catch (error) {
+      console.error("Failed to fetch brand stats:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
+
   return (
     <PageContent
       header={{
@@ -223,7 +252,7 @@ const BrandList = () => {
       }}
     >
       <section className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:gap-5 lg:grid-cols-4">
-        {statsData.map((item) => (
+        {stats.map((item) => (
           <StatCard
             key={item.title}
             title={item.title}
@@ -233,12 +262,11 @@ const BrandList = () => {
         ))}
       </section>
 
-      <DataTableToogle
-        rows={brandData}
+      <DataTable
         columns={columns}
-        gridProps={{
-          renderGridItem: (row) => <BrandCard key={row.id} brand={row} />,
-        }}
+        isServerSide
+        fetcher={fetcher()}
+        queryKeyPrefix={PANEL_ROUTES.BRAND.LIST}
       />
     </PageContent>
   );

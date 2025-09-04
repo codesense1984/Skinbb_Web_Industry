@@ -235,6 +235,13 @@ and performance`,
               >
                 Brand
               </ToggleGroupItem>
+              <ToggleGroupItem
+                className="aspect-auto h-full flex-auto px-3"
+                value={`${ANALYTICS_ROUTES.ECOMMERCE.BASE}`}
+                aria-label="Toggle Ecommerce"
+              >
+                Ecommerce
+              </ToggleGroupItem>
             </ToggleGroup>
           </div>
         ),

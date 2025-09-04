@@ -19,5 +19,9 @@ export const analyticsRoutes: RouteObject = {
       path: ANALYTICS_ROUTES.INGREDIENT.BASE,
       Component: lazy(() => import("@/modules/analytics/features/ingredient")),
     },
+    {
+      path: ANALYTICS_ROUTES.ECOMMERCE.BASE,
+      Component: lazy(() => import("@/modules/analytics/features/ecommerce")),
+    },
   ],
 };
