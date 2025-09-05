@@ -126,7 +126,7 @@ const OnboardStatus = () => {
             disabled={checkStatusMutation.isPending || !inputValue.trim()}
             loading={checkStatusMutation.isPending}
             variant="contained"
-            color="primary"
+            color="secondary"
             className="mt-2"
           >
             {checkStatusMutation.isPending ? "Checking..." : "Check Status"}

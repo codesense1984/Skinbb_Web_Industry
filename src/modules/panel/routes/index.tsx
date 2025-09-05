@@ -120,6 +120,12 @@ export const panelOpenRoutes: RouteObject[] = [
           () => import("@/modules/panel/features/company/onboard/status"),
         ),
       },
+      {
+        path: PANEL_ROUTES.ONBOARD.COMPANY_EDIT(),
+        Component: lazy(
+          () => import("@/modules/panel/features/company/onboard/edit"),
+        ),
+      },
     ],
   },
 ];

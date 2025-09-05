@@ -137,7 +137,7 @@ export function DataTableBody<TData>({
             <TableRow key={`loading-${index}`} className="animate-pulse">
               {table.getAllColumns().map((column) => (
                 <TableCell key={`loading-cell-${index}-${column.id}`}>
-                  <div className="bg-muted h-4 w-3/4 rounded"></div>
+                  <div className="bg-muted h-6 w-full rounded"></div>
                 </TableCell>
               ))}
             </TableRow>
@@ -423,7 +423,11 @@ export function DataTable<TData extends object>({
         ></DataTableAction>
       )}
 
-      <DataTableBody table={table} {...bodyProps} />
+      <DataTableBody
+        table={table}
+        isLoading={tableState?.isLoading}
+        {...bodyProps}
+      />
       {showPagination && <DataPagination table={table} {...paginationProps} />}
     </div>
   );

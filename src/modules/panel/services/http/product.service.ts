@@ -44,8 +44,8 @@ export async function apiGetBrandsForDropdown(
 
   const queryString = searchParams.toString();
   const url = queryString
-    ? `${ENDPOINTS.BRAND.MAIN}/all?${queryString}`
-    : `${ENDPOINTS.BRAND.MAIN}/all`;
+    ? `${ENDPOINTS.BRAND.MAIN_ALL}?${queryString}`
+    : ENDPOINTS.BRAND.MAIN_ALL;
 
   return api.get<BrandListResponse>(url, { signal });
 }
@@ -94,9 +94,7 @@ export async function apiGetTagsForDropdown(
 }
 
 // Additional API services for product creation
-export async function apiGetVariationTypes(
-  signal?: AbortSignal,
-): Promise<{
+export async function apiGetVariationTypes(signal?: AbortSignal): Promise<{
   statusCode: number;
   data: {
     productVariationTypes: Array<{ _id: string; name: string; slug: string }>;
@@ -246,7 +244,7 @@ export async function apiGetProductAttributeValues(
   message: string;
   success: boolean;
 }> {
-  const url = `${ENDPOINTS.PRODUCT.ATTRIBUTE_VALUE_LIST}?attributeId=${attributeId}`;
+  const url = ENDPOINTS.PRODUCT.ATTRIBUTE_VALUE_BY_ATTRIBUTE(attributeId);
   return api.get(url, { signal });
 }
 

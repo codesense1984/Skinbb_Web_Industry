@@ -69,7 +69,7 @@ const OnboardLayout = () => {
           </div>
         </div>
         <div className="col-span-7 w-full">
-          <div className="mx-auto h-full w-full max-w-2xl space-y-10 p-4 py-6 md:px-6 md:pt-12 lg:py-0">
+          <div className="mx-auto h-full w-full max-w-2xl space-y-10 p-4 py-6 md:px-6 md:pt-12 lg:pb-0">
             <Outlet />
           </div>
         </div>

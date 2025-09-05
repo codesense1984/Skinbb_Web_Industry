@@ -8,11 +8,11 @@ export async function apiGetOrderList(
   signal?: AbortSignal,
 ): Promise<PaginationApiResponse<{ orders: Order[] }>> {
   return api.get<PaginationApiResponse<{ orders: Order[] }>>(
-    `${ENDPOINTS.ORDER.MAIN}/all`,
+    ENDPOINTS.ORDER.MAIN_ALL,
     { params, signal },
   );
 }
 
 export async function apiGetOrderById<T>(id: string) {
-  return api.get<T>(`${ENDPOINTS.ORDER.MAIN}/${id}`);
+  return api.get<T>(ENDPOINTS.ORDER.MAIN_BY_ID(id));
 }

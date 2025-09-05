@@ -9,6 +9,7 @@ import type {
   CompanyOnboading,
   CompanyOnboardingSubmitRequest,
   CompanyListItem,
+  CompanyDetailDataResponse,
 } from "@/modules/panel/types/company.type";
 import { createFormData } from "@/core/utils/formdata.utils";
 
@@ -21,7 +22,7 @@ export async function apiGetOnboardList<T, U extends Record<string, unknown>>(
 
 // Get onboard entry by ID
 export async function apiGetOnboardById<T>(id: string) {
-  return api.get<T>(`${ENDPOINTS.ONBOARDING.ADMIN}/${id}`);
+  return api.get<T>(ENDPOINTS.ONBOARDING.ADMIN_BY_ID(id));
 }
 
 // Update onboard entry by ID (PUT)
@@ -29,7 +30,7 @@ export async function apiUpdateOnboardById<
   T,
   U extends Record<string, unknown>,
 >(id: string, data: U) {
-  return api.put<T>(`${ENDPOINTS.ONBOARDING.ADMIN}/${id}`, {
+  return api.put<T>(ENDPOINTS.ONBOARDING.ADMIN_BY_ID(id), {
     data,
   });
 }
@@ -94,7 +95,7 @@ export async function apiGetPageDetails<T, U extends Record<string, unknown>>(
 export async function apiGetBrandList<T, U extends Record<string, unknown>>(
   params: U,
 ) {
-  return api.get<T>(`${ENDPOINTS.BRAND.MAIN}/all`, { params });
+  return api.get<T>(ENDPOINTS.BRAND.MAIN_ALL, { params });
 }
 
 // export async function apiCreateBrand(data: BrandReqData) {
@@ -107,7 +108,7 @@ export async function apiGetBrandList<T, U extends Record<string, unknown>>(
 
 // Get brand by ID
 export async function apiGetBrandById<T>(id: string) {
-  return api.get<T>(`${ENDPOINTS.BRAND.MAIN}/${id}`);
+  return api.get<T>(ENDPOINTS.BRAND.MAIN_BY_ID(id));
 }
 
 // Update brand by ID (PUT)
@@ -117,12 +118,12 @@ export async function apiGetBrandById<T>(id: string) {
 
 // Delete brand by ID (PATCH)
 export async function apiDeleteBrandById<T>(id: string) {
-  return api.patch<T>(`${ENDPOINTS.BRAND.MAIN}/${id}`);
+  return api.patch<T>(ENDPOINTS.BRAND.MAIN_BY_ID(id));
 }
 
 // Toggle active/inactive status (PATCH)
 export async function apiToggleBrandStatus<T>(id: string) {
-  return api.patch<T>(`${ENDPOINTS.BRAND.TOGGLE_STATUS}/${id}`);
+  return api.patch<T>(ENDPOINTS.BRAND.TOGGLE_STATUS(id));
 }
 
 // Get company details for dropdown
@@ -146,7 +147,14 @@ export async function apiGetCompanyDropdownList<
 export async function apiGetCompanyDetailById<
   T = ApiResponse<CompanyOnboading>,
 >(companyId: string) {
-  return api.get<T>(`${ENDPOINTS.SELLER.GET_COMPANY_DETAILS}/${companyId}`);
+  return api.get<T>(ENDPOINTS.SELLER.GET_COMPANY_DETAILS(companyId));
+}
+
+// Get company detail data by ID (new endpoint)
+export async function apiGetCompanyDetailData<
+  T = ApiResponse<CompanyDetailDataResponse>,
+>(companyId: string) {
+  return api.get<T>(ENDPOINTS.SELLER.GET_COMPANY_DETAIL_DATA(companyId));
 }
 
 // Check company status by email or phone
@@ -205,7 +213,7 @@ export async function apiUpdateCompanyStatus(
   data: CompanyStatusUpdateRequest,
 ) {
   return api.put<ApiResponse<CompanyStatusUpdateResponse>>(
-    `https://api.skintruth.in/api/v1/sellers/admin/status/${companyId}`,
+    ENDPOINTS.SELLER.UPDATE_STATUS(companyId),
     data,
   );
 }

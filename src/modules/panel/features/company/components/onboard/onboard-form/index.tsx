@@ -173,7 +173,13 @@ export const useOnBoardContext = () => {
   return ctx;
 };
 
-const OnBoardForm = ({ mode = MODE.ADD }: { mode?: MODE }) => {
+const OnBoardForm = ({
+  mode = MODE.ADD,
+  // initialData,
+}: {
+  mode?: MODE;
+  initialData?: unknown;
+}) => {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [currentValue, setCurrentValue] = useState<StepKey>(

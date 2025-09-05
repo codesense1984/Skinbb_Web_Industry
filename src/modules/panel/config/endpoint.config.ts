@@ -17,6 +17,7 @@ export const ENDPOINTS = {
     VERIFY_MOBILE: `${API_PREFIX}/otp/verify`,
     STATUS: `${API_PREFIX}/brands/on-boarding/status`,
     ADMIN: `${API_PREFIX}/brands/on-boarding/admin`, // (was "onboard")
+    ADMIN_BY_ID: (id: string) => `${API_PREFIX}/brands/on-boarding/admin/${id}`,
   },
 
   PAGE: {
@@ -38,6 +39,8 @@ export const ENDPOINTS = {
     CATEGORY_HIERARCHY: `${API_PREFIX}/product-category/admin/all`,
     VARIATION_TYPE: `${API_PREFIX}/product-variation-types/admin`,
     META_FIELD_ATTRIBUTES: `${API_PREFIX}/product-attributes/admin/list`,
+    ATTRIBUTE_VALUE_BY_ATTRIBUTE: (attributeId: string) =>
+      `${API_PREFIX}/product-attributes/admin/value/list?attributeId=${attributeId}`,
   },
 
   MEDIA: {
@@ -46,7 +49,10 @@ export const ENDPOINTS = {
 
   BRAND: {
     MAIN: `${API_PREFIX}/brands/admin`,
-    TOGGLE_STATUS: `${API_PREFIX}/brands/admin/toggle-status`,
+    TOGGLE_STATUS: (id: string) =>
+      `${API_PREFIX}/brands/admin/toggle-status/${id}`,
+    MAIN_BY_ID: (id: string) => `${API_PREFIX}/brands/admin/${id}`,
+    MAIN_ALL: `${API_PREFIX}/brands/admin/all`,
   },
 
   INFO: {
@@ -70,11 +76,15 @@ export const ENDPOINTS = {
 
   SELLER: {
     MAIN: `${API_PREFIX}/sellers/admin`,
-    GET_COMPANY_DETAILS: `${API_PREFIX}/sellers`,
+    GET_COMPANY_DETAILS: (id: string) => `${API_PREFIX}/sellers/${id}`,
+    GET_COMPANY_DETAIL_DATA: (id: string) =>
+      `${API_PREFIX}/sellers/${id}/detailData`,
     GET_COMPANY_LIST: `${API_PREFIX}/sellers/getCompanyNameList`,
     GET_COMPANY_DETAILS_LIST: `${API_PREFIX}/sellers/getCompanyDetails`,
     CHECK_STATUS: `${API_PREFIX}/sellers/check-status`,
     UPDATE_INFO: `${API_PREFIX}/sellers/info`,
+    UPDATE_STATUS: (id: string) =>
+      `https://api.skintruth.in/api/v1/sellers/admin/status/${id}`,
   },
 
   DISCOUNT: {
@@ -87,6 +97,8 @@ export const ENDPOINTS = {
 
   ORDER: {
     MAIN: `${API_PREFIX}/orders/admin`,
+    MAIN_ALL: `${API_PREFIX}/orders/admin/all`,
+    MAIN_BY_ID: (id: string) => `${API_PREFIX}/orders/admin/${id}`,
   },
 
   DASHBOARD: {

@@ -19,8 +19,8 @@ export async function apiGetBrands(
 
   const queryString = searchParams.toString();
   const url = queryString
-    ? `${ENDPOINTS.BRAND.MAIN}/all?${queryString}`
-    : `${ENDPOINTS.BRAND.MAIN}/all`;
+    ? `${ENDPOINTS.BRAND.MAIN_ALL}?${queryString}`
+    : ENDPOINTS.BRAND.MAIN_ALL;
 
   return api.get<BrandListResponse>(url, { signal });
 }

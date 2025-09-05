@@ -1,38 +1,38 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useParams } from "react-router";
-import {
-  apiGetCompanyDetailById,
-  apiUpdateCompanyStatus,
-  type CompanyStatusUpdateRequest,
-} from "../../../services/http/company.service";
-import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
+import { Badge, StatusBadge } from "@/core/components/ui/badge";
+import { Button } from "@/core/components/ui/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@/core/components/ui/card";
-import { Badge, StatusBadge } from "@/core/components/ui/badge";
+import { PageContent } from "@/core/components/ui/structure";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import {
   BuildingOfficeIcon,
+  CalendarIcon,
+  CheckCircleIcon,
   CurrencyDollarIcon,
+  DocumentTextIcon,
   GlobeAltIcon,
+  LinkIcon,
+  MapPinIcon,
+  PhoneIcon,
   ShoppingBagIcon,
   TagIcon,
-  LinkIcon,
-  CalendarIcon,
   UserIcon,
-  PhoneIcon,
-  MapPinIcon,
-  DocumentTextIcon,
-  CheckCircleIcon,
   XCircleIcon,
 } from "@heroicons/react/24/outline";
-import { PageContent } from "@/core/components/ui/structure";
-import { Button } from "@/core/components/ui/button";
-import { useState } from "react";
-import { toast } from "sonner";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
+import { useState } from "react";
+import { useParams } from "react-router";
+import { toast } from "sonner";
+import {
+  apiGetCompanyDetailData,
+  apiUpdateCompanyStatus,
+  type CompanyStatusUpdateRequest,
+} from "../../../services/http/company.service";
 import { CompanyApprovalDialog } from "../components/approval/CompanyApprovalDialog";
 
 const CompanyView = () => {
@@ -47,7 +47,7 @@ const CompanyView = () => {
     error,
   } = useQuery({
     queryKey: [PANEL_ROUTES.COMPANY.DETAIL(id)],
-    queryFn: () => apiGetCompanyDetailById(id!),
+    queryFn: () => apiGetCompanyDetailData(id!),
     enabled: !!id,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -129,7 +129,7 @@ const CompanyView = () => {
     );
   }
 
-  const company = companyData.data;
+  const { company, ownerUser, addresses } = companyData.data;
 
   return (
     <PageContent
@@ -138,11 +138,11 @@ const CompanyView = () => {
         description: "Review company details and manage approval status",
         actions: (
           <div className="flex gap-3">
-            {companyData?.data?.status && (
+            {company?.status && (
               <StatusBadge
                 module={"company"}
                 variant="default"
-                status={companyData?.data?.status}
+                status={company?.status}
               />
             )}
             <Button
@@ -178,12 +178,17 @@ const CompanyView = () => {
                 <StatusBadge
                   module={"company"}
                   variant="contained"
-                  status={companyData?.data?.status}
+                  status={company?.status}
                 />
               </div>
               {company.designation && (
                 <p className="text-sm text-gray-500">
                   Designation: {company.designation}
+                </p>
+              )}
+              {company.companyDescription && (
+                <p className="mt-2 text-sm text-gray-600">
+                  {company.companyDescription}
                 </p>
               )}
             </div>
@@ -206,9 +211,11 @@ const CompanyView = () => {
                 <UserIcon className="h-5 w-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-500"></p>
+                <p className="text-sm text-gray-500">Owner Name</p>
                 <p className="font-medium text-gray-900">
-                  {company.ownerUserId || "N/A"}
+                  {ownerUser
+                    ? `${ownerUser.firstName} ${ownerUser.lastName}`.trim()
+                    : "N/A"}
                 </p>
               </div>
             </div>
@@ -216,6 +223,44 @@ const CompanyView = () => {
             <div className="flex items-center gap-3">
               <div className="rounded-lg bg-green-100 p-2">
                 <PhoneIcon className="h-5 w-5 text-green-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Phone Number</p>
+                <p className="font-medium text-gray-900">
+                  {ownerUser
+                    ? `${ownerUser.countryCode} ${ownerUser.phoneNumber}`
+                    : "N/A"}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-purple-100 p-2">
+                <svg
+                  className="h-5 w-5 text-purple-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Email</p>
+                <p className="font-medium text-gray-900">
+                  {ownerUser?.email || "N/A"}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-orange-100 p-2">
+                <PhoneIcon className="h-5 w-5 text-orange-600" />
               </div>
               <div>
                 <p className="text-sm text-gray-500">Landline Number</p>
@@ -226,8 +271,8 @@ const CompanyView = () => {
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-purple-100 p-2">
-                <DocumentTextIcon className="h-5 w-5 text-purple-600" />
+              <div className="rounded-lg bg-indigo-100 p-2">
+                <DocumentTextIcon className="h-5 w-5 text-indigo-600" />
               </div>
               <div>
                 <p className="text-sm text-gray-500">Designation</p>
@@ -341,6 +386,17 @@ const CompanyView = () => {
                   </p>
                   <p className="font-medium text-gray-900">
                     {company.subsidiaryOfGlobalBusiness ? "Yes" : "No"}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-pink-100 p-2">
+                  <MapPinIcon className="h-5 w-5 text-pink-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Headquarters</p>
+                  <p className="font-medium text-gray-900">
+                    {company.headquartersAddress || "N/A"}
                   </p>
                 </div>
               </div>
@@ -465,15 +521,15 @@ const CompanyView = () => {
       {/* Selling Platforms */}
       {company.sellingOn && company.sellingOn.length > 0 && (
         <Card>
-          <CardHeader>
+          <CardHeader className="border-b">
             <CardTitle className="flex items-center gap-2">
               <GlobeAltIcon className="h-5 w-5" />
               Selling Platforms
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {company.sellingOn.map((platform, index) => (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {company?.sellingOn?.map((platform, index) => (
                 <div
                   key={index}
                   className="flex items-center gap-3 rounded-lg border p-3"
@@ -482,17 +538,15 @@ const CompanyView = () => {
                     <GlobeAltIcon className="h-5 w-5 text-gray-600" />
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium capitalize">
-                      {platform.platform}
-                    </p>
+                    <p className="font-medium capitalize">{platform.platform}</p>
                     <a
-                      href={platform.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm break-all text-blue-600 hover:text-blue-800"
-                    >
-                      {platform.url}
-                    </a>
+                    href={platform.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm break-all text-blue-600 hover:text-blue-800"
+                  >
+                    {platform.url}
+                  </a>
                   </div>
                 </div>
               ))}
@@ -609,7 +663,7 @@ const CompanyView = () => {
       </Card>
 
       {/* Addresses and Brand Profiles */}
-      {company.addresses && company.addresses.length > 0 && (
+      {addresses && addresses.length > 0 && (
         <Card>
           <CardHeader className="border-b">
             <CardTitle className="flex items-center gap-2">
@@ -619,7 +673,7 @@ const CompanyView = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-              {company.addresses.map((address, index) => (
+              {addresses.map((address, index) => (
                 <div key={index} className="rounded-lg border p-4">
                   <div className="mb-4 flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -641,6 +695,13 @@ const CompanyView = () => {
 
                   <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-500">Address:</span>
+                        <span className="font-medium">
+                          {address.addressLine1}
+                          {address.addressLine2 && `, ${address.addressLine2}`}
+                        </span>
+                      </div>
                       <div className="flex items-center gap-2">
                         <span className="text-sm text-gray-500">City:</span>
                         <span className="font-medium">{address.city}</span>
@@ -673,6 +734,14 @@ const CompanyView = () => {
                           </span>
                         </div>
                       )}
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-500">GST:</span>
+                        <span className="font-medium">{address.gstNumber}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-500">PAN:</span>
+                        <span className="font-medium">{address.panNumber}</span>
+                      </div>
                     </div>
                   </div>
 
@@ -686,18 +755,35 @@ const CompanyView = () => {
                         {address.brands.map((brand, brandIndex) => (
                           <div
                             key={brandIndex}
-                            className="flex items-center gap-3 rounded-lg bg-gray-50 p-3"
+                            className="rounded-lg border p-3"
                           >
-                            <div className="rounded-lg bg-purple-100 p-2">
-                              <TagIcon className="h-4 w-4 text-purple-600" />
-                            </div>
-                            <div>
-                              <p className="font-medium text-gray-900">
-                                {brand.name}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                Slug: {brand.slug}
-                              </p>
+                            <div className="flex items-start gap-3">
+                              <div className="rounded-lg bg-purple-100 p-2">
+                                <TagIcon className="h-4 w-4 text-purple-600" />
+                              </div>
+                              <div className="flex-1">
+                                <p className="font-medium text-gray-900">
+                                  {brand.name}
+                                </p>
+                                <p className="text-sm text-gray-500">
+                                  Slug: {brand.slug}
+                                </p>
+                                {brand.aboutTheBrand && (
+                                  <p className="mt-1 text-xs text-gray-600">
+                                    {brand.aboutTheBrand}
+                                  </p>
+                                )}
+                                {brand.websiteUrl && (
+                                  <a
+                                    href={brand.websiteUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="mt-1 text-xs text-blue-600 hover:text-blue-800"
+                                  >
+                                    {brand.websiteUrl}
+                                  </a>
+                                )}
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -787,7 +873,7 @@ const CompanyView = () => {
         isOpen={isApprovalDialogOpen}
         onClose={() => setIsApprovalDialogOpen(false)}
         onApprove={handleApproval}
-        companyName={companyData?.data?.companyName}
+        companyName={company?.companyName}
         isLoading={updateStatusMutation.isPending}
       />
     </PageContent>

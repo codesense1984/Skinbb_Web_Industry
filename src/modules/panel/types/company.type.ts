@@ -213,3 +213,95 @@ export interface CompanyListItem {
   status: string;
   createdAt: string;
 }
+
+// New API response types for detailData endpoint
+export interface OwnerUser {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber: string;
+  countryCode: string;
+  isActive: boolean;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CompanyBrand {
+  _id: string;
+  name: string;
+  slug: string;
+  aboutTheBrand: string;
+  websiteUrl: string | null;
+  isActive: boolean;
+  logoImage: string | null;
+  coverImage: string | null;
+  authorizationLetter: string | null;
+  gstDocument: string | null;
+  panDocument: string | null;
+  createdBy: string;
+  isDeleted: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CompanyAddressDetail {
+  addressId: string;
+  addressType: string;
+  gstNumber: string;
+  panNumber: string;
+  addressLine1: string;
+  addressLine2?: string;
+  landmark?: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+  isPrimary: boolean;
+  createdAt: string;
+  updatedAt: string;
+  brands: CompanyBrand[];
+}
+
+export interface CompanyDetailData {
+  _id: string;
+  ownerUserId: string;
+  companyName: string;
+  companyDescription: string;
+  designation: string;
+  establishedIn: string;
+  headquartersAddress: string;
+  businessType: string;
+  companyCategory: string;
+  subsidiaryOfGlobalBusiness: boolean;
+  cinNumber: string;
+  msmeNumber: string;
+  coiCertificate: string | null;
+  msmeCertificate: string | null;
+  totalSKU: number;
+  productCategory: string[];
+  averageSellingPrice: number;
+  marketingBudget: number;
+  sellingOn: CompanyOnboading["sellingOn"];
+  brandLogo: string;
+  website: string;
+  instagramUrl: string;
+  facebookUrl: string;
+  youtubeUrl: string;
+  landlineNo: string;
+  isCompanyBrand: boolean;
+  isDeleted: boolean;
+  createdAt: string;
+  updatedAt: string;
+  statusChangeReason: string | null;
+  statusChangedAt: string | null;
+  companyId: string;
+  status: string;
+}
+
+export interface CompanyDetailDataResponse {
+  company: CompanyDetailData;
+  ownerUser: OwnerUser;
+  addresses: CompanyAddressDetail[];
+}
