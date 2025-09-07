@@ -228,20 +228,40 @@ export interface OwnerUser {
   updatedAt: string;
 }
 
+export interface CompanyOwner {
+  ownerUserId: string;
+  ownerUser: string;
+  ownerEmail: string;
+  ownerPhone: string;
+  ownerPassword: string;
+  ownerDesignation: string;
+}
+
 export interface CompanyBrand {
   _id: string;
   name: string;
   slug: string;
+  totalSKU: number;
+  instagramUrl: string;
+  facebookUrl: string;
+  youtubeUrl: string;
+  productCategory: string[];
+  averageSellingPrice: number;
+  marketingBudget: number;
+  sellingOn: Array<{
+    platform: string;
+    url: string;
+  }>;
   aboutTheBrand: string;
-  websiteUrl: string | null;
+  websiteUrl: string;
   isActive: boolean;
-  logoImage: string | null;
-  coverImage: string | null;
-  authorizationLetter: string | null;
-  gstDocument: string | null;
-  panDocument: string | null;
+  logoImage: string;
+  coverImage: string;
+  authorizationLetter: string;
   createdBy: string;
   isDeleted: boolean;
+  deletedAt: string | null;
+  deletedBy: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -249,59 +269,51 @@ export interface CompanyBrand {
 export interface CompanyAddressDetail {
   addressId: string;
   addressType: string;
-  gstNumber: string;
-  panNumber: string;
   addressLine1: string;
-  addressLine2?: string;
-  landmark?: string;
   city: string;
   state: string;
   postalCode: string;
   country: string;
   isPrimary: boolean;
+  landmark: string;
+  gstNumber: string;
+  panNumber: string;
+  cinNumber: string;
+  msmeNumber: string;
+  coiCertificate: string;
+  panDocument: string;
+  gstDocument: string;
+  msmeCertificate: string;
+  status: string;
+  statusChangeReason: string;
+  statusChangedAt: string | null;
+  lat: number;
+  lng: number;
   createdAt: string;
   updatedAt: string;
   brands: CompanyBrand[];
 }
 
 export interface CompanyDetailData {
-  _id: string;
-  ownerUserId: string;
-  companyName: string;
-  companyDescription: string;
-  designation: string;
+  companyId: string;
+  logo: string;
   establishedIn: string;
-  headquartersAddress: string;
-  businessType: string;
+  companyName: string;
   companyCategory: string;
+  businessType: string;
   subsidiaryOfGlobalBusiness: boolean;
-  cinNumber: string;
-  msmeNumber: string;
-  coiCertificate: string | null;
-  msmeCertificate: string | null;
-  totalSKU: number;
-  productCategory: string[];
-  averageSellingPrice: number;
-  marketingBudget: number;
-  sellingOn: CompanyOnboading["sellingOn"];
-  brandLogo: string;
+  headquaterLocation: string;
   website: string;
-  instagramUrl: string;
-  facebookUrl: string;
-  youtubeUrl: string;
+  status: string;
   landlineNo: string;
   isCompanyBrand: boolean;
   isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
-  statusChangeReason: string | null;
-  statusChangedAt: string | null;
-  companyId: string;
-  status: string;
+  addresses: CompanyAddressDetail[];
+  owner: CompanyOwner;
 }
 
 export interface CompanyDetailDataResponse {
   company: CompanyDetailData;
-  ownerUser: OwnerUser;
-  addresses: CompanyAddressDetail[];
 }

@@ -36,7 +36,7 @@ export async function apiUpdateOnboardById<
 }
 
 // ---- Onboarding ----
-export async function apiOnboardingSubmit<T>(
+export async function apiOnboardingSubmit<T = ApiResponse<string>>(
   data: CompanyOnboardingSubmitRequest,
 ) {
   // Use generic FormData utility with specific array keys for onboarding

@@ -254,13 +254,10 @@ const OnBoardForm = ({
   const onboardingMutation = useMutation({
     mutationFn: (data: FullCompanyFormType) => {
       const apiData = transformFormDataToApiRequest(data);
-      console.log("🚀 ~ OnBoardForm ~ apiData:", data, apiData);
-      return apiOnboardingSubmit<{ success: boolean; message: string }>(
-        apiData,
-      );
+      return apiOnboardingSubmit(apiData);
     },
-    onSuccess: (response: { success: boolean; message: string }) => {
-      toast.success(response.message || "Profile submitted successfully!");
+    onSuccess: (response) => {
+      toast.success(response?.message || "Profile submitted successfully!");
       setConfirmation([false, undefined]);
       reset(transformApiResponseToFormData());
       qc.invalidateQueries({ queryKey: [ENDPOINTS.SELLER.GET_COMPANY_LIST] });

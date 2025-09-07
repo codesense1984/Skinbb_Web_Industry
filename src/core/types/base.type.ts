@@ -19,6 +19,7 @@ export interface ApiResponse<T> {
   success: boolean;
 }
 
+
 export type PaginationApiResponse<
   K extends Record<string, unknown> = Record<string, unknown>,
 > = ApiResponse<
