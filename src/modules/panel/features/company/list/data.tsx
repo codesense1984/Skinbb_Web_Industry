@@ -1,10 +1,8 @@
-import { TableAction } from "@/core/components/data-table/components/table-action";
 import {
-  AvatarRoot,
-  AvatarFallback,
-  AvatarImage,
-  Avatar,
-} from "@/core/components/ui/avatar";
+  renderActionButton,
+  TableAction,
+} from "@/core/components/data-table/components/table-action";
+import { Avatar } from "@/core/components/ui/avatar";
 import { Badge, StatusBadge } from "@/core/components/ui/badge";
 import { formatDate } from "@/core/utils";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
@@ -12,7 +10,9 @@ import type {
   CompanyList,
   CompanyListItem,
 } from "@/modules/panel/types/company.type";
+import { MapPinIcon } from "@heroicons/react/24/solid";
 import type { ColumnDef } from "@tanstack/react-table";
+import { Link } from "react-router";
 
 export const statsData = [
   {
@@ -223,21 +223,34 @@ export const columns: ColumnDef<CompanyListItem>[] = [
     cell: ({ row }) => {
       return (
         <TableAction
-          view={{
-            // onClick: () => console.log("View company:", row.original._id),
-            to: PANEL_ROUTES.COMPANY.VIEW(row.original._id),
-            tooltip: "View company details",
-          }}
-          edit={{
-            // onClick: () => console.log("Edit company:", row.original._id),
-            to: PANEL_ROUTES.COMPANY.EDIT(row.original._id),
-            tooltip: "Edit company",
-          }}
+          // view={{
+          //   // onClick: () => console.log("View company:", row.original._id),
+          //   to: PANEL_ROUTES.COMPANY.VIEW(row.original._id),
+          //   title: "View company details",
+          // }}
+          // edit={{
+          //   loading: false,
+          //   // onClick: () => console.log("Edit company:", row.original._id),
+          //   to: PANEL_ROUTES.COMPANY.EDIT(row.original._id),
+          //   title: "Edit company",
+          // }}
           // delete={{
           //   onClick: () => console.log("Delete company:", row.original._id),
           //   tooltip: "Delete company",
           // }}
-        />
+        >
+          {renderActionButton(
+            {
+              className: "w-auto px-2 text-muted-foreground",
+              size: "md",
+              variant: "outlined",
+              to: PANEL_ROUTES.COMPANY_LOCATION.LIST(row.original._id),
+              children: "Locations",
+              title: "Locations",
+            },
+            <MapPinIcon className="size-4" />,
+          )}
+        </TableAction>
       );
     },
   },

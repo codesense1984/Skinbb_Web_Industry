@@ -311,6 +311,7 @@ export interface CompanyAddressDetail {
   addressId: string;
   addressType: string;
   addressLine1: string;
+  landlineNumber:string
   city: string;
   state: string;
   postalCode: string;

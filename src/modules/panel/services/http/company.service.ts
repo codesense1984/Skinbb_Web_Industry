@@ -223,11 +223,11 @@ export interface CompanyStatusUpdateResponse {
 }
 
 export async function apiUpdateCompanyStatus(
-  companyId: string,
+  locationId: string,
   data: CompanyStatusUpdateRequest,
 ) {
   return api.put<ApiResponse<CompanyStatusUpdateResponse>>(
-    ENDPOINTS.SELLER.UPDATE_STATUS(companyId),
+    ENDPOINTS.SELLER.UPDATE_STATUS(locationId),
     data,
   );
 }

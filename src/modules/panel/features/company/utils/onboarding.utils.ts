@@ -272,7 +272,7 @@ export function transformApiResponseToFormData(
     companyName: apiData.companyName || defaultValues.companyName,
     businessType: apiData.businessType || defaultValues.businessType,
     category: apiData.companyCategory || defaultValues.category,
-    
+
     website: apiData.website || defaultValues.website,
     isSubsidiary: String(apiData.subsidiaryOfGlobalBusiness || false),
     headquarterLocation:
@@ -289,7 +289,7 @@ export function transformApiResponseToFormData(
               addressType: address.addressType as "registered" | "office",
               address: address.addressLine1 || "",
               landmark: address.landmark || "",
-              phoneNumber: apiData.landlineNo || "",
+              phoneNumber: address.landlineNumber || "",
               country: address.country || "",
               state: address.state || "",
               city: address.city || "",

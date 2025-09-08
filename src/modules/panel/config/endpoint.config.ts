@@ -19,6 +19,8 @@ export const ENDPOINTS = {
     ADMIN: `${API_PREFIX}/brands/on-boarding/admin`, // (was "onboard")
     ADMIN_BY_ID: (id: string) => `${API_PREFIX}/brands/on-boarding/admin/${id}`,
     COMPANY_DETAILS: (id: string) => `${API_PREFIX}/onboard/company/${id}`,
+    COMPANY_LOCATION_DETAILS: (id: string, locationId: string) =>
+      `${API_PREFIX}/onboard/${id}/locations/${locationId}/onboarding`,
     COMPANY_CHECK_STATUS: `${API_PREFIX}/onboard/status`,
   },
 
@@ -94,8 +96,8 @@ export const ENDPOINTS = {
     GET_COMPANY_DETAILS_LIST: `${API_PREFIX}/sellers/getCompanyDetails`,
     // CHECK_STATUS: `${API_PREFIX}/sellers/check-status`,
     UPDATE_INFO: `${API_PREFIX}/sellers/info`,
-    UPDATE_STATUS: (id: string) =>
-      `https://api.skintruth.in/api/v1/sellers/admin/status/${id}`,
+    UPDATE_STATUS: (addressId: string) =>
+      `${API_PREFIX}/sellers/admin/address/${addressId}/status`,
   },
 
   DISCOUNT: {
