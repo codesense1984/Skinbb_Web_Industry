@@ -27,7 +27,7 @@ const Thankyou = () => {
       </p>
 
       <div className="flex gap-4 pt-4">
-        <Button color={"secondary"} asChild>
+        <Button size={"lg"} color={"secondary"} asChild>
           <Link to={PANEL_ROUTES.ONBOARD.COMPANY} replace>
             Back to Home
           </Link>

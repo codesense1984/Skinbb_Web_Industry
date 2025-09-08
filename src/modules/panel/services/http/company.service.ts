@@ -144,6 +144,12 @@ export async function apiGetCompanyDropdownList<
 }
 
 // Get company details by ID
+export async function apiGetOnboardCompanyDetailById<
+  T = { company: CompanyOnboading },
+>(companyId: string) {
+  return api.get<T>(ENDPOINTS.ONBOARDING.COMPANY_DETAILS(companyId));
+}
+
 export async function apiGetCompanyDetailById<
   T = ApiResponse<CompanyOnboading>,
 >(companyId: string) {
@@ -157,29 +163,32 @@ export async function apiGetCompanyDetailData<
   return api.get<T>(ENDPOINTS.SELLER.GET_COMPANY_DETAIL_DATA(companyId));
 }
 
-// Check company status by email or phone
+// Check company status by email
 export interface ApiRequestCheckStatusParams {
-  email?: string;
-  phoneNumber?: string;
+  email: string;
+}
+
+export interface CompanyAddressStatus {
+  addressId: string;
+  status: string;
+  statusChangeReason: string;
+  statusChangedAt: string | null;
+  addressType: string;
+  location: string;
 }
 
 export interface CompanyStatusData {
-  _id: string;
+  companyId: string;
   companyName: string;
-  status: string;
-  statusChangeReason?: string;
-  statusChangedAt: string;
-  createdAt: string;
-  updatedAt: string;
+  addresses: CompanyAddressStatus[];
 }
 
-export async function apiCheckCompanyStatus(
+export async function apiGetOnboardingCheckStatus(
   params: ApiRequestCheckStatusParams,
 ) {
-  return api.get<ApiResponse<CompanyStatusData>>(
-    ENDPOINTS.SELLER.CHECK_STATUS,
-    { params },
-  );
+  return api.get<CompanyStatusData>(ENDPOINTS.ONBOARDING.COMPANY_CHECK_STATUS, {
+    params,
+  });
 }
 
 // Get company list with pagination

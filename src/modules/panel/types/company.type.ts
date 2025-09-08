@@ -60,10 +60,19 @@ export interface CompanyList
 // Onboarding API request interface
 export interface CompanyOnboardingSubmitRequest
   extends Record<string, unknown> {
-  _id?: string | null;
+  companyId?: string | null;
+  logo?: string;
+  gst: File;
+  pan: File;
+  authorizationLetter: File;
+  coiCertificate: File;
+  msmeCertificate: File;
+
   ownerName: string;
   ownerEmail: string;
   phoneNumber: string;
+  headquartersAddress: string;
+  subsidiaryOfGlobalBusiness: boolean;
   password: string;
   roleId: string;
   companyName: string;
@@ -159,44 +168,25 @@ export interface CompanyAddressInfo {
 }
 
 export interface CompanyOnboading {
-  _id: string;
-  brandLogo?: string;
-  logo?: string;
-  ownerUserId: string;
+  companyId: string;
+  logo: string;
+  establishedIn: string;
   companyName: string;
-  designation?: string;
-  businessType: string;
   companyCategory: string;
-  companyDescription?: string;
+  companyDescription: string;
+  businessType: string;
   subsidiaryOfGlobalBusiness: boolean;
-  headquartersAddress: string;
-  cinNumber: string;
-  msmeNumber: string;
-  coiCertificate?: string;
-  msmeCertificate?: string;
-  totalSKU: number;
-  productCategory: string[];
-  averageSellingPrice: number;
-  marketingBudget: number;
-  sellingOn: Array<{
-    platform: string;
-    url: string;
-  }>;
+  headquaterLocation: string;
   website: string;
-  instagramUrl: string;
-  facebookUrl: string;
-  youtubeUrl: string;
+  status: string;
   landlineNo: string;
   isCompanyBrand: boolean;
   isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
-  statusChangeReason?: string;
-  statusChangedAt?: string;
-  companyId: string;
-  status: string;
-  establishedIn?: string;
-  addresses: CompanyAddressInfo[];
+  addresses: CompanyAddressDetail[];
+  owner: CompanyOwner;
+  
 }
 
 // API response type for company list (sellers)

@@ -75,9 +75,16 @@ export function transformFormDataToApiRequest(
 
   const apiData: CompanyOnboardingSubmitRequest = {
     companyId: formData?._id || null,
+    // Required File properties - will be overridden later if files exist
+    gst: new File([], ""),
+    pan: new File([], ""),
+    authorizationLetter: new File([], ""),
+    coiCertificate: new File([], ""),
+    msmeCertificate: new File([], ""),
     ownerName: formData.name || "",
     ownerEmail: formData.email || "",
     phoneNumber: formData.phoneNumber || "",
+    designation: formData.designation || "",
     password: formData.password || "",
     roleId,
     companyName: formData.companyName || "",
@@ -101,6 +108,10 @@ export function transformFormDataToApiRequest(
     brandName: formData.brandName || "",
     brandDescription: formData.description || "",
     brandWebsite: formData.website || "",
+    totalSKU: formData.totalSkus || "",
+    averageSellingPrice: formData.averageSellingPrice || "",
+    marketingBudget: formData.marketingBudget || "",
+    productCategory: formData.productCategory || [],
     addresses: primaryAddress
       ? [
           {
@@ -147,7 +158,7 @@ export function transformFormDataToApiRequest(
   }
 
   if (authDoc?.url_files && authDoc.url_files.length > 0) {
-    apiData.authorizationLetter = authDoc.url_files;
+    apiData.authLetter = authDoc.url_files;
   }
 
   if (coiDoc?.url_files && coiDoc.url_files.length > 0) {
@@ -244,9 +255,15 @@ export function transformApiResponseToFormData(
   // Merge API data with default values
   const mergedData: FullCompanyFormType = {
     ...defaultValues,
-    _id: apiData._id || defaultValues._id,
-    logo: apiData?.brandLogo || defaultValues.brand_logo,
-    // logo: apiData?.logo || defaultValues.logo,
+    _id: apiData.companyId || defaultValues._id,
+    // Personal details from owner object
+    name: apiData.owner?.ownerUser || defaultValues.name,
+    email: apiData.owner?.ownerEmail || defaultValues.email,
+    designation: apiData.owner?.ownerDesignation || defaultValues.designation,
+    phoneNumber: apiData.owner?.ownerPhone || defaultValues.phoneNumber,
+    // Company logo
+    logo: apiData.logo || defaultValues.logo,
+    // Brand details from first address's brands
     brands:
       apiData?.addresses?.flatMap(
         (address) => address.brands?.map((brand) => brand.name) || [],
@@ -255,21 +272,22 @@ export function transformApiResponseToFormData(
     companyName: apiData.companyName || defaultValues.companyName,
     businessType: apiData.businessType || defaultValues.businessType,
     category: apiData.companyCategory || defaultValues.category,
+    
     website: apiData.website || defaultValues.website,
     isSubsidiary: String(apiData.subsidiaryOfGlobalBusiness || false),
     headquarterLocation:
-      apiData.headquartersAddress || defaultValues.headquarterLocation,
+      apiData.headquaterLocation || defaultValues.headquarterLocation,
     establishedIn: apiData.establishedIn
       ? convertEstablishedInToMonthFormat(apiData.establishedIn)
       : defaultValues.establishedIn,
-    description: apiData.companyDescription || defaultValues.description,
+    description: apiData.companyDescription || defaultValues.description, // No description field in new API structure
     isCreatingNewCompany: defaultValues.isCreatingNewCompany,
     address:
       apiData.addresses && apiData.addresses.length > 0
         ? [
             ...apiData.addresses.map((address) => ({
-              addressType: address.addressType,
-              address: address.landmark || "",
+              addressType: address.addressType as "registered" | "office",
+              address: address.addressLine1 || "",
               landmark: address.landmark || "",
               phoneNumber: apiData.landlineNo || "",
               country: address.country || "",

@@ -9,8 +9,8 @@ import { useImagePreview } from "@/core/hooks/useImagePreview";
 import { MODE } from "@/core/types";
 import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
 import {
-  apiGetCompanyDetailById,
   apiGetCompanyDropdownList,
+  apiGetOnboardCompanyDetailById,
 } from "@/modules/panel/services/http/company.service";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { useQuery } from "@tanstack/react-query";
@@ -97,10 +97,12 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
       setIsLoadingCompanyDetails(true);
       try {
         // Call the API to get detailed company information
-        const response = await apiGetCompanyDetailById(selectedCompany._id);
+        const response = await apiGetOnboardCompanyDetailById(
+          selectedCompany._id,
+        );
 
-        if (response.data && response.success) {
-          reset(transformApiResponseToFormData(response.data));
+        if (response.company) {
+          reset(transformApiResponseToFormData(response.company));
         } else {
           toast.error("Failed to fetch company details");
         }
