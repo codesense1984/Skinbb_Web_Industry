@@ -172,12 +172,12 @@ import {
 } from "@/core/components/ui/form-input";
 import { PageContent } from "@/core/components/ui/structure";
 import { useImagePreview } from "@/core/hooks/useImagePreview";
-import { MODE } from "@/core/types";
+import { MODE } from "@/core/types/base.type";
 import { apiGetAllProductCategories } from "@/modules/panel/services/http/master.service";
 import { apiGetBrandById } from "@/modules/panel/services/http/company.service";
 import { useQuery } from "@tanstack/react-query";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
-import { useParams } from "react-router";
+import { useParams, useLocation } from "react-router";
 import { useEffect } from "react";
 import {
   brandFormSchema,
@@ -187,7 +187,43 @@ import {
 
 const BrandForm = () => {
   const { id } = useParams();
-  const mode = id ? MODE.EDIT : MODE.ADD;
+  const location = useLocation();
+  const pathname = location.pathname;
+  
+  // Force re-render debugging
+  console.log("=== BRAND FORM COMPONENT MOUNTED/RE-RENDERED ===");
+  console.log("Full location object:", location);
+  console.log("Current pathname:", pathname);
+  console.log("Current search:", location.search);
+  console.log("Current hash:", location.hash);
+  
+  // Determine mode based on URL path
+  let mode = MODE.ADD;
+  if (id) {
+    if (pathname.endsWith('/view')) {
+      mode = MODE.VIEW;
+      console.log("DETECTED VIEW MODE - pathname ends with /view");
+    } else if (pathname.endsWith('/edit')) {
+      mode = MODE.EDIT;
+      console.log("DETECTED EDIT MODE - pathname ends with /edit");
+    } else {
+      mode = MODE.EDIT; // fallback
+      console.log("DETECTED FALLBACK MODE - defaulting to EDIT");
+    }
+  }
+  
+  // Debug logging
+  console.log("Brand Form Debug:", {
+    id,
+    pathname,
+    mode,
+    isViewMode: mode === MODE.VIEW,
+    isEditMode: mode === MODE.EDIT,
+    isAddMode: mode === MODE.ADD,
+    pathnameIncludesView: pathname.includes('/view/'),
+    pathnameIncludesEdit: pathname.includes('/edit/'),
+    MODE_VALUES: { ADD: MODE.ADD, EDIT: MODE.EDIT, VIEW: MODE.VIEW }
+  });
   
   const form = useForm<BrandFormData>({
     defaultValues: defaultValues,
@@ -195,26 +231,29 @@ const BrandForm = () => {
   
   const { control, setValue, handleSubmit, reset } = form;
 
-  // Fetch brand data for edit mode
+  // Fetch brand data for edit and view modes
   const { data: brandData, isLoading: isLoadingBrand, error: brandError } = useQuery({
     queryKey: ["brand", id],
     queryFn: () => {
       console.log("Fetching brand data for ID:", id);
       return apiGetBrandById<{ data: any }>(id!);
     },
-    enabled: !!id && mode === MODE.EDIT,
+    enabled: !!id && (mode === MODE.EDIT || mode === MODE.VIEW),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Populate form with existing data when in edit mode
+  // Populate form with existing data when in edit or view mode
   useEffect(() => {
-    if (brandData && mode === MODE.EDIT) {
+    if (brandData && (mode === MODE.EDIT || mode === MODE.VIEW)) {
       console.log("Brand data received:", brandData);
       const brand = brandData.data || brandData;
       console.log("Brand object:", brand);
       console.log("Description field (aboutTheBrand):", brand.aboutTheBrand);
       console.log("Status field (isActive):", brand.isActive);
       console.log("Logo field (logoImage):", brand.logoImage);
+      console.log("Logo URL:", brand.logoImage?.url);
+      console.log("Authorization letter:", brand.authorizationLetter);
+      console.log("Authorization letter URL:", brand.authorizationLetter?.url);
       console.log("Name field:", brand.name);
       
       const formData = {
@@ -232,7 +271,7 @@ const BrandForm = () => {
         youtube_url: (brand as any).youtube_url || (brand as any).youtube || "",
         sellingOn: (brand as any).sellingOn || (brand as any).platforms || [],
         brand_authorization_letter_files: [],
-        brand_authorization_letter: (brand as any).brand_authorization_letter || (brand as any).authorization_letter || "",
+        brand_authorization_letter: brand.authorizationLetter?.url || (brand as any).brand_authorization_letter || (brand as any).authorization_letter || "",
       };
       
       console.log("Form data being set:", formData);
@@ -252,6 +291,11 @@ const BrandForm = () => {
     control,
     name: "brand_logo_files",
   })?.[0];
+
+  const existingLogoUrl = useWatch({
+    control,
+    name: "brand_logo",
+  });
 
   const sellingOn =
     useWatch({
@@ -273,7 +317,7 @@ const BrandForm = () => {
       label: item.name,
     })) ?? [];
 
-  const { element } = useImagePreview(profileData, {
+  const { element } = useImagePreview(profileData, existingLogoUrl, {
     clear: () => {
       setValue("brand_logo_files", []);
       setValue("brand_logo", "");
@@ -351,7 +395,7 @@ const BrandForm = () => {
   };
 
   // Show loading state while fetching brand data
-  if (isLoadingBrand && mode === MODE.EDIT) {
+  if (isLoadingBrand && (mode === MODE.EDIT || mode === MODE.VIEW)) {
     return (
       <PageContent
         header={{
@@ -374,7 +418,7 @@ const BrandForm = () => {
   }
 
   // Show error state if fetching failed
-  if (brandError && mode === MODE.EDIT) {
+  if (brandError && (mode === MODE.EDIT || mode === MODE.VIEW)) {
     return (
       <PageContent
         header={{
@@ -397,14 +441,24 @@ const BrandForm = () => {
     );
   }
 
+  // Force re-render when pathname changes
+  useEffect(() => {
+    console.log("=== PATHNAME CHANGED ===");
+    console.log("New pathname:", pathname);
+    console.log("New mode:", mode);
+  }, [pathname, mode]);
+
+  // Debug the mode before rendering
+  console.log("Rendering Brand Form with mode:", mode, "Title will be:", mode === MODE.VIEW ? "View Brand" : mode === MODE.EDIT ? "Edit Brand" : "Create Brand");
+
   return (
     <Form {...form}>
-      <PageContent
-        header={{
-          title: mode === MODE.EDIT ? "Edit Brand" : "Create Brand",
-          description: mode === MODE.EDIT ? "Update your brand information" : "Add a new brand to your portfolio",
-        }}
-      >
+       <PageContent
+         header={{
+           title: mode === MODE.VIEW ? "View Brand" : mode === MODE.EDIT ? "Edit Brand" : "Create Brand",
+           description: mode === MODE.VIEW ? "View brand information" : mode === MODE.EDIT ? "Update your brand information" : "Add a new brand to your portfolio",
+         }}
+       >
         <div className="w-full">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -420,16 +474,16 @@ const BrandForm = () => {
                       {element}
                     </div>
                     <div className="flex left-0 col-span-1">
-                      <FormFieldsRenderer<BrandFormData>
-                        className="w-full grid-cols-1"
-                        control={control}
-                        fieldConfigs={
-                          brandFormSchema.uploadbrandImage.map(field => ({
-                            ...field,
-                            mode,
-                          })) as FormFieldConfig<BrandFormData>[]
-                        }
-                      />
+                       <FormFieldsRenderer<BrandFormData>
+                         className="w-full grid-cols-1"
+                         control={control}
+                         fieldConfigs={
+                           brandFormSchema.uploadbrandImage.map(field => ({
+                             ...field,
+                             disabled: mode === MODE.VIEW,
+                           })) as FormFieldConfig<BrandFormData>[]
+                         }
+                       />
                     </div>
                   </div>
                 </div>
@@ -440,17 +494,17 @@ const BrandForm = () => {
                     Brand Information
                   </h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FormFieldsRenderer<BrandFormData>
-                      control={control}
-                      fieldConfigs={
-                        brandFormSchema.brand_information.map(field => ({
-                          ...field,
-                          mode,
-                          ...(field.name === "product_category" && { options: formatted }),
-                        })) as FormFieldConfig<BrandFormData>[]
-                      }
-                      className="contents"
-                    />
+                     <FormFieldsRenderer<BrandFormData>
+                       control={control}
+                       fieldConfigs={
+                         brandFormSchema.brand_information.map(field => ({
+                           ...field,
+                           disabled: mode === MODE.VIEW,
+                           ...(field.name === "product_category" && { options: formatted }),
+                         })) as FormFieldConfig<BrandFormData>[]
+                       }
+                       className="contents"
+                     />
                   </div>
                 </div>
               </div>
@@ -462,16 +516,16 @@ const BrandForm = () => {
                   <h2 className="text-xl font-semibold text-gray-900">
                     Social Media URLs
                   </h2>
-                  <FormFieldsRenderer<BrandFormData>
-                    control={control}
-                    fieldConfigs={
-                      brandFormSchema.social_media_urls.map(field => ({
-                        ...field,
-                        mode,
-                      })) as FormFieldConfig<BrandFormData>[]
-                    }
-                    className="!grid !grid-cols-1 !sm:grid-cols-2 !gap-4"
-                  />
+                   <FormFieldsRenderer<BrandFormData>
+                     control={control}
+                     fieldConfigs={
+                       brandFormSchema.social_media_urls.map(field => ({
+                         ...field,
+                         disabled: mode === MODE.VIEW,
+                       })) as FormFieldConfig<BrandFormData>[]
+                     }
+                     className="!grid !grid-cols-1 !sm:grid-cols-2 !gap-4"
+                   />
                 </div>
 
                 {/* Selling Platforms Section */}
@@ -485,16 +539,16 @@ const BrandForm = () => {
                         Add the platforms where you sell your products
                       </p>
                     </div>
-                    <Button
-                      type="button"
-                      variant="outlined"
-                      color={"primary"}
-                      onClick={addPlatform}
-                      disabled={hasEmptyPlatforms}
-                      className="text-sm px-4 py-2"
-                    >
-                      + Add Platform
-                    </Button>
+                     <Button
+                       type="button"
+                       variant="outlined"
+                       color={"primary"}
+                       onClick={addPlatform}
+                       disabled={hasEmptyPlatforms || mode === MODE.VIEW}
+                       className="text-sm px-4 py-2"
+                     >
+                       + Add Platform
+                     </Button>
                   </div>
 
                   {sellingOn.map((_, index) => (
@@ -502,36 +556,40 @@ const BrandForm = () => {
                       key={index}
                       className="grid grid-cols-1 gap-4 p-4 border border-gray-200 rounded-lg bg-gray-50"
                     >
-                      <FormFieldsRenderer<BrandFormData>
-                        control={control}
-                        fieldConfigs={[
-                          {
-                            type: "select",
-                            name: `sellingOn.${index}.platform`,
-                            label: "Platform",
-                            placeholder: "Select platform",
-                            options: getAvailablePlatformOptions(index),
-                          },
-                          {
-                            type: "text",
-                            name: `sellingOn.${index}.url`,
-                            label: "URL",
-                            placeholder: "Enter platform URL",
-                          },
-                        ]}
-                        className="!grid !grid-cols-1 !sm:grid-cols-2 !gap-4"
-                      />
-                      <div className="flex justify-end">
-                        <Button
-                          type="button"
-                          variant="outlined"
-                          color="destructive"
-                          onClick={() => remove(index)}
-                          className="text-sm px-3 py-1"
-                        >
-                          Remove
-                        </Button>
-                      </div>
+                       <FormFieldsRenderer<BrandFormData>
+                         control={control}
+                         fieldConfigs={[
+                           {
+                             type: "select",
+                             name: `sellingOn.${index}.platform`,
+                             label: "Platform",
+                             placeholder: "Select platform",
+                             options: getAvailablePlatformOptions(index),
+                             disabled: mode === MODE.VIEW,
+                           },
+                           {
+                             type: "text",
+                             name: `sellingOn.${index}.url`,
+                             label: "URL",
+                             placeholder: "Enter platform URL",
+                             disabled: mode === MODE.VIEW,
+                           },
+                         ]}
+                         className="!grid !grid-cols-1 !sm:grid-cols-2 !gap-4"
+                       />
+                       {mode !== MODE.VIEW && (
+                         <div className="flex justify-end">
+                           <Button
+                             type="button"
+                             variant="outlined"
+                             color="destructive"
+                             onClick={() => remove(index)}
+                             className="text-sm px-3 py-1"
+                           >
+                             Remove
+                           </Button>
+                         </div>
+                       )}
                     </div>
                   ))}
 
@@ -572,38 +630,40 @@ const BrandForm = () => {
                   <h2 className="text-xl font-semibold text-gray-900">
                     Brand Authorization Letter
                   </h2>
-                  <FormFieldsRenderer<BrandFormData>
-                    control={control}
-                    fieldConfigs={
-                      brandFormSchema.brand_authorization_letter.map(field => ({
-                        ...field,
-                        mode,
-                      })) as FormFieldConfig<BrandFormData>[]
-                    }
-                    className="!grid !grid-cols-1 !sm:grid-cols-2 !gap-4"
-                  />
+                   <FormFieldsRenderer<BrandFormData>
+                     control={control}
+                     fieldConfigs={
+                       brandFormSchema.brand_authorization_letter.map(field => ({
+                         ...field,
+                         disabled: mode === MODE.VIEW,
+                       })) as FormFieldConfig<BrandFormData>[]
+                     }
+                     className="!grid !grid-cols-1 !sm:grid-cols-2 !gap-4"
+                   />
                 </div>
               </div>
             </div>
 
-            {/* Form Actions */}
-            <div className="flex justify-end gap-4 pt-8 border-t border-gray-200">
-              <Button 
-                type="button" 
-                variant="outlined" 
-                onClick={() => reset()}
-                className="px-6 py-2"
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="submit" 
-                color="primary"
-                className="px-6 py-2"
-              >
-                {mode === MODE.EDIT ? "Update Brand" : "Create Brand"}
-              </Button>
-            </div>
+             {/* Form Actions - Only show for ADD and EDIT modes */}
+             {mode !== MODE.VIEW && (
+               <div className="flex justify-end gap-4 pt-8 border-t border-gray-200">
+                 <Button 
+                   type="button" 
+                   variant="outlined" 
+                   onClick={() => reset()}
+                   className="px-6 py-2"
+                 >
+                   Cancel
+                 </Button>
+                 <Button 
+                   type="submit" 
+                   color="primary"
+                   className="px-6 py-2"
+                 >
+                   {mode === MODE.EDIT ? "Update Brand" : "Create Brand"}
+                 </Button>
+               </div>
+             )}
           </form>
         </div>
       </PageContent>

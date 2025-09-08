@@ -23,7 +23,7 @@ export const BrandCard: FC<BrandCardProps> = ({ brand }) => {
   const cleanDescription = brand.aboutTheBrand.replace(/<[^>]*>/g, ""); // Remove HTML tags
 
   return (
-    <NavLink to={PANEL_ROUTES.BRAND.EDIT(brand._id)}>
+    <NavLink to={PANEL_ROUTES.BRAND.VIEW(brand._id)}>
       <article className="bg-background hover:ring-primary flex flex-col gap-4 rounded-md p-4 shadow-md hover:ring-3 md:p-5">
         <header className="flex items-center gap-3">
           <img

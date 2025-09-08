@@ -30,6 +30,8 @@ export const PANEL_ROUTES = {
     CREATE: ROUTE.build(BRAND_BASE, ROUTE.seg.create), // /brand/create
     EDIT: (id: string = ROUTE.seg.id) =>
       ROUTE.build(BRAND_BASE, id, ROUTE.seg.edit), // /brand/edit/:id
+    VIEW: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(BRAND_BASE, id, ROUTE.seg.view), // /brand/view/:id
   },
   // ---- Order ----
   ORDER: {
@@ -59,6 +61,10 @@ export const PANEL_ROUTES = {
     // VIEW: (id: string = ROUTE.seg.id) =>
     //   ROUTE.build(COMPANY_BASE, id, ROUTE.seg.view), // /company/edit/:id
     DETAIL: (id: string = ROUTE.seg.id) => ROUTE.build(COMPANY_BASE, id), // /company/:id
+    USERS: (id: string = ROUTE.seg.id) => ROUTE.build(COMPANY_BASE, id, "users"), // /company/:id/users
+    USER_CREATE: (id: string = ROUTE.seg.id) => ROUTE.build(COMPANY_BASE, id, "users", ROUTE.seg.create), // /company/:id/users/create
+    USER_EDIT: (id: string = ROUTE.seg.id, userId: string = ROUTE.seg.id) => ROUTE.build(COMPANY_BASE, id, "users", userId, ROUTE.seg.edit), // /company/:id/users/:userId/edit
+    USER_VIEW: (id: string = ROUTE.seg.id, userId: string = ROUTE.seg.id) => ROUTE.build(COMPANY_BASE, id, "users", userId, ROUTE.seg.view), // /company/:id/users/:userId/view
     // ONBOARD: ROUTE.build(COMPANY_BASE, ROUTE.seg.onboard), // /company/onboard
   },
 

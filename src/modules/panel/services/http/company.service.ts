@@ -2,7 +2,6 @@ import { api } from "@/core/services/http";
 import { ENDPOINTS } from "../../config/endpoint.config";
 import type {
   ApiResponse,
-  PaginationApiResponse,
   PaginationParams,
 } from "@/core/types";
 import type {
@@ -230,4 +229,103 @@ export async function apiUpdateCompanyStatus(
     ENDPOINTS.SELLER.UPDATE_STATUS(locationId),
     data,
   );
+}
+
+// Get company details for onboarding format
+export async function apiGetCompanyDetailsForOnboarding<T = ApiResponse<{
+  company: {
+    companyId: string;
+    logo: string;
+    establishedIn: string;
+    companyName: string;
+    companyCategory: string;
+    businessType: string;
+    subsidiaryOfGlobalBusiness: boolean;
+    headquaterLocation: string;
+    website: string;
+    status: string;
+    landlineNo: string;
+    isCompanyBrand: boolean;
+    isDeleted: boolean;
+    createdAt: string;
+    updatedAt: string;
+    addresses: Array<{
+      addressId: string;
+      addressType: string;
+      addressLine1: string;
+      addressLine2: string;
+      city: string;
+      state: string;
+      postalCode: string;
+      country: string;
+      isPrimary: boolean;
+      landmark: string;
+      gstNumber: string;
+      panNumber: string;
+      cinNumber: string;
+      msmeNumber: string;
+      landlineNumber: string;
+      coiCertificate: string;
+      panCertificate: string;
+      gstCertificate: string;
+      msmeCertificate: string;
+      status: string;
+      statusChangeReason: string;
+      statusChangedAt: string;
+      lat: number;
+      lng: number;
+      createdAt: string;
+      updatedAt: string;
+      brands: Array<{
+        _id: string;
+        name: string;
+        slug: string;
+        totalSKU: number;
+        instagramUrl: string;
+        facebookUrl: string;
+        youtubeUrl: string;
+        productCategory: string[];
+        averageSellingPrice: number;
+        marketingBudget: number;
+        sellingOn: Array<{
+          platform: string;
+          url: string;
+        }>;
+        aboutTheBrand: string;
+        websiteUrl: string;
+        isActive: boolean;
+        logoImage: string;
+        coverImage: string;
+        authorizationLetter: string;
+        createdBy: string;
+        isDeleted: boolean;
+        deletedAt: string;
+        deletedBy: string;
+        createdAt: string;
+        updatedAt: string;
+      }>;
+    }>;
+    owner: {
+      ownerUserId: string;
+      ownerUser: string;
+      ownerEmail: string;
+      ownerPhone: string;
+      ownerPassword: string;
+      ownerDesignation: string;
+    };
+  };
+}>>(companyId: string) {
+  return api.get<T>(ENDPOINTS.ONBOARDING.COMPANY_DETAILS(companyId));
+}
+
+// Get company users
+export async function apiGetCompanyUsers<
+  T = ApiResponse<{
+    items: any[];
+    page: number;
+    limit: number;
+    total: number;
+  }>,
+>(companyId: string, params?: PaginationParams, signal?: AbortSignal) {
+  return api.get<T>(ENDPOINTS.COMPANY.USERS(companyId), { params, signal });
 }
