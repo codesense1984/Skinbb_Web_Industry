@@ -25,67 +25,67 @@ import {
 } from '@/modules/panel/services/http/product.service'
 
 interface ProductCreateData {
-    productName: string;
-    slug: string;
-    description?: string;
-    status: 'draft' | 'publish';
-    price: number;
-    salePrice: number;
-    quantity: number;
-    sku?: string;
-    brand: string;
-    productVariationType: string;
-    productCategory: string[];
-    tags?: string[];
-    marketedBy?: string;
-    marketedByAddress?: string;
-    manufacturedBy?: string;
-    manufacturedByAddress?: string;
-    importedBy?: string;
-    importedByAddress?: string;
-    // Product Attributes
-    targetConcerns?: string[]; // 685545232be6a9f5abc15be4
-    productFeatures?: string[]; // 685544f12be6a9f5abc15bdd
-    countryOfOrigin?: string; // 685544632be6a9f5abc15bd4
-    benefits?: string[]; // 6855428336d659329f72b94e
-    certifications?: string[]; // 685546332be6a9f5abc15bfb
-    productForm?: string; // 685545f42be6a9f5abc15bf4
-    gender?: string; // 6855458b2be6a9f5abc15bed
-    productType?: string; // 6855480a2be6a9f5abc15c32
-    targetArea?: string; // 685547d62be6a9f5abc15c2b
-    // Additional Attributes
-    finish?: string; // 685547af2be6a9f5abc15c26
-    fragrance?: string; // 6855478e2be6a9f5abc15c1f
-    skinConcerns?: string[]; // 685547672be6a9f5abc15c1a
-    hairType?: string; // 685547372be6a9f5abc15c13
-    skinType?: string; // 685547232be6a9f5abc15c0c
-    // Product Details
-    shelfLife?: string;
-    licenseNo?: string;
-    manufacturingDate?: string;
-    expiryDate?: string;
-    length?: number;
-    width?: number;
-    height?: number;
-    safetyPrecaution?: string;
-    howToUse?: string;
-    customerCareEmail?: string;
-    customerCareNumber?: string;
-    // Key Information
-    ingredient?: string;
-    keyIngredients?: string;
-    benefitsSingle?: string;
-    // Capture Details
-    captureBy?: string;
-    capturedDate: string;
+  productName: string;
+  slug: string;
+  description?: string;
+  status: "draft" | "publish";
+  price: number;
+  salePrice: number;
+  quantity: number;
+  sku?: string;
+  brand: string;
+  productVariationType: string;
+  productCategory: string[];
+  tags?: string[];
+  marketedBy?: string;
+  marketedByAddress?: string;
+  manufacturedBy?: string;
+  manufacturedByAddress?: string;
+  importedBy?: string;
+  importedByAddress?: string;
+  // Product Attributes
+  targetConcerns?: string[]; // 685545232be6a9f5abc15be4
+  productFeatures?: string[]; // 685544f12be6a9f5abc15bdd
+  countryOfOrigin?: string; // 685544632be6a9f5abc15bd4
+  benefits?: string[]; // 6855428336d659329f72b94e
+  certifications?: string[]; // 685546332be6a9f5abc15bfb
+  productForm?: string; // 685545f42be6a9f5abc15bf4
+  gender?: string; // 6855458b2be6a9f5abc15bed
+  productType?: string; // 6855480a2be6a9f5abc15c32
+  targetArea?: string; // 685547d62be6a9f5abc15c2b
+  // Additional Attributes
+  finish?: string; // 685547af2be6a9f5abc15c26
+  fragrance?: string; // 6855478e2be6a9f5abc15c1f
+  skinConcerns?: string[]; // 685547672be6a9f5abc15c1a
+  hairType?: string; // 685547372be6a9f5abc15c13
+  skinType?: string; // 685547232be6a9f5abc15c0c
+  // Product Details
+  shelfLife?: string;
+  licenseNo?: string;
+  manufacturingDate?: string;
+  expiryDate?: string;
+  length?: number;
+  width?: number;
+  height?: number;
+  safetyPrecaution?: string;
+  howToUse?: string;
+  customerCareEmail?: string;
+  customerCareNumber?: string;
+  // Key Information
+  ingredient?: string;
+  keyIngredients?: string;
+  benefitsSingle?: string;
+  // Capture Details
+  captureBy?: string;
+  capturedDate: string;
 }
 
 interface DropdownOption {
-    _id: string;
-    name?: string;
-    label?: string;
-    slug?: string;
-    address?: string;
+  _id: string;
+  name?: string;
+  label?: string;
+  slug?: string;
+  address?: string;
 }
 
 const ProductCreate = () => {
@@ -192,95 +192,118 @@ const ProductCreate = () => {
         capturedDate: new Date().toISOString(),
     })
 
-    // Load dropdown data on component mount
-    useEffect(() => {
-        const loadDropdownData = async () => {
-            try {
-                const [
-                    brandsRes,
-                    categoriesRes,
-                    tagsRes,
-                    variationTypesRes,
-                    marketedByRes,
-                    manufacturedByRes,
-                    importedByRes,
-                    ingredientsRes,
-                    benefitsRes,
-                    // Product Attributes
-                    targetConcernsRes,
-                    productFeaturesRes,
-                    countryOfOriginRes,
-                    benefitsAttributeRes,
-                    certificationsRes,
-                    productFormRes,
-                    genderRes,
-                    productTypeRes,
-                    targetAreaRes,
-                    // Additional Attributes
-                    finishRes,
-                    fragranceRes,
-                    skinConcernsRes,
-                    hairTypeRes,
-                    skinTypeRes
-                ] = await Promise.all([
-                    apiGetBrandsForDropdown({ page: 1, limit: 50 }),
-                    apiGetCategoriesForDropdown({ page: 1, limit: 50, parentCategory: 'all' }),
-                    apiGetTagsForDropdown({ page: 1, limit: 50 }),
-                    apiGetVariationTypes(),
-                    apiGetMarketedBy({ page: 1, limit: 50 }),
-                    apiGetManufacturedBy({ page: 1, limit: 50 }),
-                    apiGetImportedBy({ page: 1, limit: 50 }),
-                    apiGetIngredients({ page: 1, limit: 50 }),
-                    apiGetBenefits({ page: 1, limit: 50 }),
-                    // Product Attributes
-                    apiGetProductAttributeValues('685545232be6a9f5abc15be4'), // Target Concerns
-                    apiGetProductAttributeValues('685544f12be6a9f5abc15bdd'), // Product Features
-                    apiGetProductAttributeValues('685544632be6a9f5abc15bd4'), // Country of Origin
-                    apiGetProductAttributeValues('6855428336d659329f72b94e'), // Benefits
-                    apiGetProductAttributeValues('685546332be6a9f5abc15bfb'), // Certifications
-                    apiGetProductAttributeValues('685545f42be6a9f5abc15bf4'), // Product Form
-                    apiGetProductAttributeValues('6855458b2be6a9f5abc15bed'), // Gender
-                    apiGetProductAttributeValues('6855480a2be6a9f5abc15c32'), // Product Type
-                    apiGetProductAttributeValues('685547d62be6a9f5abc15c2b'), // Target Area
-                    // Additional Attributes
-                    apiGetProductAttributeValues('685547af2be6a9f5abc15c26'), // Finish
-                    apiGetProductAttributeValues('6855478e2be6a9f5abc15c1f'), // Fragrance
-                    apiGetProductAttributeValues('685547672be6a9f5abc15c1a'), // Skin Concerns
-                    apiGetProductAttributeValues('685547372be6a9f5abc15c13'), // Hair Type
-                    apiGetProductAttributeValues('685547232be6a9f5abc15c0c')  // Skin Type
-                ])
+  // Load dropdown data on component mount
+  useEffect(() => {
+    const loadDropdownData = async () => {
+      try {
+        const [
+          brandsRes,
+          categoriesRes,
+          tagsRes,
+          variationTypesRes,
+          marketedByRes,
+          manufacturedByRes,
+          importedByRes,
+          ingredientsRes,
+          benefitsRes,
+          // Product Attributes
+          targetConcernsRes,
+          productFeaturesRes,
+          countryOfOriginRes,
+          benefitsAttributeRes,
+          certificationsRes,
+          productFormRes,
+          genderRes,
+          productTypeRes,
+          targetAreaRes,
+          // Additional Attributes
+          finishRes,
+          fragranceRes,
+          skinConcernsRes,
+          hairTypeRes,
+          skinTypeRes,
+        ] = await Promise.all([
+          apiGetBrandsForDropdown({ page: 1, limit: 50 }),
+          apiGetCategoriesForDropdown({
+            page: 1,
+            limit: 50,
+            parentCategory: "all",
+          }),
+          apiGetTagsForDropdown({ page: 1, limit: 50 }),
+          apiGetVariationTypes(),
+          apiGetMarketedBy({ page: 1, limit: 50 }),
+          apiGetManufacturedBy({ page: 1, limit: 50 }),
+          apiGetImportedBy({ page: 1, limit: 50 }),
+          apiGetIngredients({ page: 1, limit: 50 }),
+          apiGetBenefits({ page: 1, limit: 50 }),
+          // Product Attributes
+          apiGetProductAttributeValues("685545232be6a9f5abc15be4"), // Target Concerns
+          apiGetProductAttributeValues("685544f12be6a9f5abc15bdd"), // Product Features
+          apiGetProductAttributeValues("685544632be6a9f5abc15bd4"), // Country of Origin
+          apiGetProductAttributeValues("6855428336d659329f72b94e"), // Benefits
+          apiGetProductAttributeValues("685546332be6a9f5abc15bfb"), // Certifications
+          apiGetProductAttributeValues("685545f42be6a9f5abc15bf4"), // Product Form
+          apiGetProductAttributeValues("6855458b2be6a9f5abc15bed"), // Gender
+          apiGetProductAttributeValues("6855480a2be6a9f5abc15c32"), // Product Type
+          apiGetProductAttributeValues("685547d62be6a9f5abc15c2b"), // Target Area
+          // Additional Attributes
+          apiGetProductAttributeValues("685547af2be6a9f5abc15c26"), // Finish
+          apiGetProductAttributeValues("6855478e2be6a9f5abc15c1f"), // Fragrance
+          apiGetProductAttributeValues("685547672be6a9f5abc15c1a"), // Skin Concerns
+          apiGetProductAttributeValues("685547372be6a9f5abc15c13"), // Hair Type
+          apiGetProductAttributeValues("685547232be6a9f5abc15c0c"), // Skin Type
+        ]);
 
-                // Basic dropdowns
-                if (brandsRes.success) setBrands(brandsRes.data.brands)
-                if (categoriesRes.success) setCategories(categoriesRes.data.productCategories)
-                if (tagsRes.success) setTags(tagsRes.data.tags)
-                if (variationTypesRes.success) setVariationTypes(variationTypesRes.data.productVariationTypes)
-                if (marketedByRes.success) setMarketedBy(marketedByRes.data.marketedBy)
-                if (manufacturedByRes.success) setManufacturedBy(manufacturedByRes.data.manufacturedBy)
-                if (importedByRes.success) setImportedBy(importedByRes.data.importedBys)
-                if (ingredientsRes.success) setIngredients(ingredientsRes.data.ingredientLists)
-                if (benefitsRes.success) setBenefitsOptions(benefitsRes.data.benefits)
-                
-                // Product Attributes
-                if (targetConcernsRes.success) setTargetConcerns(targetConcernsRes.data.productAttributeValues)
-                if (productFeaturesRes.success) setProductFeatures(productFeaturesRes.data.productAttributeValues)
-                if (countryOfOriginRes.success) setCountryOfOrigin(countryOfOriginRes.data.productAttributeValues)
-                if (benefitsAttributeRes.success) setBenefitsAttribute(benefitsAttributeRes.data.productAttributeValues)
-                if (certificationsRes.success) setCertifications(certificationsRes.data.productAttributeValues)
-                if (productFormRes.success) setProductForm(productFormRes.data.productAttributeValues)
-                if (genderRes.success) setGender(genderRes.data.productAttributeValues)
-                if (productTypeRes.success) setProductType(productTypeRes.data.productAttributeValues)
-                if (targetAreaRes.success) setTargetArea(targetAreaRes.data.productAttributeValues)
-                // Additional Attributes
-                if (finishRes.success) setFinish(finishRes.data.productAttributeValues)
-                if (fragranceRes.success) setFragrance(fragranceRes.data.productAttributeValues)
-                if (skinConcernsRes.success) setSkinConcerns(skinConcernsRes.data.productAttributeValues)
-                if (hairTypeRes.success) setHairType(hairTypeRes.data.productAttributeValues)
-                if (skinTypeRes.success) setSkinType(skinTypeRes.data.productAttributeValues)
-        } catch (error) {
-                console.error('Failed to load dropdown data:', error)
-            }
-        }
+        // Basic dropdowns
+        if (brandsRes.success) setBrands(brandsRes.data.brands);
+        if (categoriesRes.success)
+          setCategories(categoriesRes.data.productCategories);
+        if (tagsRes.success) setTags(tagsRes.data.tags);
+        if (variationTypesRes.success)
+          setVariationTypes(variationTypesRes.data.productVariationTypes);
+        if (marketedByRes.success) setMarketedBy(marketedByRes.data.marketedBy);
+        if (manufacturedByRes.success)
+          setManufacturedBy(manufacturedByRes.data.manufacturedBy);
+        if (importedByRes.success)
+          setImportedBy(importedByRes.data.importedBys);
+        if (ingredientsRes.success)
+          setIngredients(ingredientsRes.data.ingredientLists);
+        if (benefitsRes.success) setBenefitsOptions(benefitsRes.data.benefits);
+
+        // Product Attributes
+        if (targetConcernsRes.success)
+          setTargetConcerns(targetConcernsRes.data.productAttributeValues);
+        if (productFeaturesRes.success)
+          setProductFeatures(productFeaturesRes.data.productAttributeValues);
+        if (countryOfOriginRes.success)
+          setCountryOfOrigin(countryOfOriginRes.data.productAttributeValues);
+        if (benefitsAttributeRes.success)
+          setBenefitsAttribute(
+            benefitsAttributeRes.data.productAttributeValues,
+          );
+        if (certificationsRes.success)
+          setCertifications(certificationsRes.data.productAttributeValues);
+        if (productFormRes.success)
+          setProductForm(productFormRes.data.productAttributeValues);
+        if (genderRes.success) setGender(genderRes.data.productAttributeValues);
+        if (productTypeRes.success)
+          setProductType(productTypeRes.data.productAttributeValues);
+        if (targetAreaRes.success)
+          setTargetArea(targetAreaRes.data.productAttributeValues);
+        // Additional Attributes
+        if (finishRes.success) setFinish(finishRes.data.productAttributeValues);
+        if (fragranceRes.success)
+          setFragrance(fragranceRes.data.productAttributeValues);
+        if (skinConcernsRes.success)
+          setSkinConcerns(skinConcernsRes.data.productAttributeValues);
+        if (hairTypeRes.success)
+          setHairType(hairTypeRes.data.productAttributeValues);
+        if (skinTypeRes.success)
+          setSkinType(skinTypeRes.data.productAttributeValues);
+      } catch (error) {
+        console.error("Failed to load dropdown data:", error);
+      }
+    };
 
         loadDropdownData()
     }, [])
@@ -356,19 +379,19 @@ const ProductCreate = () => {
         fetchProductData()
     }, [productId, isEditMode, isViewMode])
 
-    const handleInputChange = (field: keyof ProductCreateData, value: any) => {
-        setFormData(prev => ({
-            ...prev,
-            [field]: value
-        }))
-    }
+  const handleInputChange = (field: keyof ProductCreateData, value: any) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
 
-    const handleFormSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        console.log('Submitted values', formData)
-        console.log('Uploaded images', uploadedImages)
-        setIsSubmitting(true)
-        setError(null)
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Submitted values", formData);
+    console.log("Uploaded images", uploadedImages);
+    setIsSubmitting(true);
+    setError(null);
 
         try {
             // Create FormData to handle file uploads
@@ -474,123 +497,127 @@ const ProductCreate = () => {
         }
     }
 
-    const handleCancel = () => {
-        navigate(PANEL_ROUTES.LISTING.LIST)
+  const handleCancel = () => {
+    navigate(PANEL_ROUTES.LISTING.LIST);
+  };
+
+  // Image upload functions
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
+
+    if (imageFiles.length + uploadedImages.length > 10) {
+      setError("Maximum 10 images allowed");
+      return;
     }
 
-    // Image upload functions
-    const handleDragOver = (e: React.DragEvent) => {
-        e.preventDefault()
-        setIsDragOver(true)
+    // Check file size (10MB limit)
+    const oversizedFiles = imageFiles.filter(
+      (file) => file.size > 10 * 1024 * 1024,
+    );
+    if (oversizedFiles.length > 0) {
+      setError("Some files exceed 10MB limit");
+      return;
     }
 
-    const handleDragLeave = (e: React.DragEvent) => {
-        e.preventDefault()
-        setIsDragOver(false)
+    setUploadedImages((prev) => [...prev, ...imageFiles]);
+    setError(null);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
+
+    if (imageFiles.length + uploadedImages.length > 10) {
+      setError("Maximum 10 images allowed");
+      return;
     }
 
-    const handleDrop = (e: React.DragEvent) => {
-        e.preventDefault()
-        setIsDragOver(false)
-        
-        const files = Array.from(e.dataTransfer.files)
-        const imageFiles = files.filter(file => file.type.startsWith('image/'))
-        
-        if (imageFiles.length + uploadedImages.length > 10) {
-            setError('Maximum 10 images allowed')
-            return
-        }
-        
-        // Check file size (10MB limit)
-        const oversizedFiles = imageFiles.filter(file => file.size > 10 * 1024 * 1024)
-        if (oversizedFiles.length > 0) {
-            setError('Some files exceed 10MB limit')
-            return
-        }
-        
-        setUploadedImages(prev => [...prev, ...imageFiles])
-        setError(null)
+    // Check file size (10MB limit)
+    const oversizedFiles = imageFiles.filter(
+      (file) => file.size > 10 * 1024 * 1024,
+    );
+    if (oversizedFiles.length > 0) {
+      setError("Some files exceed 10MB limit");
+      return;
     }
 
-    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(e.target.files || [])
-        const imageFiles = files.filter(file => file.type.startsWith('image/'))
-        
-        if (imageFiles.length + uploadedImages.length > 10) {
-            setError('Maximum 10 images allowed')
-            return
-        }
-        
-        // Check file size (10MB limit)
-        const oversizedFiles = imageFiles.filter(file => file.size > 10 * 1024 * 1024)
-        if (oversizedFiles.length > 0) {
-            setError('Some files exceed 10MB limit')
-            return
-        }
-        
-        setUploadedImages(prev => [...prev, ...imageFiles])
-        setError(null)
-    }
+    setUploadedImages((prev) => [...prev, ...imageFiles]);
+    setError(null);
+  };
 
-    const removeImage = (index: number) => {
-        setUploadedImages(prev => prev.filter((_, i) => i !== index))
-    }
+  const removeImage = (index: number) => {
+    setUploadedImages((prev) => prev.filter((_, i) => i !== index));
+  };
 
-    const openFileDialog = () => {
-        fileInputRef.current?.click()
-    }
+  const openFileDialog = () => {
+    fileInputRef.current?.click();
+  };
 
-    const openThumbnailDialog = () => {
-        thumbnailInputRef.current?.click()
-    }
+  const openThumbnailDialog = () => {
+    thumbnailInputRef.current?.click();
+  };
 
-    const openBarcodeDialog = () => {
-        barcodeInputRef.current?.click()
-    }
+  const openBarcodeDialog = () => {
+    barcodeInputRef.current?.click();
+  };
 
-    const handleThumbnailSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0]
-        if (file) {
-            if (file.size > 10 * 1024 * 1024) {
-                setError('Thumbnail image size must be less than 10MB')
-                return
-            }
-            if (!file.type.startsWith('image/')) {
-                setError('Thumbnail must be an image file')
-                return
-            }
-            setThumbnailImage(file)
-        }
+  const handleThumbnailSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        setError("Thumbnail image size must be less than 10MB");
+        return;
+      }
+      if (!file.type.startsWith("image/")) {
+        setError("Thumbnail must be an image file");
+        return;
+      }
+      setThumbnailImage(file);
     }
+  };
 
-    const handleBarcodeSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0]
-        if (file) {
-            if (file.size > 10 * 1024 * 1024) {
-                setError('Barcode image size must be less than 10MB')
-                return
-            }
-            if (!file.type.startsWith('image/')) {
-                setError('Barcode must be an image file')
-                return
-            }
-            setBarcodeImage(file)
-        }
+  const handleBarcodeSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        setError("Barcode image size must be less than 10MB");
+        return;
+      }
+      if (!file.type.startsWith("image/")) {
+        setError("Barcode must be an image file");
+        return;
+      }
+      setBarcodeImage(file);
     }
+  };
 
-    const removeThumbnail = () => {
-        setThumbnailImage(null)
-        if (thumbnailInputRef.current) {
-            thumbnailInputRef.current.value = ''
-        }
+  const removeThumbnail = () => {
+    setThumbnailImage(null);
+    if (thumbnailInputRef.current) {
+      thumbnailInputRef.current.value = "";
     }
+  };
 
-    const removeBarcode = () => {
-        setBarcodeImage(null)
-        if (barcodeInputRef.current) {
-            barcodeInputRef.current.value = ''
-        }
+  const removeBarcode = () => {
+    setBarcodeImage(null);
+    if (barcodeInputRef.current) {
+      barcodeInputRef.current.value = "";
     }
+  };
 
     const generateSlug = () => {
         const slug = formData.productName
@@ -1686,4 +1713,4 @@ const ProductCreate = () => {
     )
 }
 
-export default ProductCreate
+export default ProductCreate;

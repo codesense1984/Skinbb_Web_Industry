@@ -1,12 +1,18 @@
-import { TableAction } from "@/core/components/data-table/components/table-action";
-import { StatusBadge } from "@/core/components/ui/badge";
+import {
+  renderActionButton,
+  TableAction,
+} from "@/core/components/data-table/components/table-action";
+import { Avatar } from "@/core/components/ui/avatar";
+import { Badge, StatusBadge } from "@/core/components/ui/badge";
 import { formatDate } from "@/core/utils";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import type {
   CompanyList,
   CompanyListItem,
 } from "@/modules/panel/types/company.type";
+import { MapPinIcon } from "@heroicons/react/24/solid";
 import type { ColumnDef } from "@tanstack/react-table";
+import { Link } from "react-router";
 
 export const statsData = [
   {
@@ -131,54 +137,60 @@ export const columns: ColumnDef<CompanyListItem>[] = [
     header: "Company Name",
     accessorKey: "companyName",
     cell: ({ row }) => (
-      <div className="w-max font-medium">{row.original.companyName}</div>
+      <div className="flex w-max items-center gap-3 font-medium">
+        {row.original.brandLogo && (
+          <Avatar
+            src={row.original.brandLogo}
+            feedback={row.original.companyName.charAt(0)}
+          />
+        )}
+        <span>{row.original.companyName}</span>
+      </div>
     ),
   },
+
   {
-    header: "Contact Person",
-    accessorKey: "name",
+    header: "Category",
+    accessorKey: "category",
     cell: ({ row }) => (
-      <div className="w-max font-medium">{row.original.name}</div>
+      <div className="w-max">{row.original.companyCategory}</div>
     ),
-  },
-  {
-    header: "Email",
-    accessorKey: "email",
   },
   {
     header: "Phone",
-    accessorKey: "phoneNumber",
+    accessorKey: "landlineNo",
+    cell: ({ row }) => <div className="w-max">{row.original.landlineNo}</div>,
   },
-
-  // {
-  //   header: "Brand Name",
-  //   accessorKey: "brandName",
-  //   cell: ({ row }) => (
-  //     <div className="w-max font-medium">{row.original.brandName}</div>
-  //   ),
-  // },
-  // {
-  //   header: "Website",
-  //   accessorKey: "website",
-  //   cell: ({ row }) => (
-  //     <a
-  //       href={row.original.website}
-  //       target="_blank"
-  //       rel="noopener noreferrer"
-  //       className="text-blue-600 underline hover:text-blue-800"
-  //     >
-  //       {row.original.website}
-  //     </a>
-  //   ),
-  // },
-  // {
-  //   header: "Marketing Budget",
-  //   accessorKey: "marketingBudget",
-  //   cell: ({ row }) => <div>₹{formatNumber(row.original.marketingBudget)}</div>,
-  //   meta: {
-  //     className: "w-max",
-  //   },
-  // },
+  {
+    header: "Business Type",
+    accessorKey: "businessType",
+    cell: ({ row }) => <div className="w-max">{row.original.businessType}</div>,
+  },
+  {
+    header: "Website",
+    accessorKey: "website",
+    cell: ({ row }) => (
+      <a
+        href={row.original.website}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 underline hover:text-blue-800"
+      >
+        {row.original.website}
+      </a>
+    ),
+  },
+  {
+    header: "Location",
+    accessorKey: "address",
+    cell: ({ row }) => (
+      <div className="flex flex-wrap gap-2">
+        {row.original?.address.map((address) => (
+          <Badge variant={"outline"}>{address.city}</Badge>
+        ))}
+      </div>
+    ),
+  },
   {
     header: "Status",
     accessorKey: "status",
@@ -211,21 +223,34 @@ export const columns: ColumnDef<CompanyListItem>[] = [
     cell: ({ row }) => {
       return (
         <TableAction
-          view={{
-            // onClick: () => console.log("View company:", row.original._id),
-            to: PANEL_ROUTES.COMPANY.VIEW(row.original._id),
-            tooltip: "View company details",
-          }}
-          edit={{
-            // onClick: () => console.log("Edit company:", row.original._id),
-            to: PANEL_ROUTES.COMPANY.EDIT(row.original._id),
-            tooltip: "Edit company",
-          }}
+          // view={{
+          //   // onClick: () => console.log("View company:", row.original._id),
+          //   to: PANEL_ROUTES.COMPANY.VIEW(row.original._id),
+          //   title: "View company details",
+          // }}
+          // edit={{
+          //   loading: false,
+          //   // onClick: () => console.log("Edit company:", row.original._id),
+          //   to: PANEL_ROUTES.COMPANY.EDIT(row.original._id),
+          //   title: "Edit company",
+          // }}
           // delete={{
           //   onClick: () => console.log("Delete company:", row.original._id),
           //   tooltip: "Delete company",
           // }}
-        />
+        >
+          {renderActionButton(
+            {
+              className: "w-auto px-2 text-muted-foreground",
+              size: "md",
+              variant: "outlined",
+              to: PANEL_ROUTES.COMPANY_LOCATION.LIST(row.original._id),
+              children: "Locations",
+              title: "Locations",
+            },
+            <MapPinIcon className="size-4" />,
+          )}
+        </TableAction>
       );
     },
   },

@@ -32,69 +32,84 @@ const DocumentSchema = z
     url: z.string().optional(),
     url_files: z.any().optional(),
   })
-  .superRefine(() =>
-    // doc, ctx
-    {
-      // if (doc.type === "coi") {
-      //   if (!doc.number?.trim()) {
-      //     ctx.addIssue({
-      //       path: ["number"],
-      //       code: z.ZodIssueCode.custom,
-      //       message: "CIN number is required",
-      //     });
-      //   }
-      //   if (doc?.url_files && doc?.url_files.length) {
-      //     const file = doc?.url_files[0];
-      //     if (!ACCEPTED_FILE_TYPES.includes(file.type)) {
-      //       ctx.addIssue({
-      //         path: ["url"],
-      //         code: z.ZodIssueCode.custom,
-      //         message: "Only .pdf files are accepted.",
-      //       });
-      //     }
-      //     if (file.size > MAX_FILE_SIZE) {
-      //       ctx.addIssue({
-      //         path: ["url"],
-      //         code: z.ZodIssueCode.custom,
-      //         message: `Max file size is ${MAX_FILE_SIZE}MB.`,
-      //       });
-      //     }
-      //   }
-      //   if (!doc.url?.trim()) {
-      //     ctx.addIssue({
-      //       path: ["url"],
-      //       code: z.ZodIssueCode.custom,
-      //       message: "CIN document upload is required",
-      //     });
-      //   }
-      // }
-      // if (doc.type === "pan") {
-      //   if (!doc.number?.trim()) {
-      //     ctx.addIssue({
-      //       path: ["number"],
-      //       code: z.ZodIssueCode.custom,
-      //       message: "PAN number is required",
-      //     });
-      //   }
-      //   if (!doc.url?.trim()) {
-      //     ctx.addIssue({
-      //       path: ["url"],
-      //       code: z.ZodIssueCode.custom,
-      //       message: "PAN document upload is required",
-      //     });
-      //   }
-      // }
-      // if (doc.type === "brandAuthorisation") {
-      //   if (!doc.url?.trim()) {
-      //     ctx.addIssue({
-      //       path: ["url"],
-      //       code: z.ZodIssueCode.custom,
-      //       message: "Brand authorisation document upload is required",
-      //     });
-      //   }
-      // }
-    },
-  );
+  .superRefine((doc, ctx) => {
+    if (doc.type === "coi") {
+      if (!doc.number?.trim()) {
+        ctx.addIssue({
+          path: ["number"],
+          code: z.ZodIssueCode.custom,
+          message: "CIN number is required",
+        });
+      }
+      if (doc?.url_files && doc?.url_files.length) {
+        const file = doc?.url_files[0];
+        if (!ACCEPTED_FILE_TYPES.includes(file.type)) {
+          ctx.addIssue({
+            path: ["url"],
+            code: z.ZodIssueCode.custom,
+            message: "Only .pdf files are accepted.",
+          });
+        }
+        if (file.size > MAX_FILE_SIZE) {
+          ctx.addIssue({
+            path: ["url"],
+            code: z.ZodIssueCode.custom,
+            message: `Max file size is ${MAX_FILE_SIZE}MB.`,
+          });
+        }
+      }
+      if (!doc.url?.trim()) {
+        ctx.addIssue({
+          path: ["url"],
+          code: z.ZodIssueCode.custom,
+          message: "CIN document upload is required",
+        });
+      }
+    }
+    if (doc.type === "pan") {
+      if (!doc.number?.trim()) {
+        ctx.addIssue({
+          path: ["number"],
+          code: z.ZodIssueCode.custom,
+          message: "PAN number is required",
+        });
+      }
+
+      if (!doc.url?.trim()) {
+        ctx.addIssue({
+          path: ["url"],
+          code: z.ZodIssueCode.custom,
+          message: "PAN document upload is required",
+        });
+      }
+    }
+    if (doc.type === "gstLicense") {
+      if (!doc.number?.trim()) {
+        ctx.addIssue({
+          path: ["number"],
+          code: z.ZodIssueCode.custom,
+          message: "PAN number is required",
+        });
+      }
+
+      if (!doc.url?.trim()) {
+        ctx.addIssue({
+          path: ["url"],
+          code: z.ZodIssueCode.custom,
+          message: "PAN document upload is required",
+        });
+      }
+    }
+    if (doc.type === "brandAuthorisation") {
+      if (!doc.url?.trim()) {
+        ctx.addIssue({
+          path: ["url"],
+          code: z.ZodIssueCode.custom,
+          message: "Brand authorisation document upload is required",
+        });
+      }
+    }
+  });
 
 import {
   VALIDATION_CONSTANTS,
@@ -169,6 +184,7 @@ export const fullCompanyZodSchema = z
 
     // Company details
     companyName: createRequiredString("Company name"),
+    isCreatingNewCompany: z.boolean(),
     category: createRequiredString("Category"),
     businessType: createRequiredString("Business type"),
     establishedIn: z.union([
@@ -293,6 +309,11 @@ type FieldProps = {
     index: number;
     disabled: boolean;
     disabledAddressType: boolean;
+    isCountrySelected?: boolean;
+    dynamicOptions?: {
+      countries?: Array<{ label: string; value: string }>;
+      states?: Array<{ label: string; value: string }>;
+    };
   };
   [StepKey.BRAND_DETAILS]: ModeProps & {
     productCategoryOptions?: Array<{ label: string; value: string }>;
@@ -440,7 +461,6 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       type: INPUT_TYPES.TEXT,
       placeholder: "Enter HQ location",
       disabled: hasCompany || mode === MODE.VIEW,
-      className: "sm:col-span-2",
     },
     {
       name: "description",
@@ -496,6 +516,8 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
     index = 0,
     disabled = false,
     disabledAddressType = false,
+    isCountrySelected = false,
+    dynamicOptions,
   }) => {
     const prefix = `address.${index}`; // dynamic prefix
 
@@ -544,10 +566,10 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       {
         name: makeName("country"),
         label: "Country",
-        type: INPUT_TYPES.SELECT,
-        options: [
-          { label: "India", value: "india" },
-          { label: "USA", value: "usa" },
+        type: INPUT_TYPES.COMBOBOX,
+        options: dynamicOptions?.countries || [
+          { label: "India", value: "IN" },
+          { label: "USA", value: "US" },
         ],
         placeholder: "Select country",
         disabled: disabled || mode === MODE.VIEW,
@@ -555,27 +577,27 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       {
         name: makeName("state"),
         label: "State",
-        type: INPUT_TYPES.SELECT,
-        options: [
-          { label: "Delhi", value: "delhi" },
-          { label: "California", value: "california" },
+        type: INPUT_TYPES.COMBOBOX,
+        options: dynamicOptions?.states || [
+          { label: "Delhi", value: "DL" },
+          { label: "California", value: "CA" },
         ],
         placeholder: "Select state",
-        disabled: disabled || mode === MODE.VIEW,
+        disabled: disabled || !isCountrySelected || mode === MODE.VIEW,
       },
       {
         name: makeName("city"),
         label: "City",
         type: INPUT_TYPES.TEXT,
         placeholder: "Enter city",
-        disabled: disabled || mode === MODE.VIEW,
+        disabled: disabled || !isCountrySelected || mode === MODE.VIEW,
       },
       {
         name: makeName("postalCode"),
         label: "Postal Code",
         type: INPUT_TYPES.TEXT,
         placeholder: "Enter postal code",
-        disabled: disabled || mode === MODE.VIEW,
+        disabled: disabled || !isCountrySelected || mode === MODE.VIEW,
         inputProps: {
           keyfilter: "int",
           maxLength: 6,

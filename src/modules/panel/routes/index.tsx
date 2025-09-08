@@ -41,8 +41,18 @@ export const panelRoutes: RouteObject = {
       Component: lazy(() => import("@/modules/panel/features/company/edit")),
     },
     {
-      path: PANEL_ROUTES.COMPANY.VIEW(),
-      Component: lazy(() => import("@/modules/panel/features/company/view")),
+      path: PANEL_ROUTES.COMPANY_LOCATION.VIEW(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company-location/view"),
+      ),
+    },
+
+    // company-location
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.LIST(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company-location/list"),
+      ),
     },
 
     // orders
@@ -87,15 +97,17 @@ export const panelRoutes: RouteObject = {
       Component: lazy(() => import("@/modules/panel/features/users/user-form")),
     },
 
-            // listing/products
-        {
-          path: PANEL_ROUTES.LISTING.LIST,
-          Component: lazy(() => import("@/modules/panel/features/listing")),
-        },
-        {
-          path: PANEL_ROUTES.LISTING.CREATE,
-          Component: lazy(() => import("@/modules/panel/features/listing/ProductCreate")),
-        },
+    // listing/products
+    {
+      path: PANEL_ROUTES.LISTING.LIST,
+      Component: lazy(() => import("@/modules/panel/features/listing")),
+    },
+    {
+      path: PANEL_ROUTES.LISTING.CREATE,
+      Component: lazy(
+        () => import("@/modules/panel/features/listing/ProductCreate"),
+      ),
+    },
     // {
     //   path: PANEL_ROUTES.COMPANY.EDIT(),
     //   Component: lazy(() => import("@/modules/panel/features/company/edit")),
@@ -146,6 +158,12 @@ export const panelOpenRoutes: RouteObject[] = [
         path: PANEL_ROUTES.ONBOARD.COMPANY_STATUS,
         Component: lazy(
           () => import("@/modules/panel/features/company/onboard/status"),
+        ),
+      },
+      {
+        path: PANEL_ROUTES.ONBOARD.COMPANY_EDIT(),
+        Component: lazy(
+          () => import("@/modules/panel/features/company/onboard/edit"),
         ),
       },
     ],

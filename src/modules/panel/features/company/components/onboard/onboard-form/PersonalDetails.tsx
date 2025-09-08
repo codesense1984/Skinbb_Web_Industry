@@ -105,7 +105,11 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
                       }
                     }}
                   >
-                    {sendOtpMutation.isPending ? "Sending..." : "Send OTP"}
+                    {phoneVerified
+                      ? "Verified"
+                      : sendOtpMutation.isPending
+                        ? "Sending..."
+                        : "Send OTP"}
                   </Button>
                 ) : phoneVerified ? (
                   <span className="px-2 text-sm text-green-600">

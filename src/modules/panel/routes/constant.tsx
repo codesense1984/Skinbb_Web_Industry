@@ -12,6 +12,7 @@ const STATUS_BASE = "/status";
 
 const COMPANY_BASE = "/company";
 const COMPANIES = "/companies";
+const COMPANY_LOCATION_BASE = "/company-location";
 
 const CUSTOMER_BASE = "/customer";
 const CUSTOMERS = "/customers";
@@ -44,6 +45,8 @@ export const PANEL_ROUTES = {
     COMPANY: ROUTE.build(ONBOARD_BASE, COMPANY_BASE), // /onboard/create
     COMPANY_STATUS: ROUTE.build(ONBOARD_BASE, COMPANY_BASE, STATUS_BASE), // /onboard/create
     COMPANY_CREATE: ROUTE.build(ONBOARD_BASE, COMPANY_BASE, ROUTE.seg.create), // /onboard/create
+    COMPANY_EDIT: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(ONBOARD_BASE, COMPANY_BASE, id, ROUTE.seg.edit), // /onboard/company/:id/edit
   },
 
   // ---- Company ----
@@ -53,10 +56,41 @@ export const PANEL_ROUTES = {
     CREATE: ROUTE.build(COMPANY_BASE, ROUTE.seg.create), // /company/create
     EDIT: (id: string = ROUTE.seg.id) =>
       ROUTE.build(COMPANY_BASE, id, ROUTE.seg.edit), // /company/edit/:id
-    VIEW: (id: string = ROUTE.seg.id) =>
-      ROUTE.build(COMPANY_BASE, id, ROUTE.seg.view), // /company/edit/:id
+    // VIEW: (id: string = ROUTE.seg.id) =>
+    //   ROUTE.build(COMPANY_BASE, id, ROUTE.seg.view), // /company/edit/:id
     DETAIL: (id: string = ROUTE.seg.id) => ROUTE.build(COMPANY_BASE, id), // /company/:id
     // ONBOARD: ROUTE.build(COMPANY_BASE, ROUTE.seg.onboard), // /company/onboard
+  },
+
+  // ---- Company Location ----
+  COMPANY_LOCATION: {
+    BASE: COMPANY_LOCATION_BASE, // /company-location
+    LIST: (companyId: string = ROUTE.seg.id) =>
+      ROUTE.build(COMPANY_BASE, companyId, "locations"), // /company/:companyId/locations
+    CREATE: (companyId: string = ROUTE.seg.id) =>
+      ROUTE.build(COMPANY_BASE, companyId, "locations", ROUTE.seg.create), // /company/:companyId/locations/create
+    EDIT: (
+      companyId: string = ROUTE.seg.id,
+      locationId: string = ROUTE.seg.id,
+    ) =>
+      ROUTE.build(
+        COMPANY_BASE,
+        companyId,
+        "locations",
+        locationId,
+        ROUTE.seg.edit,
+      ), // /company/:companyId/locations/:locationId/edit
+    VIEW: (
+      companyId: string = ":companyId",
+      locationId: string = ":locationId",
+    ) =>
+      ROUTE.build(
+        COMPANY_BASE,
+        companyId,
+        "locations",
+        locationId,
+        ROUTE.seg.view,
+      ), // /company/:companyId/locations/:locationId/view
   },
 
   // ---- Customer ----

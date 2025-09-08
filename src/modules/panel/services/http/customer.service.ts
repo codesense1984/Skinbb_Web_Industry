@@ -16,12 +16,13 @@ export async function apiGetCustomers(
   signal?: AbortSignal,
 ): Promise<CustomerListResponse> {
   const searchParams = new URLSearchParams();
-  
-  if (params?.page) searchParams.append('page', params.page.toString());
-  if (params?.limit) searchParams.append('limit', params.limit.toString());
-  if (params?.query) searchParams.append('query', params.query);
-  if (params?.sort?.order) searchParams.append('sort[order]', params.sort.order);
-  if (params?.sort?.key) searchParams.append('sort[key]', params.sort.key);
+
+  if (params?.page) searchParams.append("page", params.page.toString());
+  if (params?.limit) searchParams.append("limit", params.limit.toString());
+  if (params?.query) searchParams.append("query", params.query);
+  if (params?.sort?.order)
+    searchParams.append("sort[order]", params.sort.order);
+  if (params?.sort?.key) searchParams.append("sort[key]", params.sort.key);
 
   const queryString = searchParams.toString();
   const url = queryString ? `${ENDPOINTS.USER.CUSTOMERS}?${queryString}` : ENDPOINTS.USER.CUSTOMERS;

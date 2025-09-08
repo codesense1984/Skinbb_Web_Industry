@@ -1,3 +1,3 @@
-import EcommerceDashboard from './EcommerceDashboard'
+import EcommerceDashboard from "./EcommerceDashboard";
 
-export default EcommerceDashboard
+export default EcommerceDashboard;

@@ -1,21 +1,26 @@
-import React, { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/core/components/ui/card'
-import { Badge } from '@/core/components/ui/badge'
-import { formatCurrency } from '@/core/utils'
-import { UserIcon } from '@heroicons/react/24/outline'
-import { getImageUrl } from '../services'
-import type { TopSellerData } from '../types'
+import React, { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/core/components/ui/card";
+import { Badge } from "@/core/components/ui/badge";
+import { formatCurrency } from "@/core/utils";
+import { UserIcon } from "@heroicons/react/24/outline";
+import { getImageUrl } from "../services";
+import type { TopSellerData } from "../types";
 
 interface TopSellerProps {
-  data: TopSellerData[]
+  data: TopSellerData[];
 }
 
 const TopSeller: React.FC<TopSellerProps> = ({ data }) => {
-  const [imageErrors, setImageErrors] = useState<Set<number>>(new Set())
+  const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
 
   const handleImageError = (index: number) => {
-    setImageErrors(prev => new Set(prev).add(index))
-  }
+    setImageErrors((prev) => new Set(prev).add(index));
+  };
 
   if (!data || data.length === 0) {
     return (
@@ -27,10 +32,12 @@ const TopSeller: React.FC<TopSellerProps> = ({ data }) => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground text-center py-8">No seller data available</p>
+          <p className="text-muted-foreground py-8 text-center">
+            No seller data available
+          </p>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -44,10 +51,13 @@ const TopSeller: React.FC<TopSellerProps> = ({ data }) => {
       <CardContent>
         <div className="space-y-3">
           {data.map((seller, index) => (
-            <div key={index} className="flex items-center gap-4 p-4 rounded-lg border hover:bg-gray-50/50 transition-colors">
+            <div
+              key={index}
+              className="flex items-center gap-4 rounded-lg border p-4 transition-colors hover:bg-gray-50/50"
+            >
               <div className="flex-shrink-0">
                 {imageErrors.has(index) ? (
-                  <div className="h-12 w-12 rounded-lg bg-gray-100 flex items-center justify-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-100">
                     <UserIcon className="h-6 w-6 text-gray-400" />
                   </div>
                 ) : (
@@ -59,11 +69,11 @@ const TopSeller: React.FC<TopSellerProps> = ({ data }) => {
                   />
                 )}
               </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="text-sm font-medium text-foreground truncate">
+              <div className="min-w-0 flex-1">
+                <h4 className="text-foreground truncate text-sm font-medium">
                   {seller.sellerName}
                 </h4>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-muted-foreground text-xs">
                   Seller #{index + 1}
                 </p>
               </div>
@@ -78,7 +88,7 @@ const TopSeller: React.FC<TopSellerProps> = ({ data }) => {
         </div>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
-export default TopSeller
+export default TopSeller;

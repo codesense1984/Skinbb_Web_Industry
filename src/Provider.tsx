@@ -23,9 +23,12 @@ const Provider = ({ children }: { children: React.ReactNode }) => {
           </ThemeProvider>
         </MotionProvider>
 
-        {/* {import.meta.env.NODE_ENV !== "production" && ( */}
-        <ReactQueryDevtools initialIsOpen={false} />
-        {/* )} */}
+        {import.meta.env.MODE !== "production" && (
+          <ReactQueryDevtools
+            initialIsOpen={false}
+            buttonPosition="bottom-left"
+          />
+        )}
       </QueryClientProvider>
       {/* </PersistGate> */}
     </ReduxProvider>

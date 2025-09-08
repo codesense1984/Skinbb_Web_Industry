@@ -1,5 +1,5 @@
 import {
-  Avatar,
+  AvatarRoot,
   AvatarFallback,
   AvatarImage,
 } from "@/core/components/ui/avatar";
@@ -43,23 +43,25 @@ export const columns: ColumnDef<CustomerList>[] = [
     cell: ({ row, getValue }) => {
       const name = getValue() as string;
       const customer = row.original;
-      
+
       return (
         <ul className="flex min-w-40 items-center gap-2">
-          <Avatar className="size-10 rounded-md border">
+          <AvatarRoot className="size-10 rounded-md border">
             <AvatarImage
               className="object-cover"
               src={customer.profilePic?.url}
-              alt={`${name || 'Customer'} profile`}
+              alt={`${name || "Customer"} profile`}
             />
             <AvatarFallback className="rounded-md capitalize">
-              {name ? name.charAt(0) : customer.phoneNumber?.charAt(0) || 'C'}
+              {name ? name.charAt(0) : customer.phoneNumber?.charAt(0) || "C"}
             </AvatarFallback>
-          </Avatar>
+          </AvatarRoot>
           <div className="flex flex-col">
-            <span className="font-medium">{name || 'Unknown Customer'}</span>
+            <span className="font-medium">{name || "Unknown Customer"}</span>
             {customer.phoneNumber && (
-              <span className="text-sm text-muted-foreground">{customer.phoneNumber}</span>
+              <span className="text-muted-foreground text-sm">
+                {customer.phoneNumber}
+              </span>
             )}
           </div>
         </ul>

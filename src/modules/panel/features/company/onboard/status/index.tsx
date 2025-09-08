@@ -7,7 +7,7 @@ import { fadeInUp } from "@/core/styles/animation/presets";
 import { formatDate } from "@/core/utils";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import {
-  apiCheckCompanyStatus,
+  apiGetOnboardingCheckStatus,
   type CompanyStatusData,
 } from "@/modules/panel/services/http/company.service";
 import { useMutation } from "@tanstack/react-query";
@@ -21,10 +21,10 @@ const OnboardStatus = () => {
   const [error, setError] = useState("");
 
   const checkStatusMutation = useMutation({
-    mutationFn: apiCheckCompanyStatus,
+    mutationFn: apiGetOnboardingCheckStatus,
     onSuccess: (response) => {
-      if (response.success && response.data) {
-        setStatusData(response.data);
+      if (response) {
+        setStatusData(response);
       } else {
         toast.error("Failed to retrieve status");
         setError("Failed to retrieve status");
@@ -44,35 +44,27 @@ const OnboardStatus = () => {
   const handleCheckStatus = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!inputValue.trim()) {
-      setError("Please enter an email or phone number");
+      setError("Please enter an email address");
       return;
     }
 
-    // Determine if input is email or phone
+    // Validate email format
     const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inputValue);
-    const isPhone = /^[6-9]\d{9}$/.test(inputValue);
 
-    if (!isEmail && !isPhone) {
-      setError("Please enter a valid email address or 10-digit phone number");
+    if (!isEmail) {
+      setError("Please enter a valid email address");
       return;
     }
 
-    const params = isEmail
-      ? { email: inputValue }
-      : { phoneNumber: inputValue };
+    const params = { email: inputValue };
 
     checkStatusMutation.mutate(params);
   };
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    // Allow only digits for phone or email format
-    if (
-      /^[6-9]\d{0,9}$/.test(value) ||
-      /^[^\s@]*@?[^\s@]*\.?[^\s@]*$/.test(value)
-    ) {
-      setInputValue(value);
-    } else if (value === "") {
+    // Allow email format
+    if (/^[^\s@]*@?[^\s@]*\.?[^\s@]*$/.test(value) || value === "") {
       setInputValue(value);
     }
     setError("");
@@ -83,7 +75,7 @@ const OnboardStatus = () => {
       <PageHeader
         animate
         title="Check Registration Status"
-        description="Enter your email address or phone number to check your company's onboarding status"
+        description="Enter your email address to check your company's onboarding status"
         fallbackBackUrl={PANEL_ROUTES.ONBOARD.COMPANY}
       />
 
@@ -100,12 +92,12 @@ const OnboardStatus = () => {
             htmlFor="status-input"
             className="block text-sm font-medium text-gray-700"
           >
-            Email or Phone Number
+            Email Address
           </label>
           <Input
             id="status-input"
-            type="text"
-            placeholder="Enter email (e.g., user@example.com) or phone (e.g., 9876543210)"
+            type="email"
+            placeholder="Enter email address (e.g., user@example.com)"
             value={inputValue}
             onChange={handleInputChange}
             className="flex-1"
@@ -126,7 +118,7 @@ const OnboardStatus = () => {
             disabled={checkStatusMutation.isPending || !inputValue.trim()}
             loading={checkStatusMutation.isPending}
             variant="contained"
-            color="primary"
+            color="secondary"
             className="mt-2"
           >
             {checkStatusMutation.isPending ? "Checking..." : "Check Status"}
@@ -155,31 +147,44 @@ const OnboardStatus = () => {
                     </span>
                   </div>
 
-                  <div className="flex flex-wrap items-center justify-between">
-                    <span>Status:</span>
-                    <StatusBadge
-                      module="company"
-                      variant="contained"
-                      status={statusData.status}
-                      className="px-3"
-                      showDot={false}
-                    />
+                  <div className="space-y-3">
+                    <span className="text-sm font-medium">Addresses:</span>
+                    {statusData.addresses.map((address, index) => (
+                      <div
+                        key={address.addressId}
+                        className="bg-muted border-border space-y-2 rounded-md border p-3"
+                      >
+                        <div className="flex flex-wrap items-center justify-between">
+                          <span className="text-sm font-medium capitalize">
+                            {address.addressType} Address
+                          </span>
+                          <StatusBadge
+                            module="company"
+                            variant="contained"
+                            status={address.status}
+                            className="px-2 py-1 text-xs"
+                            showDot={false}
+                          />
+                        </div>
+                        <div className="text-sm">
+                          <span className="font-medium">Location:</span>{" "}
+                          {address.location}
+                        </div>
+                        {address.statusChangeReason && (
+                          <div className="text-sm">
+                            <span className="font-medium">Reason:</span>{" "}
+                            {address.statusChangeReason}
+                          </div>
+                        )}
+                        {address.statusChangedAt && (
+                          <div className="text-sm">
+                            <span className="font-medium">Status Changed:</span>{" "}
+                            {formatDate(address.statusChangedAt)}
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
-
-                  <div className="flex flex-wrap items-center justify-between">
-                    <span>Status Changed:</span>
-                    <span className="font-medium">
-                      {formatDate(statusData.statusChangedAt)}
-                    </span>
-                  </div>
-                  {statusData.statusChangeReason && (
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span>Reason:</span>
-                      <p className="bg-muted border-border rounded-md border px-3 py-1 font-medium">
-                        {statusData.statusChangeReason}
-                      </p>
-                    </div>
-                  )}
                 </CardContent>
               </Card>
             </motion.div>

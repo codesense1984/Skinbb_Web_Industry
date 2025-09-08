@@ -25,11 +25,14 @@ const Thankyou = () => {
         If you have any questions in the meantime, feel free to reach out to us
         at connect@skinbb.com.
       </p>
-      <Button color={"primary"} asChild>
-        <Link to={PANEL_ROUTES.ONBOARD.COMPANY} replace>
-          Back to Home
-        </Link>
-      </Button>
+
+      <div className="flex gap-4 pt-4">
+        <Button size={"lg"} color={"secondary"} asChild>
+          <Link to={PANEL_ROUTES.ONBOARD.COMPANY} replace>
+            Back to Home
+          </Link>
+        </Button>
+      </div>
     </div>
   );
 };

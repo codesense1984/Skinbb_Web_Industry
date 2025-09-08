@@ -1,7 +1,4 @@
-import React, { useState } from "react";
-import { useForm, useWatch } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { Button } from "@/core/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -10,9 +7,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/core/components/ui/dialog";
-import { Button } from "@/core/components/ui/button";
 import { Label } from "@/core/components/ui/label";
 import { Textarea } from "@/core/components/ui/textarea";
+import { zodResolver } from "@hookform/resolvers/zod";
+import React from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { z } from "zod";
 
 // Validation schema for approval form
 const approvalSchema = z.object({
@@ -98,9 +98,7 @@ export const CompanyApprovalDialog: React.FC<CompanyApprovalDialogProps> = ({
             <div className="flex gap-2">
               <Button
                 type="button"
-                variant={
-                  status === "approved" ? "contained" : "outlined"
-                }
+                variant={status === "approved" ? "contained" : "outlined"}
                 color={"secondary"}
                 onClick={() => handleStatusChange("approved")}
                 className="flex-1"
@@ -109,9 +107,7 @@ export const CompanyApprovalDialog: React.FC<CompanyApprovalDialogProps> = ({
               </Button>
               <Button
                 type="button"
-                variant={
-                  status === "rejected" ? "contained" : "outlined"
-                }
+                variant={status === "rejected" ? "contained" : "outlined"}
                 color={"secondary"}
                 onClick={() => handleStatusChange("rejected")}
                 className="flex-1"

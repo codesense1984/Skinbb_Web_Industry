@@ -1,5 +1,5 @@
 import {
-  Avatar,
+  AvatarRoot,
   AvatarFallback,
   AvatarImage,
 } from "@/core/components/ui/avatar";
@@ -22,7 +22,7 @@ type UseImagePreviewOptions = {
   clear?: () => void;
   imageProps?: ComponentProps<typeof AvatarImage>;
   fallbackProps?: ComponentProps<typeof AvatarFallback>;
-  avatarProps?: ComponentProps<typeof Avatar>;
+  avatarProps?: ComponentProps<typeof AvatarRoot>;
 };
 
 type UseImagePreviewResult = {
@@ -33,23 +33,31 @@ type UseImagePreviewResult = {
 
 export function useImagePreview(
   file?: File | null,
+  url?: string | null,
   options: UseImagePreviewOptions = {},
 ): UseImagePreviewResult {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!file) {
-      setPreviewUrl(options?.placeholder ?? null);
+    // If URL is provided, use it directly
+    if (file) {
+      const objectUrl = URL.createObjectURL(file);
+      setPreviewUrl(objectUrl);
+
+      return () => {
+        URL.revokeObjectURL(objectUrl);
+      };
+    }
+    if (url) {
+      setPreviewUrl(url);
       return;
     }
 
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
+    // If file is provided, create object URL
 
-    return () => {
-      URL.revokeObjectURL(url);
-    };
-  }, [file, options.placeholder]);
+    // Fallback to placeholder
+    setPreviewUrl(options?.placeholder ?? null);
+  }, [file, url, options.placeholder]);
 
   const clear = useCallback(() => {
     setPreviewUrl(options.placeholder ?? null);
@@ -58,7 +66,10 @@ export function useImagePreview(
 
   const element = useMemo<JSX.Element | null>(() => {
     return (
-      <Avatar className="size-28 rounded-md border" {...options.avatarProps}>
+      <AvatarRoot
+        className="size-28 rounded-md border"
+        {...options.avatarProps}
+      >
         {previewUrl && options.showRemoveButton !== false && (
           <Button
             variant="contained"
@@ -77,7 +88,7 @@ export function useImagePreview(
         <AvatarFallback className="rounded-md" {...options.fallbackProps}>
           {options.fallback}
         </AvatarFallback>
-      </Avatar>
+      </AvatarRoot>
     );
   }, [previewUrl, clear, options]);
 

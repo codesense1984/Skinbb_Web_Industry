@@ -1,29 +1,37 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router'
-import { Card, CardContent, CardHeader, CardTitle } from '@/core/components/ui/card'
-import { Badge } from '@/core/components/ui/badge'
-import { Button } from '@/core/components/ui/button'
-import { formatNumber } from '@/core/utils'
-import { BuildingStorefrontIcon, ArrowRightIcon } from '@heroicons/react/24/outline'
-import { PANEL_ROUTES } from '../../../../panel/routes/constant'
-import { getImageUrl } from '../services'
-import type { TopBrandData } from '../types'
+import React, { useState } from "react";
+import { useNavigate } from "react-router";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/core/components/ui/card";
+import { Badge } from "@/core/components/ui/badge";
+import { Button } from "@/core/components/ui/button";
+import { formatNumber } from "@/core/utils";
+import {
+  BuildingStorefrontIcon,
+  ArrowRightIcon,
+} from "@heroicons/react/24/outline";
+import { PANEL_ROUTES } from "../../../../panel/routes/constant";
+import { getImageUrl } from "../services";
+import type { TopBrandData } from "../types";
 
 interface TopBrandProps {
-  data: TopBrandData[]
+  data: TopBrandData[];
 }
 
 const TopBrand: React.FC<TopBrandProps> = ({ data }) => {
-  const navigate = useNavigate()
-  const [imageErrors, setImageErrors] = useState<Set<number>>(new Set())
+  const navigate = useNavigate();
+  const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
 
   const handleImageError = (index: number) => {
-    setImageErrors(prev => new Set(prev).add(index))
-  }
+    setImageErrors((prev) => new Set(prev).add(index));
+  };
 
   const handleViewAll = () => {
-    navigate(PANEL_ROUTES.BRAND.LIST)
-  }
+    navigate(PANEL_ROUTES.BRAND.LIST);
+  };
 
   if (!data || data.length === 0) {
     return (
@@ -35,10 +43,12 @@ const TopBrand: React.FC<TopBrandProps> = ({ data }) => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground text-center py-8">No brand data available</p>
+          <p className="text-muted-foreground py-8 text-center">
+            No brand data available
+          </p>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -63,10 +73,13 @@ const TopBrand: React.FC<TopBrandProps> = ({ data }) => {
       <CardContent>
         <div className="space-y-3">
           {data.map((brand, index) => (
-            <div key={index} className="flex items-center gap-4 p-4 rounded-lg border hover:bg-gray-50/50 transition-colors">
+            <div
+              key={index}
+              className="flex items-center gap-4 rounded-lg border p-4 transition-colors hover:bg-gray-50/50"
+            >
               <div className="flex-shrink-0">
                 {imageErrors.has(index) ? (
-                  <div className="h-12 w-12 rounded-lg bg-gray-100 flex items-center justify-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-100">
                     <BuildingStorefrontIcon className="h-6 w-6 text-gray-400" />
                   </div>
                 ) : (
@@ -78,11 +91,11 @@ const TopBrand: React.FC<TopBrandProps> = ({ data }) => {
                   />
                 )}
               </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="text-sm font-medium text-foreground truncate">
+              <div className="min-w-0 flex-1">
+                <h4 className="text-foreground truncate text-sm font-medium">
                   {brand.brandName}
                 </h4>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-muted-foreground text-xs">
                   Brand #{index + 1}
                 </p>
               </div>
@@ -97,7 +110,7 @@ const TopBrand: React.FC<TopBrandProps> = ({ data }) => {
         </div>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
-export default TopBrand
+export default TopBrand;

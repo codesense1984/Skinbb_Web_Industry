@@ -2,7 +2,7 @@ import { createSimpleFetcher, DataTable } from "@/core/components/data-table";
 import { StatusFilter } from "@/core/components/data-table/components/table-filter";
 import { TableAction } from "@/core/components/data-table/components/table-action";
 import {
-  Avatar,
+  AvatarRoot,
   AvatarFallback,
   AvatarImage,
 } from "@/core/components/ui/avatar";
@@ -95,7 +95,7 @@ const columns: ColumnDef<Brand>[] = [
     header: "Brand",
     cell: ({ row, getValue }) => (
       <ul className="flex min-w-40 items-center gap-2">
-        <Avatar className="size-10 rounded-md border">
+        <AvatarRoot className="size-10 rounded-md border">
           <AvatarImage
             className="object-contain"
             src={row.original.logoImage?.url}
@@ -104,10 +104,12 @@ const columns: ColumnDef<Brand>[] = [
           <AvatarFallback className="rounded-md capitalize">
             {(getValue() as string)?.charAt(0)}
           </AvatarFallback>
-        </Avatar>
+        </AvatarRoot>
         <div className="flex flex-col">
           <span className="font-medium">{getValue() as string}</span>
-          <span className="text-sm text-muted-foreground">{row.original.slug}</span>
+          <span className="text-muted-foreground text-sm">
+            {row.original.slug}
+          </span>
         </div>
       </ul>
     ),
@@ -117,7 +119,7 @@ const columns: ColumnDef<Brand>[] = [
     header: "Description",
     cell: ({ getValue }) => {
       const description = getValue() as string;
-      const cleanDescription = description.replace(/<[^>]*>/g, ''); // Remove HTML tags
+      const cleanDescription = description.replace(/<[^>]*>/g, ""); // Remove HTML tags
       return (
         <div className="w-max max-w-xs truncate" title={cleanDescription}>
           {cleanDescription || 'No description'}
@@ -206,12 +208,20 @@ const BrandList = () => {
   const fetchStats = useCallback(async () => {
     try {
       const response = await apiGetBrands({ page: 1, limit: 1000 }); // Get all for stats
-      
+
       if (response.success) {
-        const totalProducts = response.data.brands.reduce((sum, brand) => sum + brand.associatedProductsCount, 0);
-        const totalUsers = response.data.brands.reduce((sum, brand) => sum + brand.associatedUsers, 0);
-        const activeBrands = response.data.brands.filter(brand => brand.isActive).length;
-        
+        const totalProducts = response.data.brands.reduce(
+          (sum, brand) => sum + brand.associatedProductsCount,
+          0,
+        );
+        const totalUsers = response.data.brands.reduce(
+          (sum, brand) => sum + brand.associatedUsers,
+          0,
+        );
+        const activeBrands = response.data.brands.filter(
+          (brand) => brand.isActive,
+        ).length;
+
         setStats([
           {
             title: "Total Brands",

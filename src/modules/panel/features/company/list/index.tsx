@@ -10,8 +10,8 @@ import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 // Super simple! Just pass the API function and data paths
 const fetcher = () =>
   createSimpleFetcher(apiGetCompanyList, {
-    dataPath: "data.data",
-    totalPath: "data.totalRecords",
+    dataPath: "data.items",
+    totalPath: "data.total",
     filterMapping: {
       status: "status", // Map the status column filter to the status API parameter
     },

@@ -10,13 +10,27 @@ export const ENDPOINTS = {
 
   ONBOARDING: {
     // MAIN: `${API_PREFIX}/brands/on-boarding`,
-    MAIN: `${API_PREFIX}/sellers/onboard`,
+    MAIN: `${API_PREFIX}/onboard/company`,
     SEND_MAIL: `${API_PREFIX}/otp/send/email`,
     VERIFY_MAIL: `${API_PREFIX}/otp/verify/email`,
     SEND_MOBILE: `${API_PREFIX}/otp/send`,
     VERIFY_MOBILE: `${API_PREFIX}/otp/verify`,
     STATUS: `${API_PREFIX}/brands/on-boarding/status`,
     ADMIN: `${API_PREFIX}/brands/on-boarding/admin`, // (was "onboard")
+    ADMIN_BY_ID: (id: string) => `${API_PREFIX}/brands/on-boarding/admin/${id}`,
+    COMPANY_DETAILS: (id: string) => `${API_PREFIX}/onboard/company/${id}`,
+    COMPANY_LOCATION_DETAILS: (id: string, locationId: string) =>
+      `${API_PREFIX}/onboard/${id}/locations/${locationId}/onboarding`,
+    COMPANY_CHECK_STATUS: `${API_PREFIX}/onboard/status`,
+  },
+
+  COMPANY: {
+    MAIN: `${API_PREFIX}/company`,
+    LOCATION: (companyId: string) =>
+      `${API_PREFIX}/company/${companyId}/locations`,
+    LOCATION_DETAILS: (companyId: string, locationId: string) =>
+      `${API_PREFIX}/company/${companyId}/locations/${locationId}`,
+    USERS: (companyId: string) => `${API_PREFIX}/company/${companyId}/users`,
   },
 
   PAGE: {
@@ -38,6 +52,8 @@ export const ENDPOINTS = {
     CATEGORY_HIERARCHY: `${API_PREFIX}/product-category/admin/all`,
     VARIATION_TYPE: `${API_PREFIX}/product-variation-types/admin`,
     META_FIELD_ATTRIBUTES: `${API_PREFIX}/product-attributes/admin/list`,
+    ATTRIBUTE_VALUE_BY_ATTRIBUTE: (attributeId: string) =>
+      `${API_PREFIX}/product-attributes/admin/value/list?attributeId=${attributeId}`,
   },
 
   MEDIA: {
@@ -46,7 +62,10 @@ export const ENDPOINTS = {
 
   BRAND: {
     MAIN: `${API_PREFIX}/brands/admin`,
-    TOGGLE_STATUS: `${API_PREFIX}/brands/admin/toggle-status`,
+    TOGGLE_STATUS: (id: string) =>
+      `${API_PREFIX}/brands/admin/toggle-status/${id}`,
+    MAIN_BY_ID: (id: string) => `${API_PREFIX}/brands/admin/${id}`,
+    MAIN_ALL: `${API_PREFIX}/brands/admin/all`,
   },
 
   INFO: {
@@ -78,12 +97,16 @@ export const ENDPOINTS = {
   },
 
   SELLER: {
-    MAIN: `${API_PREFIX}/sellers/admin`,
-    GET_COMPANY_DETAILS: `${API_PREFIX}/sellers/companyDetailById`,
+    MAIN: `${API_PREFIX}/company`,
+    GET_COMPANY_DETAILS: (id: string) => `${API_PREFIX}/sellers/${id}`,
+    GET_COMPANY_DETAIL_DATA: (id: string) =>
+      `${API_PREFIX}/sellers/${id}/detailData`,
     GET_COMPANY_LIST: `${API_PREFIX}/sellers/getCompanyNameList`,
     GET_COMPANY_DETAILS_LIST: `${API_PREFIX}/sellers/getCompanyDetails`,
-    CHECK_STATUS: `${API_PREFIX}/sellers/check-status`,
+    // CHECK_STATUS: `${API_PREFIX}/sellers/check-status`,
     UPDATE_INFO: `${API_PREFIX}/sellers/info`,
+    UPDATE_STATUS: (addressId: string) =>
+      `${API_PREFIX}/sellers/admin/address/${addressId}/status`,
   },
 
   DISCOUNT: {
@@ -96,6 +119,8 @@ export const ENDPOINTS = {
 
   ORDER: {
     MAIN: `${API_PREFIX}/orders/admin`,
+    MAIN_ALL: `${API_PREFIX}/orders/admin/all`,
+    MAIN_BY_ID: (id: string) => `${API_PREFIX}/orders/admin/${id}`,
   },
 
   DASHBOARD: {

@@ -696,11 +696,13 @@ const FunctionalTrends = () => {
           showPagination={false}
           pageSize={-1}
           className="col-span-4 space-y-3"
-          bodyProps={{
-            containerProps: {
-              className: "rounded-lg border",
-            },
-          }}
+          bodyProps={
+            {
+              // containerProps: {
+              //   className: "rounded-lg border",
+              // },
+            }
+          }
           rows={
             categoryData.find(
               (item) => item.function.toLowerCase() === currentCategory,

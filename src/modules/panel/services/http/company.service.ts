@@ -9,6 +9,7 @@ import type {
   CompanyOnboading,
   CompanyOnboardingSubmitRequest,
   CompanyListItem,
+  CompanyDetailDataResponse,
 } from "@/modules/panel/types/company.type";
 import { createFormData } from "@/core/utils/formdata.utils";
 
@@ -21,7 +22,7 @@ export async function apiGetOnboardList<T, U extends Record<string, unknown>>(
 
 // Get onboard entry by ID
 export async function apiGetOnboardById<T>(id: string) {
-  return api.get<T>(`${ENDPOINTS.ONBOARDING.ADMIN}/${id}`);
+  return api.get<T>(ENDPOINTS.ONBOARDING.ADMIN_BY_ID(id));
 }
 
 // Update onboard entry by ID (PUT)
@@ -29,13 +30,13 @@ export async function apiUpdateOnboardById<
   T,
   U extends Record<string, unknown>,
 >(id: string, data: U) {
-  return api.put<T>(`${ENDPOINTS.ONBOARDING.ADMIN}/${id}`, {
+  return api.put<T>(ENDPOINTS.ONBOARDING.ADMIN_BY_ID(id), {
     data,
   });
 }
 
 // ---- Onboarding ----
-export async function apiOnboardingSubmit<T>(
+export async function apiOnboardingSubmit<T = ApiResponse<string>>(
   data: CompanyOnboardingSubmitRequest,
 ) {
   // Use generic FormData utility with specific array keys for onboarding
@@ -94,7 +95,7 @@ export async function apiGetPageDetails<T, U extends Record<string, unknown>>(
 export async function apiGetBrandList<T, U extends Record<string, unknown>>(
   params: U,
 ) {
-  return api.get<T>(`${ENDPOINTS.BRAND.MAIN}/all`, { params });
+  return api.get<T>(ENDPOINTS.BRAND.MAIN_ALL, { params });
 }
 
 // export async function apiCreateBrand(data: BrandReqData) {
@@ -107,7 +108,7 @@ export async function apiGetBrandList<T, U extends Record<string, unknown>>(
 
 // Get brand by ID
 export async function apiGetBrandById<T>(id: string) {
-  return api.get<T>(`${ENDPOINTS.BRAND.MAIN}/${id}`);
+  return api.get<T>(ENDPOINTS.BRAND.MAIN_BY_ID(id));
 }
 
 // Update brand by ID (PUT)
@@ -117,12 +118,12 @@ export async function apiGetBrandById<T>(id: string) {
 
 // Delete brand by ID (PATCH)
 export async function apiDeleteBrandById<T>(id: string) {
-  return api.patch<T>(`${ENDPOINTS.BRAND.MAIN}/${id}`);
+  return api.patch<T>(ENDPOINTS.BRAND.MAIN_BY_ID(id));
 }
 
 // Toggle active/inactive status (PATCH)
 export async function apiToggleBrandStatus<T>(id: string) {
-  return api.patch<T>(`${ENDPOINTS.BRAND.TOGGLE_STATUS}/${id}`);
+  return api.patch<T>(ENDPOINTS.BRAND.TOGGLE_STATUS(id));
 }
 
 // Get company details for dropdown
@@ -143,46 +144,67 @@ export async function apiGetCompanyDropdownList<
 }
 
 // Get company details by ID
+export async function apiGetOnboardCompanyDetailById<
+  T = { company: CompanyOnboading },
+>(companyId: string) {
+  return api.get<T>(ENDPOINTS.ONBOARDING.COMPANY_DETAILS(companyId));
+}
+
 export async function apiGetCompanyDetailById<
   T = ApiResponse<CompanyOnboading>,
 >(companyId: string) {
-  return api.get<T>(`${ENDPOINTS.SELLER.GET_COMPANY_DETAILS}/${companyId}`);
+  return api.get<T>(ENDPOINTS.SELLER.GET_COMPANY_DETAILS(companyId));
 }
 
-// Check company status by email or phone
+// Get company detail data by ID (new endpoint)
+export async function apiGetCompanyDetailData<
+  T = ApiResponse<CompanyDetailDataResponse>,
+>(companyId: string) {
+  return api.get<T>(ENDPOINTS.SELLER.GET_COMPANY_DETAIL_DATA(companyId));
+}
+
+// Check company status by email
 export interface ApiRequestCheckStatusParams {
-  email?: string;
-  phoneNumber?: string;
+  email: string;
+}
+
+export interface CompanyAddressStatus {
+  addressId: string;
+  status: string;
+  statusChangeReason: string;
+  statusChangedAt: string | null;
+  addressType: string;
+  location: string;
 }
 
 export interface CompanyStatusData {
-  _id: string;
+  companyId: string;
   companyName: string;
-  status: string;
-  statusChangeReason?: string;
-  statusChangedAt: string;
-  createdAt: string;
-  updatedAt: string;
+  addresses: CompanyAddressStatus[];
 }
 
-export async function apiCheckCompanyStatus(
+export async function apiGetOnboardingCheckStatus(
   params: ApiRequestCheckStatusParams,
 ) {
-  return api.get<ApiResponse<CompanyStatusData>>(
-    ENDPOINTS.SELLER.CHECK_STATUS,
-    { params },
-  );
+  return api.get<CompanyStatusData>(ENDPOINTS.ONBOARDING.COMPANY_CHECK_STATUS, {
+    params,
+  });
 }
 
 // Get company list with pagination
-export async function apiGetCompanyList(
-  params: PaginationParams,
-  signal?: AbortSignal,
-): Promise<PaginationApiResponse<{ data: CompanyListItem[] }>> {
-  return api.get<PaginationApiResponse<{ data: CompanyListItem[] }>>(
-    ENDPOINTS.SELLER.MAIN,
-    { params, signal },
-  );
+export interface CompanyListParams extends PaginationParams {
+  status?: string;
+}
+
+export async function apiGetCompanyList<
+  T = ApiResponse<{
+    items: CompanyListItem[];
+    page: number;
+    limit: number;
+    total: number;
+  }>,
+>(params: CompanyListParams, signal?: AbortSignal) {
+  return api.get<T>(ENDPOINTS.SELLER.MAIN, { params, signal });
 }
 
 // Update company status (approval/rejection)
@@ -201,11 +223,11 @@ export interface CompanyStatusUpdateResponse {
 }
 
 export async function apiUpdateCompanyStatus(
-  companyId: string,
+  locationId: string,
   data: CompanyStatusUpdateRequest,
 ) {
   return api.put<ApiResponse<CompanyStatusUpdateResponse>>(
-    `https://api.skintruth.in/api/v1/sellers/admin/status/${companyId}`,
+    ENDPOINTS.SELLER.UPDATE_STATUS(locationId),
     data,
   );
 }

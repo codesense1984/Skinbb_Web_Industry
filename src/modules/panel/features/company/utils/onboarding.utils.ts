@@ -74,16 +74,24 @@ export function transformFormDataToApiRequest(
   const authDoc = documents.find((doc) => doc.type === "brandAuthorisation");
 
   const apiData: CompanyOnboardingSubmitRequest = {
-    _id: formData?._id || null,
+    companyId: formData?._id || null,
+    // Required File properties - will be overridden later if files exist
+    gst: new File([], ""),
+    pan: new File([], ""),
+    authorizationLetter: new File([], ""),
+    coiCertificate: new File([], ""),
+    msmeCertificate: new File([], ""),
     ownerName: formData.name || "",
     ownerEmail: formData.email || "",
     phoneNumber: formData.phoneNumber || "",
+    designation: formData.designation || "",
     password: formData.password || "",
     roleId,
     companyName: formData.companyName || "",
     companyDescription:
       formData.description || "Company description not provided",
     businessType: formData.businessType || "",
+    headquartersAddress: formData.headquarterLocation || "",
     establishedIn: formData.establishedIn
       ? formatEstablishedDate(String(formData.establishedIn))
       : "",
@@ -100,14 +108,18 @@ export function transformFormDataToApiRequest(
     brandName: formData.brandName || "",
     brandDescription: formData.description || "",
     brandWebsite: formData.website || "",
+    totalSKU: formData.totalSkus || "",
+    averageSellingPrice: formData.averageSellingPrice || "",
+    marketingBudget: formData.marketingBudget || "",
+    productCategory: formData.productCategory || [],
     addresses: primaryAddress
       ? [
           {
             addressType: primaryAddress.addressType,
             gstNumber: gstDoc?.number || "",
             panNumber: panDoc?.number || "",
-            line1: primaryAddress.address || "",
-            line2: "",
+            addressLine1: primaryAddress.address || "",
+            addressLine2: "",
             landmark: primaryAddress.landmark || "",
             city: primaryAddress.city || "",
             state: primaryAddress.state || "",
@@ -146,7 +158,7 @@ export function transformFormDataToApiRequest(
   }
 
   if (authDoc?.url_files && authDoc.url_files.length > 0) {
-    apiData.authorizationLetter = authDoc.url_files;
+    apiData.authLetter = authDoc.url_files;
   }
 
   if (coiDoc?.url_files && coiDoc.url_files.length > 0) {
@@ -174,13 +186,14 @@ export function transformApiResponseToFormData(
     email: "",
     designation: "",
     password: "",
-    phoneNumber: "8424847449",
-    phoneVerified: true,
+    phoneNumber: "",
+    phoneVerified: false,
 
     // Step 1
     logo: "",
     logo_files: undefined,
     companyName: "",
+    isCreatingNewCompany: false,
     category: "",
     businessType: "",
     establishedIn: "",
@@ -242,9 +255,15 @@ export function transformApiResponseToFormData(
   // Merge API data with default values
   const mergedData: FullCompanyFormType = {
     ...defaultValues,
-    _id: apiData._id || defaultValues._id,
-    logo: apiData?.brandLogo || defaultValues.brand_logo,
-    // logo: apiData?.logo || defaultValues.logo,
+    _id: apiData.companyId || defaultValues._id,
+    // Personal details from owner object
+    name: apiData.owner?.ownerUser || defaultValues.name,
+    email: apiData.owner?.ownerEmail || defaultValues.email,
+    designation: apiData.owner?.ownerDesignation || defaultValues.designation,
+    phoneNumber: apiData.owner?.ownerPhone || defaultValues.phoneNumber,
+    // Company logo
+    logo: apiData.logo || defaultValues.logo,
+    // Brand details from first address's brands
     brands:
       apiData?.addresses?.flatMap(
         (address) => address.brands?.map((brand) => brand.name) || [],
@@ -253,21 +272,24 @@ export function transformApiResponseToFormData(
     companyName: apiData.companyName || defaultValues.companyName,
     businessType: apiData.businessType || defaultValues.businessType,
     category: apiData.companyCategory || defaultValues.category,
+
     website: apiData.website || defaultValues.website,
     isSubsidiary: String(apiData.subsidiaryOfGlobalBusiness || false),
-    headquarterLocation: defaultValues.headquarterLocation,
+    headquarterLocation:
+      apiData.headquaterLocation || defaultValues.headquarterLocation,
     establishedIn: apiData.establishedIn
       ? convertEstablishedInToMonthFormat(apiData.establishedIn)
       : defaultValues.establishedIn,
-    description: defaultValues.description,
+    description: apiData.companyDescription || defaultValues.description, // No description field in new API structure
+    isCreatingNewCompany: defaultValues.isCreatingNewCompany,
     address:
       apiData.addresses && apiData.addresses.length > 0
         ? [
             ...apiData.addresses.map((address) => ({
-              addressType: address.addressType,
-              address: address.landmark || "",
+              addressType: address.addressType as "registered" | "office",
+              address: address.addressLine1 || "",
               landmark: address.landmark || "",
-              phoneNumber: apiData.landlineNo || "",
+              phoneNumber: address.landlineNumber || "",
               country: address.country || "",
               state: address.state || "",
               city: address.city || "",
@@ -290,89 +312,4 @@ export function transformApiResponseToFormData(
   };
 
   return mergedData;
-
-  return {
-    name: "Rohit Sharma",
-    email: "rohit.sharma@example.com",
-    designation: "Founder & CEO",
-    password: "Pass@1234",
-    phoneNumber: "8424847449",
-    phoneVerified: true,
-    logo: "C:\\fakepath\\is3.png",
-    logo_files: undefined,
-    companyName: "TechNova Solutions Pvt. Ltd.",
-    category: "principal",
-    businessType: "public",
-    establishedIn: "2007-06",
-    website: "https://www.technova.com",
-    isSubsidiary: "true",
-    headquarterLocation: "London",
-    description:
-      "TechNova Solutions is a leading provider of AI-driven business automation tools, helping enterprises streamline operations and accelerate growth.",
-    brand_logo: "",
-    brand_logo_files: undefined,
-    brandName: "NovaAI",
-    totalSkus: "40",
-    productCategory: ["68652e98d559321c67d22fd8", "68652e84d559321c67d22fc2"],
-    averageSellingPrice: "40",
-    sellingOn: [
-      {
-        platform: "flipkart",
-        url: "https://google.com",
-      },
-    ],
-    instagramUrl: "",
-    facebookUrl: "",
-    youtubeUrl: "",
-    marketingBudget: "49999",
-    address: [
-      {
-        addressType: "registered",
-        address: "5th Floor, Tech Park, Whitefield",
-        landmark: "Near ITPL",
-        phoneNumber: "8045671234",
-        country: "india",
-        state: "delhi",
-        city: "Mumbai",
-        postalCode: "400019",
-      },
-    ],
-    documents: [
-      {
-        type: "coi",
-        number: "785",
-        // url: "C:\\fakepath\\pdf-sample_2.pdf",
-        // url_files: {
-        //   "0": {},
-        // },
-      },
-      {
-        type: "pan",
-        number: "747",
-        // url: "C:\\fakepath\\pdf-sample_2.pdf",
-        // url_files: {
-        //   "0": {},
-        // },
-      },
-      {
-        type: "gstLicense",
-        number: "922",
-        url: "",
-      },
-      {
-        type: "msme",
-        number: "720",
-        url: "",
-      },
-      {
-        type: "brandAuthorisation",
-        number: "",
-        // url: "C:\\fakepath\\pdf-sample_2.pdf",
-        // url_files: {
-        //   "0": {},
-        // },
-      },
-    ],
-    agreeTermsConditions: true,
-  };
 }
