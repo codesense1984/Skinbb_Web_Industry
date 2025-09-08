@@ -185,7 +185,7 @@ const OnBoardForm = ({
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [currentValue, setCurrentValue] = useState<StepKey>(
-    StepKey.PERSONAL_INFORMATION,
+    StepKey.COMPANY_DETAILS,
   );
 
   const [confirmation, setConfirmation] = useState<
