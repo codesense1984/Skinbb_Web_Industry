@@ -148,37 +148,10 @@ export const columns: ColumnDef<CompanyListItem>[] = [
       </div>
     ),
   },
-
-  {
-    header: "Category",
-    accessorKey: "category",
-    cell: ({ row }) => (
-      <div className="w-max">{row.original.companyCategory}</div>
-    ),
-  },
-  {
-    header: "Phone",
-    accessorKey: "landlineNo",
-    cell: ({ row }) => <div className="w-max">{row.original.landlineNo}</div>,
-  },
   {
     header: "Business Type",
     accessorKey: "businessType",
     cell: ({ row }) => <div className="w-max">{row.original.businessType}</div>,
-  },
-  {
-    header: "Website",
-    accessorKey: "website",
-    cell: ({ row }) => (
-      <a
-        href={row.original.website}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-blue-600 underline hover:text-blue-800"
-      >
-        {row.original.website}
-      </a>
-    ),
   },
   {
     header: "Location",
@@ -193,14 +166,14 @@ export const columns: ColumnDef<CompanyListItem>[] = [
   },
   {
     header: "Status",
-    accessorKey: "status",
+    accessorKey: "companyStatus",
     cell: ({ row }) => (
       <StatusBadge
-        status={row.original.status}
+        status={row.original.companyStatus}
         module="company"
         variant="badge"
       >
-        {row.original.status}
+        {row.original.companyStatus}
       </StatusBadge>
     ),
     filterFn: (row, id, value) => {

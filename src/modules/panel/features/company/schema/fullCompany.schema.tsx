@@ -465,7 +465,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
     {
       name: "description",
       label: "Company Description (optional)",
-      type: INPUT_TYPES.RICH_TEXT,
+      type: INPUT_TYPES.TEXTAREA,
       placeholder: "Brief description about the company",
       disabled: hasCompany || mode === MODE.VIEW,
       className: "sm:col-span-2",

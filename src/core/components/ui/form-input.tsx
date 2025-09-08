@@ -39,7 +39,7 @@ import {
 import { Slider } from "./slider";
 import { Textarea, type TextareaProps } from "./textarea";
 import { RichTextEditor } from "./rich-text-editor";
-import { InformationCircleIcon } from "@heroicons/react/24/outline";
+import { ArrowUpTrayIcon, InformationCircleIcon } from "@heroicons/react/24/outline";
 import { Tooltip } from "./tooltip";
 import type { Option } from "@/core/types";
 
@@ -296,7 +296,9 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
           <RichTextEditor
             value={typeof value === "string" ? value : ""}
             onChange={(htmlValue) => {
-              field.onChange(transform ? transform.output(htmlValue) : htmlValue);
+              field.onChange(
+                transform ? transform.output(htmlValue) : htmlValue,
+              );
             }}
             placeholder={placeholder}
             disabled={disabled}
@@ -412,82 +414,40 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
         />
       );
     }
-         case INPUT_TYPES.FILE:
-       return (
-         <FormControl {...formControlProps}>
-           <div className="space-y-2">
-             <div className="flex items-center gap-3">
-               <input
-                 {...field}
-                 type="file"
-                 className="hidden"
-                 id={inputId}
-                 value={undefined}
-                 onChange={(e) => {
-                   field.onChange(transform ? transform.output(e) : e);
-                   if (type === INPUT_TYPES.FILE) {
-                     // Only set _files suffix if the field name doesn't already end with _files
-                     const filesFieldName = String(name).endsWith('_files') 
-                       ? String(name) 
-                       : `${String(name)}_files`;
-                     setValue(filesFieldName, e.target?.files);
-                     trigger(name);
-                   }
-                 }}
-                 readOnly={readOnly}
-                 disabled={disabled}
-                 {...(inputProps?.accept && { accept: inputProps.accept })}
-               />
-               <label
-                 htmlFor={inputId}
-                 className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50 transition-colors"
-               >
-                 <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                 </svg>
-                 <span className="text-sm text-gray-700">Choose File</span>
-               </label>
-               <span className="text-sm text-gray-500">
-                 {placeholder || "PNG, JPG, PDF (MAX. 10MB)"}
-               </span>
-             </div>
-                         {(() => {
-               // More strict checking for actual file selection
-               let hasValidFile = false;
-               let fileName = "";
-               
-               if (value) {
-                 if (typeof value === "string") {
-                   // String value - check if it's not empty and has actual content
-                   const trimmedValue = value.trim();
-                   if (trimmedValue !== "" && trimmedValue !== "undefined" && trimmedValue !== "null") {
-                     hasValidFile = true;
-                     fileName = trimmedValue.split("\\").pop() || trimmedValue.split("/").pop() || trimmedValue;
-                   }
-                 } else if (typeof value === "object") {
-                   // Object value - could be event or file list
-                   if (value.target && value.target.files && value.target.files.length > 0) {
-                     hasValidFile = true;
-                     fileName = value.target.files[0].name;
-                   } else if (value.files && value.files.length > 0) {
-                     hasValidFile = true;
-                     fileName = value.files[0].name;
-                   }
-                 }
-               }
-               
-               return hasValidFile ? (
-                 <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-md">
-                   <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                   </svg>
-                   <span className="text-sm text-green-700 font-medium">
-                     {fileName || "File selected"}
-                   </span>
-                 </div>
-               ) : null;
-             })()}
-          </div>
+    case INPUT_TYPES.FILE:
+      return (
+        <FormControl {...formControlProps}>
+          <label
+            className="form-control gap-1 items-center"
+            title={value?.split("\\").pop()}
+            htmlFor={inputId}
+            data-disabled={disabled}
+            data-readOnly={readOnly}
+          >
+            <ArrowUpTrayIcon className="min-w-4 w-4 block" />
+            <input
+              {...field}
+              type="file"
+              hidden
+              id={inputId}
+              value={undefined}
+              onChange={(e) => {
+                field.onChange(transform ? transform.output(e) : e);
+                if (type === INPUT_TYPES.FILE) {
+                  setValue(`${String(name)}_files`, e.target?.files);
+                  trigger(name);
+                }
+              }}
+              readOnly={readOnly}
+              disabled={disabled}
+              {...(inputProps?.accept && { accept: inputProps.accept })}
+            />
+            <p className="text-nowrap">{placeholder ?? "Choose File"}</p>
+            {value && <span className="text-muted-foreground mx-1">|</span>}
+            <p className="text-foreground truncate">
+              {value?.split("\\").pop()}
+            </p>
+          </label>
         </FormControl>
       );
 

@@ -67,7 +67,6 @@ export interface CompanyOnboardingSubmitRequest
   authorizationLetter: File;
   coiCertificate: File;
   msmeCertificate: File;
-
   ownerName: string;
   ownerEmail: string;
   phoneNumber: string;
@@ -80,8 +79,8 @@ export interface CompanyOnboardingSubmitRequest
   businessType: string;
   companyCategory: string;
   establishedIn: string;
-  cinNumber: string;
-  msmeNumber: string;
+  // cinNumber: string;
+  // msmeNumber: string;
   website: string;
   instagramUrl: string;
   facebookUrl: string;
@@ -95,6 +94,8 @@ export interface CompanyOnboardingSubmitRequest
   addresses: Array<{
     gstNumber: string;
     panNumber: string;
+    cinNumber: string;
+    msmeNumber: string;
     addressType: string;
     addressLine1: string;
     addressLine2?: string;
@@ -206,6 +207,7 @@ export interface CompanyListItem {
   subsidiaryOfGlobalBusiness: boolean;
   brandLogo: string | null;
   productCategory: string[];
+  companyStatus: string;
   sellingOn: Array<{
     platform: string;
     url: string;
@@ -311,7 +313,7 @@ export interface CompanyAddressDetail {
   addressId: string;
   addressType: string;
   addressLine1: string;
-  landlineNumber:string
+  landlineNumber: string;
   city: string;
   state: string;
   postalCode: string;

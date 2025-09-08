@@ -12,11 +12,9 @@ export const createColumns = (
     header: "Address Type",
     accessorKey: "addressType",
     cell: ({ row }) => (
-      <div className="min-w-32">
-        <Badge variant="outline" className="capitalize">
-          {row.original.addressType}
-        </Badge>
-      </div>
+      <Badge variant="outline" className="capitalize">
+        {row.original.addressType}
+      </Badge>
     ),
   },
   {
@@ -27,16 +25,16 @@ export const createColumns = (
     ),
   },
 
-  {
-    header: "Landmark",
-    accessorKey: "landmark",
-    cell: ({ row }) => <div className="min-w-40">{row.original.landmark}</div>,
-  },
-  {
-    header: "Country",
-    accessorKey: "country",
-    // cell: ({ row }) => <div className="w-max">{row.original.country}</div>,
-  },
+  // {
+  //   header: "Landmark",
+  //   accessorKey: "landmark",
+  //   cell: ({ row }) => <div className="min-w-40">{row.original.landmark}</div>,
+  // },
+  // {
+  //   header: "Country",
+  //   accessorKey: "country",
+  //   // cell: ({ row }) => <div className="w-max">{row.original.country}</div>,
+  // },
   {
     header: "State",
     accessorKey: "state",
@@ -54,19 +52,19 @@ export const createColumns = (
       <div className="w-max font-mono text-sm">{row.original.postalCode}</div>
     ),
   },
-  {
-    header: "Phone",
-    accessorKey: "phoneNumber",
-    cell: ({ row }) => (
-      <div className="w-max">
-        {row.original.phoneNumber ? (
-          <span className="font-mono text-sm">{row.original.phoneNumber}</span>
-        ) : (
-          <span className="text-sm text-gray-400">-</span>
-        )}
-      </div>
-    ),
-  },
+  // {
+  //   header: "Phone",
+  //   accessorKey: "phoneNumber",
+  //   cell: ({ row }) => (
+  //     <div className="w-max">
+  //       {row.original.phoneNumber ? (
+  //         <span className="font-mono text-sm">{row.original.phoneNumber}</span>
+  //       ) : (
+  //         <span className="text-sm text-gray-400">-</span>
+  //       )}
+  //     </div>
+  //   ),
+  // },
 
   {
     header: "Primary",
@@ -119,10 +117,10 @@ export const createColumns = (
             to: PANEL_ROUTES.COMPANY_LOCATION.VIEW(companyId, row.original._id),
             title: "View location details",
           }}
-          edit={{
-            to: PANEL_ROUTES.COMPANY_LOCATION.EDIT(companyId, row.original._id),
-            title: "Edit location",
-          }}
+          // edit={{
+          //   to: PANEL_ROUTES.COMPANY_LOCATION.EDIT(companyId, row.original._id),
+          //   title: "Edit location",
+          // }}
           // delete={{
           //   onClick: () => console.log("Delete location:", row.original._id),
           //   tooltip: "Delete location",

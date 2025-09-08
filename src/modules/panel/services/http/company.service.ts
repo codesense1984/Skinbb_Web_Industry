@@ -210,7 +210,7 @@ export async function apiGetCompanyList<
 // Update company status (approval/rejection)
 export interface CompanyStatusUpdateRequest {
   status: string;
-  reason: string;
+  reason?: string;
 }
 
 export interface CompanyStatusUpdateResponse {

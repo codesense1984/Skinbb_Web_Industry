@@ -1,4 +1,5 @@
 import { Badge, StatusBadge } from "@/core/components/ui/badge";
+import { Button } from "@/core/components/ui/button";
 import {
   Card,
   CardContent,
@@ -6,7 +7,13 @@ import {
   CardTitle,
 } from "@/core/components/ui/card";
 import { PageContent } from "@/core/components/ui/structure";
+import { STATUS_MAP } from "@/core/config/status";
+import { normalizeAxiosError } from "@/core/services/http";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
+import {
+  apiUpdateCompanyStatus,
+  type CompanyStatusUpdateRequest,
+} from "@/modules/panel/services/http/company.service";
 import {
   BuildingOfficeIcon,
   CalendarIcon,
@@ -23,18 +30,12 @@ import {
   XCircleIcon,
 } from "@heroicons/react/24/outline";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { AxiosError } from "axios";
+import { useState } from "react";
 import { useParams } from "react-router";
+import { toast } from "sonner";
 import { apiGetCompanyLocationDetail } from "../../../services/http/company-location.service";
 import { CompanyApprovalDialog } from "../../company/components/approval/CompanyApprovalDialog";
-import { useState } from "react";
-import {
-  apiUpdateCompanyStatus,
-  type CompanyStatusUpdateRequest,
-} from "@/modules/panel/services/http/company.service";
-import { toast } from "sonner";
-import type { AxiosError } from "axios";
-import { normalizeAxiosError } from "@/core/services/http";
-import { Button } from "@/core/components/ui/button";
 
 const CompanyLocationView = () => {
   const { companyId, locationId } = useParams();
@@ -61,7 +62,9 @@ const CompanyLocationView = () => {
     onSuccess: (response) => {
       toast.success(response.message || "Company status updated successfully!");
       // Invalidate company list and company details queries
-      queryClient.invalidateQueries({ queryKey: [PANEL_ROUTES.COMPANY_LOCATION.LIST(companyId)] });
+      queryClient.invalidateQueries({
+        queryKey: [PANEL_ROUTES.COMPANY_LOCATION.LIST(companyId)],
+      });
       queryClient.invalidateQueries({
         queryKey: [PANEL_ROUTES.COMPANY_LOCATION.VIEW(companyId, locationId)],
       });
@@ -154,13 +157,15 @@ const CompanyLocationView = () => {
         description: `Review location details for ${company.companyName}`,
         actions: (
           <div className="flex gap-3">
-            <Button
-              onClick={() => setIsApprovalDialogOpen(true)}
-              variant="outlined"
-              color="secondary"
-            >
-              Manage Approval
-            </Button>
+            {currentLocation?.status !== STATUS_MAP.company.approved.value && (
+              <Button
+                onClick={() => setIsApprovalDialogOpen(true)}
+                variant="outlined"
+                color="secondary"
+              >
+                Manage Approval
+              </Button>
+            )}
           </div>
         ),
       }}

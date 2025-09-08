@@ -97,8 +97,6 @@ export function transformFormDataToApiRequest(
       : "",
     subsidiaryOfGlobalBusiness: formData.isSubsidiary === "true",
     companyCategory: formData.category || "",
-    cinNumber: coiDoc?.number || "",
-    msmeNumber: msmeDoc?.number || "",
     website: formData.website || "",
     instagramUrl: formData.instagramUrl || "",
     facebookUrl: formData.facebookUrl || "",
@@ -118,6 +116,8 @@ export function transformFormDataToApiRequest(
             addressType: primaryAddress.addressType,
             gstNumber: gstDoc?.number || "",
             panNumber: panDoc?.number || "",
+            cinNumber: coiDoc?.number || "",
+            msmeNumber: msmeDoc?.number || "",
             addressLine1: primaryAddress.address || "",
             addressLine2: "",
             landmark: primaryAddress.landmark || "",
@@ -257,10 +257,10 @@ export function transformApiResponseToFormData(
     ...defaultValues,
     _id: apiData.companyId || defaultValues._id,
     // Personal details from owner object
-    name: apiData.owner?.ownerUser || defaultValues.name,
-    email: apiData.owner?.ownerEmail || defaultValues.email,
-    designation: apiData.owner?.ownerDesignation || defaultValues.designation,
-    phoneNumber: apiData.owner?.ownerPhone || defaultValues.phoneNumber,
+    // name: apiData.owner?.ownerUser || defaultValues.name,
+    // email: apiData.owner?.ownerEmail || defaultValues.email,
+    // designation: apiData.owner?.ownerDesignation || defaultValues.designation,
+    // phoneNumber: apiData.owner?.ownerPhone || defaultValues.phoneNumber,
     // Company logo
     logo: apiData.logo || defaultValues.logo,
     // Brand details from first address's brands
