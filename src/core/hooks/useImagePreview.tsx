@@ -1,5 +1,5 @@
 import {
-  Avatar,
+  AvatarRoot,
   AvatarFallback,
   AvatarImage,
 } from "@/core/components/ui/avatar";
@@ -22,7 +22,7 @@ type UseImagePreviewOptions = {
   clear?: () => void;
   imageProps?: ComponentProps<typeof AvatarImage>;
   fallbackProps?: ComponentProps<typeof AvatarFallback>;
-  avatarProps?: ComponentProps<typeof Avatar>;
+  avatarProps?: ComponentProps<typeof AvatarRoot>;
 };
 
 type UseImagePreviewResult = {
@@ -66,7 +66,10 @@ export function useImagePreview(
 
   const element = useMemo<JSX.Element | null>(() => {
     return (
-      <Avatar className="size-28 rounded-md border" {...options.avatarProps}>
+      <AvatarRoot
+        className="size-28 rounded-md border"
+        {...options.avatarProps}
+      >
         {previewUrl && options.showRemoveButton !== false && (
           <Button
             variant="contained"
@@ -85,7 +88,7 @@ export function useImagePreview(
         <AvatarFallback className="rounded-md" {...options.fallbackProps}>
           {options.fallback}
         </AvatarFallback>
-      </Avatar>
+      </AvatarRoot>
     );
   }, [previewUrl, clear, options]);
 

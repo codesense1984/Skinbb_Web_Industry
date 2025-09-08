@@ -2,7 +2,7 @@ import * as React from "react";
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
 import { cn } from "@/core/utils/index";
 
-function Avatar({
+function AvatarRoot({
   className,
   ...props
 }: React.ComponentProps<typeof AvatarPrimitive.Root>) {
@@ -47,4 +47,35 @@ function AvatarFallback({
   );
 }
 
-export { Avatar, AvatarImage, AvatarFallback };
+// Enhanced Avatar component with additional props
+interface EnhancedAvatarProps {
+  src?: string;
+  alt?: string;
+  feedback?: string | React.ReactNode;
+  feedbackProps?: React.HTMLAttributes<HTMLDivElement>;
+  srcProps?: React.ComponentProps<typeof AvatarPrimitive.Image>;
+  fallbackProps?: React.ComponentProps<typeof AvatarPrimitive.Fallback>;
+  className?: string;
+  children?: React.ReactNode;
+}
+
+function Avatar({
+  src,
+  alt,
+  feedback,
+  feedbackProps,
+  srcProps,
+  fallbackProps,
+  className,
+  children,
+  ...props
+}: EnhancedAvatarProps & React.ComponentProps<typeof AvatarPrimitive.Root>) {
+  return (
+    <AvatarRoot className={className} {...props}>
+      {src && <AvatarImage src={src} alt={alt} {...srcProps} />}
+      <AvatarFallback {...fallbackProps}>{feedback}</AvatarFallback>
+    </AvatarRoot>
+  );
+}
+
+export { AvatarRoot, AvatarImage, AvatarFallback, Avatar };

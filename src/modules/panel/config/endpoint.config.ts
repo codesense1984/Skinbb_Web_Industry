@@ -22,6 +22,15 @@ export const ENDPOINTS = {
     COMPANY_CHECK_STATUS: `${API_PREFIX}/onboard/status`,
   },
 
+  COMPANY: {
+    MAIN: `${API_PREFIX}/company`,
+    LOCATION: (companyId: string) =>
+      `${API_PREFIX}/company/${companyId}/locations`,
+    LOCATION_DETAILS: (companyId: string, locationId: string) =>
+      `${API_PREFIX}/company/${companyId}/locations/${locationId}`,
+    USERS: (companyId: string) => `${API_PREFIX}/company/${companyId}/users`,
+  },
+
   PAGE: {
     DETAILS: `${API_PREFIX}/pages/details`,
   },
@@ -77,7 +86,7 @@ export const ENDPOINTS = {
   },
 
   SELLER: {
-    MAIN: `${API_PREFIX}/sellers/admin`,
+    MAIN: `${API_PREFIX}/company`,
     GET_COMPANY_DETAILS: (id: string) => `${API_PREFIX}/sellers/${id}`,
     GET_COMPANY_DETAIL_DATA: (id: string) =>
       `${API_PREFIX}/sellers/${id}/detailData`,

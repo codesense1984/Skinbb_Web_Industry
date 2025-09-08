@@ -1,5 +1,11 @@
 import { TableAction } from "@/core/components/data-table/components/table-action";
-import { StatusBadge } from "@/core/components/ui/badge";
+import {
+  AvatarRoot,
+  AvatarFallback,
+  AvatarImage,
+  Avatar,
+} from "@/core/components/ui/avatar";
+import { Badge, StatusBadge } from "@/core/components/ui/badge";
 import { formatDate } from "@/core/utils";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import type {
@@ -131,54 +137,60 @@ export const columns: ColumnDef<CompanyListItem>[] = [
     header: "Company Name",
     accessorKey: "companyName",
     cell: ({ row }) => (
-      <div className="w-max font-medium">{row.original.companyName}</div>
+      <div className="flex w-max items-center gap-3 font-medium">
+        {row.original.brandLogo && (
+          <Avatar
+            src={row.original.brandLogo}
+            feedback={row.original.companyName.charAt(0)}
+          />
+        )}
+        <span>{row.original.companyName}</span>
+      </div>
     ),
   },
+
   {
-    header: "Contact Person",
-    accessorKey: "name",
+    header: "Category",
+    accessorKey: "category",
     cell: ({ row }) => (
-      <div className="w-max font-medium">{row.original.name}</div>
+      <div className="w-max">{row.original.companyCategory}</div>
     ),
-  },
-  {
-    header: "Email",
-    accessorKey: "email",
   },
   {
     header: "Phone",
-    accessorKey: "phoneNumber",
+    accessorKey: "landlineNo",
+    cell: ({ row }) => <div className="w-max">{row.original.landlineNo}</div>,
   },
-
-  // {
-  //   header: "Brand Name",
-  //   accessorKey: "brandName",
-  //   cell: ({ row }) => (
-  //     <div className="w-max font-medium">{row.original.brandName}</div>
-  //   ),
-  // },
-  // {
-  //   header: "Website",
-  //   accessorKey: "website",
-  //   cell: ({ row }) => (
-  //     <a
-  //       href={row.original.website}
-  //       target="_blank"
-  //       rel="noopener noreferrer"
-  //       className="text-blue-600 underline hover:text-blue-800"
-  //     >
-  //       {row.original.website}
-  //     </a>
-  //   ),
-  // },
-  // {
-  //   header: "Marketing Budget",
-  //   accessorKey: "marketingBudget",
-  //   cell: ({ row }) => <div>₹{formatNumber(row.original.marketingBudget)}</div>,
-  //   meta: {
-  //     className: "w-max",
-  //   },
-  // },
+  {
+    header: "Business Type",
+    accessorKey: "businessType",
+    cell: ({ row }) => <div className="w-max">{row.original.businessType}</div>,
+  },
+  {
+    header: "Website",
+    accessorKey: "website",
+    cell: ({ row }) => (
+      <a
+        href={row.original.website}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 underline hover:text-blue-800"
+      >
+        {row.original.website}
+      </a>
+    ),
+  },
+  {
+    header: "Location",
+    accessorKey: "address",
+    cell: ({ row }) => (
+      <div className="flex flex-wrap gap-2">
+        {row.original?.address.map((address) => (
+          <Badge variant={"outline"}>{address.city}</Badge>
+        ))}
+      </div>
+    ),
+  },
   {
     header: "Status",
     accessorKey: "status",

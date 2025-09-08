@@ -186,22 +186,73 @@ export interface CompanyOnboading {
   updatedAt: string;
   addresses: CompanyAddressDetail[];
   owner: CompanyOwner;
-  
 }
 
-// API response type for company list (sellers)
+// API response type for company list (new API structure)
 export interface CompanyListItem {
   _id: string;
-  name: string;
-  email: string;
-  phoneNumber: string;
+  ownerUserId: {
+    _id: string;
+    email: string;
+    phoneNumber: string;
+  };
   designation: string;
   companyName: string;
-  brandName: string | null;
+  companyDescription: string;
+  establishedIn: string;
+  headquartersAddress: string;
+  businessType: string;
+  companyCategory: string;
+  subsidiaryOfGlobalBusiness: boolean;
+  brandLogo: string | null;
+  productCategory: string[];
+  sellingOn: Array<{
+    platform: string;
+    url: string;
+  }>;
   website: string;
-  marketingBudget: number;
+  landlineNo: string;
+  address: Array<{
+    _id: string;
+    sellerId: string;
+    addressType: string;
+    gstNumber: string;
+    panNumber: string;
+    coiCertificate: string;
+    msmeCertificate: string;
+    addressLine1: string;
+    landmark: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    country: string;
+    isPrimary: boolean;
+    status: string;
+    createdAt: string;
+    updatedAt: string;
+    brands: Array<{
+      _id: string;
+      name: string;
+      slug: string;
+      aboutTheBrand: string;
+      websiteUrl: string;
+      isActive: boolean;
+      logoImage: string | null;
+      coverImage: string | null;
+      authorizationLetter: string;
+      createdBy: string;
+      isDeleted: boolean;
+      createdAt: string;
+      updatedAt: string;
+    }>;
+  }>;
   status: string;
+  statusChangeReason: string;
+  statusChangedAt: string | null;
+  isDeleted: boolean;
   createdAt: string;
+  updatedAt: string;
+  __v: number;
 }
 
 // New API response types for detailData endpoint

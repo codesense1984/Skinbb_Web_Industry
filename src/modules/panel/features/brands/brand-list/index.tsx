@@ -1,6 +1,6 @@
 import { createSimpleFetcher, DataTable } from "@/core/components/data-table";
 import {
-  Avatar,
+  AvatarRoot,
   AvatarFallback,
   AvatarImage,
 } from "@/core/components/ui/avatar";
@@ -94,7 +94,7 @@ const columns: ColumnDef<Brand>[] = [
     header: "Brand",
     cell: ({ row, getValue }) => (
       <ul className="flex min-w-40 items-center gap-2">
-        <Avatar className="size-10 rounded-md border">
+        <AvatarRoot className="size-10 rounded-md border">
           <AvatarImage
             className="object-contain"
             src={row.original.logoImage?.url}
@@ -103,7 +103,7 @@ const columns: ColumnDef<Brand>[] = [
           <AvatarFallback className="rounded-md capitalize">
             {(getValue() as string)?.charAt(0)}
           </AvatarFallback>
-        </Avatar>
+        </AvatarRoot>
         <div className="flex flex-col">
           <span className="font-medium">{getValue() as string}</span>
           <span className="text-muted-foreground text-sm">

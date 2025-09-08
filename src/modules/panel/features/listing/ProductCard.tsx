@@ -1,5 +1,5 @@
 import {
-  Avatar,
+  AvatarRoot,
   AvatarFallback,
   AvatarImage,
 } from "@/core/components/ui/avatar";
@@ -32,7 +32,7 @@ export const ProductCard: FC<ProductCardProps> = ({ product }) => {
   return (
     <article className="bg-background hover:ring-primary flex flex-col gap-4 rounded-md p-4 shadow-md hover:ring-3 md:p-5">
       <header className="flex items-center gap-3">
-        <Avatar className="size-12 rounded-md border">
+        <AvatarRoot className="size-12 rounded-md border">
           <AvatarImage
             className="object-cover"
             src={product.thumbnail?.url}
@@ -41,7 +41,7 @@ export const ProductCard: FC<ProductCardProps> = ({ product }) => {
           <AvatarFallback className="rounded-md capitalize">
             {product.productName?.charAt(0) || "P"}
           </AvatarFallback>
-        </Avatar>
+        </AvatarRoot>
         <div className="min-w-0 flex-1">
           <h6 className="truncate font-medium">
             {product.productName || "Unnamed Product"}

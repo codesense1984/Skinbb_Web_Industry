@@ -1,5 +1,5 @@
 import {
-  Avatar,
+  AvatarRoot,
   AvatarFallback,
   AvatarImage,
 } from "@/core/components/ui/avatar";
@@ -46,7 +46,7 @@ export const columns: ColumnDef<CustomerList>[] = [
 
       return (
         <ul className="flex min-w-40 items-center gap-2">
-          <Avatar className="size-10 rounded-md border">
+          <AvatarRoot className="size-10 rounded-md border">
             <AvatarImage
               className="object-cover"
               src={customer.profilePic?.url}
@@ -55,7 +55,7 @@ export const columns: ColumnDef<CustomerList>[] = [
             <AvatarFallback className="rounded-md capitalize">
               {name ? name.charAt(0) : customer.phoneNumber?.charAt(0) || "C"}
             </AvatarFallback>
-          </Avatar>
+          </AvatarRoot>
           <div className="flex flex-col">
             <span className="font-medium">{name || "Unknown Customer"}</span>
             {customer.phoneNumber && (

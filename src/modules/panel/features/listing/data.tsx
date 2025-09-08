@@ -1,5 +1,5 @@
 import {
-  Avatar,
+  AvatarRoot,
   AvatarFallback,
   AvatarImage,
 } from "@/core/components/ui/avatar";
@@ -43,7 +43,7 @@ export const columns: ColumnDef<Product>[] = [
     header: "Product",
     cell: ({ row, getValue }) => (
       <ul className="flex min-w-40 items-center gap-2">
-        <Avatar className="size-10 rounded-md border">
+        <AvatarRoot className="size-10 rounded-md border">
           <AvatarImage
             className="object-cover"
             src={row.original.thumbnail?.url}
@@ -52,7 +52,7 @@ export const columns: ColumnDef<Product>[] = [
           <AvatarFallback className="rounded-md capitalize">
             {(getValue() as string)?.charAt(0)}
           </AvatarFallback>
-        </Avatar>
+        </AvatarRoot>
         <div className="flex flex-col">
           <span className="max-w-xs truncate font-medium">
             {getValue() as string}

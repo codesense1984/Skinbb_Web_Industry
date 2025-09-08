@@ -1,6 +1,6 @@
 import logo from "@/core/assets/images/logo-icon.png";
 import {
-  Avatar,
+  AvatarRoot,
   AvatarFallback,
   AvatarImage,
 } from "@/core/components/ui/avatar";
@@ -149,10 +149,10 @@ const Header = () => {
               variant={"ghost"}
               className="flex h-full items-center gap-2 p-1 focus-visible:outline-transparent"
             >
-              <Avatar className="bg-primary/10 size-9 border font-medium tracking-wide uppercase">
+              <AvatarRoot className="bg-primary/10 size-9 border font-medium tracking-wide uppercase">
                 <AvatarImage src={profile} />
                 <AvatarFallback>{fullNameInitial}</AvatarFallback>
-              </Avatar>
+              </AvatarRoot>
               <div className="hidden space-y-0 text-left leading-none md:block">
                 <p className="text-foreground">{fullName}</p>
                 <p className="text-sm capitalize">{role}</p>

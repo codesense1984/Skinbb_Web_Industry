@@ -1,5 +1,5 @@
 import {
-  Avatar,
+  AvatarRoot,
   AvatarFallback,
   AvatarImage,
 } from "@/core/components/ui/avatar";
@@ -72,10 +72,10 @@ const BrandForm = () => {
         >
           <Container className="space-y-5">
             <div className="flex items-center gap-2 md:gap-4">
-              <Avatar className="size-28 rounded-md border">
+              <AvatarRoot className="size-28 rounded-md border">
                 <AvatarImage src={logo} alt="Logo" />
                 <AvatarFallback className="rounded-md"></AvatarFallback>
-              </Avatar>
+              </AvatarRoot>
               <FormConditionRender
                 className="flex"
                 control={control}
