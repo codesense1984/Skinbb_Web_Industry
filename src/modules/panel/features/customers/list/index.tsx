@@ -1,6 +1,7 @@
 import { createSimpleFetcher, DataTable } from "@/core/components/data-table";
 import { StatCard } from "@/core/components/ui/stat";
 import { PageContent } from "@/core/components/ui/structure";
+import { Button } from "@/core/components/ui/button";
 import { formatNumber } from "@/core/utils";
 import { useCallback, useEffect, useState } from "react";
 import { columns, statsData } from "./data";
@@ -70,6 +71,13 @@ const CustomerList = () => {
       header={{
         title: "Customers",
         description: "Manage and view customer information and analytics.",
+        actions: (
+          <Button
+            onClick={() => window.location.href = PANEL_ROUTES.CUSTOMER.CREATE}
+          >
+            Add Customer
+          </Button>
+        ),
       }}
     >
       <section

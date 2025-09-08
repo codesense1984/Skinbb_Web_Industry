@@ -16,6 +16,9 @@ const COMPANIES = "/companies";
 const CUSTOMER_BASE = "/customer";
 const CUSTOMERS = "/customers";
 
+const USER_BASE = "/user";
+const USERS = "/users";
+
 const LISTING_BASE = "/listing";
 
 export const PANEL_ROUTES = {
@@ -63,7 +66,21 @@ export const PANEL_ROUTES = {
     CREATE: ROUTE.build(CUSTOMER_BASE, ROUTE.seg.create), // /customer/create
     EDIT: (id: string = ROUTE.seg.id) =>
       ROUTE.build(CUSTOMER_BASE, id, ROUTE.seg.edit), // /customer/edit/:id
+    VIEW: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(CUSTOMER_BASE, id, ROUTE.seg.view), // /customer/view/:id
     DETAIL: (id: string = ROUTE.seg.id) => ROUTE.build(CUSTOMER_BASE, id), // /customer/:id
+  },
+
+  // ---- User ----
+  USER: {
+    BASE: USER_BASE, // /user
+    LIST: USERS, // /users
+    CREATE: ROUTE.build(USER_BASE, ROUTE.seg.create), // /user/create
+    EDIT: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(USER_BASE, id, ROUTE.seg.edit), // /user/edit/:id
+    VIEW: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(USER_BASE, id, ROUTE.seg.view), // /user/view/:id
+    DETAIL: (id: string = ROUTE.seg.id) => ROUTE.build(USER_BASE, id), // /user/:id
   },
 
   // ---- Listing/Products ----

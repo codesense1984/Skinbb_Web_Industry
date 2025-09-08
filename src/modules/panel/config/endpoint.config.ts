@@ -66,6 +66,15 @@ export const ENDPOINTS = {
   USER: {
     LIST: `${API_PREFIX}/users/all`,
     CUSTOMERS: `${API_PREFIX}/customers/admin/all`,
+    CUSTOMER: `${API_PREFIX}/customers/admin`,
+    SELLER_MEMBERS: `${API_PREFIX}/sellers/seller-members`,
+    SELLER_MEMBERS_CREATE: `${API_PREFIX}/sellers/{sellerId}/seller-members`,
+    SELLER_MEMBERS_UPDATE: `${API_PREFIX}/sellers/seller-members/{memberId}`,
+    SELLER_MEMBERS_DELETE: `${API_PREFIX}/sellers/seller-members/{memberId}`,
+  },
+
+  ROLE: {
+    LIST: `${API_PREFIX}/roles/lists`,
   },
 
   SELLER: {

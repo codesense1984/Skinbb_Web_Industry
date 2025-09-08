@@ -56,6 +56,36 @@ export const panelRoutes: RouteObject = {
       path: PANEL_ROUTES.CUSTOMER.LIST,
       Component: lazy(() => import("@/modules/panel/features/customers/list")),
     },
+    {
+      path: PANEL_ROUTES.CUSTOMER.CREATE,
+      Component: lazy(() => import("@/modules/panel/features/customers/customer-form")),
+    },
+    {
+      path: PANEL_ROUTES.CUSTOMER.EDIT(),
+      Component: lazy(() => import("@/modules/panel/features/customers/edit")),
+    },
+    {
+      path: PANEL_ROUTES.CUSTOMER.VIEW(),
+      Component: lazy(() => import("@/modules/panel/features/customers/view")),
+    },
+
+    // users
+    {
+      path: PANEL_ROUTES.USER.LIST,
+      Component: lazy(() => import("@/modules/panel/features/users/list")),
+    },
+    {
+      path: PANEL_ROUTES.USER.CREATE,
+      Component: lazy(() => import("@/modules/panel/features/users/user-form")),
+    },
+    {
+      path: PANEL_ROUTES.USER.EDIT(),
+      Component: lazy(() => import("@/modules/panel/features/users/user-form")),
+    },
+    {
+      path: PANEL_ROUTES.USER.VIEW(),
+      Component: lazy(() => import("@/modules/panel/features/users/user-form")),
+    },
 
             // listing/products
         {

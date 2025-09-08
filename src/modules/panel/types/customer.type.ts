@@ -9,6 +9,7 @@ export interface Customer {
   email?: string;
   phoneNumber?: string;
   city?: string;
+  role?: string;
   profilePic?: CustomerProfilePic | null;
   totalOrders: number;
   totalSpent: number;
@@ -34,6 +35,46 @@ export interface CustomerListParams {
     order?: string;
     key?: string;
   };
+}
+
+export interface CustomerCreateRequest {
+  name: string;
+  email?: string;
+  phoneNumber?: string;
+  role?: string;
+  profilePic?: string;
+}
+
+export interface CustomerUpdateRequest {
+  name?: string;
+  email?: string;
+  phoneNumber?: string;
+  role?: string;
+  profilePic?: string;
+}
+
+export interface CustomerCreateResponse {
+  statusCode: number;
+  data: Customer;
+  message: string;
+  success: boolean;
+}
+
+export interface CustomerUpdateResponse {
+  statusCode: number;
+  data: Customer;
+  message: string;
+  success: boolean;
+}
+
+export interface CustomerDeleteResponse {
+  statusCode: number;
+  data: {
+    _id: string;
+    deleted: boolean;
+  };
+  message: string;
+  success: boolean;
 }
 
 export type CustomerList = Customer;

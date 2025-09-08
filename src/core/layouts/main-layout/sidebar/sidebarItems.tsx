@@ -254,7 +254,7 @@ export const rawItems: Readonly<Record<string, SidebarItem>> = {
 
   users: {
     name: "users",
-    href: "/users",
+    href: PANEL_ROUTES.USER.LIST,
     requiredPermission: {
       page: PAGE.USERS,
       action: [PERMISSION.VIEW],

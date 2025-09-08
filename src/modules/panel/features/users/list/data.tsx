@@ -3,63 +3,65 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/core/components/ui/avatar";
-import type { CustomerList } from "@/modules/panel/types/customer.type";
-import { formatCurrency, formatDate } from "@/core/utils";
+import type { SellerMemberList } from "@/modules/panel/types/user.type";
+import { formatDate } from "@/core/utils";
 import type { ColumnDef } from "@tanstack/react-table";
+import { Badge } from "@/core/components/ui/badge";
 import { TableAction } from "@/core/components/data-table/components/table-action";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 
 export const statsData = [
   {
-    title: "Total Customers",
+    title: "Total Users",
     value: 0, // This will be updated from API response
     barColor: "bg-primary",
     icon: true,
   },
   {
-    title: "Active Customers",
+    title: "Active Users",
     value: 0, // This will be updated from API response
     barColor: "bg-blue-300",
     icon: false,
   },
   {
-    title: "Total Orders",
+    title: "Inactive Users",
     value: 0, // This will be updated from API response
     barColor: "bg-violet-300",
     icon: false,
   },
   {
-    title: "Total Revenue",
+    title: "New This Month",
     value: 0, // This will be updated from API response
     barColor: "bg-red-300",
     icon: true,
   },
 ];
 
-export const columns: ColumnDef<CustomerList>[] = [
+export const columns: ColumnDef<SellerMemberList>[] = [
   {
-    accessorKey: "name",
-    header: "Customer",
+    accessorKey: "firstName",
+    header: "User",
     cell: ({ row, getValue }) => {
-      const name = getValue() as string;
-      const customer = row.original;
+      const firstName = getValue() as string;
+      const user = row.original;
+      const fullName = `${firstName} ${user.lastName}`;
       
       return (
         <ul className="flex min-w-40 items-center gap-2">
           <Avatar className="size-10 rounded-md border">
             <AvatarImage
               className="object-cover"
-              src={customer.profilePic?.url}
-              alt={`${name || 'Customer'} profile`}
+              src={undefined} // No profile pic in API response
+              alt={`${fullName} profile`}
             />
             <AvatarFallback className="rounded-md capitalize">
-              {name ? name.charAt(0) : customer.phoneNumber?.charAt(0) || 'C'}
+              {firstName ? firstName.charAt(0) : user.email?.charAt(0) || 'U'}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
-            <span className="font-medium">{name || 'Unknown Customer'}</span>
-            {customer.phoneNumber && (
-              <span className="text-sm text-muted-foreground">{customer.phoneNumber}</span>
+            <span className="font-medium">{fullName}</span>
+            {user.email && (
+              <span className="text-sm text-muted-foreground">{user.email}</span>
             )}
           </div>
         </ul>
@@ -67,48 +69,43 @@ export const columns: ColumnDef<CustomerList>[] = [
     },
   },
   {
-    accessorKey: "email",
-    header: "Email",
+    accessorKey: "phoneNumber",
+    header: "Phone",
     cell: ({ getValue }) => {
-      const email = getValue() as string;
-      return email ? (
-        <div className="w-max">{email}</div>
+      const phone = getValue() as string;
+      return phone ? (
+        <div className="w-max">{phone}</div>
       ) : (
         <div className="w-max text-muted-foreground">-</div>
       );
     },
   },
   {
-    accessorKey: "city",
-    header: "Location",
+    accessorKey: "roleId",
+    header: "Role",
     cell: ({ getValue }) => {
-      const city = getValue() as string;
-      return city ? (
-        <div className="w-max">{city}</div>
+      const roleId = getValue() as string;
+      return roleId ? (
+        <Badge variant="secondary" className="w-max">
+          {roleId}
+        </Badge>
       ) : (
         <div className="w-max text-muted-foreground">-</div>
       );
     },
   },
   {
-    accessorKey: "totalOrders",
-    header: "Orders",
+    accessorKey: "active",
+    header: "Status",
     cell: ({ getValue }) => {
-      const orders = getValue() as number;
+      const active = getValue() as boolean;
       return (
-        <div className="w-max font-medium">{orders}</div>
-      );
-    },
-  },
-  {
-    accessorKey: "totalSpent",
-    header: "Total Spent",
-    cell: ({ getValue }) => {
-      const amount = getValue() as number;
-      return (
-        <div className="w-max font-medium text-green-600">
-          {formatCurrency(amount, { useAbbreviation: false })}
-        </div>
+        <Badge 
+          variant={active ? "default" : "destructive"} 
+          className="w-max"
+        >
+          {active ? "Active" : "Inactive"}
+        </Badge>
       );
     },
   },
@@ -126,17 +123,24 @@ export const columns: ColumnDef<CustomerList>[] = [
     enableSorting: false,
     enableHiding: false,
     cell: ({ row }) => {
-      const customer = row.original;
+      const user = row.original;
 
       return (
         <TableAction
           view={{
-            to: PANEL_ROUTES.CUSTOMER.VIEW(customer._id),
-            tooltip: "View customer details",
+            to: PANEL_ROUTES.USER.VIEW(user._id),
+            tooltip: "View user details",
           }}
           edit={{
-            to: PANEL_ROUTES.CUSTOMER.EDIT(customer._id),
-            tooltip: "Edit customer",
+            to: PANEL_ROUTES.USER.EDIT(user._id),
+            tooltip: "Edit user",
+          }}
+          delete={{
+            onClick: () => {
+              // TODO: Implement delete functionality
+              console.log("Delete user:", user._id);
+            },
+            tooltip: "Delete user",
           }}
         />
       );
