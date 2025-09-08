@@ -20,6 +20,7 @@ import {
   fullCompanyDetailsSchema,
   type FullCompanyFormType,
 } from "../../../schema/fullCompany.schema";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 
 interface PersonalDetailsProps {
   mode: MODE;
@@ -79,13 +80,20 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
             type="text"
             control={control}
             name="phoneNumber"
-            label="Phone Number"
+            label={
+              <span>
+                Phone Number{" "}
+                <span className="text-green-500">
+                  {phoneVerified ? "(Verified)" : ""}
+                </span>
+              </span>
+            }
             placeholder="Enter phone number"
             inputProps={{
               keyfilter: "int",
               maxLength: 10,
               endIcon:
-                mode !== MODE.EDIT ? (
+                mode !== MODE.EDIT && !phoneVerified ? (
                   <Button
                     variant={"contained"}
                     color={"primary"}
@@ -93,7 +101,6 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
                     type="button"
                     className="text-background !mr-0 rounded-l-none"
                     disabled={
-                      phoneVerified ||
                       sendOtpMutation.isPending ||
                       verifyOtpMutation.isPending ||
                       phoneNumber.length !== 10
@@ -105,17 +112,23 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
                       }
                     }}
                   >
-                    {phoneVerified
-                      ? "Verified"
-                      : sendOtpMutation.isPending
-                        ? "Sending..."
-                        : "Send OTP"}
+                    {sendOtpMutation.isPending ? "Sending..." : "Send OTP"}
                   </Button>
-                ) : phoneVerified ? (
-                  <span className="px-2 text-sm text-green-600">
-                    ✓ Verified
-                  </span>
-                ) : undefined,
+                ) : (
+                  <Button
+                    variant={"outlined"}
+                    color={"default"}
+                    type="button"
+                    className="!mr-0 rounded-l-none px-3"
+                    startIcon={<XMarkIcon className="size-4" />}
+                    onClick={() => {
+                      setValue("phoneVerified", false, {
+                        shouldValidate: true,
+                      });
+                      setValue("phoneNumber", "", { shouldValidate: true });
+                    }}
+                  ></Button>
+                ),
             }}
             disabled={
               mode === MODE.EDIT || phoneVerified || sendOtpMutation.isPending

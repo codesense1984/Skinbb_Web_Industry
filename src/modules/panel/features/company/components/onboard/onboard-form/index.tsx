@@ -15,6 +15,7 @@ import {
   Suspense,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ComponentType,
@@ -57,6 +58,7 @@ import {
 } from "@heroicons/react/24/outline";
 import type { AxiosError } from "axios";
 import { StepKey } from "../../../config/steps.config";
+import type { CompanyOnboading } from "@/modules/panel/types";
 
 const StepCount = {
   // [StepKey.START]: 1,
@@ -175,15 +177,15 @@ export const useOnBoardContext = () => {
 
 const OnBoardForm = ({
   mode = MODE.ADD,
-  // initialData,
+  initialData,
 }: {
   mode?: MODE;
-  initialData?: unknown;
+  initialData?: CompanyOnboading;
 }) => {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [currentValue, setCurrentValue] = useState<StepKey>(
-    StepKey.COMPANY_DETAILS,
+    StepKey.PERSONAL_INFORMATION,
   );
 
   const [confirmation, setConfirmation] = useState<
@@ -198,6 +200,12 @@ const OnBoardForm = ({
   });
 
   const { handleSubmit, trigger, watch, reset } = methods;
+
+  useEffect(() => {
+    if (initialData) {
+      reset(transformApiResponseToFormData(initialData));
+    }
+  }, [initialData]);
 
   console.log(watch(), "formdata");
 

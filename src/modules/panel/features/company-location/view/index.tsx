@@ -922,7 +922,7 @@ const CompanyLocationView = () => {
               )}
             </div>
             {company.companyDescription && (
-              <div className="flex items-center gap-3">
+              <div className="col-span-4 flex items-center gap-3">
                 <div className="rounded-lg bg-blue-100 p-2">
                   <GlobeAltIcon className="h-5 w-5 text-blue-600" />
                 </div>

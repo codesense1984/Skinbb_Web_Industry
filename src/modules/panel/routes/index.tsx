@@ -68,7 +68,9 @@ export const panelRoutes: RouteObject = {
     },
     {
       path: PANEL_ROUTES.CUSTOMER.CREATE,
-      Component: lazy(() => import("@/modules/panel/features/customers/customer-form")),
+      Component: lazy(
+        () => import("@/modules/panel/features/customers/customer-form"),
+      ),
     },
     {
       path: PANEL_ROUTES.CUSTOMER.EDIT(),

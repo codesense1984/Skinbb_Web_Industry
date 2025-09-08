@@ -34,7 +34,7 @@ const DOC_CONFIGS = [
   },
   {
     key: "gstLicense" as CompanyDocument["type"],
-    title: "Goods & Services Tax (GST) (optional)",
+    title: "Goods & Services Tax (GST)",
     numberLabel: "GST Number",
     numberPlaceholder: "Enter GST number",
     uploadLabel: "Upload GST Certificate",
