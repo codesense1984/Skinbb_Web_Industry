@@ -122,7 +122,7 @@ const ErrorDisplaySection: React.FC<ErrorDisplaySectionProps> = ({
       type="single"
       className={cn("border-destructive rounded-lg border", className)}
       collapsible
-      defaultValue="errors"
+      // defaultValue="errors"
     >
       <AccordionItem value="errors" className="p-5">
         <AccordionTrigger className="py-0 hover:no-underline">

@@ -779,15 +779,16 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
     {
       name: "agreeTermsConditions",
       label: (
-        <>
+        <span>
           I agree to the&nbsp;{" "}
           <Link to="https://ecom.skintruth.in/tnc-brands">
             Terms & Conditions
           </Link>
-        </>
+        </span>
       ),
       type: INPUT_TYPES.CHECKBOX,
       disabled: mode === MODE.VIEW,
+      className: "md:col-span-2",
     },
   ],
 };

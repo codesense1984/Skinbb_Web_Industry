@@ -194,6 +194,8 @@ const OnBoardForm = ({
     [boolean, FullCompanyFormType | undefined]
   >([false, undefined]);
 
+  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
+
   const methods = useForm<FullCompanyFormType>({
     defaultValues: transformApiResponseToFormData(),
     resolver: zodResolver(getCompanySchema(mode)),
@@ -213,8 +215,6 @@ const OnBoardForm = ({
         mode: MODE.EDIT,
       });
 
-      console.log(formData, "formData reset");
-      // Reset form with the transformed data
       reset(formData);
     }
   }, [initialData, reset]);
@@ -284,7 +284,10 @@ const OnBoardForm = ({
       return apiOnboardingSubmit(apiData);
     },
     onSuccess: (response) => {
-      toast.success(response?.message || "Profile submitted successfully!");
+      toast.success(
+        (response as { response: { message: string } })?.response?.message ||
+          "Profile submitted successfully!",
+      );
       setConfirmation([false, undefined]);
       reset(transformApiResponseToFormData());
       qc.invalidateQueries({ queryKey: [ENDPOINTS.SELLER.GET_COMPANY_LIST] });
@@ -326,6 +329,7 @@ const OnBoardForm = ({
     },
     (error) => {
       console.error("Error in form submission:", error);
+      setHasAttemptedSubmit(true);
 
       // Extract field-specific error messages
       if (error && typeof error === "object") {
@@ -502,62 +506,40 @@ const OnBoardForm = ({
               <p className="text-muted-foreground">{description}</p>
             </div>
 
-            {/* Error Display Section - Only show on Personal Details step */}
-            {currentValue === StepKey.PERSONAL_INFORMATION && (
-              <ErrorDisplaySection
-              // onFieldClick={(fieldName) => {
-              //   // Navigate to the appropriate step based on field name
-              //   const fieldToStepMap: Record<string, StepKey> = {
-              //     designation: StepKey.PERSONAL_INFORMATION,
-              //     name: StepKey.PERSONAL_INFORMATION,
-              //     email: StepKey.PERSONAL_INFORMATION,
-              //     phoneNumber: StepKey.PERSONAL_INFORMATION,
-              //     password: StepKey.PERSONAL_INFORMATION,
-              //     companyName: StepKey.COMPANY_DETAILS,
-              //     category: StepKey.COMPANY_DETAILS,
-              //     businessType: StepKey.COMPANY_DETAILS,
-              //     address: StepKey.ADDRESS_DETAILS,
-              //     brandName: StepKey.BRAND_DETAILS,
-              //     documents: StepKey.DOCUMENTS_DETAILS,
-              //   };
+            {/* Error Display Section - Only show on Personal Details step after user attempts to submit */}
+            {currentValue === StepKey.PERSONAL_INFORMATION &&
+              hasAttemptedSubmit && (
+                <ErrorDisplaySection
+                // onFieldClick={(fieldName) => {
+                //   // Navigate to the appropriate step based on field name
+                //   const fieldToStepMap: Record<string, StepKey> = {
+                //     designation: StepKey.PERSONAL_INFORMATION,
+                //     name: StepKey.PERSONAL_INFORMATION,
+                //     email: StepKey.PERSONAL_INFORMATION,
+                //     phoneNumber: StepKey.PERSONAL_INFORMATION,
+                //     password: StepKey.PERSONAL_INFORMATION,
+                //     companyName: StepKey.COMPANY_DETAILS,
+                //     category: StepKey.COMPANY_DETAILS,
+                //     businessType: StepKey.COMPANY_DETAILS,
+                //     address: StepKey.ADDRESS_DETAILS,
+                //     brandName: StepKey.BRAND_DETAILS,
+                //     documents: StepKey.DOCUMENTS_DETAILS,
+                //   };
 
-              //   const targetStep = fieldToStepMap[fieldName.split(".")[0]];
-              //   if (targetStep) {
-              //     const targetIndex = STEPS.findIndex(
-              //       (s) => s.value === targetStep,
-              //     );
-              //     if (targetIndex !== -1) {
-              //       navigateTo(targetIndex);
-              //     }
-              //   }
-              // }}
-              />
-            )}
+                //   const targetStep = fieldToStepMap[fieldName.split(".")[0]];
+                //   if (targetStep) {
+                //     const targetIndex = STEPS.findIndex(
+                //       (s) => s.value === targetStep,
+                //     );
+                //     if (targetIndex !== -1) {
+                //       navigateTo(targetIndex);
+                //     }
+                //   }
+                // }}
+                />
+              )}
 
-            <Suspense
-              fallback={
-                <div className="space-y-6 bg-white">
-                  <div className="flex animate-pulse flex-col gap-6 lg:grid lg:grid-cols-2">
-                    <div className="h-10 rounded bg-gray-200"></div>
-                    <div className="h-10 rounded bg-gray-200"></div>
-                  </div>
-
-                  <div className="flex animate-pulse flex-col gap-6 lg:grid lg:grid-cols-2">
-                    <div className="h-10 rounded bg-gray-200"></div>
-                    <div className="h-10 rounded bg-gray-200"></div>
-                  </div>
-
-                  <div className="flex animate-pulse flex-col gap-6 lg:grid lg:grid-cols-2">
-                    <div className="h-10 rounded bg-gray-200"></div>
-                    <div className="h-10 rounded bg-gray-200"></div>
-                  </div>
-
-                  <div className="animate-pulse">
-                    <div className="h-20 rounded bg-gray-200"></div>
-                  </div>
-                </div>
-              }
-            >
+            <Suspense fallback={<LoadingSection />}>
               <Component mode={mode} />
             </Suspense>
 
@@ -621,7 +603,7 @@ const OnBoardForm = ({
           cancelText="Close"
         />
         {isThankYou && (
-          <Suspense fallback={<div className="py-10">Loading...</div>}>
+          <Suspense fallback={<LoadingSection />}>
             <Component mode={mode} />
           </Suspense>
         )}
@@ -631,3 +613,28 @@ const OnBoardForm = ({
 };
 
 export default OnBoardForm;
+
+const LoadingSection = () => {
+  return (
+    <div className="space-y-6 bg-white">
+      <div className="flex animate-pulse flex-col gap-6 lg:grid lg:grid-cols-2">
+        <div className="h-10 rounded bg-gray-200"></div>
+        <div className="h-10 rounded bg-gray-200"></div>
+      </div>
+
+      <div className="flex animate-pulse flex-col gap-6 lg:grid lg:grid-cols-2">
+        <div className="h-10 rounded bg-gray-200"></div>
+        <div className="h-10 rounded bg-gray-200"></div>
+      </div>
+
+      <div className="flex animate-pulse flex-col gap-6 lg:grid lg:grid-cols-2">
+        <div className="h-10 rounded bg-gray-200"></div>
+        <div className="h-10 rounded bg-gray-200"></div>
+      </div>
+
+      <div className="animate-pulse">
+        <div className="h-20 rounded bg-gray-200"></div>
+      </div>
+    </div>
+  );
+};
