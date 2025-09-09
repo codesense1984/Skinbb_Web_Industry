@@ -26,6 +26,7 @@ export const ENDPOINTS = {
 
   COMPANY: {
     MAIN: `${API_PREFIX}/company`,
+    DETAIL: (id: string) => `${API_PREFIX}/company/${id}`,
     LOCATION: (companyId: string) =>
       `${API_PREFIX}/company/${companyId}/locations`,
     LOCATION_DETAILS: (companyId: string, locationId: string) =>

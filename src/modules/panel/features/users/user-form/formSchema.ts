@@ -1,18 +1,23 @@
+import {
+  INPUT_TYPES,
+  type FormFieldConfig,
+} from "@/core/components/ui/form-input";
+import { STATUS_MAP } from "@/core/config/status";
+import {
+  createEmailValidator,
+  createPasswordValidator,
+  createPhoneValidator,
+  createRequiredString,
+} from "@/core/utils/validation.utils";
 import { z } from "zod";
 
 export const userFormSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  email: z.string().email("Invalid email address"),
-  phoneNumber: z.string().min(1, "Phone number is required"),
-  password: z.string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/\d/, "Password must contain at least 1 number")
-    .regex(/[a-z]/, "Password must contain at least 1 lowercase letter")
-    .regex(/[A-Z]/, "Password must contain at least 1 uppercase letter")
-    .regex(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, "Password must contain at least 1 special character")
-    .optional(),
-  roleId: z.string().min(1, "Role is required"),
+  firstName: createRequiredString("First name"),
+  lastName: createRequiredString("Last name"),
+  email: createEmailValidator("Email"),
+  phoneNumber: createPhoneValidator("Phone number"),
+  password: createPasswordValidator().optional(),
+  roleId: createRequiredString("Role"),
   brandIds: z.array(z.string()).optional(),
   addressIds: z.array(z.string()).optional(),
   allowedBrands: z.array(z.string()).optional(),
@@ -40,54 +45,53 @@ export const defaultValues: UserFormData = {
   active: true,
 };
 
-export const userFormFieldConfigs = [
+export const userFormFieldConfigs: FormFieldConfig<UserFormData>[] = [
   {
     name: "firstName" as const,
     label: "First Name",
     type: "text",
     placeholder: "Enter first name",
-    required: true,
   },
   {
     name: "lastName" as const,
-    label: "Last Name", 
+    label: "Last Name",
     type: "text",
     placeholder: "Enter last name",
-    required: true,
   },
   {
     name: "email" as const,
     label: "Email",
     type: "email",
     placeholder: "Enter email address",
-    required: true,
   },
   {
     name: "phoneNumber" as const,
     label: "Phone Number",
     type: "text",
     placeholder: "Enter phone number",
-    required: true,
+  },
+
+  {
+    name: "roleId" as const,
+    label: "Role",
+    type: "select",
+    placeholder: "Select role",
+    options: [], // Will be populated from API
+  },
+  {
+    name: "active" as const,
+    label: "User account status",
+    type: INPUT_TYPES.SELECT,
+    options: Object.values(STATUS_MAP.company_user).map((status) => ({
+      value: status.value,
+      label: status.label,
+    })),
   },
   {
     name: "password" as const,
     label: "Password",
     type: "password",
     placeholder: "Enter password",
-    required: true,
-  },
-  {
-    name: "roleId" as const,
-    label: "Role",
-    type: "select",
-    placeholder: "Select role",
-    required: true,
-    options: [], // Will be populated from API
-  },
-  {
-    name: "active" as const,
-    label: "Status",
-    type: "switch",
-    description: "User account status",
+    className: "col-span-2",
   },
 ];

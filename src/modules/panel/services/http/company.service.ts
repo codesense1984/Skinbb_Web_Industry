@@ -1,9 +1,6 @@
 import { api } from "@/core/services/http";
 import { ENDPOINTS } from "../../config/endpoint.config";
-import type {
-  ApiResponse,
-  PaginationParams,
-} from "@/core/types";
+import type { ApiResponse, PaginationParams } from "@/core/types";
 import type {
   CompanyOnboading,
   CompanyOnboardingSubmitRequest,
@@ -11,6 +8,7 @@ import type {
   CompanyDetailDataResponse,
 } from "@/modules/panel/types/company.type";
 import { createFormData } from "@/core/utils/formdata.utils";
+import type { CompanyUser } from "../../types/user.type";
 
 // Get all onboard entries (with params for search, paging, sorting)
 export async function apiGetOnboardList<T, U extends Record<string, unknown>>(
@@ -29,10 +27,7 @@ export async function apiUpdateOnboardById<
   T,
   U extends Record<string, unknown>,
 >(companyId: string, locationId: string, data: U) {
-  const formData = createFormData(data, [
-    "addresses",
-    "sellingOn",
-  ]);
+  const formData = createFormData(data, ["addresses", "sellingOn"]);
   return api.put<T>(
     ENDPOINTS.ONBOARDING.COMPANY_LOCATION_DETAILS(companyId, locationId),
     formData,
@@ -242,96 +237,108 @@ export async function apiUpdateCompanyStatus(
 }
 
 // Get company details for onboarding format
-export async function apiGetCompanyDetailsForOnboarding<T = ApiResponse<{
-  company: {
-    companyId: string;
-    logo: string;
-    establishedIn: string;
-    companyName: string;
-    companyCategory: string;
-    businessType: string;
-    subsidiaryOfGlobalBusiness: boolean;
-    headquaterLocation: string;
-    website: string;
-    status: string;
-    landlineNo: string;
-    isCompanyBrand: boolean;
-    isDeleted: boolean;
-    createdAt: string;
-    updatedAt: string;
-    addresses: Array<{
-      addressId: string;
-      addressType: string;
-      addressLine1: string;
-      addressLine2: string;
-      city: string;
-      state: string;
-      postalCode: string;
-      country: string;
-      isPrimary: boolean;
-      landmark: string;
-      gstNumber: string;
-      panNumber: string;
-      cinNumber: string;
-      msmeNumber: string;
-      landlineNumber: string;
-      coiCertificate: string;
-      panCertificate: string;
-      gstCertificate: string;
-      msmeCertificate: string;
+export async function apiGetCompanyDetailsForOnboarding<
+  T = ApiResponse<{
+    company: {
+      companyId: string;
+      logo: string;
+      establishedIn: string;
+      companyName: string;
+      companyCategory: string;
+      businessType: string;
+      subsidiaryOfGlobalBusiness: boolean;
+      headquaterLocation: string;
+      website: string;
       status: string;
-      statusChangeReason: string;
-      statusChangedAt: string;
-      lat: number;
-      lng: number;
+      landlineNo: string;
+      isCompanyBrand: boolean;
+      isDeleted: boolean;
       createdAt: string;
       updatedAt: string;
-      brands: Array<{
-        _id: string;
-        name: string;
-        slug: string;
-        totalSKU: number;
-        instagramUrl: string;
-        facebookUrl: string;
-        youtubeUrl: string;
-        productCategory: string[];
-        averageSellingPrice: number;
-        marketingBudget: number;
-        sellingOn: Array<{
-          platform: string;
-          url: string;
-        }>;
-        aboutTheBrand: string;
-        websiteUrl: string;
-        isActive: boolean;
-        logoImage: string;
-        coverImage: string;
-        authorizationLetter: string;
-        createdBy: string;
-        isDeleted: boolean;
-        deletedAt: string;
-        deletedBy: string;
+      addresses: Array<{
+        addressId: string;
+        addressType: string;
+        addressLine1: string;
+        addressLine2: string;
+        city: string;
+        state: string;
+        postalCode: string;
+        country: string;
+        isPrimary: boolean;
+        landmark: string;
+        gstNumber: string;
+        panNumber: string;
+        cinNumber: string;
+        msmeNumber: string;
+        landlineNumber: string;
+        coiCertificate: string;
+        panCertificate: string;
+        gstCertificate: string;
+        msmeCertificate: string;
+        status: string;
+        statusChangeReason: string;
+        statusChangedAt: string;
+        lat: number;
+        lng: number;
         createdAt: string;
         updatedAt: string;
+        brands: Array<{
+          _id: string;
+          name: string;
+          slug: string;
+          totalSKU: number;
+          instagramUrl: string;
+          facebookUrl: string;
+          youtubeUrl: string;
+          productCategory: string[];
+          averageSellingPrice: number;
+          marketingBudget: number;
+          sellingOn: Array<{
+            platform: string;
+            url: string;
+          }>;
+          aboutTheBrand: string;
+          websiteUrl: string;
+          isActive: boolean;
+          logoImage: string;
+          coverImage: string;
+          authorizationLetter: string;
+          createdBy: string;
+          isDeleted: boolean;
+          deletedAt: string;
+          deletedBy: string;
+          createdAt: string;
+          updatedAt: string;
+        }>;
       }>;
-    }>;
-    owner: {
-      ownerUserId: string;
-      ownerUser: string;
-      ownerEmail: string;
-      ownerPhone: string;
-      ownerPassword: string;
-      ownerDesignation: string;
+      owner: {
+        ownerUserId: string;
+        ownerUser: string;
+        ownerEmail: string;
+        ownerPhone: string;
+        ownerPassword: string;
+        ownerDesignation: string;
+      };
     };
-  };
-}>>(companyId: string) {
+  }>,
+>(companyId: string) {
   return api.get<T>(ENDPOINTS.ONBOARDING.COMPANY_DETAILS(companyId));
 }
+
+export interface CompanyUserResponse {
+  userId: string;
+  user: CompanyUser;
+  roleValue: string;
+  companyId: string;
+  orgType: string;
+  createdAt: string;
+}
+
 
 // Get company users
 export async function apiGetCompanyUsers<
   T = ApiResponse<{
-    items: any[];
+    items: Array<CompanyUserResponse>;
     page: number;
     limit: number;
     total: number;

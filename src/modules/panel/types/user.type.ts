@@ -86,3 +86,13 @@ export interface SellerMemberDeleteResponse {
 }
 
 export type SellerMemberList = SellerMember;
+
+
+export interface CompanyUser {
+  _id: string
+  firstName: string
+  lastName: string
+  email: string
+  phoneNumber: string
+  status?: string
+}
