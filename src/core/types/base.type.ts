@@ -9,6 +9,8 @@ export enum MODE {
 export type Option = {
   label: string | ReactNode;
   value: string;
+  disabled?: boolean;
+  content?: unknown;
   [key: string]: unknown;
 };
 
@@ -18,7 +20,6 @@ export interface ApiResponse<T> {
   message: string;
   success: boolean;
 }
-
 
 export type PaginationApiResponse<
   K extends Record<string, unknown> = Record<string, unknown>,

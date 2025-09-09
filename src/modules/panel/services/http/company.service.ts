@@ -139,6 +139,7 @@ export async function apiGetCompanyDetails<T>() {
 export interface CompanyDropdownItem {
   _id: string;
   companyName: string;
+  companyStatus: string;
 }
 
 export async function apiGetCompanyDropdownList<

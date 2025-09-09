@@ -24,6 +24,7 @@ import {
 } from "../../../schema/fullCompany.schema";
 import { transformApiResponseToFormData } from "../../../utils/onboarding.utils";
 import { Button } from "@/core/components/ui/button";
+import { STATUS_MAP } from "@/core/config/status";
 
 interface CompanyDetailsProps {
   mode: MODE;
@@ -48,16 +49,6 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
     name: "logo",
   });
 
-  // const companyId = useWatch({
-  //   control,
-  //   name: "_id",
-  // });
-
-  // const companyName = useWatch({
-  //   control,
-  //   name: "companyName",
-  // });
-
   const isCreatingNewCompany = useWatch({
     control,
     name: "isCreatingNewCompany",
@@ -67,6 +58,7 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
     control,
     name: "disabledCompanyName",
   });
+
   const disabledCompanyDetails = useWatch({
     control,
     name: "disabledCompanyDetails",
@@ -77,7 +69,6 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
     useQuery({
       queryKey: [ENDPOINTS.SELLER.GET_COMPANY_LIST],
       queryFn: () => apiGetCompanyDropdownList(),
-      staleTime: 5 * 60 * 1000, // 5 minutes
     });
 
   // Transform company data for dropdown options
@@ -95,6 +86,7 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
       label: company.companyName,
       value: company.companyName,
       data: company,
+      disabled: company.companyStatus !== STATUS_MAP.company.approved.value,
     })) || []),
   ];
 

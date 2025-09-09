@@ -183,7 +183,10 @@ const sellingPlatformSchema = z
  * // ADD mode: name, email, phoneNumber, etc. are required
  * // EDIT mode: all fields are optional strings/booleans
  */
-export function createCompanySchema(mode?: string) {
+export function createCompanySchema(
+  mode?: string,
+  companyOptions?: Array<{ companyName: string }>,
+) {
   const isEditMode = mode === MODE.EDIT;
 
   // Base schema structure
@@ -325,6 +328,23 @@ export function createCompanySchema(mode?: string) {
           message: "Brand name already exists",
         });
       }
+
+      // Company name uniqueness validation (only in ADD mode and when creating new company)
+      if (!isEditMode && companyOptions && data?.isCreatingNewCompany) {
+        const companyName = data?.companyName?.toLowerCase();
+        if (companyName) {
+          const companyExists = companyOptions.some(
+            (company) => company.companyName.toLowerCase() === companyName,
+          );
+          if (companyExists) {
+            ctx.addIssue({
+              path: ["companyName"],
+              code: z.ZodIssueCode.custom,
+              message: "Company already exists",
+            });
+          }
+        }
+      }
     });
   return baseSchema;
 }
@@ -343,7 +363,7 @@ type FieldProps = {
   };
   uploadbrandImage: ModeProps;
   [StepKey.PERSONAL_INFORMATION]: ModeProps & {
-    disabled: boolean;
+    disabled?: boolean;
   };
   [StepKey.COMPANY_DETAILS]: ModeProps & {
     disabled?: boolean;
@@ -384,7 +404,7 @@ export type FullCompanyDetailsSchemaProps = {
 };
 
 export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
-  personal_information: ({ mode, disabled }) => [
+  personal_information: ({ mode, disabled = false }) => [
     {
       name: "name",
       label: "Full Name",

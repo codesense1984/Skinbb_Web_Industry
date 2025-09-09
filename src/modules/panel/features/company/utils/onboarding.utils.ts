@@ -39,7 +39,8 @@ const safeBoolean = (value: unknown): boolean => {
 };
 
 const safeFileArray = (value: unknown): File[] => {
-  return Array.isArray(value) ? (value as File[]) : [];
+  // return Array.isArray(value) ? (value as File[]) : [];
+  return value as File[];
 };
 
 // Cache for date formatting to avoid redundant operations
@@ -70,8 +71,11 @@ export function clearDateFormatCache(): void {
  *   // Handle validation errors
  * }
  */
-export function getCompanySchema(mode?: string) {
-  return createCompanySchema(mode);
+export function getCompanySchema(
+  mode?: string,
+  companyOptions?: Array<{ companyName: string }>,
+) {
+  return createCompanySchema(mode, companyOptions);
 }
 
 /**
@@ -256,43 +260,35 @@ export function transformFormDataToApiRequest(
 
   // Merge files directly into the data object
   // Company logo files - API expects string URL, not File array
-  const logoFiles = safeFileArray(formData.logo_files);
-  if (logoFiles.length > 0) {
+  if (formData?.logo_files) {
     // For now, we'll use the first file's name as a placeholder
     // In a real implementation, you'd upload the file and get a URL
-    apiData.logo = logoFiles[0]?.name || "";
+    apiData.logo = formData?.logo_files;
   }
 
-  // Brand logo files - API expects string URL, not File array
-  const brandLogoFiles = safeFileArray(formData.brand_logo_files);
-  if (brandLogoFiles.length > 0) {
-    apiData.brandLogo = brandLogoFiles[0]?.name || "";
+  if (formData.brand_logo_files) {
+    apiData.brandLogo = formData.brand_logo_files || "";
   }
 
   // Document files - API expects single File objects
-  const gstFiles = safeFileArray(gstDoc?.url_files);
-  if (gstFiles.length > 0) {
-    apiData.gst = gstFiles[0];
+  if (gstDoc?.url_files) {
+    apiData.gst = gstDoc?.url_files;
   }
 
-  const panFiles = safeFileArray(panDoc?.url_files);
-  if (panFiles.length > 0) {
-    apiData.pan = panFiles[0];
+  if (panDoc?.url_files) {
+    apiData.pan = panDoc?.url_files;
   }
 
-  const authFiles = safeFileArray(authDoc?.url_files);
-  if (authFiles.length > 0) {
-    apiData.authorizationLetter = authFiles[0];
+  if (authDoc?.url_files) {
+    apiData.authorizationLetter = authDoc?.url_files;
   }
 
-  const coiFiles = safeFileArray(coiDoc?.url_files);
-  if (coiFiles.length > 0) {
-    apiData.coiCertificate = coiFiles[0];
+  if (coiDoc?.url_files) {
+    apiData.coiCertificate = coiDoc?.url_files;
   }
 
-  const msmeFiles = safeFileArray(msmeDoc?.url_files);
-  if (msmeFiles.length > 0) {
-    apiData.msmeCertificate = msmeFiles[0];
+  if (msmeDoc?.url_files) {
+    apiData.msmeCertificate = msmeDoc?.url_files;
   }
 
   return apiData;

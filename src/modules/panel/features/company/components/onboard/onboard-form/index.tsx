@@ -8,7 +8,7 @@ import {
 } from "@/core/components/ui/stepper";
 import { MODE } from "@/core/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createContext,
   lazy,
@@ -24,6 +24,7 @@ import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import {
+  apiGetCompanyDropdownList,
   apiOnboardingSubmit,
   apiUpdateOnboardById,
 } from "../../../../../services/http/company.service";
@@ -61,6 +62,7 @@ import {
 } from "@heroicons/react/24/outline";
 import type { AxiosError } from "axios";
 import { StepKey } from "../../../config/steps.config";
+import { FullLoader } from "@/core/components/ui/loader";
 
 const StepCount = {
   // [StepKey.START]: 1,
@@ -196,9 +198,17 @@ const OnBoardForm = ({
 
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
 
+  const { data: companyDropdownResponse, isLoading: isLoadingCompanyDropdown } =
+    useQuery({
+      queryKey: [ENDPOINTS.SELLER.GET_COMPANY_LIST],
+      queryFn: () => apiGetCompanyDropdownList(),
+    });
+
   const methods = useForm<FullCompanyFormType>({
     defaultValues: transformApiResponseToFormData(),
-    resolver: zodResolver(getCompanySchema(mode)),
+    resolver: zodResolver(
+      getCompanySchema(mode, companyDropdownResponse?.data || []),
+    ),
     mode: "onTouched",
     reValidateMode: "onChange",
   });
@@ -387,6 +397,7 @@ const OnBoardForm = ({
       }}
     >
       <FormProvider {...methods}>
+        {isLoadingCompanyDropdown && <FullLoader />}
         {isFormStep && (
           <form
             onSubmit={(e) => {

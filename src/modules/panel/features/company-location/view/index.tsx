@@ -37,7 +37,8 @@ import { toast } from "sonner";
 import { apiGetCompanyLocationDetail } from "../../../services/http/company-location.service";
 import { CompanyApprovalDialog } from "../../company/components/approval/CompanyApprovalDialog";
 import type { CompanyAddressDetail } from "@/modules/panel/types";
-import { formatCurrency, getState } from "@/core/utils";
+import { formatCurrency, formatDate } from "@/core/utils";
+import { LocationService } from "@/core/services/location.service";
 
 // Reusable InfoItem component for displaying information with icons
 interface InfoItemProps {
@@ -278,12 +279,15 @@ const CompanyLocationView = () => {
             <InfoItem
               icon={<MapPinIcon className="h-5 w-5" />}
               label="Country"
-              value={currentLocation.country}
+              value={LocationService.getCountryName(currentLocation.country)}
             />
             <InfoItem
               icon={<MapPinIcon className="h-5 w-5" />}
               label="State"
-              value={getState(currentLocation.state)?.name}
+              value={LocationService.getStateName(
+                currentLocation.country,
+                currentLocation.state,
+              )}
             />
             <InfoItem
               icon={<MapPinIcon className="h-5 w-5" />}
@@ -309,11 +313,7 @@ const CompanyLocationView = () => {
             <InfoItem
               icon={<CalendarIcon className="h-5 w-5" />}
               label="Created At"
-              value={
-                currentLocation.createdAt
-                  ? new Date(currentLocation.createdAt).toLocaleDateString()
-                  : "-"
-              }
+              value={formatDate(currentLocation.createdAt)}
             />
           </div>
 
@@ -828,21 +828,13 @@ const CompanyLocationView = () => {
             <InfoItem
               icon={<CalendarIcon className="h-5 w-5" />}
               label="Location Created At"
-              value={
-                currentLocation.createdAt
-                  ? new Date(currentLocation.createdAt).toLocaleDateString()
-                  : "-"
-              }
+              value={formatDate(currentLocation.createdAt)}
               // iconTextColor="text-gray-400"
             />
             <InfoItem
               icon={<CalendarIcon className="h-5 w-5" />}
               label="Location Last Updated"
-              value={
-                currentLocation.updatedAt
-                  ? new Date(currentLocation.updatedAt).toLocaleDateString()
-                  : "-"
-              }
+              value={formatDate(currentLocation.updatedAt)}
               // iconTextColor="text-gray-400"
             />
             {currentLocation.statusChangeReason && (
@@ -873,9 +865,7 @@ const CompanyLocationView = () => {
               <InfoItem
                 icon={<CalendarIcon className="h-5 w-5" />}
                 label="Status Changed At"
-                value={new Date(
-                  currentLocation.statusChangedAt,
-                ).toLocaleDateString()}
+                value={formatDate(currentLocation.statusChangedAt)}
                 // iconTextColor="text-gray-400"
               />
             )}

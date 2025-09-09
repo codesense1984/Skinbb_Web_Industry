@@ -1,17 +1,17 @@
 // src/components/onboarding/AddressForm.tsx
-import React from "react";
-import { useFormContext, useWatch } from "react-hook-form";
 import {
   FormFieldsRenderer,
   type FormFieldConfig,
 } from "@/core/components/ui/form-input";
 import { MODE } from "@/core/types";
+import React from "react";
+import { useFormContext, useWatch } from "react-hook-form";
+import { StepKey } from "../../../config/steps.config";
 import {
   fullCompanyDetailsSchema,
   type FullCompanyFormType,
 } from "../../../schema/fullCompany.schema";
-import { StepKey } from "../../../config/steps.config";
-import { useLocationData } from "../../../hooks/useLocationData";
+import { useLocationData } from "../hooks/useLocationData";
 
 interface AddressFormProps {
   mode: MODE;
@@ -26,7 +26,6 @@ export const AddressForm: React.FC<AddressFormProps> = ({
   hasRegisteredAddress,
   addressIndex,
   field,
-  companyId,
 }) => {
   const { control } = useFormContext<FullCompanyFormType>();
 

@@ -207,7 +207,7 @@ export const api = {
 // ---- React Query: sane defaults + helpers --------------------------------
 export const defaultQueryOptions: DefaultOptions = {
   queries: {
-    staleTime: 60_000, // 1 min: avoid over‑fetching
+    staleTime: 5 * 60_000, // 5 min: avoid over‑fetching
     gcTime: 5 * 60_000, // 5 min cache
     refetchOnReconnect: true,
     // refetchOnWindowFocus: "always",

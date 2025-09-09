@@ -4,6 +4,7 @@ import {
   fullCompanyDetailsSchema,
   type FullCompanyFormType,
 } from "../schema/fullCompany.schema";
+import type { CompanyDropdownItem } from "@/modules/panel/services/http/company.service";
 
 // STEP_ORDER moved to config to avoid circular imports
 
@@ -125,6 +126,9 @@ export function getFieldNamesForStep(
       if (!values.phoneNumber) names.push("phoneNumber");
       if (!values.password) names.push("password");
       if (!values.phoneVerified) names.push("phoneVerified");
+
+
+
       return names;
     }
 

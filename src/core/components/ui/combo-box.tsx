@@ -348,6 +348,7 @@ export const ComboBox = <T extends boolean = false>({
 
                   return (
                     <CommandItem
+                      disabled={option.disabled}
                       key={option.value}
                       value={option.value}
                       onSelect={() => {
