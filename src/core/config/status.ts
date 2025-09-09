@@ -4,6 +4,7 @@ export type ModuleType =
   | "product"
   | "survey_user"
   | "company"
+  | "company_user"
   | "customer";
 
 export interface StatusStyle {
@@ -145,6 +146,20 @@ export const STATUS_MAP: Record<ModuleType, Record<string, StatusStyle>> = {
     },
   },
 
+  company_user: {
+    active: {
+      label: "Active",
+      value: "active",
+      textColor: "text-emerald-700",
+      bgColor: "bg-emerald-100",
+    },
+    inactive: {
+      label: "Inactive",
+      value: "inactive",
+      textColor: "text-red-700",
+      bgColor: "bg-red-100",
+    },
+  },
   product: {
     draft: {
       label: "Draft",

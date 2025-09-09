@@ -115,6 +115,31 @@ export async function apiUpdateSellerMember(
   return api.put<SellerMemberUpdateResponse>(url, data, { signal });
 }
 
+export async function apiGetSellerMemberById(
+  memberId: string,
+  signal?: AbortSignal,
+): Promise<{ statusCode: number; data: any; message: string; success: boolean }> {
+  // Since individual member API might not work, fetch from the list and find the member
+  try {
+    const response = await apiGetSellerMembers({ page: 1, limit: 1000 }, signal);
+    const member = response.data.items.find((m: any) => m._id === memberId);
+    
+    if (!member) {
+      throw new Error("Member not found");
+    }
+    
+    return {
+      statusCode: 200,
+      data: member,
+      message: "Member found",
+      success: true
+    };
+  } catch (error) {
+    console.error("Error fetching member:", error);
+    throw error;
+  }
+}
+
 export async function apiDeleteSellerMember(
   memberId: string,
   signal?: AbortSignal,

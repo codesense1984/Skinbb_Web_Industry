@@ -25,6 +25,12 @@ export const panelRoutes: RouteObject = {
       ),
     },
     {
+      path: PANEL_ROUTES.BRAND.VIEW(),
+      Component: lazy(
+        () => import("@/modules/panel/features/brands/brand-form"),
+      ),
+    },
+    {
       path: PANEL_ROUTES.BRAND.EDIT(),
       Component: lazy(
         () => import("@/modules/panel/features/brands/brand-form"),
@@ -52,6 +58,32 @@ export const panelRoutes: RouteObject = {
       path: PANEL_ROUTES.COMPANY_LOCATION.LIST(),
       Component: lazy(
         () => import("@/modules/panel/features/company-location/list"),
+      ),
+    },
+
+    // company-users
+    {
+      path: PANEL_ROUTES.COMPANY.USERS(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company/users/list"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.COMPANY.USER_CREATE(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company/users/user-form"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.COMPANY.USER_EDIT(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company/users/user-form"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.COMPANY.USER_VIEW(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company/users/user-form"),
       ),
     },
 
