@@ -19,7 +19,7 @@ export const userFormSchema = z.object({
   allowedAddresses: z.array(z.string()).optional(),
   extraPermissions: z.array(z.string()).optional(),
   revokedPermissions: z.array(z.string()).optional(),
-  active: z.boolean(),
+  active: z.boolean().optional(),
 });
 
 export type UserFormData = z.infer<typeof userFormSchema>;

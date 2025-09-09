@@ -3,6 +3,7 @@ import { PageContent } from "@/core/components/ui/structure";
 import { useParams, useNavigate } from "react-router";
 import { columns } from "./data.tsx";
 import { apiGetCompanyDetailsForOnboarding, apiGetCompanyUsers } from "@/modules/panel/services/http/company.service";
+import { apiGetSellerMembers } from "@/modules/panel/services/http/user.service";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { Button } from "@/core/components/ui/button";
 import { PlusIcon } from "@heroicons/react/24/outline";
@@ -13,27 +14,38 @@ const fetcher = (companyId: string) => createSimpleFetcher(
   async (params: any) => {
     try {
       // First, try to get company users from the dedicated API
-      const usersResponse = await apiGetCompanyUsers(companyId, params);
+      // Add createdAt parameter to fetch creation dates
+      const apiParams = {
+        ...params,
+        createdAt: true // Request creation date from backend
+      };
+      const usersResponse = await apiGetCompanyUsers(companyId, apiParams);
       
       console.log("Company users API response:", usersResponse);
+      console.log("API response structure:", JSON.stringify(usersResponse, null, 2));
       
       if (usersResponse?.data?.items && usersResponse.data.items.length > 0) {
         console.log("Using company users API data:", usersResponse.data.items);
+        console.log("First item structure:", JSON.stringify(usersResponse.data.items[0], null, 2));
         
         // Transform the API response to match the expected user list format
-        const transformedItems = usersResponse.data.items.map((item: any) => ({
-          _id: item._id,
-          firstName: item.user?.firstName || '',
-          lastName: item.user?.lastName || '',
-          email: item.user?.email || '',
-          phoneNumber: item.user?.phoneNumber || '',
-          roleId: item.role?.label || item.roleId || '',
-          active: item.active,
-          createdAt: item.createdAt,
-          updatedAt: item.updatedAt,
-          // Keep original data for reference
-          originalData: item
-        }));
+        const transformedItems = usersResponse.data.items.map((item: any) => {
+          console.log("Raw item data:", item);
+          
+          return {
+            _id: item.userId || item.user?._id || item._id || '',
+            firstName: item.user?.firstName || item.firstName || '',
+            lastName: item.user?.lastName || item.lastName || '',
+            email: item.user?.email || item.email || '',
+            phoneNumber: item.user?.phoneNumber || item.phoneNumber || '',
+            roleId: item.roleValue || item.role?.label || item.role?.name || item.roleId || '',
+            active: item.active !== undefined ? item.active : (item.user?.active !== undefined ? item.user.active : true), // Default to true if not specified
+            createdAt: item.createdAt || item.user?.createdAt || '', // Let backend provide the date
+            updatedAt: item.updatedAt || item.user?.updatedAt || '',
+            // Keep original data for reference
+            originalData: item
+          };
+        });
         
         console.log("Transformed user data:", transformedItems);
         
@@ -48,7 +60,41 @@ const fetcher = (companyId: string) => createSimpleFetcher(
         console.log("Company users API returned empty data, falling back to owner extraction");
       }
     } catch (error) {
-      console.log("Company users API failed, falling back to owner extraction:", error);
+      console.log("Company users API failed, trying seller members API:", error);
+      
+      // Try seller members API as second fallback
+      try {
+        const sellerMembersResponse = await apiGetSellerMembers(params);
+        console.log("Seller members API response:", sellerMembersResponse);
+        
+        if (sellerMembersResponse?.data?.items && sellerMembersResponse.data.items.length > 0) {
+          console.log("Using seller members API data:", sellerMembersResponse.data.items);
+          
+          // Transform seller members data
+          const transformedItems = sellerMembersResponse.data.items.map((item: any) => ({
+            _id: item._id,
+            firstName: item.firstName || '',
+            lastName: item.lastName || '',
+            email: item.email || '',
+            phoneNumber: item.phoneNumber || '',
+            roleId: item.roleId || '',
+            active: item.active !== undefined ? item.active : true, // Default to true if not specified
+            createdAt: item.createdAt || '', // Let backend provide the date
+            updatedAt: item.updatedAt || '',
+            originalData: item
+          }));
+          
+          return {
+            ...sellerMembersResponse,
+            data: {
+              ...sellerMembersResponse.data,
+              items: transformedItems
+            }
+          };
+        }
+      } catch (sellerError) {
+        console.log("Seller members API also failed, falling back to owner extraction:", sellerError);
+      }
     }
 
     // Fallback: Get company details to extract owner information
@@ -91,10 +137,10 @@ const fetcher = (companyId: string) => createSimpleFetcher(
         lastName: lastName,
         email: company.owner.ownerEmail,
         phoneNumber: company.owner.ownerPhone,
-        roleId: 'Owner', // Default role for company owner
+        roleId: company.owner.ownerDesignation || 'Owner', // Use designation or default to Owner
         active: true, // Assume owner is always active
-        createdAt: company.createdAt,
-        updatedAt: company.updatedAt
+        createdAt: company.createdAt || new Date().toISOString(),
+        updatedAt: company.updatedAt || new Date().toISOString()
       };
 
       return {
@@ -162,8 +208,8 @@ const CompanyUsersList = () => {
   return (
     <PageContent
       header={{
-        title: `${companyName} - Users`,
-        description: `Manage users for ${companyName}`,
+        title: "Users",
+        description: "Manage company users",
         actions: (
           <Button 
             onClick={() => navigate(PANEL_ROUTES.COMPANY.USER_CREATE(companyId))}
@@ -176,12 +222,16 @@ const CompanyUsersList = () => {
         ),
       }}
     >
-      <DataTable
-        columns={columns(companyId)}
-        isServerSide
-        fetcher={fetcher(companyId)}
-        queryKeyPrefix={PANEL_ROUTES.COMPANY.USERS(companyId)}
-      />
+      <div className="space-y-4">
+
+        <DataTable
+        tableHeading={companyName}
+          columns={columns(companyId)}
+          isServerSide
+          fetcher={fetcher(companyId)}
+          queryKeyPrefix={PANEL_ROUTES.COMPANY.USERS(companyId)}
+        />
+      </div>
     </PageContent>
   );
 };

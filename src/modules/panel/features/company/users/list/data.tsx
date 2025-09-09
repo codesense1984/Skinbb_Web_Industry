@@ -2,7 +2,7 @@ import {
   TableAction,
 } from "@/core/components/data-table/components/table-action";
 import { Avatar } from "@/core/components/ui/avatar";
-import { Badge } from "@/core/components/ui/badge";
+import { Badge, StatusBadge } from "@/core/components/ui/badge";
 import { formatDate } from "@/core/utils";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import type { SellerMemberList } from "@/modules/panel/types/user.type";
@@ -48,11 +48,16 @@ export const columns = (companyId: string): ColumnDef<SellerMemberList>[] => [
   {
     header: "Role",
     accessorKey: "roleId",
-    cell: ({ getValue }) => {
+    cell: ({ getValue, row }) => {
       const roleId = getValue() as string;
-      return roleId ? (
+      const user = row.original as any;
+      
+      // Try multiple possible role fields, prioritizing roleValue from API
+      const role = roleId || user.roleValue || user.role?.label || user.role?.name || user.roleId || '';
+      
+      return role ? (
         <Badge variant="secondary" className="w-max">
-          {roleId}
+          {role}
         </Badge>
       ) : (
         <div className="w-max text-muted-foreground">-</div>
@@ -62,24 +67,53 @@ export const columns = (companyId: string): ColumnDef<SellerMemberList>[] => [
   {
     accessorKey: "active",
     header: "Status",
-    cell: ({ getValue }) => {
+    cell: ({ getValue, row }) => {
       const active = getValue() as boolean;
+      const user = row.original as any;
+      
+      // Try multiple possible status fields
+      const isActive = active !== undefined ? active : 
+                      user.user?.active !== undefined ? user.user.active :
+                      user.status === 'active' ? true : false;
+      
+      const statusValue = isActive ? 'active' : 'inactive';
+      
       return (
-        <Badge 
-          variant={active ? "default" : "destructive"} 
-          className="w-max"
+        <StatusBadge
+          status={statusValue}
+          module="company_user"
+          variant="badge"
         >
-          {active ? "Active" : "Inactive"}
-        </Badge>
+          {isActive ? "Active" : "Inactive"}
+        </StatusBadge>
       );
     },
   },
   {
     accessorKey: "createdAt",
     header: "Joined",
-    cell: ({ getValue }) => {
+    cell: ({ getValue, row }) => {
       const createdAt = getValue() as string;
-      return <div className="w-max">{formatDate(createdAt)}</div>;
+      const user = row.original as any;
+      
+      // Try multiple possible date fields
+      const dateValue = createdAt || user.user?.createdAt || user.createdAt || '';
+      
+      if (!dateValue || dateValue.trim() === '') {
+        return <div className="w-max text-muted-foreground">-</div>;
+      }
+      
+      try {
+        // Check if the date is valid
+        const date = new Date(dateValue);
+        if (isNaN(date.getTime())) {
+          return <div className="w-max text-muted-foreground">Invalid Date</div>;
+        }
+        return <div className="w-max">{formatDate(dateValue)}</div>;
+      } catch (error) {
+        console.error("Date formatting error:", error, "for date:", dateValue);
+        return <div className="w-max text-muted-foreground">Invalid Date</div>;
+      }
     },
   },
   {
