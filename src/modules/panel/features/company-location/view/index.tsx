@@ -32,10 +32,46 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 import { useState } from "react";
-import { useParams } from "react-router";
+import { Link, useParams } from "react-router";
 import { toast } from "sonner";
 import { apiGetCompanyLocationDetail } from "../../../services/http/company-location.service";
 import { CompanyApprovalDialog } from "../../company/components/approval/CompanyApprovalDialog";
+import type { CompanyAddressDetail } from "@/modules/panel/types";
+import { formatCurrency, getState } from "@/core/utils";
+
+// Reusable InfoItem component for displaying information with icons
+interface InfoItemProps {
+  icon: React.ReactNode;
+  label: string;
+  value: string | React.ReactNode;
+  iconBgColor?: string;
+  iconTextColor?: string;
+  className?: string;
+  children?: React.ReactNode;
+}
+
+const InfoItem: React.FC<InfoItemProps> = ({
+  icon,
+  label,
+  value,
+  iconBgColor = "bg-primary/10",
+  iconTextColor = "text-muted-foreground",
+  className = "",
+  children,
+}) => {
+  return (
+    <div className={`flex items-center gap-3 ${className}`}>
+      <div className={`${iconBgColor} border-border rounded-lg border p-2`}>
+        <div className={`${iconTextColor} h-5 w-5`}>{icon}</div>
+      </div>
+      <div>
+        <p className="text-muted-foreground text-sm">{label}</p>
+        <p className="text-foreground font-medium">{value}</p>
+        {children}
+      </div>
+    </div>
+  );
+};
 
 const CompanyLocationView = () => {
   const { companyId, locationId } = useParams();
@@ -135,9 +171,10 @@ const CompanyLocationView = () => {
 
   // The locationData is the CompanyOnboading object directly
   const company = locationData.company;
-  const currentLocation: any = company.addresses?.find(
-    (addr: any) => addr.addressId === locationId,
-  );
+  const currentLocation: CompanyAddressDetail | undefined =
+    company.addresses?.find(
+      (addr: CompanyAddressDetail) => addr.addressId === locationId,
+    );
   const owner = company.owner;
 
   if (!currentLocation) {
@@ -218,114 +255,66 @@ const CompanyLocationView = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-blue-100 p-2">
-                  <MapPinIcon className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-sm">Address Type</p>
-                  <p className="text-foreground font-medium capitalize">
-                    {currentLocation.addressType}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-green-100 p-2">
-                  <DocumentTextIcon className="h-5 w-5 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-sm">GST Number</p>
-                  <p className="text-foreground font-medium">
-                    {currentLocation.gstNumber || "-"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-purple-100 p-2">
-                  <DocumentTextIcon className="h-5 w-5 text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-sm">PAN Number</p>
-                  <p className="text-foreground font-medium">
-                    {currentLocation.panNumber || "-"}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-orange-100 p-2">
-                  <DocumentTextIcon className="h-5 w-5 text-orange-600" />
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-sm">CIN Number</p>
-                  <p className="text-foreground font-medium">
-                    {currentLocation.cinNumber || "-"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-indigo-100 p-2">
-                  <DocumentTextIcon className="h-5 w-5 text-indigo-600" />
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-sm">MSME Number</p>
-                  <p className="text-foreground font-medium">
-                    {currentLocation.msmeNumber || "-"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-pink-100 p-2">
-                  <MapPinIcon className="h-5 w-5 text-pink-600" />
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-sm">Landmark</p>
-                  <p className="text-foreground font-medium">
-                    {currentLocation.landmark || "-"}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-gray-100 p-2">
-                  {currentLocation.isPrimary ? (
-                    <CheckCircleIcon className="h-5 w-5 text-green-600" />
-                  ) : (
-                    <XCircleIcon className="h-5 w-5 text-gray-400" />
-                  )}
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-sm">
-                    Primary Location
-                  </p>
-                  <p className="text-foreground font-medium">
-                    {currentLocation.isPrimary ? "Yes" : "No"}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-pink-100 p-2">
-                  <CalendarIcon className="h-5 w-5 text-pink-600" />
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-sm">Created At</p>
-                  <p className="text-foreground font-medium">
-                    {currentLocation.createdAt
-                      ? new Date(currentLocation.createdAt).toLocaleDateString()
-                      : "-"}
-                  </p>
-                </div>
-              </div>
-            </div>
+            <InfoItem
+              icon={<MapPinIcon className="h-5 w-5" />}
+              label="Address Type"
+              value={currentLocation.addressType}
+            />
+            <InfoItem
+              icon={<MapPinIcon className="h-5 w-5" />}
+              label="Address"
+              value={currentLocation.addressLine1 || "-"}
+            />
+            <InfoItem
+              icon={<MapPinIcon className="h-5 w-5" />}
+              label="Landmark"
+              value={currentLocation.landmark || "-"}
+            />
+            <InfoItem
+              icon={<PhoneIcon className="h-5 w-5" />}
+              label="Landline"
+              value={currentLocation.landlineNumber || "-"}
+            />
+            <InfoItem
+              icon={<MapPinIcon className="h-5 w-5" />}
+              label="Country"
+              value={currentLocation.country}
+            />
+            <InfoItem
+              icon={<MapPinIcon className="h-5 w-5" />}
+              label="State"
+              value={getState(currentLocation.state)?.name}
+            />
+            <InfoItem
+              icon={<MapPinIcon className="h-5 w-5" />}
+              label="City"
+              value={currentLocation.city}
+            />
+            <InfoItem
+              icon={<MapPinIcon className="h-5 w-5" />}
+              label="Pin code"
+              value={currentLocation.postalCode}
+            />
+            <InfoItem
+              icon={
+                currentLocation.isPrimary ? (
+                  <CheckCircleIcon className="h-5 w-5" />
+                ) : (
+                  <XCircleIcon className="h-5 w-5" />
+                )
+              }
+              label="Primary Location"
+              value={currentLocation.isPrimary ? "Yes" : "No"}
+            />
+            <InfoItem
+              icon={<CalendarIcon className="h-5 w-5" />}
+              label="Created At"
+              value={
+                currentLocation.createdAt
+                  ? new Date(currentLocation.createdAt).toLocaleDateString()
+                  : "-"
+              }
+            />
           </div>
 
           {/* Documents Section */}
@@ -339,100 +328,75 @@ const CompanyLocationView = () => {
               </CardHeader>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {currentLocation.coiCertificate && (
-                  <div className="flex items-center gap-3 rounded-lg border p-3">
-                    <div className="rounded-lg bg-blue-100 p-2">
-                      <DocumentTextIcon className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground text-sm">
-                        COI Certificate
-                      </p>
-                      <p className="text-foreground text-lg font-bold">
-                        {currentLocation.cinNumber ?? "-"}
-                      </p>
-                      <a
-                        href={currentLocation.coiCertificate}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm break-all text-blue-600 hover:text-blue-800"
-                      >
-                        View Document
-                      </a>
-                    </div>
-                  </div>
+                  <InfoItem
+                    icon={<DocumentTextIcon className="h-5 w-5" />}
+                    label="COI Certificate"
+                    value={currentLocation.cinNumber ?? "-"}
+                    className="rounded-lg border p-3"
+                  >
+                    <Link
+                      to={currentLocation.coiCertificate}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs break-all text-blue-500"
+                    >
+                      View Document
+                    </Link>
+                  </InfoItem>
                 )}
 
                 {currentLocation.msmeCertificate && (
-                  <div className="flex items-center gap-3 rounded-lg border p-3">
-                    <div className="rounded-lg bg-green-100 p-2">
-                      <DocumentTextIcon className="h-5 w-5 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground text-sm">
-                        MSME Certificate
-                      </p>
-                      <p className="text-foreground text-lg font-bold">
-                        {currentLocation.msmeNumber ?? "-"}
-                      </p>
-
-                      <a
-                        href={currentLocation.msmeCertificate}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm break-all text-blue-600 hover:text-blue-800"
-                      >
-                        View Document
-                      </a>
-                    </div>
-                  </div>
+                  <InfoItem
+                    icon={<DocumentTextIcon className="h-5 w-5" />}
+                    label="MSME Certificate"
+                    value={currentLocation.msmeNumber ?? "-"}
+                    className="rounded-lg border p-3"
+                  >
+                    <Link
+                      to={currentLocation.msmeCertificate}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs break-all text-blue-500"
+                    >
+                      View Document
+                    </Link>
+                  </InfoItem>
                 )}
 
                 {currentLocation.panDocument && (
-                  <div className="flex items-center gap-3 rounded-lg border p-3">
-                    <div className="rounded-lg bg-orange-100 p-2">
-                      <DocumentTextIcon className="h-5 w-5 text-orange-600" />
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground text-sm">
-                        PAN Document
-                      </p>
-                      <p className="text-foreground text-lg font-bold">
-                        {currentLocation.panNumber ?? "-"}
-                      </p>
-                      <a
-                        href={currentLocation.panDocument}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm break-all text-blue-600 hover:text-blue-800"
-                      >
-                        View Document
-                      </a>
-                    </div>
-                  </div>
+                  <InfoItem
+                    icon={<DocumentTextIcon className="h-5 w-5" />}
+                    label="PAN Document"
+                    value={currentLocation.panNumber ?? "-"}
+                    className="rounded-lg border p-3"
+                  >
+                    <Link
+                      to={currentLocation.panDocument}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs break-all text-blue-500"
+                    >
+                      View Document
+                    </Link>
+                  </InfoItem>
                 )}
 
                 {currentLocation.gstDocument && (
-                  <div className="flex items-center gap-3 rounded-lg border p-3">
-                    <div className="rounded-lg bg-purple-100 p-2">
-                      <DocumentTextIcon className="h-5 w-5 text-purple-600" />
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground text-sm">
-                        GST Document
-                      </p>
-                      <p className="text-foreground text-lg font-bold">
-                        {currentLocation.gstNumber ?? "-"}
-                      </p>
-                      <a
-                        href={currentLocation.gstDocument}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm break-all text-blue-600 hover:text-blue-800"
-                      >
-                        View Document
-                      </a>
-                    </div>
-                  </div>
+                  <InfoItem
+                    icon={<DocumentTextIcon className="h-5 w-5" />}
+                    label="GST Document"
+                    value={currentLocation.gstNumber ?? "-"}
+                    className="rounded-lg border p-3"
+                  >
+                    <Link
+                      to={currentLocation.gstDocument}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs break-all text-blue-500"
+                    >
+                      View Document
+                    </Link>
+                  </InfoItem>
                 )}
               </div>
             </Card>
@@ -494,61 +458,54 @@ const CompanyLocationView = () => {
 
                   {/* Brand Metrics */}
                   <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    <div className="flex items-center gap-3 rounded-lg border p-3">
-                      <div className="rounded-lg bg-blue-100 p-2">
-                        <ShoppingBagIcon className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground text-sm">
-                          Total SKU
-                        </p>
-                        <p className="text-foreground text-lg font-bold">
+                    <InfoItem
+                      icon={<ShoppingBagIcon className="h-5 w-5" />}
+                      label="Total SKU"
+                      value={
+                        <span className="text-lg font-bold">
                           {brand.totalSKU?.toLocaleString() || "-"}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 rounded-lg border p-3">
-                      <div className="rounded-lg bg-green-100 p-2">
-                        <CurrencyDollarIcon className="h-5 w-5 text-green-600" />
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground text-sm">
-                          Avg Selling Price
-                        </p>
-                        <p className="text-foreground text-lg font-bold">
-                          ₹{brand.averageSellingPrice?.toLocaleString() || "-"}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 rounded-lg border p-3">
-                      <div className="rounded-lg bg-purple-100 p-2">
-                        <TagIcon className="h-5 w-5 text-purple-600" />
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground text-sm">
-                          Product Categories
-                        </p>
-                        <p className="text-foreground text-lg font-bold">
+                        </span>
+                      }
+                      // iconBgColor="bg-blue-100"
+                      // iconTextColor="text-blue-600"
+                      className="rounded-lg border p-3"
+                    />
+                    <InfoItem
+                      icon={<CurrencyDollarIcon className="h-5 w-5" />}
+                      label="Avg Selling Price"
+                      value={
+                        <span className="text-lg font-bold">
+                          {formatCurrency(brand.averageSellingPrice)}
+                        </span>
+                      }
+                      // iconBgColor="bg-green-100"
+                      // iconTextColor="text-green-600"
+                      className="rounded-lg border p-3"
+                    />
+                    <InfoItem
+                      icon={<TagIcon className="h-5 w-5" />}
+                      label="Product Categories"
+                      value={
+                        <span className="text-lg font-bold">
                           {brand.productCategory?.length || 0}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 rounded-lg border p-3">
-                      <div className="rounded-lg bg-orange-100 p-2">
-                        <CurrencyDollarIcon className="h-5 w-5 text-orange-600" />
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground text-sm">
-                          Marketing Budget
-                        </p>
-                        <p className="text-foreground text-lg font-bold">
-                          ₹{brand.marketingBudget?.toLocaleString() || "-"}
-                        </p>
-                      </div>
-                    </div>
+                        </span>
+                      }
+                      // iconBgColor="bg-purple-100"
+                      // iconTextColor="text-purple-600"
+                      className="rounded-lg border p-3"
+                    />
+                    <InfoItem
+                      icon={<CurrencyDollarIcon className="h-5 w-5" />}
+                      label="Marketing Budget"
+                      value={
+                        <span className="text-lg font-bold">
+                          {formatCurrency(brand.marketingBudget)}
+                        </span>
+                      }
+                      // iconBgColor="bg-orange-100"
+                      // iconTextColor="text-orange-600"
+                      className="rounded-lg border p-3"
+                    />
                   </div>
 
                   {/* Selling Platforms */}
@@ -598,38 +555,24 @@ const CompanyLocationView = () => {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                      <div className="flex items-center gap-3">
-                        <div className="rounded-lg bg-blue-100 p-2">
-                          <UserIcon className="h-5 w-5 text-blue-600" />
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground text-sm">
-                            Owner Name
-                          </p>
-                          <p className="text-foreground font-medium">
-                            {brand.owner?.ownerUser || "-"}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        <div className="rounded-lg bg-green-100 p-2">
-                          <PhoneIcon className="h-5 w-5 text-green-600" />
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground text-sm">
-                            Phone Number
-                          </p>
-                          <p className="text-foreground font-medium">
-                            {brand.owner?.ownerPhone || "-"}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        <div className="rounded-lg bg-purple-100 p-2">
+                      <InfoItem
+                        icon={<UserIcon className="h-5 w-5" />}
+                        label="Owner Name"
+                        value={brand.owner?.ownerUser || "-"}
+                        // iconBgColor="bg-blue-100"
+                        // iconTextColor="text-blue-600"
+                      />
+                      <InfoItem
+                        icon={<PhoneIcon className="h-5 w-5" />}
+                        label="Phone Number"
+                        value={brand.owner?.ownerPhone || "-"}
+                        // iconBgColor="bg-green-100"
+                        // iconTextColor="text-green-600"
+                      />
+                      <InfoItem
+                        icon={
                           <svg
-                            className="h-5 w-5 text-purple-600"
+                            className="h-5 w-5"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -641,42 +584,26 @@ const CompanyLocationView = () => {
                               d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                             />
                           </svg>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground text-sm">Email</p>
-                          <p className="text-foreground font-medium">
-                            {brand.owner?.ownerEmail || "-"}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        <div className="rounded-lg bg-orange-100 p-2">
-                          <PhoneIcon className="h-5 w-5 text-orange-600" />
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground text-sm">
-                            Landline Number
-                          </p>
-                          <p className="text-foreground font-medium">
-                            {brand.owner.landlineNo || "-"}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        <div className="rounded-lg bg-indigo-100 p-2">
-                          <DocumentTextIcon className="h-5 w-5 text-indigo-600" />
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground text-sm">
-                            Designation
-                          </p>
-                          <p className="text-foreground font-medium">
-                            {brand.owner?.ownerDesignation || "-"}
-                          </p>
-                        </div>
-                      </div>
+                        }
+                        label="Email"
+                        value={brand.owner?.ownerEmail || "-"}
+                        // iconBgColor="bg-purple-100"
+                        // iconTextColor="text-purple-600"
+                      />
+                      <InfoItem
+                        icon={<PhoneIcon className="h-5 w-5" />}
+                        label="Landline Number"
+                        value={brand.owner?.landlineNo || "-"}
+                        // iconBgColor="bg-orange-100"
+                        // iconTextColor="text-orange-600"
+                      />
+                      <InfoItem
+                        icon={<DocumentTextIcon className="h-5 w-5" />}
+                        label="Designation"
+                        value={brand.owner?.ownerDesignation || "-"}
+                        // iconBgColor="bg-indigo-100"
+                        // iconTextColor="text-indigo-600"
+                      />
                     </CardContent>
                   </Card>
 
@@ -691,20 +618,18 @@ const CompanyLocationView = () => {
 
                     <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
                       {brand.instagramUrl && (
-                        <div className="flex items-center gap-3">
-                          <div className="rounded-lg bg-pink-100 p-2">
+                        <InfoItem
+                          icon={
                             <svg
-                              className="h-5 w-5 text-pink-600"
+                              className="h-5 w-5"
                               fill="currentColor"
                               viewBox="0 0 24 24"
                             >
                               <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 6.62 5.367 11.987 11.988 11.987 6.62 0 11.987-5.367 11.987-11.987C24.014 5.367 18.637.001 12.017.001zM8.449 16.988c-1.297 0-2.448-.49-3.323-1.297C4.198 14.895 3.708 13.744 3.708 12.447s.49-2.448 1.297-3.323c.875-.807 2.026-1.297 3.323-1.297s2.448.49 3.323 1.297c.807.875 1.297 2.026 1.297 3.323s-.49 2.448-1.297 3.323c-.875.807-2.026 1.297-3.323 1.297zm7.83-9.281H7.721c-.552 0-1-.448-1-1s.448-1 1-1h8.558c.552 0 1 .448 1 1s-.448 1-1 1z" />
                             </svg>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground text-sm">
-                              Instagram
-                            </p>
+                          }
+                          label="Instagram"
+                          value={
                             <a
                               href={brand.instagramUrl}
                               target="_blank"
@@ -713,25 +638,25 @@ const CompanyLocationView = () => {
                             >
                               {brand.instagramUrl}
                             </a>
-                          </div>
-                        </div>
+                          }
+                          // iconBgColor="bg-pink-100"
+                          // iconTextColor="text-pink-600"
+                        />
                       )}
 
                       {brand.facebookUrl && (
-                        <div className="flex items-center gap-3">
-                          <div className="rounded-lg bg-blue-100 p-2">
+                        <InfoItem
+                          icon={
                             <svg
-                              className="h-5 w-5 text-blue-600"
+                              className="h-5 w-5"
                               fill="currentColor"
                               viewBox="0 0 24 24"
                             >
                               <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                             </svg>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground text-sm">
-                              Facebook
-                            </p>
+                          }
+                          label="Facebook"
+                          value={
                             <a
                               href={brand.facebookUrl}
                               target="_blank"
@@ -740,25 +665,25 @@ const CompanyLocationView = () => {
                             >
                               {brand.facebookUrl}
                             </a>
-                          </div>
-                        </div>
+                          }
+                          // iconBgColor="bg-blue-100"
+                          // iconTextColor="text-blue-600"
+                        />
                       )}
 
                       {brand.youtubeUrl && (
-                        <div className="flex items-center gap-3">
-                          <div className="rounded-lg bg-red-100 p-2">
+                        <InfoItem
+                          icon={
                             <svg
-                              className="h-5 w-5 text-red-600"
+                              className="h-5 w-5"
                               fill="currentColor"
                               viewBox="0 0 24 24"
                             >
                               <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
                             </svg>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground text-sm">
-                              YouTube
-                            </p>
+                          }
+                          label="YouTube"
+                          value={
                             <a
                               href={brand.youtubeUrl}
                               target="_blank"
@@ -767,8 +692,10 @@ const CompanyLocationView = () => {
                             >
                               {brand.youtubeUrl}
                             </a>
-                          </div>
-                        </div>
+                          }
+                          iconBgColor="bg-red-100"
+                          iconTextColor="text-red-600"
+                        />
                       )}
                     </CardContent>
                   </Card>
@@ -790,125 +717,76 @@ const CompanyLocationView = () => {
         <CardContent>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-blue-100 p-2">
-                  <BuildingOfficeIcon className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-sm">Company Name</p>
-                  <p className="text-foreground font-medium">
-                    {company.companyName}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-green-100 p-2">
-                  <TagIcon className="h-5 w-5 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-sm">Business Type</p>
-                  <p className="text-foreground font-medium">
-                    {company.businessType || "-"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-purple-100 p-2">
-                  <TagIcon className="h-5 w-5 text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-sm">
-                    Company Category
-                  </p>
-                  <p className="text-foreground font-medium">
-                    {company.companyCategory || "-"}
-                  </p>
-                </div>
-              </div>
+              <InfoItem
+                icon={<BuildingOfficeIcon className="h-5 w-5" />}
+                label="Company Name"
+                value={company.companyName}
+                // iconBgColor="bg-blue-100"
+                // iconTextColor="text-blue-600"
+              />
+              <InfoItem
+                icon={<TagIcon className="h-5 w-5" />}
+                label="Business Type"
+                value={company.businessType || "-"}
+                // iconBgColor="bg-green-100"
+                // iconTextColor="text-green-600"
+              />
+              <InfoItem
+                icon={<TagIcon className="h-5 w-5" />}
+                label="Company Category"
+                value={company.companyCategory || "-"}
+                // iconBgColor="bg-purple-100"
+                // iconTextColor="text-purple-600"
+              />
             </div>
 
             <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-pink-100 p-2">
-                  <CalendarIcon className="h-5 w-5 text-pink-600" />
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-sm">
-                    Established In
-                  </p>
-                  <p className="text-foreground font-medium">
-                    {company.establishedIn || "-"}
-                  </p>
-                </div>
-              </div>
-
-              {/* <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-orange-100 p-2">
-                  <PhoneIcon className="h-5 w-5 text-orange-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Landline Number</p>
-                  <p className="font-medium text-foreground">
-                    {company.landlineNo || "-"}
-                  </p>
-                </div>
-              </div> */}
-
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-indigo-100 p-2">
-                  <DocumentTextIcon className="h-5 w-5 text-indigo-600" />
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-sm">Designation</p>
-                  <p className="text-foreground font-medium">
-                    {owner?.ownerDesignation || "-"}
-                  </p>
-                </div>
-              </div>
+              <InfoItem
+                icon={<CalendarIcon className="h-5 w-5" />}
+                label="Established In"
+                value={company.establishedIn || "-"}
+                // iconBgColor="bg-pink-100"
+                // iconTextColor="text-pink-600"
+              />
+              <InfoItem
+                icon={<DocumentTextIcon className="h-5 w-5" />}
+                label="Designation"
+                value={owner?.ownerDesignation || "-"}
+                // iconBgColor="bg-indigo-100"
+                // iconTextColor="text-indigo-600"
+              />
             </div>
 
             <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-gray-100 p-2">
-                  {company.subsidiaryOfGlobalBusiness ? (
-                    <CheckCircleIcon className="h-5 w-5 text-green-600" />
+              <InfoItem
+                icon={
+                  company.subsidiaryOfGlobalBusiness ? (
+                    <CheckCircleIcon className="h-5 w-5" />
                   ) : (
-                    <XCircleIcon className="h-5 w-5 text-red-600" />
-                  )}
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-sm">
-                    Subsidiary of Global Business
-                  </p>
-                  <p className="text-foreground font-medium">
-                    {company.subsidiaryOfGlobalBusiness ? "Yes" : "No"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-pink-100 p-2">
-                  <MapPinIcon className="h-5 w-5 text-pink-600" />
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-sm">Headquarters</p>
-                  <p className="text-foreground font-medium">
-                    {company.headquaterLocation || "-"}
-                  </p>
-                </div>
-              </div>
-
+                    <XCircleIcon className="h-5 w-5" />
+                  )
+                }
+                label="Subsidiary of Global Business"
+                value={company.subsidiaryOfGlobalBusiness ? "Yes" : "No"}
+                // iconBgColor="bg-gray-100"
+                // iconTextColor={
+                //   company.subsidiaryOfGlobalBusiness
+                //     ? "text-green-600"
+                //     : "text-red-600"
+                // }
+              />
+              <InfoItem
+                icon={<MapPinIcon className="h-5 w-5" />}
+                label="Headquarters"
+                value={company.headquaterLocation || "-"}
+                // iconBgColor="bg-pink-100"
+                // iconTextColor="text-pink-600"
+              />
               {company.website && (
-                <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-blue-100 p-2">
-                    <GlobeAltIcon className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground text-sm">
-                      Company Website
-                    </p>
+                <InfoItem
+                  icon={<GlobeAltIcon className="h-5 w-5" />}
+                  label="Company Website"
+                  value={
                     <a
                       href={company.website}
                       target="_blank"
@@ -917,24 +795,21 @@ const CompanyLocationView = () => {
                     >
                       {company.website}
                     </a>
-                  </div>
-                </div>
+                  }
+                  // iconBgColor="bg-blue-100"
+                  // iconTextColor="text-blue-600"
+                />
               )}
             </div>
             {company.companyDescription && (
-              <div className="col-span-4 flex items-center gap-3">
-                <div className="rounded-lg bg-blue-100 p-2">
-                  <GlobeAltIcon className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-sm">
-                    Company Description
-                  </p>
-                  <p className="text-foreground font-medium">
-                    {company.companyDescription}
-                  </p>
-                </div>
-              </div>
+              <InfoItem
+                icon={<GlobeAltIcon className="h-5 w-5" />}
+                label="Company Description"
+                value={company.companyDescription}
+                // iconBgColor="bg-blue-100"
+                // iconTextColor="text-blue-600"
+                className="col-span-4"
+              />
             )}
           </div>
         </CardContent>
@@ -950,39 +825,31 @@ const CompanyLocationView = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <div className="flex items-center gap-3">
-              <CalendarIcon className="h-5 w-5 text-gray-400" />
-              <div>
-                <p className="text-muted-foreground text-sm">
-                  Location Created At
-                </p>
-                <p className="font-medium">
-                  {currentLocation.createdAt
-                    ? new Date(currentLocation.createdAt).toLocaleDateString()
-                    : "-"}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <CalendarIcon className="h-5 w-5 text-gray-400" />
-              <div>
-                <p className="text-muted-foreground text-sm">
-                  Location Last Updated
-                </p>
-                <p className="font-medium">
-                  {currentLocation.updatedAt
-                    ? new Date(currentLocation.updatedAt).toLocaleDateString()
-                    : "-"}
-                </p>
-              </div>
-            </div>
-
+            <InfoItem
+              icon={<CalendarIcon className="h-5 w-5" />}
+              label="Location Created At"
+              value={
+                currentLocation.createdAt
+                  ? new Date(currentLocation.createdAt).toLocaleDateString()
+                  : "-"
+              }
+              // iconTextColor="text-gray-400"
+            />
+            <InfoItem
+              icon={<CalendarIcon className="h-5 w-5" />}
+              label="Location Last Updated"
+              value={
+                currentLocation.updatedAt
+                  ? new Date(currentLocation.updatedAt).toLocaleDateString()
+                  : "-"
+              }
+              // iconTextColor="text-gray-400"
+            />
             {currentLocation.statusChangeReason && (
-              <div className="flex items-start gap-3">
-                <div className="rounded bg-yellow-100 p-1">
+              <InfoItem
+                icon={
                   <svg
-                    className="h-4 w-4 text-yellow-600"
+                    className="h-4 w-4"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -994,32 +861,23 @@ const CompanyLocationView = () => {
                       d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
                     />
                   </svg>
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-sm">
-                    Status Change Reason
-                  </p>
-                  <p className="font-medium">
-                    {currentLocation.statusChangeReason}
-                  </p>
-                </div>
-              </div>
+                }
+                label="Status Change Reason"
+                value={currentLocation.statusChangeReason}
+                // iconBgColor="bg-yellow-100"
+                // iconTextColor="text-yellow-600"
+                className="items-start"
+              />
             )}
-
             {currentLocation.statusChangedAt && (
-              <div className="flex items-center gap-3">
-                <CalendarIcon className="h-5 w-5 text-gray-400" />
-                <div>
-                  <p className="text-muted-foreground text-sm">
-                    Status Changed At
-                  </p>
-                  <p className="font-medium">
-                    {new Date(
-                      currentLocation.statusChangedAt,
-                    ).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
+              <InfoItem
+                icon={<CalendarIcon className="h-5 w-5" />}
+                label="Status Changed At"
+                value={new Date(
+                  currentLocation.statusChangedAt,
+                ).toLocaleDateString()}
+                // iconTextColor="text-gray-400"
+              />
             )}
           </div>
         </CardContent>

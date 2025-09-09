@@ -28,7 +28,8 @@ interface PersonalDetailsProps {
 // const isValidPhone = (val?: string) => !!val && /^[6-9]\d{9}$/.test(val);
 
 const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
-  const { control, setValue } = useFormContext<FullCompanyFormType>();
+  const { control, setValue , formState: { errors } } = useFormContext<FullCompanyFormType>();
+  console.log("🚀 ~ PersonalDetails ~ errors:", errors)
   const otpModalRef = useRef<OtpModalRef>(null);
 
   const phoneNumber = useWatch({
@@ -44,6 +45,7 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
 
   const rawInfoFields = fullCompanyDetailsSchema.personal_information({
     mode,
+    disabled: mode === MODE.EDIT,
   }) as FormFieldConfig<FullCompanyFormType>[];
 
   // Send OTP
@@ -70,7 +72,7 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
   return (
     <>
       <FormFieldsRenderer<FullCompanyFormType>
-        className="gap-6 md:grid-cols-1 lg:grid-cols-2"
+        className="gap-6 md:grid-cols-2 "
         control={control}
         fieldConfigs={rawInfoFields}
       >
@@ -114,7 +116,7 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
                   >
                     {sendOtpMutation.isPending ? "Sending..." : "Send OTP"}
                   </Button>
-                ) : (
+                ) : mode !== MODE.EDIT ? (
                   <Button
                     variant={"outlined"}
                     color={"default"}
@@ -128,7 +130,7 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
                       setValue("phoneNumber", "", { shouldValidate: true });
                     }}
                   ></Button>
-                ),
+                ) : undefined,
             }}
             disabled={
               mode === MODE.EDIT || phoneVerified || sendOtpMutation.isPending
@@ -143,6 +145,7 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
           name="password"
           label="Password"
           placeholder="Enter phone number"
+          disabled={mode === MODE.EDIT}
         />
 
         <FormFieldsRenderer<FullCompanyFormType>

@@ -23,21 +23,23 @@ import {
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
-import { apiOnboardingSubmit } from "../../../../../services/http/company.service";
-import { STEP_ORDER } from "../../../config/steps.config";
 import {
-  fullCompanyZodSchema,
-  type FullCompanyFormType,
-} from "../../../schema/fullCompany.schema";
+  apiOnboardingSubmit,
+  apiUpdateOnboardById,
+} from "../../../../../services/http/company.service";
+import { STEP_ORDER } from "../../../config/steps.config";
+import { type FullCompanyFormType } from "../../../schema/fullCompany.schema";
 import {
   areAllStepsCompleted as areAllStepsCompletedUtil,
   computeFirstIncompleteStep,
   getFieldNamesForStep,
 } from "../../../utils/onboard-steps.utils";
 import {
+  getCompanySchema,
   transformApiResponseToFormData,
   transformFormDataToApiRequest,
 } from "../../../utils/onboarding.utils";
+import ErrorDisplaySection from "./ErrorDisplaySection";
 const CompanyDetails = lazy(() => import("./CompanyDetails"));
 const BrandDetails = lazy(() => import("./BrandDetails"));
 const PersonalDetails = lazy(() => import("./PersonalDetails"));
@@ -51,6 +53,7 @@ const DocumentDetails = lazy(() =>
 
 import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
+import type { CompanyOnboading } from "@/modules/panel/types";
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -58,7 +61,6 @@ import {
 } from "@heroicons/react/24/outline";
 import type { AxiosError } from "axios";
 import { StepKey } from "../../../config/steps.config";
-import type { CompanyOnboading } from "@/modules/panel/types";
 
 const StepCount = {
   // [StepKey.START]: 1,
@@ -194,7 +196,7 @@ const OnBoardForm = ({
 
   const methods = useForm<FullCompanyFormType>({
     defaultValues: transformApiResponseToFormData(),
-    resolver: zodResolver(fullCompanyZodSchema),
+    resolver: zodResolver(getCompanySchema(mode)),
     mode: "onTouched",
     reValidateMode: "onChange",
   });
@@ -203,11 +205,23 @@ const OnBoardForm = ({
 
   useEffect(() => {
     if (initialData) {
-      reset(transformApiResponseToFormData(initialData));
-    }
-  }, [initialData]);
+      const isPrimary = initialData.addresses.some((item) => item.isPrimary);
+      const formData = transformApiResponseToFormData(initialData, {
+        disabledCompanyDetails: !isPrimary,
+        isCreatingNewCompany: isPrimary,
+        disabledCompanyName: !isPrimary,
+        mode: MODE.EDIT,
+      });
 
-  console.log(watch(), "formdata");
+      console.log(formData, "formData reset");
+      // Reset form with the transformed data
+      reset(formData);
+    }
+  }, [initialData, reset]);
+
+  useEffect(() => {
+    console.log(watch(), "watch formdata");
+  }, [watch()]);
 
   // Function to find the first incomplete step (synchronous for UI)
   const getFirstIncompleteStep = useCallback((): StepKey => {
@@ -262,6 +276,11 @@ const OnBoardForm = ({
   const onboardingMutation = useMutation({
     mutationFn: (data: FullCompanyFormType) => {
       const apiData = transformFormDataToApiRequest(data);
+      console.log("🚀 ~ OnBoardForm ~ apiData:", apiData);
+      if (mode === MODE.EDIT) {
+        const locationId = initialData?.addresses[0]?.addressId;
+        return apiUpdateOnboardById(apiData?.companyId!, locationId!, apiData);
+      }
       return apiOnboardingSubmit(apiData);
     },
     onSuccess: (response) => {
@@ -483,6 +502,38 @@ const OnBoardForm = ({
               <p className="text-muted-foreground">{description}</p>
             </div>
 
+            {/* Error Display Section - Only show on Personal Details step */}
+            {currentValue === StepKey.PERSONAL_INFORMATION && (
+              <ErrorDisplaySection
+              // onFieldClick={(fieldName) => {
+              //   // Navigate to the appropriate step based on field name
+              //   const fieldToStepMap: Record<string, StepKey> = {
+              //     designation: StepKey.PERSONAL_INFORMATION,
+              //     name: StepKey.PERSONAL_INFORMATION,
+              //     email: StepKey.PERSONAL_INFORMATION,
+              //     phoneNumber: StepKey.PERSONAL_INFORMATION,
+              //     password: StepKey.PERSONAL_INFORMATION,
+              //     companyName: StepKey.COMPANY_DETAILS,
+              //     category: StepKey.COMPANY_DETAILS,
+              //     businessType: StepKey.COMPANY_DETAILS,
+              //     address: StepKey.ADDRESS_DETAILS,
+              //     brandName: StepKey.BRAND_DETAILS,
+              //     documents: StepKey.DOCUMENTS_DETAILS,
+              //   };
+
+              //   const targetStep = fieldToStepMap[fieldName.split(".")[0]];
+              //   if (targetStep) {
+              //     const targetIndex = STEPS.findIndex(
+              //       (s) => s.value === targetStep,
+              //     );
+              //     if (targetIndex !== -1) {
+              //       navigateTo(targetIndex);
+              //     }
+              //   }
+              // }}
+              />
+            )}
+
             <Suspense
               fallback={
                 <div className="space-y-6 bg-white">
@@ -553,7 +604,6 @@ const OnBoardForm = ({
         )}
 
         {/* {isConfirmation && <>COnfirm</>} */}
-
         <ConfirmationDialog
           isOpen={confirmation[0]}
           onClose={() => setConfirmation([false, undefined])}
@@ -570,7 +620,6 @@ const OnBoardForm = ({
           showCancel={true}
           cancelText="Close"
         />
-
         {isThankYou && (
           <Suspense fallback={<div className="py-10">Loading...</div>}>
             <Component mode={mode} />

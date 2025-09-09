@@ -39,7 +39,10 @@ import {
 import { Slider } from "./slider";
 import { Textarea, type TextareaProps } from "./textarea";
 import { RichTextEditor } from "./rich-text-editor";
-import { ArrowUpTrayIcon, InformationCircleIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowUpTrayIcon,
+  InformationCircleIcon,
+} from "@heroicons/react/24/outline";
 import { Tooltip } from "./tooltip";
 import type { Option } from "@/core/types";
 
@@ -96,7 +99,11 @@ type StandardInputProps = InputProps &
   TextareaProps &
   React.ComponentProps<typeof CheckboxPrimitive.Root>;
 
-export type SelectOption = { value: string; label: string | React.ReactNode };
+export type SelectOption = {
+  value: string;
+  label: string | React.ReactNode;
+  disabled?: boolean;
+};
 type SelectProps<
   T extends FieldValues,
   N extends FieldPath<T>,
@@ -365,7 +372,11 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
             <SelectContent>
               {"options" in props &&
                 props?.options?.map((option: SelectOption) => (
-                  <SelectItem key={option.value} value={option.value}>
+                  <SelectItem
+                    key={option.value}
+                    value={option.value}
+                    disabled={option?.disabled}
+                  >
                     {option.label}
                   </SelectItem>
                 ))}
@@ -418,13 +429,13 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
       return (
         <FormControl {...formControlProps}>
           <label
-            className="form-control gap-1 items-center"
+            className="form-control items-center gap-1"
             title={value?.split("\\").pop()}
             htmlFor={inputId}
             data-disabled={disabled}
             data-readOnly={readOnly}
           >
-            <ArrowUpTrayIcon className="min-w-4 w-4 block" />
+            <ArrowUpTrayIcon className="block w-4 min-w-4" />
             <input
               {...field}
               type="file"

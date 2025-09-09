@@ -3,181 +3,320 @@ import type {
   CompanyOnboardingSubmitRequest,
 } from "@/modules/panel/types/company.type";
 import type { FullCompanyFormType } from "../schema/fullCompany.schema";
+import { createCompanySchema } from "../schema/fullCompany.schema";
+import { MODE } from "@/core/types";
+
+// Constants
+const DEFAULT_ROLE_ID = "6875fc068683bb026013181b";
+const DEFAULT_MONTH = "01";
+
+const ADDRESS_TYPES = {
+  REGISTERED: "registered",
+  OFFICE: "office",
+} as const;
+
+const DOCUMENT_TYPES = {
+  COI: "coi",
+  PAN: "pan",
+  GST_LICENSE: "gstLicense",
+  MSME: "msme",
+  BRAND_AUTHORIZATION: "brandAuthorisation",
+} as const;
+
+// Utility functions for safer data access
+const safeString = (value: unknown): string => {
+  return typeof value === "string" ? value : "";
+};
+
+const safeArray = <T>(value: unknown): T[] => {
+  return Array.isArray(value) ? (value as T[]) : [];
+};
+
+const safeBoolean = (value: unknown): boolean => {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") return value === "true";
+  return false;
+};
+
+const safeFileArray = (value: unknown): File[] => {
+  return Array.isArray(value) ? (value as File[]) : [];
+};
+
+// Cache for date formatting to avoid redundant operations
+const dateFormatCache = new Map<string, string>();
+
+/**
+ * Clears the date format cache. Useful for testing or when memory management is needed.
+ */
+export function clearDateFormatCache(): void {
+  dateFormatCache.clear();
+}
+
+/**
+ * Gets the appropriate schema based on the mode
+ * @param mode - The mode (ADD, EDIT, VIEW)
+ * @returns The schema with appropriate validation rules
+ *
+ * @example
+ * // For ADD mode - applies full validation
+ * const addSchema = getCompanySchema(MODE.ADD);
+ *
+ * // For EDIT mode - removes validation refinements
+ * const editSchema = getCompanySchema(MODE.EDIT);
+ *
+ * // Usage in form validation
+ * const result = addSchema.safeParse(formData);
+ * if (!result.success) {
+ *   // Handle validation errors
+ * }
+ */
+export function getCompanySchema(mode?: string) {
+  return createCompanySchema(mode);
+}
 
 /**
  * Formats established date from YYYY-MM to MM/YYYY format
+ * Uses caching to improve performance for repeated calls
  */
 function formatEstablishedDate(dateString: string): string {
-  if (!dateString) return "";
+  if (!dateString?.trim()) return "";
+
+  const trimmedDate = dateString.trim();
+
+  // Check cache first
+  if (dateFormatCache.has(trimmedDate)) {
+    return dateFormatCache.get(trimmedDate)!;
+  }
+
+  let result = trimmedDate;
 
   // Handle YYYY-MM format
-  if (dateString.includes("-")) {
-    const [year, month] = dateString.split("-");
-    return `${month}/${year}`;
+  if (trimmedDate.includes("-")) {
+    const [year, month] = trimmedDate.split("-");
+    if (year && month) {
+      result = `${month}/${year}`;
+    }
   }
-
-  // Handle MM/YYYY format (already correct)
-  if (dateString.includes("/")) {
-    return dateString;
-  }
-
+  // Handle MM/YYYY format (already correct) - no change needed
   // Handle YYYY format (assume January)
-  if (dateString.length === 4) {
-    return `01/${dateString}`;
+  else if (trimmedDate.length === 4 && /^\d{4}$/.test(trimmedDate)) {
+    result = `${DEFAULT_MONTH}/${trimmedDate}`;
   }
 
-  return dateString;
+  // Cache the result
+  dateFormatCache.set(trimmedDate, result);
+  return result;
 }
 
 /**
  * Converts established date from MM/YYYY format to YYYY-MM format for month input
+ * Uses caching to improve performance for repeated calls
  */
 function convertEstablishedInToMonthFormat(dateString: string): string {
-  if (!dateString) return "";
+  if (!dateString?.trim()) return "";
+
+  const trimmedDate = dateString.trim();
+
+  // Check cache first
+  if (dateFormatCache.has(trimmedDate)) {
+    return dateFormatCache.get(trimmedDate)!;
+  }
+
+  let result = trimmedDate;
 
   // Handle MM/YYYY format (from API)
-  if (dateString.includes("/")) {
-    const [month, year] = dateString.split("/");
-    return `${year}-${month.padStart(2, "0")}`;
+  if (trimmedDate.includes("/")) {
+    const [month, year] = trimmedDate.split("/");
+    if (year && month) {
+      result = `${year}-${month.padStart(2, "0")}`;
+    }
   }
-
-  // Handle YYYY-MM format (already correct)
-  if (dateString.includes("-")) {
-    return dateString;
-  }
-
+  // Handle YYYY-MM format (already correct) - no change needed
   // Handle YYYY format (assume January)
-  if (dateString.length === 4) {
-    return `${dateString}-01`;
+  else if (trimmedDate.length === 4 && /^\d{4}$/.test(trimmedDate)) {
+    result = `${trimmedDate}-${DEFAULT_MONTH}`;
   }
 
-  return dateString;
+  // Cache the result
+  dateFormatCache.set(trimmedDate, result);
+  return result;
 }
 
 /**
- * Transforms the form data to the API request format for onboarding submission
- * Files are merged directly into the data object
+ * Transforms the form data to the API request format for onboarding submission.
+ * Files are merged directly into the data object.
+ *
+ * @param formData - The form data from the company onboarding form
+ * @param roleId - The role ID for the user (defaults to DEFAULT_ROLE_ID)
+ * @returns The transformed data in the format expected by the API
+ * @throws Error if formData is not provided
  */
 export function transformFormDataToApiRequest(
   formData: FullCompanyFormType,
-  roleId: string = "6875fc068683bb026013181b", // Default role ID, can be made configurable
+  roleId: string = DEFAULT_ROLE_ID,
 ): CompanyOnboardingSubmitRequest {
-  // Get the first address (assuming it's the registered address)
-  const primaryAddress = formData.address.find((addr) => !addr.addressId);
+  if (!formData) {
+    throw new Error("Form data is required");
+  }
 
-  // Get document numbers and files
-  const documents = formData.documents || [];
-  const coiDoc = documents.find((doc) => doc.type === "coi");
-  const panDoc = documents.find((doc) => doc.type === "pan");
-  const gstDoc = documents.find((doc) => doc.type === "gstLicense");
-  const msmeDoc = documents.find((doc) => doc.type === "msme");
-  const authDoc = documents.find((doc) => doc.type === "brandAuthorisation");
+  // Get the first address (assuming it's the registered address)
+  const addresses = Array.isArray(formData.address) ? formData.address : [];
+  const primaryAddress =
+    formData.mode === MODE.EDIT
+      ? addresses[0]
+      : addresses.find((addr) => !addr?.addressId);
+
+  // Get document numbers and files - optimized with single pass
+  const documents = Array.isArray(formData.documents) ? formData.documents : [];
+  const documentMap = new Map<string, (typeof documents)[0]>();
+
+  // Single pass to create document lookup map
+  documents.forEach((doc) => {
+    if (doc?.type) {
+      documentMap.set(doc.type, doc);
+    }
+  });
+
+  const coiDoc = documentMap.get(DOCUMENT_TYPES.COI);
+  const panDoc = documentMap.get(DOCUMENT_TYPES.PAN);
+  const gstDoc = documentMap.get(DOCUMENT_TYPES.GST_LICENSE);
+  const msmeDoc = documentMap.get(DOCUMENT_TYPES.MSME);
+  const authDoc = documentMap.get(DOCUMENT_TYPES.BRAND_AUTHORIZATION);
 
   const apiData: CompanyOnboardingSubmitRequest = {
-    companyId: formData?._id || null,
+    companyId: safeString(formData._id) || null,
     // Required File properties - will be overridden later if files exist
-    gst: new File([], ""),
-    pan: new File([], ""),
-    authorizationLetter: new File([], ""),
-    coiCertificate: new File([], ""),
-    msmeCertificate: new File([], ""),
-    ownerName: formData.name || "",
-    ownerEmail: formData.email || "",
-    phoneNumber: formData.phoneNumber || "",
-    designation: formData.designation || "",
-    password: formData.password || "",
+    // gst: new File([], ""),
+    // pan: new File([], ""),
+    // authorizationLetter: new File([], ""),
+    // coiCertificate: new File([], ""),
+    // msmeCertificate: new File([], ""),
+    ownerName: safeString(formData.name),
+    ownerEmail: safeString(formData.email),
+    phoneNumber: safeString(formData.phoneNumber),
+    designation: safeString(formData.designation),
     roleId,
-    companyName: formData.companyName || "",
+    companyName: safeString(formData.companyName),
     companyDescription:
-      formData.description || "Company description not provided",
-    businessType: formData.businessType || "",
-    headquartersAddress: formData.headquarterLocation || "",
+      safeString(formData.description) || "Company description not provided",
+    businessType: safeString(formData.businessType),
+    headquartersAddress: safeString(formData.headquarterLocation),
     establishedIn: formData.establishedIn
       ? formatEstablishedDate(String(formData.establishedIn))
       : "",
-    subsidiaryOfGlobalBusiness: formData.isSubsidiary === "true",
-    companyCategory: formData.category || "",
-    website: formData.website || "",
-    instagramUrl: formData.instagramUrl || "",
-    facebookUrl: formData.facebookUrl || "",
-    youtubeUrl: formData.youtubeUrl || "",
-    landlineNo: formData.phoneNumber || "",
+    subsidiaryOfGlobalBusiness: safeBoolean(formData.isSubsidiary),
+    companyCategory: safeString(formData.category),
+    website: safeString(formData.website),
+    instagramUrl: safeString(formData.instagramUrl),
+    facebookUrl: safeString(formData.facebookUrl),
+    youtubeUrl: safeString(formData.youtubeUrl),
+    landlineNo: safeString(formData.phoneNumber),
     isCompanyBrand: false, // Assuming true since brand details are required
-    brandName: formData.brandName || "",
-    brandDescription: formData.description || "",
-    brandWebsite: formData.website || "",
-    totalSKU: formData.totalSkus || "",
-    averageSellingPrice: formData.averageSellingPrice || "",
-    marketingBudget: formData.marketingBudget || "",
-    productCategory: formData.productCategory || [],
+    brandName: safeString(formData.brandName),
+    brandDescription: safeString(formData.description),
+    brandWebsite: safeString(formData.website),
+    totalSKU: safeString(formData.totalSkus),
+    averageSellingPrice: safeString(formData.averageSellingPrice),
+    marketingBudget: safeString(formData.marketingBudget),
+    productCategory: safeArray(formData.productCategory),
     addresses: primaryAddress
       ? [
           {
+            addressId: safeString(primaryAddress.addressId),
             addressType: primaryAddress.addressType,
-            gstNumber: gstDoc?.number || "",
-            panNumber: panDoc?.number || "",
-            cinNumber: coiDoc?.number || "",
-            msmeNumber: msmeDoc?.number || "",
-            addressLine1: primaryAddress.address || "",
+            gstNumber: safeString(gstDoc?.number),
+            panNumber: safeString(panDoc?.number),
+            cinNumber: safeString(coiDoc?.number),
+            msmeNumber: safeString(msmeDoc?.number),
+            addressLine1: safeString(primaryAddress.address),
             addressLine2: "",
-            landmark: primaryAddress.landmark || "",
-            city: primaryAddress.city || "",
-            state: primaryAddress.state || "",
-            postalCode: primaryAddress.postalCode || "",
-            country: primaryAddress.country || "",
-            isPrimary: false,
+            landmark: safeString(primaryAddress.landmark),
+            city: safeString(primaryAddress.city),
+            state: safeString(primaryAddress.state),
+            postalCode: safeString(primaryAddress.postalCode),
+            country: safeString(primaryAddress.country),
+            isPrimary: formData.isCreatingNewCompany,
             // brandIds: [],
           },
         ]
       : [],
-    sellingOn:
-      formData?.sellingOn?.filter(Boolean).map((item) => ({
-        platform: item?.platform || "",
-        url: item?.url || "",
-      })) || [],
+    sellingOn: Array.isArray(formData.sellingOn)
+      ? formData.sellingOn.filter(Boolean).map((item) => ({
+          platform: safeString(item?.platform),
+          url: safeString(item?.url),
+        }))
+      : [],
   };
 
+  const password = safeString(formData.password);
+
+  if (password) {
+    apiData.password = password;
+  }
+
   // Merge files directly into the data object
-  // Company logo files
-  if (formData.logo_files && formData.logo_files.length > 0) {
-    apiData.logo = formData.logo_files;
+  // Company logo files - API expects string URL, not File array
+  const logoFiles = safeFileArray(formData.logo_files);
+  if (logoFiles.length > 0) {
+    // For now, we'll use the first file's name as a placeholder
+    // In a real implementation, you'd upload the file and get a URL
+    apiData.logo = logoFiles[0]?.name || "";
   }
 
-  // Brand logo files
-  if (formData.brand_logo_files && formData.brand_logo_files.length > 0) {
-    apiData.brandLogo = formData.brand_logo_files;
+  // Brand logo files - API expects string URL, not File array
+  const brandLogoFiles = safeFileArray(formData.brand_logo_files);
+  if (brandLogoFiles.length > 0) {
+    apiData.brandLogo = brandLogoFiles[0]?.name || "";
   }
 
-  // Document files - API expects specific keys
-  if (gstDoc?.url_files && gstDoc.url_files.length > 0) {
-    apiData.gst = gstDoc.url_files;
+  // Document files - API expects single File objects
+  const gstFiles = safeFileArray(gstDoc?.url_files);
+  if (gstFiles.length > 0) {
+    apiData.gst = gstFiles[0];
   }
 
-  if (panDoc?.url_files && panDoc.url_files.length > 0) {
-    apiData.pan = panDoc.url_files;
+  const panFiles = safeFileArray(panDoc?.url_files);
+  if (panFiles.length > 0) {
+    apiData.pan = panFiles[0];
   }
 
-  if (authDoc?.url_files && authDoc.url_files.length > 0) {
-    apiData.authLetter = authDoc.url_files;
+  const authFiles = safeFileArray(authDoc?.url_files);
+  if (authFiles.length > 0) {
+    apiData.authorizationLetter = authFiles[0];
   }
 
-  if (coiDoc?.url_files && coiDoc.url_files.length > 0) {
-    apiData.coiCertificate = coiDoc.url_files;
+  const coiFiles = safeFileArray(coiDoc?.url_files);
+  if (coiFiles.length > 0) {
+    apiData.coiCertificate = coiFiles[0];
   }
 
-  if (msmeDoc?.url_files && msmeDoc.url_files.length > 0) {
-    apiData.msmeCertificate = msmeDoc.url_files;
+  const msmeFiles = safeFileArray(msmeDoc?.url_files);
+  if (msmeFiles.length > 0) {
+    apiData.msmeCertificate = msmeFiles[0];
   }
 
   return apiData;
 }
 
 /**
- * Transforms API response data to the form data format for editing
- * Also provides default values when no API data is available
+ * Transforms API response data to the form data format for editing.
+ * Also provides default values when no API data is available.
+ *
+ * @param apiData - The API response data (optional)
+ * @param extraData - Additional configuration data including mode and disabled flags
+ * @returns The transformed data in the format expected by the form
+ * @throws Error if mode is not provided in extraData
  */
 export function transformApiResponseToFormData(
   apiData?: CompanyOnboading,
+  extraData?: {
+    disabledCompanyDetails?: boolean;
+    isCreatingNewCompany?: boolean;
+    disabledCompanyName?: boolean;
+    disabledPersonalDetails?: boolean;
+    disabledAddressDetails?: boolean;
+    mode?: string;
+  },
 ): FullCompanyFormType {
   // Default values structure
   const defaultValues: FullCompanyFormType = {
@@ -193,7 +332,6 @@ export function transformApiResponseToFormData(
     logo: "",
     logo_files: undefined,
     companyName: "",
-    isCreatingNewCompany: false,
     category: "",
     businessType: "",
     establishedIn: "",
@@ -237,15 +375,23 @@ export function transformApiResponseToFormData(
 
     // Step 3 (four documents)
     documents: [
-      { type: "coi", number: "", url: "" },
-      { type: "pan", number: "", url: "" },
-      { type: "gstLicense", number: "", url: "" },
-      { type: "msme", number: "", url: "" },
-      { type: "brandAuthorisation", number: "", url: "" },
+      { type: DOCUMENT_TYPES.COI, number: "", url: "" },
+      { type: DOCUMENT_TYPES.PAN, number: "", url: "" },
+      { type: DOCUMENT_TYPES.GST_LICENSE, number: "", url: "" },
+      { type: DOCUMENT_TYPES.MSME, number: "", url: "" },
+      { type: DOCUMENT_TYPES.BRAND_AUTHORIZATION, number: "", url: "" },
     ],
 
     // Terms
     agreeTermsConditions: false,
+
+    disabledCompanyName: extraData?.disabledCompanyName ?? false,
+    disabledCompanyDetails: extraData?.disabledCompanyDetails ?? false,
+    disabledPersonalDetails: extraData?.disabledPersonalDetails ?? false,
+    disabledAddressDetails: extraData?.disabledAddressDetails ?? false,
+    isCreatingNewCompany: extraData?.isCreatingNewCompany ?? false,
+    mode: extraData?.mode ?? MODE.ADD,
+    isPrimary: false,
   };
 
   if (!apiData) {
@@ -253,63 +399,137 @@ export function transformApiResponseToFormData(
   }
 
   // Merge API data with default values
-  const mergedData: FullCompanyFormType = {
+  let mergedData: FullCompanyFormType = {
     ...defaultValues,
-    _id: apiData.companyId || defaultValues._id,
-    // Personal details from owner object
-    // name: apiData.owner?.ownerUser || defaultValues.name,
-    // email: apiData.owner?.ownerEmail || defaultValues.email,
-    // designation: apiData.owner?.ownerDesignation || defaultValues.designation,
-    // phoneNumber: apiData.owner?.ownerPhone || defaultValues.phoneNumber,
-    // Company logo
-    logo: apiData.logo || defaultValues.logo,
+    _id: safeString(apiData.companyId) || defaultValues._id,
+    logo: safeString(apiData.logo) || defaultValues.logo,
     // Brand details from first address's brands
-    brands:
-      apiData?.addresses?.flatMap(
-        (address) => address.brands?.map((brand) => brand.name) || [],
-      ) || [],
+    brands: Array.isArray(apiData?.addresses)
+      ? apiData.addresses.flatMap((address) =>
+          Array.isArray(address?.brands)
+            ? address.brands.map((brand) => safeString(brand?.name))
+            : [],
+        )
+      : [],
     // Company details - map to new API response structure
-    companyName: apiData.companyName || defaultValues.companyName,
-    businessType: apiData.businessType || defaultValues.businessType,
-    category: apiData.companyCategory || defaultValues.category,
+    companyName: safeString(apiData.companyName) || defaultValues.companyName,
 
-    website: apiData.website || defaultValues.website,
-    isSubsidiary: String(apiData.subsidiaryOfGlobalBusiness || false),
+    businessType:
+      safeString(apiData.businessType) || defaultValues.businessType,
+    category: safeString(apiData.companyCategory) || defaultValues.category,
+
+    website: safeString(apiData.website) || defaultValues.website,
+    isSubsidiary: String(safeBoolean(apiData.subsidiaryOfGlobalBusiness)),
     headquarterLocation:
-      apiData.headquaterLocation || defaultValues.headquarterLocation,
+      safeString(apiData.headquaterLocation) ||
+      defaultValues.headquarterLocation,
     establishedIn: apiData.establishedIn
-      ? convertEstablishedInToMonthFormat(apiData.establishedIn)
+      ? convertEstablishedInToMonthFormat(safeString(apiData.establishedIn))
       : defaultValues.establishedIn,
-    description: apiData.companyDescription || defaultValues.description, // No description field in new API structure
+    description:
+      safeString(apiData.companyDescription) || defaultValues.description,
     isCreatingNewCompany: defaultValues.isCreatingNewCompany,
     address:
-      apiData.addresses && apiData.addresses.length > 0
+      Array.isArray(apiData.addresses) && apiData.addresses.length > 0
         ? [
             ...apiData.addresses.map((address) => ({
-              addressType: address.addressType as "registered" | "office",
-              address: address.addressLine1 || "",
-              landmark: address.landmark || "",
-              phoneNumber: address.landlineNumber || "",
-              country: address.country || "",
-              state: address.state || "",
-              city: address.city || "",
-              postalCode: address.postalCode || "",
-              addressId: address.addressId || "",
+              addressType: (address?.addressType === ADDRESS_TYPES.REGISTERED ||
+              address?.addressType === ADDRESS_TYPES.OFFICE
+                ? address.addressType
+                : ADDRESS_TYPES.REGISTERED) as "registered" | "office",
+              address: safeString(address?.addressLine1),
+              landmark: safeString(address?.landmark),
+              phoneNumber: safeString(address?.landlineNumber),
+              country: safeString(address?.country),
+              state: safeString(address?.state),
+              city: safeString(address?.city),
+              postalCode: safeString(address?.postalCode),
+              addressId: safeString(address?.addressId),
             })),
-            {
-              addressId: "",
-              addressType: "office",
-              address: "",
-              landmark: "",
-              phoneNumber: "",
-              country: "",
-              state: "",
-              city: "",
-              postalCode: "",
-            },
+            ...(defaultValues.mode === MODE.ADD
+              ? [
+                  {
+                    addressId: "",
+                    addressType: "office" as const,
+                    address: "",
+                    landmark: "",
+                    phoneNumber: "",
+                    country: "",
+                    state: "",
+                    city: "",
+                    postalCode: "",
+                  },
+                ]
+              : []),
           ]
         : defaultValues.address,
   };
+
+  if (mergedData.mode === MODE.EDIT) {
+    const address = apiData.addresses[0];
+
+    mergedData.category =
+      safeString(apiData.companyCategory) || defaultValues.category;
+    mergedData.agreeTermsConditions = true;
+
+    // Address data is already set in the general merge above, no need to set it again
+    // This was causing the form values to be overwritten
+
+    const brand = apiData?.addresses?.[0]?.brands?.[0];
+    const owner = apiData?.addresses?.[0]?.brands?.[0]?.owner;
+
+    if (brand && address && owner) {
+      mergedData.brand_logo = brand.logoImage;
+      mergedData.brandName = brand.name;
+      mergedData.totalSkus = brand.totalSKU.toString();
+      mergedData.productCategory = brand.productCategory;
+      mergedData.averageSellingPrice = brand.averageSellingPrice.toString();
+      mergedData.marketingBudget = brand.marketingBudget.toString();
+      mergedData.sellingOn = brand.sellingOn;
+      mergedData.instagramUrl = brand.instagramUrl;
+      mergedData.facebookUrl = brand.facebookUrl;
+      mergedData.youtubeUrl = brand.youtubeUrl;
+      mergedData.website = brand.websiteUrl;
+      mergedData.description = brand.aboutTheBrand;
+      mergedData.documents = [
+        {
+          type: DOCUMENT_TYPES.COI,
+          number: address.cinNumber,
+          url: address.coiCertificate,
+        },
+        {
+          type: DOCUMENT_TYPES.PAN,
+          number: address.panNumber,
+          url: address.panDocument,
+        },
+        {
+          type: DOCUMENT_TYPES.GST_LICENSE,
+          number: address.gstNumber,
+          url: address.gstDocument,
+        },
+        {
+          type: DOCUMENT_TYPES.MSME,
+          number: address.msmeNumber,
+          url: address.msmeCertificate,
+        },
+        {
+          type: DOCUMENT_TYPES.BRAND_AUTHORIZATION,
+          number: "",
+          url: brand.authorizationLetter,
+        },
+      ];
+
+      mergedData.name = owner.ownerUser;
+      mergedData.email = owner.ownerEmail;
+      mergedData.designation =
+        owner.ownerDesignation ||
+        safeString(apiData.designation) ||
+        defaultValues.designation;
+      mergedData.phoneNumber = owner.ownerPhone;
+      mergedData.password = owner.ownerPassword;
+      mergedData.phoneVerified = true;
+    }
+  }
 
   return mergedData;
 }

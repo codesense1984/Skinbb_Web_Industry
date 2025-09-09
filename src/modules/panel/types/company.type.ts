@@ -62,17 +62,17 @@ export interface CompanyOnboardingSubmitRequest
   extends Record<string, unknown> {
   companyId?: string | null;
   logo?: string;
-  gst: File;
-  pan: File;
-  authorizationLetter: File;
-  coiCertificate: File;
-  msmeCertificate: File;
+  gst?: File;
+  pan?: File;
+  authorizationLetter?: File;
+  coiCertificate?: File;
+  msmeCertificate?: File;
   ownerName: string;
   ownerEmail: string;
   phoneNumber: string;
   headquartersAddress: string;
   subsidiaryOfGlobalBusiness: boolean;
-  password: string;
+  password?: string;
   roleId: string;
   companyName: string;
   companyDescription: string;
@@ -92,6 +92,7 @@ export interface CompanyOnboardingSubmitRequest
   brandWebsite: string;
   brandLogo?: string;
   addresses: Array<{
+    addressId?: string
     gstNumber: string;
     panNumber: string;
     cinNumber: string;
@@ -175,6 +176,7 @@ export interface CompanyOnboading {
   companyName: string;
   companyCategory: string;
   companyDescription: string;
+  designation?: string;
   businessType: string;
   subsidiaryOfGlobalBusiness: boolean;
   headquaterLocation: string;
@@ -307,6 +309,7 @@ export interface CompanyBrand {
   deletedBy: string;
   createdAt: string;
   updatedAt: string;
+  owner: CompanyOwner;
 }
 
 export interface CompanyAddressDetail {

@@ -29,10 +29,20 @@ export async function apiGetOnboardById<T>(id: string) {
 export async function apiUpdateOnboardById<
   T,
   U extends Record<string, unknown>,
->(id: string, data: U) {
-  return api.put<T>(ENDPOINTS.ONBOARDING.ADMIN_BY_ID(id), {
-    data,
-  });
+>(companyId: string, locationId: string, data: U) {
+  const formData = createFormData(data, [
+    "addresses",
+    "sellingOn",
+  ]);
+  return api.put<T>(
+    ENDPOINTS.ONBOARDING.COMPANY_LOCATION_DETAILS(companyId, locationId),
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    },
+  );
 }
 
 // ---- Onboarding ----

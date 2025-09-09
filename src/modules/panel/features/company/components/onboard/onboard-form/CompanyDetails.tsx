@@ -12,7 +12,7 @@ import {
   apiGetCompanyDropdownList,
   apiGetOnboardCompanyDetailById,
 } from "@/modules/panel/services/http/company.service";
-import { PlusIcon } from "@heroicons/react/24/outline";
+import { PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useQuery } from "@tanstack/react-query";
 import type { FC } from "react";
 import { useState } from "react";
@@ -23,6 +23,7 @@ import {
   type FullCompanyFormType,
 } from "../../../schema/fullCompany.schema";
 import { transformApiResponseToFormData } from "../../../utils/onboarding.utils";
+import { Button } from "@/core/components/ui/button";
 
 interface CompanyDetailsProps {
   mode: MODE;
@@ -41,24 +42,34 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
     control,
     name: "logo_files",
   })?.[0];
+
   const profileDataLogo = useWatch({
     control,
     name: "logo",
   });
 
-  const companyId = useWatch({
-    control,
-    name: "_id",
-  });
+  // const companyId = useWatch({
+  //   control,
+  //   name: "_id",
+  // });
 
-  const companyName = useWatch({
-    control,
-    name: "companyName",
-  });
+  // const companyName = useWatch({
+  //   control,
+  //   name: "companyName",
+  // });
 
   const isCreatingNewCompany = useWatch({
     control,
     name: "isCreatingNewCompany",
+  });
+
+  const disabledCompanyName = useWatch({
+    control,
+    name: "disabledCompanyName",
+  });
+  const disabledCompanyDetails = useWatch({
+    control,
+    name: "disabledCompanyDetails",
   });
 
   // Fetch company details for dropdown
@@ -103,11 +114,20 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
 
         if (response.company) {
           reset(transformApiResponseToFormData(response.company));
+          setValue("disabledCompanyDetails", true, {
+            shouldDirty: true,
+            shouldTouch: true,
+          });
+          setValue("isCreatingNewCompany", false, {
+            shouldDirty: true,
+            shouldTouch: true,
+          });
         } else {
           toast.error("Failed to fetch company details");
         }
       } catch (error) {
         console.error("Error fetching company details:", error);
+        reset(transformApiResponseToFormData());
         toast.error("Failed to fetch company details");
       } finally {
         setIsLoadingCompanyDetails(false);
@@ -117,7 +137,7 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
 
   const uploadFields = fullCompanyDetailsSchema.uploadImage({
     mode,
-    hasCompany: !!companyId || !companyName,
+    disabled: disabledCompanyDetails,
   }) as FormFieldConfig<FullCompanyFormType>[];
 
   const rawCompannyNameFields = fullCompanyDetailsSchema.company_name({
@@ -126,24 +146,12 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
 
   const rawInfoFields = fullCompanyDetailsSchema.company_information({
     mode,
-    hasCompany: !!companyId || !companyName,
+    disabled: disabledCompanyDetails,
   }) as FormFieldConfig<FullCompanyFormType>[];
 
   // Create custom fields with company name field that handles change
   const compannyNameFields = rawCompannyNameFields.map((field) => {
     if (field.name === "companyName") {
-      // In edit mode, show a simple text input instead of the company selector
-      if (mode === MODE.EDIT) {
-        const overridden = {
-          ...field,
-          type: "text" as const,
-          className: "col-span-2",
-          placeholder: "Enter company name",
-          disabled: true, // Company name should not be editable in edit mode
-        } as FormFieldConfig<FullCompanyFormType>;
-        return overridden;
-      }
-
       const overridden = {
         ...field,
         type: "custom" as const,
@@ -161,26 +169,34 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
                 <Input
                   type="text"
                   placeholder="Enter new company name..."
-                  className={`form-control ${fieldState.error ? "border-red-500" : ""}`}
+                  className={`pe-15`}
+                  invalid={!!fieldState.error}
+                  disabled={disabledCompanyName}
+                  endIcon={
+                    mode !== MODE.EDIT ? (
+                      <Button
+                        variant={"outlined"}
+                        color={"default"}
+                        title="Change company select"
+                        className="!mr-0 rounded-l-none"
+                        startIcon={<XMarkIcon className="size-4" />}
+                        type="button"
+                        onClick={() => {
+                          setValue("isCreatingNewCompany", false, {
+                            shouldDirty: true,
+                            shouldTouch: true,
+                          });
+                          setValue("disabledCompanyDetails", true, {
+                            shouldDirty: true,
+                            shouldTouch: true,
+                          });
+                          formField.onChange("");
+                        }}
+                      />
+                    ) : undefined
+                  }
                   {...formField}
                 />
-                <button
-                  type="button"
-                  onClick={() => {
-                    console.log(
-                      "Back button clicked, setting isCreatingNewCompany to false",
-                    );
-                    // setLocalIsCreatingNewCompany(false);
-                    setValue("isCreatingNewCompany", false, {
-                      shouldDirty: true,
-                      shouldTouch: true,
-                    });
-                    formField.onChange("");
-                  }}
-                  className="text-sm text-blue-600 underline hover:text-blue-800"
-                >
-                  ← Back to existing companies
-                </button>
               </div>
             ) : (
               <div className="space-y-2">
@@ -190,16 +206,16 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
                   onChange={(value) => {
                     if (value === "__create_new__") {
                       reset(transformApiResponseToFormData());
+                      setValue("disabledCompanyDetails", false, {
+                        shouldDirty: true,
+                        shouldTouch: true,
+                      });
                       formField.onChange("");
                       setValue("isCreatingNewCompany", true, {
                         shouldDirty: true,
                         shouldTouch: true,
                       });
                     } else {
-                      setValue("isCreatingNewCompany", false, {
-                        shouldDirty: true,
-                        shouldTouch: true,
-                      });
                       formField.onChange(value);
                       handleCompanyChange(value as string);
                     }
@@ -207,7 +223,11 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
                   placeholder="Select a company..."
                   className={fieldState.error ? "border-red-500" : ""}
                   error={!!fieldState.error}
-                  disabled={isLoadingCompanies || isLoadingCompanyDetails}
+                  disabled={
+                    isLoadingCompanies ||
+                    isLoadingCompanyDetails ||
+                    disabledCompanyName
+                  }
                   loading={isLoadingCompanies}
                   clearable={true}
                   searchable={true}
@@ -232,7 +252,8 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
   });
 
   const filteredInfoFields = infoFields.filter(
-    (field) => field.name !== "headquarterLocation" || JSON.parse(isSubsidiary),
+    (field) =>
+      field.name !== "headquarterLocation" || !!(isSubsidiary === "true"),
   );
 
   const { element } = useImagePreview(profileData, profileDataLogo, {
