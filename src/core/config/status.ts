@@ -5,7 +5,9 @@ export type ModuleType =
   | "survey_user"
   | "company"
   | "company_user"
-  | "customer";
+  | "customer"
+  | "order"
+  | "payment";
 
 export interface StatusStyle {
   label: string;
@@ -145,6 +147,66 @@ export const STATUS_MAP: Record<ModuleType, Record<string, StatusStyle>> = {
       bgColor: "bg-blue-100",
     },
   },
+
+  order: {
+    pending: {
+      label: "Pending",
+      value: "pending",
+      textColor: "text-yellow-700",
+      bgColor: "bg-yellow-100",
+    },
+    placed: {
+      label: "Placed",
+      value: "placed",
+      textColor: "text-green-700",
+      bgColor: "bg-green-100",
+    },
+    shipped: {
+      label: "Shipped",
+      value: "shipped",
+      textColor: "text-blue-700",
+      bgColor: "bg-blue-100",
+    },
+    delivered: {
+      label: "Delivered",
+      value: "delivered",
+      textColor: "text-emerald-700",
+      bgColor: "bg-emerald-100",
+    },
+    cancelled: {
+      label: "Cancelled",
+      value: "cancelled",
+      textColor: "text-red-700",
+      bgColor: "bg-red-100",
+    },
+  },
+  payment: {
+    paid: {
+      label: "Paid",
+      value: "paid",
+      textColor: "text-green-700",
+      bgColor: "bg-green-100",
+    },
+    pending: {
+      label: "Pending",
+      value: "pending",
+      textColor: "text-yellow-700",
+      bgColor: "bg-yellow-100",
+    },
+    failed: {
+      label: "Failed",
+      value: "failed",
+      textColor: "text-red-700",
+      bgColor: "bg-red-100",
+    },
+    refunded: {
+      label: "Refunded",
+      value: "refunded",
+      textColor: "text-blue-700",
+      bgColor: "bg-blue-100",
+    },
+  },
+  
 
   company_user: {
     active: {

@@ -58,6 +58,8 @@ export interface UseTableOptions<TData> {
   searchDebounceMs?: number;
   /** Optional: prefix for query keys to allow independent caching of different tables */
   queryKeyPrefix?: string;
+  /** Optional: meta data to pass to table for custom actions */
+  meta?: any;
 }
 
 export interface UseTableResponse<TData> {
@@ -124,6 +126,7 @@ export interface DataTableProps<TData extends object>
   showAction?: boolean;
   tableHeading?: string;
   className?: string;
+  meta?: any;
 }
 
 export interface DataTableToggleProps<TData extends object>

@@ -31,6 +31,7 @@ export const rawItems: Readonly<Record<string, SidebarItem>> = {
       "dashboard",
       "brands",
       "company",
+      "masterData",
       "analytics",
       "surveys",
       "promotions",
@@ -82,9 +83,8 @@ export const rawItems: Readonly<Record<string, SidebarItem>> = {
       </svg>
     ),
   },
-  company: {
-    name: "company",
-    href: PANEL_ROUTES.COMPANY.LIST,
+  masterData: {
+    name: "Master Data",
     requiredRoles: [ROLE.ADMIN],
     icon: (
       <svg
@@ -97,10 +97,26 @@ export const rawItems: Readonly<Record<string, SidebarItem>> = {
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
-          d="m21 7.5-2.25-1.313M21 7.5v2.25m0-2.25-2.25 1.313M3 7.5l2.25-1.313M3 7.5l2.25 1.313M3 7.5v2.25m9 3 2.25-1.313M12 12.75l-2.25-1.313M12 12.75V15m0 6.75 2.25-1.313M12 21.75V19.5m0 2.25-2.25-1.313m0-16.875L12 2.25l2.25 1.313M21 14.25v2.25l-2.25 1.313m-13.5 0L3 16.5v-2.25"
+          d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z"
+        />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M6 6h.008v.008H6V6Z"
         />
       </svg>
     ),
+    children: ["productCategories", "productTags"],
+  },
+  productCategories: {
+    name: "Product Categories",
+    href: PANEL_ROUTES.MASTER.PRODUCT_CATEGORY,
+    requiredRoles: [ROLE.ADMIN],
+  },
+  productTags: {
+    name: "Product Tags",
+    href: PANEL_ROUTES.MASTER.PRODUCT_TAG,
+    requiredRoles: [ROLE.ADMIN],
   },
   analytics: {
     name: "analytics",

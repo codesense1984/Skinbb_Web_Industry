@@ -87,10 +87,66 @@ export const panelRoutes: RouteObject = {
       ),
     },
 
+    // master data - product categories
+    {
+      path: PANEL_ROUTES.MASTER.PRODUCT_CATEGORY,
+      Component: lazy(
+        () => import("@/modules/panel/features/master/product_category/list"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.MASTER.PRODUCT_CATEGORY_CREATE,
+      Component: lazy(
+        () => import("@/modules/panel/features/master/product_category/create"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.MASTER.PRODUCT_CATEGORY_EDIT(),
+      Component: lazy(
+        () => import("@/modules/panel/features/master/product_category/edit"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.MASTER.PRODUCT_CATEGORY_VIEW(),
+      Component: lazy(
+        () => import("@/modules/panel/features/master/product_category/view"),
+      ),
+    },
+
+    // master data - product tags
+    {
+      path: PANEL_ROUTES.MASTER.PRODUCT_TAG,
+      Component: lazy(
+        () => import("@/modules/panel/features/master/product_tag"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.MASTER.PRODUCT_TAG_CREATE,
+      Component: lazy(
+        () => import("@/modules/panel/features/master/product_tag/tag-form"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.MASTER.PRODUCT_TAG_EDIT(),
+      Component: lazy(
+        () => import("@/modules/panel/features/master/product_tag/tag-form"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.MASTER.PRODUCT_TAG_VIEW(),
+      Component: lazy(
+        () => import("@/modules/panel/features/master/product_tag/tag-form"),
+      ),
+    },
+
     // orders
     {
       path: PANEL_ROUTES.ORDER.LIST,
       Component: lazy(() => import("@/modules/panel/features/orders/list")),
+    },
+    {
+      path: PANEL_ROUTES.ORDER.VIEW(),
+      Component: lazy(() => import("@/modules/panel/features/orders/view")),
     },
 
     // customers

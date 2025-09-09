@@ -35,6 +35,7 @@ export function useTable<TData extends object>({
   storageKey,
   searchDebounceMs = 400,
   queryKeyPrefix,
+  meta,
 }: UseTableOptions<TData>): UseTableResponse<TData> {
   // ---- UI state (client) ----
   const [sorting, setSorting] = useState<SortingState>(initialSorting);
@@ -172,6 +173,7 @@ export function useTable<TData extends object>({
         }),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    meta,
     onGlobalFilterChange: setGlobalFilter,
     state: {
       sorting,

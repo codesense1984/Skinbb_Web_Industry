@@ -22,6 +22,10 @@ const USERS = "/users";
 
 const LISTING_BASE = "/listing";
 
+const MASTER_BASE = "/master";
+const PRODUCT_CATEGORY_BASE = "/product-category";
+const PRODUCT_TAG_BASE = "/product-tag";
+
 export const PANEL_ROUTES = {
   // ---- Brand ----
   BRAND: {
@@ -40,6 +44,8 @@ export const PANEL_ROUTES = {
     CREATE: ROUTE.build(ORDER_BASE, ROUTE.seg.create), // /order/create
     EDIT: (id: string = ROUTE.seg.id) =>
       ROUTE.build(ORDER_BASE, id, ROUTE.seg.edit), // /order/edit/:id
+    VIEW: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(ORDER_BASE, id, ROUTE.seg.view), // /order/view/:id
   },
 
   ONBOARD: {
@@ -131,6 +137,23 @@ export const PANEL_ROUTES = {
     EDIT: (id: string = ROUTE.seg.id) =>
       ROUTE.build(LISTING_BASE, id, ROUTE.seg.edit), // /listing/edit/:id
     DETAIL: (id: string = ROUTE.seg.id) => ROUTE.build(LISTING_BASE, id), // /listing/:id
+  },
+
+  // ---- Master Data ----
+  MASTER: {
+    BASE: MASTER_BASE, // /master
+    PRODUCT_CATEGORY: ROUTE.build(MASTER_BASE, PRODUCT_CATEGORY_BASE), // /master/product-category
+    PRODUCT_CATEGORY_CREATE: ROUTE.build(MASTER_BASE, PRODUCT_CATEGORY_BASE, ROUTE.seg.create), // /master/product-category/create
+    PRODUCT_CATEGORY_EDIT: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(MASTER_BASE, PRODUCT_CATEGORY_BASE, id, ROUTE.seg.edit), // /master/product-category/edit/:id
+    PRODUCT_CATEGORY_VIEW: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(MASTER_BASE, PRODUCT_CATEGORY_BASE, id, ROUTE.seg.view), // /master/product-category/view/:id
+    PRODUCT_TAG: ROUTE.build(MASTER_BASE, PRODUCT_TAG_BASE), // /master/product-tag
+    PRODUCT_TAG_CREATE: ROUTE.build(MASTER_BASE, PRODUCT_TAG_BASE, ROUTE.seg.create), // /master/product-tag/create
+    PRODUCT_TAG_EDIT: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(MASTER_BASE, PRODUCT_TAG_BASE, id, ROUTE.seg.edit), // /master/product-tag/edit/:id
+    PRODUCT_TAG_VIEW: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(MASTER_BASE, PRODUCT_TAG_BASE, id, ROUTE.seg.view), // /master/product-tag/view/:id
   },
 
   // ---- Misc panel pages ----

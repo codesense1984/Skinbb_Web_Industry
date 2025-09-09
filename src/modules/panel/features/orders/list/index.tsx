@@ -1,97 +1,151 @@
+import { useNavigate } from "react-router";
 import { createSimpleFetcher, DataTable } from "@/core/components/data-table";
-import { Badge } from "@/core/components/ui/badge";
 import { PageContent } from "@/core/components/ui/structure";
-import { formatDate } from "@/core/utils";
+import { TableAction } from "@/core/components/data-table/components/table-action";
+import { StatusBadge } from "@/core/components/ui/badge";
+import { formatCurrency } from "@/core/utils/number";
 import { apiGetOrderList } from "@/modules/panel/services/http/order.service";
 import type { Order } from "@/modules/panel/types/order.type";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useMemo } from "react";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 
-// Super simple! Just pass the API function and data paths
+// Simple fetcher
 const fetcher = () =>
   createSimpleFetcher(apiGetOrderList, {
     dataPath: "data.orders",
     totalPath: "data.totalRecords",
   });
+
 const OrderList = () => {
+  const navigate = useNavigate();
+
+  const handleViewOrder = (id: string) => {
+    navigate(PANEL_ROUTES.ORDER.VIEW(id));
+  };
+
+  const handleDeleteOrder = (id: string) => {
+    if (window.confirm(`Are you sure you want to delete order ${id}?`)) {
+      console.log("Delete order:", id);
+      // Implement actual delete API call here
+    }
+  };
+
   const columns: ColumnDef<Order>[] = useMemo(
     () => [
       {
-        header: "SKU",
+        header: "Order Number",
         accessorKey: "orderNumber",
-        // cell: (props) => (
-        //   <span className="font-bold">{props.row.original.orderNumber}</span>
-        // ),
+        cell: ({ row }) => (
+          <div className="text-gray-900">
+            {row.original.orderNumber}
+          </div>
+        ),
       },
       {
         header: "Customer",
         accessorKey: "fullName",
-        // cell: (props) => <span>{props.row.original.fullName}</span>,
+        cell: ({ row }) => {
+          const fullName = row.original.fullName;
+          return (
+            <div>
+              <div className="text-gray-900">
+                {fullName || "N/A"}
+              </div>
+            </div>
+          );
+        },
       },
       {
         header: "Amount",
         accessorKey: "totalAmount",
-        // cell: (props) => <span>₹{props.row.original.totalAmount}</span>,
+        cell: ({ row }) => {
+          const totalAmount = row.original.totalAmount || 0;
+          return (
+            <div className="text-right">
+              <div className="text-gray-900">
+                {formatCurrency(totalAmount)}
+              </div>
+            </div>
+          );
+        },
       },
       {
-        header: "Payment",
+        header: "Payment Method",
         accessorKey: "paymentMethod",
-        // cell: (props) => <span>{props.row.original.paymentMethod || "-"}</span>,
+        cell: ({ row }) => {
+          const payment = row.original.paymentMethod || "N/A";
+          return (
+            <div className="text-center">
+              <div className="text-sm text-gray-900 uppercase">
+                {payment}
+              </div>
+            </div>
+          );
+        },
       },
-      {
-        header: "Products",
-        accessorKey: "totalProduct",
-        // cell: (props) => <span>{props.row.original.totalProduct}</span>,
-      },
-      // "pending", "placed", "shipped", "delivered", "cancelled"
       {
         header: "Status",
         accessorKey: "status",
-        cell: ({ row }) => (
-          <Badge
-            className={`tag border-gray-100 dark:border-gray-700 ${
-              row.original.status === "pending"
-                ? "bg-amber-200"
-                : row.original.status === "placed"
-                  ? "bg-emerald-200"
-                  : row.original.status === "shipped"
-                    ? "bg-emerald-200"
-                    : row.original.status === "delivered"
-                      ? "bg-emerald-200"
-                      : row.original.status === "cancelled"
-                        ? "bg-red-200"
-                        : "bg-amber-200"
-            } text-gray-900 capitalize dark:text-gray-900`}
-          >
-            {row.original.status}
-          </Badge>
-        ),
+        cell: ({ row }) => {
+          const status = row.original.status || "pending";
+          return (
+            <StatusBadge module="order" status={status} variant="badge">
+              {status}
+            </StatusBadge>
+          );
+        },
       },
       {
         header: "Date",
         accessorKey: "createdAt",
         cell: ({ row }) => {
-          const startDate = row.getValue("createdAt") as string;
-          return formatDate(startDate);
+          const date = row.original.createdAt;
+          return (
+            <div className="text-sm text-gray-500">
+              {date ? new Date(date).toLocaleDateString() : "N/A"}
+            </div>
+          );
+        },
+      },
+      {
+        id: "actions",
+        header: "Actions",
+        cell: ({ row }) => {
+          const order = row.original;
+          return (
+            <TableAction
+              view={{
+                onClick: () => handleViewOrder(order._id),
+                title: "View order details",
+              }}
+              delete={{
+                onClick: () => handleDeleteOrder(order._id),
+                title: "Delete order",
+              }}
+            />
+          );
         },
       },
     ],
-    [],
+    [handleViewOrder, handleDeleteOrder],
   );
 
   return (
     <PageContent
       header={{
         title: "Orders",
-        description: "Manage your orders",
+        description: "Manage and track all customer orders",
       }}
     >
-      <DataTable
-        columns={columns}
-        isServerSide
-        fetcher={fetcher()}
-        queryKeyPrefix="order-list-table"
-      />
+      <div className="w-full">
+        <DataTable
+          columns={columns}
+          isServerSide
+          fetcher={fetcher()}
+          queryKeyPrefix="order-list-table"
+        />
+      </div>
     </PageContent>
   );
 };
