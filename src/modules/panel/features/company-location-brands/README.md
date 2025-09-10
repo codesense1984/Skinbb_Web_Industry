@@ -21,6 +21,9 @@ This directory contains the refactored company location brands components that n
   - Implemented `useFieldArray` for dynamic fields (selling platforms)
   - Removed manual error handling in favor of built-in form validation
   - Used schema-based field configurations
+  - Applied card-based styling similar to product forms
+  - Added `PageContent` wrapper with proper headers
+  - Organized form sections into logical cards
 
 ### 3. Default Values Function Pattern
 
@@ -58,7 +61,62 @@ useEffect(() => {
 }, [brand, mode, form]);
 ```
 
-### 4. Form Pattern Benefits
+### 4. Card-Based Styling
+
+#### Beautiful Card Layout
+The form now uses a card-based layout similar to product forms:
+
+```tsx
+<div className="w-full">
+  <div className="bg-background rounded-xl border shadow-sm p-8">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Left Column - Basic Information */}
+          <Card>
+            <CardHeader className="border-b">
+              <CardTitle className="text-lg font-semibold text-gray-900">
+                Basic Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <FormFieldsRenderer<BrandFormData>
+                control={control}
+                fieldConfigs={brandSchema.basic_information({ mode })}
+                className="space-y-6"
+              />
+            </CardContent>
+          </Card>
+
+          {/* Right Column - Business Metrics */}
+          <Card>
+            <CardHeader className="border-b">
+              <CardTitle className="text-lg font-semibold text-gray-900">
+                Business Metrics
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <FormFieldsRenderer<BrandFormData>
+                control={control}
+                fieldConfigs={brandSchema.business_metrics({ mode })}
+                className="space-y-6"
+              />
+            </CardContent>
+          </Card>
+        </div>
+        {/* More cards... */}
+      </form>
+    </div>
+  </div>
+```
+
+#### Card Layout Features
+- **Responsive Grid**: 2-column layout on large screens, single column on mobile
+- **Consistent Styling**: Matches product form styling patterns
+- **Clear Sections**: Each form section is organized in its own card
+- **Professional Look**: Clean borders, shadows, and spacing
+- **Page Headers**: Dynamic titles and descriptions based on mode
+
+### 5. Form Pattern Benefits
 
 #### Before (Manual Approach)
 ```tsx

@@ -1,8 +1,8 @@
-import React from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FormFieldsRenderer } from "@/core/components/ui/form-input";
 import { Button } from "@/core/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
 import { brandFormSchema, brandSchema, type BrandFormData } from "../schema/brand.schema";
 import { MODE } from "@/core/types";
 import type { CompanyLocationBrand } from "@/modules/panel/types/brand.type";
@@ -49,7 +49,7 @@ const BrandFormExample = () => {
 
   const handleResetWithData = () => {
     // Example: Reset with mock API data
-    const mockBrandData: CompanyLocationBrand = {
+    const mockBrandData: Partial<CompanyLocationBrand> = {
       _id: "123",
       name: "Example Brand",
       aboutTheBrand: "This is an example brand",
@@ -67,59 +67,79 @@ const BrandFormExample = () => {
       ],
       isActive: true,
     };
-    reset(getDefaultValues(mockBrandData));
+    reset(getDefaultValues(mockBrandData as CompanyLocationBrand));
   };
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Brand Form Example</h2>
-      
-      <FormProvider {...form}>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Basic Information Section */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Basic Information</h3>
-            <FormFieldsRenderer<BrandFormData>
-              control={control}
-              fieldConfigs={brandSchema.basic_information({ mode })}
-              className="grid grid-cols-1 gap-6 md:grid-cols-2"
-            />
-          </div>
+    <div className="w-full">
+      <div className="bg-background rounded-xl border shadow-sm p-8">
+          <FormProvider {...form}>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Basic Information Card */}
+                <Card>
+                  <CardHeader className="border-b">
+                    <CardTitle className="text-lg font-semibold text-gray-900">
+                      Basic Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <FormFieldsRenderer<BrandFormData>
+                      control={control}
+                      fieldConfigs={brandSchema.basic_information({ mode })}
+                      className="space-y-6"
+                    />
+                  </CardContent>
+                </Card>
 
-          {/* Business Metrics Section */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Business Metrics</h3>
-            <FormFieldsRenderer<BrandFormData>
-              control={control}
-              fieldConfigs={brandSchema.business_metrics({ mode })}
-              className="grid grid-cols-1 gap-6 md:grid-cols-3"
-            />
-          </div>
+                {/* Business Metrics Card */}
+                <Card>
+                  <CardHeader className="border-b">
+                    <CardTitle className="text-lg font-semibold text-gray-900">
+                      Business Metrics
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <FormFieldsRenderer<BrandFormData>
+                      control={control}
+                      fieldConfigs={brandSchema.business_metrics({ mode })}
+                      className="space-y-6"
+                    />
+                  </CardContent>
+                </Card>
+              </div>
 
-          {/* Social Media Section */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Social Media</h3>
-            <FormFieldsRenderer<BrandFormData>
-              control={control}
-              fieldConfigs={brandSchema.social_media({ mode })}
-              className="grid grid-cols-1 gap-6 md:grid-cols-3"
-            />
-          </div>
+              {/* Social Media Card */}
+              <Card>
+                <CardHeader className="border-b">
+                  <CardTitle className="text-lg font-semibold text-gray-900">
+                    Social Media
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <FormFieldsRenderer<BrandFormData>
+                    control={control}
+                    fieldConfigs={brandSchema.social_media({ mode })}
+                    className="grid grid-cols-1 gap-6 md:grid-cols-3"
+                  />
+                </CardContent>
+              </Card>
 
-          {/* Action Buttons */}
-          <div className="flex justify-end space-x-4">
-            <Button type="button" variant="outlined" onClick={handleResetForm}>
-              Reset to Default
-            </Button>
-            <Button type="button" variant="outlined" onClick={handleResetWithData}>
-              Load Mock Data
-            </Button>
-            <Button type="submit">
-              Submit
-            </Button>
-          </div>
-        </form>
-      </FormProvider>
+              {/* Action Buttons */}
+              <div className="flex justify-end space-x-4 pt-8 mt-8 border-t border-gray-200">
+                <Button type="button" variant="outlined" onClick={handleResetForm}>
+                  Reset to Default
+                </Button>
+                <Button type="button" variant="outlined" onClick={handleResetWithData}>
+                  Load Mock Data
+                </Button>
+                <Button type="submit">
+                  Submit
+                </Button>
+              </div>
+            </form>
+          </FormProvider>
+      </div>
     </div>
   );
 };
