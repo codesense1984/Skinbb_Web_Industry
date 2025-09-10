@@ -1,4 +1,4 @@
-import { TableAction } from "@/core/components/data-table/components/table-action";
+import { TableAction, renderActionButton } from "@/core/components/data-table/components/table-action";
 import { Badge, StatusBadge } from "@/core/components/ui/badge";
 import { formatDate } from "@/core/utils";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
@@ -82,6 +82,50 @@ export const createColumns = (
         )}
       </div>
     ),
+  },
+  {
+    header: "Brands",
+    accessorKey: "brands",
+    enableSorting: false,
+    enableHiding: false,
+    cell: ({ row }) => {
+      // Calculate total brands for this location
+      const totalBrands = row.original.brands?.length || 0;
+
+      return (
+        <TableAction>
+          {renderActionButton(
+            {
+              className: "w-auto px-2 text-muted-foreground",
+              size: "md",
+              variant: "outlined",
+              to: PANEL_ROUTES.COMPANY_LOCATION.BRANDS(companyId, row.original._id),
+              children: `Brands (${totalBrands})`,
+              title: `View all ${totalBrands} brands for ${row.original.city} location`,
+            },
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="w-4 h-4"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 6h.008v.008H6V6z"
+              />
+            </svg>
+          )}
+        </TableAction>
+      );
+    },
   },
   {
     header: "Status",

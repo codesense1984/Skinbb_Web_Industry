@@ -21,16 +21,9 @@ const fetcher = (companyId: string) => createSimpleFetcher(
       };
       const usersResponse = await apiGetCompanyUsers(companyId, apiParams);
       
-      console.log("Company users API response:", usersResponse);
-      console.log("API response structure:", JSON.stringify(usersResponse, null, 2));
-      
       if (usersResponse?.data?.items && usersResponse.data.items.length > 0) {
-        console.log("Using company users API data:", usersResponse.data.items);
-        console.log("First item structure:", JSON.stringify(usersResponse.data.items[0], null, 2));
-        
         // Transform the API response to match the expected user list format
         const transformedItems = usersResponse.data.items.map((item: any) => {
-          console.log("Raw item data:", item);
           
           return {
             _id: item.userId || item.user?._id || item._id || '',
@@ -47,8 +40,6 @@ const fetcher = (companyId: string) => createSimpleFetcher(
           };
         });
         
-        console.log("Transformed user data:", transformedItems);
-        
         return {
           ...usersResponse,
           data: {
@@ -57,18 +48,13 @@ const fetcher = (companyId: string) => createSimpleFetcher(
           }
         };
       } else {
-        console.log("Company users API returned empty data, falling back to owner extraction");
       }
     } catch (error) {
-      console.log("Company users API failed, trying seller members API:", error);
       
       // Try seller members API as second fallback
       try {
         const sellerMembersResponse = await apiGetSellerMembers(params);
-        console.log("Seller members API response:", sellerMembersResponse);
-        
         if (sellerMembersResponse?.data?.items && sellerMembersResponse.data.items.length > 0) {
-          console.log("Using seller members API data:", sellerMembersResponse.data.items);
           
           // Transform seller members data
           const transformedItems = sellerMembersResponse.data.items.map((item: any) => ({
@@ -93,7 +79,6 @@ const fetcher = (companyId: string) => createSimpleFetcher(
           };
         }
       } catch (sellerError) {
-        console.log("Seller members API also failed, falling back to owner extraction:", sellerError);
       }
     }
 
@@ -102,9 +87,6 @@ const fetcher = (companyId: string) => createSimpleFetcher(
       const companyResponse = await apiGetCompanyDetailsForOnboarding(companyId);
       const company = companyResponse?.data?.company;
       
-      console.log("Company API Response:", companyResponse);
-      console.log("Company Object:", company);
-      console.log("Company Owner:", company?.owner);
       
       if (!company?.owner) {
         return {
@@ -122,14 +104,6 @@ const fetcher = (companyId: string) => createSimpleFetcher(
       const nameParts = fullName.split(' ');
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || '';
-      
-      console.log("Owner data transformation:", {
-        fullName,
-        nameParts,
-        firstName,
-        lastName,
-        owner: company.owner
-      });
       
       const ownerUser = {
         _id: company.owner.ownerUserId,

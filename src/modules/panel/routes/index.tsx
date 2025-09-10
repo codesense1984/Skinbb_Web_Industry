@@ -61,6 +61,32 @@ export const panelRoutes: RouteObject = {
       ),
     },
 
+    // company-location-brands
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.BRANDS(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company-location-brands/list"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_CREATE(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company-location-brands/create"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_EDIT(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company-location-brands/edit"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_VIEW(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company-location-brands/view"),
+      ),
+    },
+
     // company-users
     {
       path: PANEL_ROUTES.COMPANY.USERS(),

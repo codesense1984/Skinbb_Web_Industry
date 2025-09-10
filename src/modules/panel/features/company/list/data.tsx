@@ -12,7 +12,7 @@ import type {
 } from "@/modules/panel/types/company.type";
 import { MapPinIcon } from "@heroicons/react/24/solid";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Link } from "react-router";
+import { convertApiResponseToCompanyList, sampleApiResponse } from "./sample-api-data";
 
 export const statsData = [
   {
@@ -41,6 +41,7 @@ export const statsData = [
   },
 ];
 
+// Legacy company data for backward compatibility
 export const companyData: CompanyList[] = [
   {
     id: "1",
@@ -132,34 +133,24 @@ export const companyData: CompanyList[] = [
   },
 ];
 
+// New API-based company data
+export const apiCompanyData: CompanyListItem[] = convertApiResponseToCompanyList(sampleApiResponse);
+
 export const columns: ColumnDef<CompanyListItem>[] = [
   {
     header: "Company Name",
     accessorKey: "companyName",
     cell: ({ row }) => (
       <div className="flex w-max items-center gap-3 font-medium">
-        {row.original.brandLogo && (
+        {row.original.logo && (
           <Avatar
-            src={row.original.brandLogo}
+            src={row.original.logo}
             feedback={row.original.companyName.charAt(0)}
           />
         )}
         <span>{row.original.companyName}</span>
       </div>
     ),
-  },
-
-  {
-    header: "Category",
-    accessorKey: "companyCategory",
-    cell: ({ row }) => (
-      <div className="w-max">{row.original.companyCategory}</div>
-    ),
-  },
-  {
-    header: "Phone",
-    accessorKey: "landlineNo",
-    cell: ({ row }) => <div className="w-max">{row.original.landlineNo}</div>,
   },
   {
     header: "Business Type",
@@ -185,22 +176,24 @@ export const columns: ColumnDef<CompanyListItem>[] = [
     accessorKey: "address",
     cell: ({ row }) => (
       <div className="flex flex-wrap gap-2">
-        {row.original?.address.map((address) => (
-          <Badge variant={"outline"}>{address.city}</Badge>
+        {row.original?.address?.map((address, index) => (
+          <Badge key={address._id || index} variant={"outline"}>
+            {address.city}
+          </Badge>
         ))}
       </div>
     ),
   },
   {
     header: "Status",
-    accessorKey: "status",
+    accessorKey: "companyStatus",
     cell: ({ row }) => (
       <StatusBadge
-        status={row.original.status}
+        status={row.original.companyStatus}
         module="company"
         variant="badge"
       >
-        {row.original.status}
+        {row.original.companyStatus}
       </StatusBadge>
     ),
     filterFn: (row, id, value) => {

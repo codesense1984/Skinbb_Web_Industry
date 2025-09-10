@@ -1,0 +1,383 @@
+// Sample API response data for testing the company list integration
+export const sampleApiResponse = {
+  "statusCode": 200,
+  "data": {
+    "items": [
+      {
+        "_id": "68c13ec4372f95ec5f5d632b",
+        "ownerUserId": {
+          "_id": "68c13ec4372f95ec5f5d6327",
+          "email": "90@abccompany.com",
+          "phoneNumber": "+919307076709"
+        },
+        "designation": "",
+        "companyName": "CODMIZE TECHNOLOGIES PRIVATE LIMITED",
+        "companyDescription": "Leading skincare company",
+        "establishedIn": "08/04/2015",
+        "headquartersAddress": "123 Business Street, Mumbai, Maharashtra",
+        "businessType": "privateLtd",
+        "companyCategory": "principal",
+        "subsidiaryOfGlobalBusiness": false,
+        "logo": null,
+        "productCategory": [
+          "507f1f77bcf86cd799439011",
+          "507f1f77bcf86cd799439012"
+        ],
+        "sellingOn": [
+          {
+            "platform": "Amazon",
+            "url": "https://amazon.com/shop/abccompany"
+          },
+          {
+            "platform": "Flipkart",
+            "url": "https://flipkart.com/shop/abccompany"
+          }
+        ],
+        "website": "https://abccompany.com",
+        "address": [],
+        "companyStatus": "pending",
+        "statusChangeReason": "",
+        "statusChangedAt": null,
+        "isDeleted": false,
+        "createdAt": "2025-09-10T09:03:00.975Z",
+        "updatedAt": "2025-09-10T09:03:00.975Z",
+        "__v": 0
+      },
+      {
+        "_id": "68c13a93019ab419dbd663d7",
+        "ownerUserId": {
+          "_id": "68c13a92019ab419dbd663d3",
+          "email": "john@abccompany.com",
+          "phoneNumber": "+919876543210"
+        },
+        "designation": "",
+        "companyName": "ABC Company Pvt Ltd",
+        "companyDescription": "Leading skincare company",
+        "establishedIn": "03/2015",
+        "headquartersAddress": "123 Business Street, Mumbai, Maharashtra",
+        "businessType": "privateLtd",
+        "companyCategory": "principal",
+        "subsidiaryOfGlobalBusiness": false,
+        "logo": null,
+        "productCategory": [
+          "507f1f77bcf86cd799439011",
+          "507f1f77bcf86cd799439012"
+        ],
+        "sellingOn": [
+          {
+            "platform": "Amazon",
+            "url": "https://amazon.com/shop/abccompany"
+          },
+          {
+            "platform": "Flipkart",
+            "url": "https://flipkart.com/shop/abccompany"
+          }
+        ],
+        "website": "https://abccompany.com",
+        "address": [
+          {
+            "_id": "68c13a93019ab419dbd663de",
+            "sellerId": "68c13a93019ab419dbd663d7",
+            "addressType": "registered",
+            "gstNumber": "27AABCU9603R1ZX",
+            "panNumber": "AABCU9603R",
+            "cinNumber": "U12345MH2015PTC123456",
+            "msmeNumber": "UDYAM-MH-12-1234567",
+            "coiCertificate": null,
+            "msmeCertificate": null,
+            "addressLine1": "123 Business Street",
+            "addressLine2": "Suite 100",
+            "landmark": "Near City Mall",
+            "city": "Mumbai",
+            "state": "Maharashtra",
+            "postalCode": "400001",
+            "country": "India",
+            "landlineNumber": "022-12345678",
+            "isPrimary": true,
+            "status": "pending",
+            "createdAt": "2025-09-10T08:45:07.231Z",
+            "updatedAt": "2025-09-10T08:45:07.231Z",
+            "brands": [
+              {
+                "_id": "68c13a93019ab419dbd663da",
+                "name": "ABC Skincare",
+                "slug": "abc-skincare",
+                "aboutTheBrand": "Premium skincare products",
+                "websiteUrl": "https://abcskincare.com",
+                "isActive": true,
+                "logoImage": null,
+                "coverImage": null,
+                "authorizationLetter": null,
+                "createdBy": "68c13a92019ab419dbd663d3",
+                "isDeleted": false,
+                "createdAt": "2025-09-10T08:45:07.156Z",
+                "updatedAt": "2025-09-10T08:45:07.156Z",
+                "brandStatus": "pending",
+                "statusChangeReason": null,
+                "statusChangedAt": null
+              }
+            ]
+          }
+        ],
+        "companyStatus": "pending",
+        "statusChangeReason": "",
+        "statusChangedAt": null,
+        "isDeleted": false,
+        "createdAt": "2025-09-10T08:45:07.084Z",
+        "updatedAt": "2025-09-10T08:45:07.084Z",
+        "__v": 0
+      },
+      {
+        "_id": "68c125d99712afb9d375e4a8",
+        "ownerUserId": null,
+        "designation": "gh",
+        "companyName": "abcdef",
+        "companyDescription": "abcd",
+        "establishedIn": "02/2025",
+        "headquartersAddress": "",
+        "businessType": "privateLtd",
+        "companyCategory": "distributor",
+        "subsidiaryOfGlobalBusiness": false,
+        "logo": null,
+        "productCategory": [
+          "68652e7bd559321c67d22fb5"
+        ],
+        "sellingOn": [
+          {
+            "platform": "flipkart",
+            "url": "https://www.amazon.com/"
+          }
+        ],
+        "website": "https://www.dotandkey.com/",
+        "address": [
+          {
+            "_id": "68c125d99712afb9d375e4af",
+            "sellerId": "68c125d99712afb9d375e4a8",
+            "addressType": "registered",
+            "gstNumber": "abcddsss",
+            "panNumber": "btlpn1018c",
+            "cinNumber": "1223444",
+            "msmeNumber": "12344534",
+            "coiCertificate": null,
+            "msmeCertificate": null,
+            "addressLine1": "sdfsdf",
+            "landmark": "sdf",
+            "city": "pune",
+            "state": "MH",
+            "postalCode": "414606",
+            "country": "IN",
+            "isPrimary": true,
+            "status": "pending",
+            "createdAt": "2025-09-10T07:16:41.142Z",
+            "updatedAt": "2025-09-10T07:16:41.142Z",
+            "brands": [
+              {
+                "_id": "68c125d99712afb9d375e4ab",
+                "name": "annnn",
+                "slug": "annnn",
+                "aboutTheBrand": "abcd",
+                "websiteUrl": "https://www.dotandkey.com/",
+                "isActive": true,
+                "logoImage": null,
+                "coverImage": null,
+                "authorizationLetter": null,
+                "createdBy": "68c125d99712afb9d375e4a4",
+                "isDeleted": false,
+                "createdAt": "2025-09-10T07:16:41.137Z",
+                "updatedAt": "2025-09-10T07:16:41.137Z",
+                "brandStatus": "pending",
+                "statusChangeReason": null,
+                "statusChangedAt": null
+              }
+            ]
+          }
+        ],
+        "companyStatus": "pending",
+        "statusChangeReason": "",
+        "statusChangedAt": null,
+        "isDeleted": false,
+        "createdAt": "2025-09-10T07:16:41.132Z",
+        "updatedAt": "2025-09-10T07:16:41.132Z",
+        "__v": 0
+      },
+      {
+        "_id": "68c122e69712afb9d375e27b",
+        "ownerUserId": {
+          "_id": "68c122e69712afb9d375e277",
+          "email": "hokag@mailinator.com",
+          "phoneNumber": "8424847098"
+        },
+        "designation": "9999999",
+        "companyName": "Cochran and Higgins Inc 1",
+        "companyDescription": "description",
+        "establishedIn": "10/2006",
+        "headquartersAddress": "location",
+        "businessType": "public",
+        "companyCategory": "principal",
+        "subsidiaryOfGlobalBusiness": true,
+        "logo": "https://sbb-dev-media.s3.ap-south-1.amazonaws.com/industry-media/LOGOfile_SBB_SC_0224-01-1757487845108.png",
+        "productCategory": [
+          "68652da5d559321c67d22f44",
+          "68652e3dd559321c67d22f7c"
+        ],
+        "sellingOn": [
+          {
+            "platform": "amazon",
+            "url": "https://tanstack.com/"
+          }
+        ],
+        "website": "https://www.jovowuly.me1.uk",
+        "address": [
+          {
+            "_id": "68c122e69712afb9d375e282",
+            "sellerId": "68c122e69712afb9d375e27b",
+            "addressType": "registered",
+            "gstNumber": "9999999",
+            "panNumber": "9999999",
+            "cinNumber": "9999999",
+            "msmeNumber": "9999999",
+            "coiCertificate": "https://sbb-dev-media.s3.ap-south-1.amazonaws.com/industry-media/TNTtechnicalflow.docx-1757487845126.pdf",
+            "msmeCertificate": "https://sbb-dev-media.s3.ap-south-1.amazonaws.com/industry-media/TNTtechnicalflow.docx-1757487845128.pdf",
+            "addressLine1": "pune location",
+            "addressLine2": "",
+            "landmark": "pune land",
+            "city": "pune",
+            "state": "MH",
+            "postalCode": "500000",
+            "country": "IN",
+            "isPrimary": true,
+            "status": "rejected",
+            "statusChangeReason": "Document is not verified",
+            "statusChangedAt": "2025-09-10T07:05:01.763Z",
+            "createdAt": "2025-09-10T07:04:06.301Z",
+            "updatedAt": "2025-09-10T07:12:56.556Z",
+            "brands": [
+              {
+                "_id": "68c122e69712afb9d375e27e",
+                "name": "Aaron Mcmahon 1",
+                "slug": "aaron-mcmahon",
+                "aboutTheBrand": "Est et est ea fugiat",
+                "websiteUrl": "https://www.jovowuly.me1.uk",
+                "isActive": true,
+                "logoImage": "https://sbb-dev-media.s3.ap-south-1.amazonaws.com/industry-media/LOGOfile_SBB_SC_0224-01-1757487845106.png",
+                "coverImage": null,
+                "authorizationLetter": "https://sbb-dev-media.s3.ap-south-1.amazonaws.com/industry-media/TNTtechnicalflow.docx-1757487845120.pdf",
+                "createdBy": "68c122e69712afb9d375e277",
+                "isDeleted": false,
+                "createdAt": "2025-09-10T07:04:06.296Z",
+                "updatedAt": "2025-09-10T07:12:56.559Z",
+                "brandStatus": "rejected",
+                "statusChangeReason": "Document is not verified\n",
+                "statusChangedAt": "2025-09-10T07:05:01.802Z"
+              }
+            ]
+          }
+        ],
+        "companyStatus": "rejected",
+        "statusChangeReason": "Document is not verified",
+        "statusChangedAt": "2025-09-10T07:05:01.807Z",
+        "isDeleted": false,
+        "createdAt": "2025-09-10T07:04:06.290Z",
+        "updatedAt": "2025-09-10T07:12:56.551Z",
+        "__v": 0
+      },
+      {
+        "_id": "68c10d40798f58a979aa36b2",
+        "ownerUserId": {
+          "_id": "68c10d40798f58a979aa36ae",
+          "email": "gahazyne@mailinator.com",
+          "phoneNumber": "8424847490"
+        },
+        "designation": "CEO",
+        "companyName": "Updated Tech Solutions Pvt Ltd",
+        "companyDescription": "Leading technology solutions provider specializing in software development and digital transformation",
+        "establishedIn": "03/2015",
+        "headquartersAddress": "123 Business Park, Sector 15, Mumbai",
+        "businessType": "privateLtd",
+        "companyCategory": "principal",
+        "subsidiaryOfGlobalBusiness": false,
+        "logo": "https://sbb-dev-media.s3.ap-south-1.amazonaws.com/industry-media/LOGOfileSBBSC0224-01-1757483225882-791981848.png",
+        "productCategory": [
+          "507f1f77bcf86cd799439011",
+          "507f1f77bcf86cd799439012"
+        ],
+        "sellingOn": [
+          {
+            "platform": "Amazon",
+            "url": "https://amazon.com"
+          },
+          {
+            "platform": "Flipkart",
+            "url": "https://flipkart.com"
+          }
+        ],
+        "website": "https://www.updatedtechcorp.com",
+        "address": [
+          {
+            "_id": "68c10d40798f58a979aa36b9",
+            "sellerId": "68c10d40798f58a979aa36b2",
+            "addressType": "registered",
+            "gstNumber": "27AABCU9603R1ZX",
+            "panNumber": "AABCU9603R",
+            "cinNumber": "U12345MH2015PTC123456",
+            "msmeNumber": "UDYAM-MH-12-1234567",
+            "coiCertificate": "https://sbb-dev-media.s3.ap-south-1.amazonaws.com/industry-media/Company-Brand-UserCreationFlow-1757482996951-68530833.pdf",
+            "msmeCertificate": "https://sbb-dev-media.s3.ap-south-1.amazonaws.com/industry-media/Company-Brand-UserCreationFlow-1757482996969-568900019.pdf",
+            "addressLine1": "123 Business Park, Sector 15",
+            "addressLine2": "Floor 3, Suite 301",
+            "landmark": "Near Metro Station",
+            "city": "Mumbai",
+            "state": "Maharashtra",
+            "postalCode": "400001",
+            "country": "India",
+            "landlineNumber": "022-12345678",
+            "isPrimary": true,
+            "status": "rejected",
+            "statusChangeReason": "document empty",
+            "statusChangedAt": "2025-09-10T05:42:19.980Z",
+            "createdAt": "2025-09-10T05:31:44.698Z",
+            "updatedAt": "2025-09-10T06:12:18.731Z",
+            "brands": [
+              {
+                "_id": "68c10d40798f58a979aa36b5",
+                "name": "Salor",
+                "slug": "zephr-sherman",
+                "aboutTheBrand": "About our updated brand - innovative solutions",
+                "websiteUrl": "https://updatedbrand.com",
+                "isActive": true,
+                "logoImage": "https://sbb-dev-media.s3.ap-south-1.amazonaws.com/industry-media/Rectangle-1757483225916-724847554.png",
+                "coverImage": null,
+                "authorizationLetter": null,
+                "createdBy": "68c10d40798f58a979aa36ae",
+                "isDeleted": false,
+                "createdAt": "2025-09-10T05:31:44.694Z",
+                "updatedAt": "2025-09-10T06:12:18.771Z",
+                "brandStatus": "rejected",
+                "statusChangeReason": "document empty\n",
+                "statusChangedAt": "2025-09-10T05:42:20.004Z"
+              }
+            ]
+          }
+        ],
+        "companyStatus": "rejected",
+        "statusChangeReason": "document empty",
+        "statusChangedAt": "2025-09-10T05:42:20.009Z",
+        "isDeleted": false,
+        "createdAt": "2025-09-10T05:31:44.689Z",
+        "updatedAt": "2025-09-10T06:12:18.685Z",
+        "__v": 0
+      }
+    ],
+    "page": 1,
+    "limit": 10,
+    "totalRecords": 37,
+    "totalPages": 4
+  },
+  "message": "Companies retrieved successfully",
+  "success": true
+};
+
+// Helper function to convert API response to CompanyListItem array
+export const convertApiResponseToCompanyList = (apiResponse: typeof sampleApiResponse) => {
+  return apiResponse.data.items;
+};

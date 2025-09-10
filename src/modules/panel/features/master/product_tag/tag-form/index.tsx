@@ -149,7 +149,7 @@ export default function TagForm() {
                 Tag Information
               </h2>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-6">
                 <FormInput
                   name="name"
                   type={INPUT_TYPES.TEXT}
@@ -204,7 +204,7 @@ export default function TagForm() {
                 inputProps={{ rows: 3 }}
               />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-6">
                 <div className="space-y-2">
                   <FormInput
                     name="color"

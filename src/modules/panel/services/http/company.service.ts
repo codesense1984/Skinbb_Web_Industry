@@ -10,6 +10,7 @@ import type {
   CompanyListItem,
   CompanyDetailDataResponse,
 } from "@/modules/panel/types/company.type";
+import type { CompanyLocationBrandsResponse, CompanyLocationBrandResponse } from "@/modules/panel/types/brand.type";
 import { createFormData } from "@/core/utils/formdata.utils";
 
 // Get all onboard entries (with params for search, paging, sorting)
@@ -328,4 +329,63 @@ export async function apiGetCompanyUsers<
   }>,
 >(companyId: string, params?: PaginationParams, signal?: AbortSignal) {
   return api.get<T>(ENDPOINTS.COMPANY.USERS(companyId), { params, signal });
+}
+
+// ---- Company Location Brands ----
+// Get brands for a specific company location
+export async function apiGetCompanyLocationBrands<T = CompanyLocationBrandsResponse>(
+  companyId: string,
+  locationId: string,
+  params?: PaginationParams,
+  signal?: AbortSignal
+) {
+  return api.get<T>(ENDPOINTS.COMPANY_LOCATION_BRANDS.LIST(companyId, locationId), { 
+    params, 
+    signal 
+  });
+}
+
+// Get brand details for a specific company location
+export async function apiGetCompanyLocationBrandById<T = CompanyLocationBrandResponse>(
+  companyId: string,
+  locationId: string,
+  brandId: string
+) {
+  return api.get<T>(ENDPOINTS.COMPANY_LOCATION_BRANDS.GET_BY_ID(companyId, locationId, brandId));
+}
+
+// Create brand for a specific company location
+export async function apiCreateCompanyLocationBrand<T = CompanyLocationBrandResponse>(
+  companyId: string,
+  locationId: string,
+  data: FormData
+) {
+  return api.post<T>(ENDPOINTS.COMPANY_LOCATION_BRANDS.CREATE(companyId, locationId), data, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+}
+
+// Update brand for a specific company location
+export async function apiUpdateCompanyLocationBrand<T = CompanyLocationBrandResponse>(
+  companyId: string,
+  locationId: string,
+  brandId: string,
+  data: FormData
+) {
+  return api.put<T>(ENDPOINTS.COMPANY_LOCATION_BRANDS.UPDATE(companyId, locationId, brandId), data, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+}
+
+// Delete brand for a specific company location
+export async function apiDeleteCompanyLocationBrand<T = ApiResponse<any>>(
+  companyId: string,
+  locationId: string,
+  brandId: string
+) {
+  return api.delete<T>(ENDPOINTS.COMPANY_LOCATION_BRANDS.DELETE(companyId, locationId, brandId));
 }

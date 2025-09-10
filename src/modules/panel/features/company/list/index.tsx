@@ -8,16 +8,20 @@ import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 // const CompanyForm = lazy(() => import("../components/AddCompanyForm"));
 
 // Super simple! Just pass the API function and data paths
-const fetcher = () =>
-  createSimpleFetcher(apiGetCompanyList, {
-    dataPath: "data.items",
-    totalPath: "data.total",
-    filterMapping: {
-      status: "status", // Map the status column filter to the status API parameter
-    },
-  });
+const fetcher = createSimpleFetcher(apiGetCompanyList, {
+  dataPath: "data.items",
+  totalPath: "data.total",
+  filterMapping: {
+    companyStatus: "companyStatus", // Map the status column filter to the status API parameter
+  },
+});
 
 const CompanyList = () => {
+  console.log("🔍 Debugging Company List Columns:");
+  console.log("Columns array:", columns);
+  console.log("Number of columns:", columns.length);
+  console.log("Column headers:", columns.map(col => col.header));
+  
   return (
     <PageContent
       header={{
@@ -53,7 +57,7 @@ const CompanyList = () => {
       <DataTable
         columns={columns}
         isServerSide
-        fetcher={fetcher()}
+        fetcher={fetcher}
         queryKeyPrefix={PANEL_ROUTES.COMPANY.LIST}
         actionProps={(tableState) => ({
           children: (

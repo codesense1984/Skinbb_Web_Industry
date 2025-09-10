@@ -83,6 +83,26 @@ export const rawItems: Readonly<Record<string, SidebarItem>> = {
       </svg>
     ),
   },
+  company: {
+    name: "company",
+    href: PANEL_ROUTES.COMPANY.LIST,
+    requiredRoles: [ROLE.ADMIN],
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={1.5}
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M3.75 5.25h16.5m-16.5 0a3 3 0 0 1 3-3h10.5a3 3 0 0 1 3 3v.75H3.75V5.25Z"
+        />
+      </svg>
+    ),
+  },
   masterData: {
     name: "Master Data",
     requiredRoles: [ROLE.ADMIN],

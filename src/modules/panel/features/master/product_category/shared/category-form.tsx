@@ -77,7 +77,7 @@ export default function CategoryForm({ mode: propMode, categoryId: propCategoryI
   const { data: categoriesData } = useQuery({
     queryKey: ["product-categories"],
     queryFn: () => apiGetProductCategories({ page: 1, limit: 1000 }),
-    enabled: false, // Disabled for now until API is fixed
+    enabled: true, // Enable to fetch parent categories
   });
 
   const parentCategories = useMemo(() => {
@@ -331,7 +331,7 @@ export default function CategoryForm({ mode: propMode, categoryId: propCategoryI
                   Category Information
                 </h2>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-6">
                   <FormFieldsRenderer<CategoryFormData>
                     control={control}
                     fieldConfigs={

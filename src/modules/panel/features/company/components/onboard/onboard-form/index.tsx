@@ -265,11 +265,31 @@ const OnBoardForm = ({
     },
     onError: (error: AxiosError<{ message?: string }>) => {
       console.error("Onboarding submission error:", error);
-      toast.error(
-        error?.response?.data?.message ||
-          error?.message ||
-          "Failed to submit profile. Please try again.",
-      );
+      
+      // Handle specific error cases
+      if (error?.response?.status === 409) {
+        // Duplicate brand name error
+        toast.error(
+          "Brand name already exists. Please choose a different brand name and try again."
+        );
+      } else if (error?.response?.status === 400) {
+        // Validation error
+        toast.error(
+          error?.response?.data?.message || "Please check your information and try again."
+        );
+      } else if (error?.response?.status === 422) {
+        // Unprocessable entity (validation errors)
+        toast.error(
+          error?.response?.data?.message || "Please fill in all required fields correctly."
+        );
+      } else {
+        // Generic error
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Failed to submit profile. Please try again.",
+        );
+      }
     },
   });
 

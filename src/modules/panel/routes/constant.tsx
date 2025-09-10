@@ -71,6 +71,10 @@ export const PANEL_ROUTES = {
     USER_CREATE: (id: string = ROUTE.seg.id) => ROUTE.build(COMPANY_BASE, id, "users", ROUTE.seg.create), // /company/:id/users/create
     USER_EDIT: (id: string = ROUTE.seg.id, userId: string = ":userId") => ROUTE.build(COMPANY_BASE, id, "users", userId, ROUTE.seg.edit), // /company/:id/users/:userId/edit
     USER_VIEW: (id: string = ROUTE.seg.id, userId: string = ":userId") => ROUTE.build(COMPANY_BASE, id, "users", userId, ROUTE.seg.view), // /company/:id/users/:userId/view
+    BRANDS: (id: string = ROUTE.seg.id) => ROUTE.build(COMPANY_BASE, id, "brands"), // /company/:id/brands
+    BRAND_CREATE: (id: string = ROUTE.seg.id) => ROUTE.build(COMPANY_BASE, id, "brands", ROUTE.seg.create), // /company/:id/brands/create
+    BRAND_EDIT: (id: string = ROUTE.seg.id, brandId: string = ":brandId") => ROUTE.build(COMPANY_BASE, id, "brands", brandId, ROUTE.seg.edit), // /company/:id/brands/:brandId/edit
+    BRAND_VIEW: (id: string = ROUTE.seg.id, brandId: string = ":brandId") => ROUTE.build(COMPANY_BASE, id, "brands", brandId, ROUTE.seg.view), // /company/:id/brands/:brandId/view
     // ONBOARD: ROUTE.build(COMPANY_BASE, ROUTE.seg.onboard), // /company/onboard
   },
 
@@ -103,6 +107,57 @@ export const PANEL_ROUTES = {
         locationId,
         ROUTE.seg.view,
       ), // /company/:companyId/locations/:locationId/view
+    BRANDS: (
+      companyId: string = ":companyId",
+      locationId: string = ":locationId",
+    ) =>
+      ROUTE.build(
+        COMPANY_BASE,
+        companyId,
+        "locations",
+        locationId,
+        "brands",
+      ), // /company/:companyId/locations/:locationId/brands
+    BRAND_CREATE: (
+      companyId: string = ":companyId",
+      locationId: string = ":locationId",
+    ) =>
+      ROUTE.build(
+        COMPANY_BASE,
+        companyId,
+        "locations",
+        locationId,
+        "brands",
+        ROUTE.seg.create,
+      ), // /company/:companyId/locations/:locationId/brands/create
+    BRAND_EDIT: (
+      companyId: string = ":companyId",
+      locationId: string = ":locationId",
+      brandId: string = ":brandId",
+    ) =>
+      ROUTE.build(
+        COMPANY_BASE,
+        companyId,
+        "locations",
+        locationId,
+        "brands",
+        brandId,
+        ROUTE.seg.edit,
+      ), // /company/:companyId/locations/:locationId/brands/:brandId/edit
+    BRAND_VIEW: (
+      companyId: string = ":companyId",
+      locationId: string = ":locationId",
+      brandId: string = ":brandId",
+    ) =>
+      ROUTE.build(
+        COMPANY_BASE,
+        companyId,
+        "locations",
+        locationId,
+        "brands",
+        brandId,
+        ROUTE.seg.view,
+      ), // /company/:companyId/locations/:locationId/brands/:brandId/view
   },
 
   // ---- Customer ----

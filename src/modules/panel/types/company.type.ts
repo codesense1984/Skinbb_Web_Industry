@@ -195,7 +195,7 @@ export interface CompanyListItem {
     _id: string;
     email: string;
     phoneNumber: string;
-  };
+  } | null;
   designation: string;
   companyName: string;
   companyDescription: string;
@@ -204,30 +204,35 @@ export interface CompanyListItem {
   businessType: string;
   companyCategory: string;
   subsidiaryOfGlobalBusiness: boolean;
-  brandLogo: string | null;
+  logo: string | null;
   productCategory: string[];
   sellingOn: Array<{
     platform: string;
     url: string;
   }>;
   website: string;
-  landlineNo: string;
   address: Array<{
     _id: string;
     sellerId: string;
     addressType: string;
     gstNumber: string;
     panNumber: string;
-    coiCertificate: string;
-    msmeCertificate: string;
+    cinNumber: string;
+    msmeNumber: string;
+    coiCertificate: string | null;
+    msmeCertificate: string | null;
     addressLine1: string;
+    addressLine2?: string;
     landmark: string;
     city: string;
     state: string;
     postalCode: string;
     country: string;
+    landlineNumber?: string;
     isPrimary: boolean;
     status: string;
+    statusChangeReason?: string;
+    statusChangedAt?: string;
     createdAt: string;
     updatedAt: string;
     brands: Array<{
@@ -239,14 +244,17 @@ export interface CompanyListItem {
       isActive: boolean;
       logoImage: string | null;
       coverImage: string | null;
-      authorizationLetter: string;
+      authorizationLetter: string | null;
       createdBy: string;
       isDeleted: boolean;
       createdAt: string;
       updatedAt: string;
+      brandStatus: string;
+      statusChangeReason?: string | null;
+      statusChangedAt?: string | null;
     }>;
   }>;
-  status: string;
+  companyStatus: string;
   statusChangeReason: string;
   statusChangedAt: string | null;
   isDeleted: boolean;
@@ -358,4 +366,58 @@ export interface CompanyDetailData {
 
 export interface CompanyDetailDataResponse {
   company: CompanyDetailData;
+}
+
+// Company Location Brand types
+export interface CompanyLocationBrand {
+  _id: string;
+  name: string;
+  slug: string;
+  totalSKU: number;
+  instagramUrl: string;
+  facebookUrl: string;
+  youtubeUrl: string;
+  productCategory: string[];
+  averageSellingPrice: number;
+  marketingBudget: number;
+  sellingOn: Array<{
+    platform: string;
+    url: string;
+  }>;
+  aboutTheBrand: string;
+  websiteUrl: string;
+  isActive: boolean;
+  logoImage: string;
+  coverImage: string;
+  authorizationLetter: string;
+  createdBy: string;
+  isDeleted: boolean;
+  deletedAt: string | null;
+  deletedBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CompanyLocationBrandCreateData {
+  name: string;
+  aboutTheBrand?: string;
+  websiteUrl?: string;
+  totalSKU?: number;
+  averageSellingPrice?: number;
+  marketingBudget?: number;
+  instagramUrl?: string;
+  facebookUrl?: string;
+  youtubeUrl?: string;
+  productCategory?: string[];
+  sellingOn?: Array<{
+    platform: string;
+    url: string;
+  }>;
+  logoImage?: File;
+  coverImage?: File;
+  authorizationLetter?: File;
+}
+
+export interface CompanyLocationBrandUpdateData extends CompanyLocationBrandCreateData {
+  isActive?: boolean;
 }
