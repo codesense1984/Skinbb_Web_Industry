@@ -36,7 +36,7 @@ import { Link, useParams } from "react-router";
 import { toast } from "sonner";
 import { apiGetCompanyLocationDetail } from "../../../services/http/company-location.service";
 import { CompanyApprovalDialog } from "../../company/components/approval/CompanyApprovalDialog";
-import type { CompanyAddressDetail } from "@/modules/panel/types";
+import type { CompanyOnboardingAddressDetail } from "@/modules/panel/types";
 import { formatCurrency, formatDate } from "@/core/utils";
 import { LocationService } from "@/core/services/location.service";
 
@@ -172,9 +172,9 @@ const CompanyLocationView = () => {
 
   // The locationData is the CompanyOnboading object directly
   const company = locationData.company;
-  const currentLocation: CompanyAddressDetail | undefined =
+  const currentLocation: CompanyOnboardingAddressDetail | undefined =
     company.addresses?.find(
-      (addr: CompanyAddressDetail) => addr.addressId === locationId,
+      (addr: CompanyOnboardingAddressDetail) => addr.addressId === locationId,
     );
   const owner = company.owner;
 

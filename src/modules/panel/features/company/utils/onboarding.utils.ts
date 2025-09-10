@@ -280,7 +280,7 @@ export function transformFormDataToApiRequest(
   }
 
   if (authDoc?.url_files) {
-    apiData.authorizationLetter = authDoc?.url_files;
+    apiData.authLetter = authDoc?.url_files;
   }
 
   if (coiDoc?.url_files) {

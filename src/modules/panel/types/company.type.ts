@@ -39,7 +39,7 @@ export interface ShortCompany {
   email: string;
 }
 
-export interface CompanyBrand {
+export interface CompanyOnboardingBrand {
   logo?: string;
   logo_files?: File[];
   brandName: string;
@@ -92,7 +92,7 @@ export interface CompanyOnboardingSubmitRequest
   brandWebsite: string;
   brandLogo?: string;
   addresses: Array<{
-    addressId?: string
+    addressId?: string;
     gstNumber: string;
     panNumber: string;
     cinNumber: string;
@@ -187,7 +187,7 @@ export interface CompanyOnboading {
   isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
-  addresses: CompanyAddressDetail[];
+  addresses: CompanyOnboardingAddressDetail[];
   owner: CompanyOwner;
 }
 
@@ -282,7 +282,7 @@ export interface CompanyOwner {
   ownerDesignation: string;
 }
 
-export interface CompanyBrand {
+export interface CompanyOnboardingBrand {
   _id: string;
   name: string;
   slug: string;
@@ -305,14 +305,17 @@ export interface CompanyBrand {
   authorizationLetter: string;
   createdBy: string;
   isDeleted: boolean;
-  deletedAt: string | null;
+  deletedAt: any;
   deletedBy: string;
   createdAt: string;
   updatedAt: string;
+  brandStatus: string;
+  statusChangeReason: string;
+  statusChangedAt: string;
   owner: CompanyOwner;
 }
 
-export interface CompanyAddressDetail {
+export interface CompanyOnboardingAddressDetail {
   addressId: string;
   addressType: string;
   addressLine1: string;
@@ -338,7 +341,7 @@ export interface CompanyAddressDetail {
   lng: number;
   createdAt: string;
   updatedAt: string;
-  brands: CompanyBrand[];
+  brands: CompanyOnboardingBrand[];
 }
 
 export interface CompanyDetailData {
@@ -357,7 +360,7 @@ export interface CompanyDetailData {
   isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
-  addresses: CompanyAddressDetail[];
+  addresses: CompanyOnboardingAddressDetail[];
   owner: CompanyOwner;
 }
 
