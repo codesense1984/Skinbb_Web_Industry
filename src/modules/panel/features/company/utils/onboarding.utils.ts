@@ -486,7 +486,7 @@ export function transformApiResponseToFormData(
       mergedData.facebookUrl = brand.facebookUrl;
       mergedData.youtubeUrl = brand.youtubeUrl;
       mergedData.website = brand.websiteUrl;
-      mergedData.description = brand.aboutTheBrand;
+      // mergedData.description = brand.aboutTheBrand;
       mergedData.documents = [
         {
           type: DOCUMENT_TYPES.COI,

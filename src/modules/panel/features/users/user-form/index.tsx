@@ -1,10 +1,16 @@
 import { Button } from "@/core/components/ui/button";
 import { Form } from "@/core/components/ui/form";
-import { FormFieldsRenderer, type FormFieldConfig } from "@/core/components/ui/form-input";
+import {
+  FormFieldsRenderer,
+  type FormFieldConfig,
+} from "@/core/components/ui/form-input";
 import { PageContent } from "@/core/components/ui/structure";
 import { PasswordStrength } from "@/core/components/ui/password-strength";
 import { MODE } from "@/core/types";
-import { apiCreateSellerMember, apiUpdateSellerMember } from "@/modules/panel/services/http/user.service";
+import {
+  apiCreateSellerMember,
+  apiUpdateSellerMember,
+} from "@/modules/panel/services/http/user.service";
 import { apiGetRoles } from "@/modules/panel/services/http/role.service";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useForm, useWatch } from "react-hook-form";
@@ -15,7 +21,7 @@ import {
   defaultValues,
   userFormFieldConfigs,
   type UserFormData,
-} from "./formSchema";
+} from "../../company/users/user-form/formSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 const UserForm = () => {
@@ -23,19 +29,19 @@ const UserForm = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const pathname = location.pathname;
-  
+
   // Determine mode based on URL path
   let mode = MODE.ADD;
   if (id) {
-    if (pathname.includes('/view/')) {
+    if (pathname.includes("/view/")) {
       mode = MODE.VIEW;
-    } else if (pathname.includes('/edit/')) {
+    } else if (pathname.includes("/edit/")) {
       mode = MODE.EDIT;
     } else {
       mode = MODE.EDIT; // fallback
     }
   }
-  
+
   // Create dynamic schema based on mode
   const createFormSchema = () => {
     if (mode === MODE.EDIT) {
@@ -49,7 +55,7 @@ const UserForm = () => {
     resolver: zodResolver(createFormSchema()),
     defaultValues: defaultValues,
   });
-  
+
   const { control, handleSubmit } = form;
 
   // Watch password field for strength validation
@@ -66,11 +72,11 @@ const UserForm = () => {
   });
 
   // Format roles for select options
-  const roleOptions = rolesResponse?.data?.roles?.map(role => ({
-    label: role.label,
-    value: role._id,
-  })) || [];
-
+  const roleOptions =
+    rolesResponse?.data?.roles?.map((role) => ({
+      label: role.label,
+      value: role._id,
+    })) || [];
 
   // Create user mutation
   const createUserMutation = useMutation({
@@ -115,30 +121,34 @@ const UserForm = () => {
     }
   };
 
-  const isLoading = createUserMutation.isPending || updateUserMutation.isPending;
+  const isLoading =
+    createUserMutation.isPending || updateUserMutation.isPending;
 
   return (
     <Form {...form}>
       <PageContent
         header={{
           title: mode === MODE.EDIT ? "Edit User" : "Create User",
-          description: mode === MODE.EDIT ? "Update user information" : "Add a new user to your team",
+          description:
+            mode === MODE.EDIT
+              ? "Update user information"
+              : "Add a new user to your team",
         }}
       >
         <div className="w-full">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
               {/* Left Card - Basic Information */}
-              <div className="bg-white rounded-xl border shadow-sm p-8 space-y-6">
+              <div className="space-y-6 rounded-xl border bg-white p-8 shadow-sm">
                 <div className="space-y-4">
                   <h2 className="text-xl font-semibold text-gray-900">
                     Basic Information
                   </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <FormFieldsRenderer<UserFormData>
                       control={control}
                       fieldConfigs={
-                        userFormFieldConfigs.slice(0, 4).map(field => ({
+                        userFormFieldConfigs.slice(0, 4).map((field) => ({
                           ...field,
                           mode,
                         })) as FormFieldConfig<UserFormData>[]
@@ -146,12 +156,11 @@ const UserForm = () => {
                       className="contents"
                     />
                   </div>
-                  
                 </div>
               </div>
 
               {/* Right Card - Account Settings */}
-              <div className="bg-white rounded-xl border shadow-sm p-8 space-y-6">
+              <div className="space-y-6 rounded-xl border bg-white p-8 shadow-sm">
                 <div className="space-y-4">
                   <h2 className="text-xl font-semibold text-gray-900">
                     Account Settings
@@ -160,13 +169,18 @@ const UserForm = () => {
                     {userFormFieldConfigs.slice(4).map((field) => {
                       const fieldConfig = {
                         ...field,
-                        ...(field.name === "password" && { 
+                        ...(field.name === "password" && {
                           required: mode === MODE.ADD,
-                          placeholder: mode === MODE.ADD ? "Enter password" : "Leave blank to keep current password"
+                          placeholder:
+                            mode === MODE.ADD
+                              ? "Enter password"
+                              : "Leave blank to keep current password",
                         }),
-                        ...(field.name === "roleId" && { 
+                        ...(field.name === "roleId" && {
                           options: roleOptions,
-                          placeholder: isLoadingRoles ? "Loading roles..." : "Select role"
+                          placeholder: isLoadingRoles
+                            ? "Loading roles..."
+                            : "Select role",
                         }),
                       } as FormFieldConfig<UserFormData>;
 
@@ -192,7 +206,7 @@ const UserForm = () => {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex justify-end gap-4 pt-6 border-t">
+            <div className="flex justify-end gap-4 border-t pt-6">
               <Button
                 type="button"
                 variant="outlined"
@@ -208,11 +222,13 @@ const UserForm = () => {
               >
                 {isLoading ? (
                   <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
                     {mode === MODE.EDIT ? "Updating..." : "Creating..."}
                   </div>
+                ) : mode === MODE.EDIT ? (
+                  "Update User"
                 ) : (
-                  mode === MODE.EDIT ? "Update User" : "Create User"
+                  "Create User"
                 )}
               </Button>
             </div>

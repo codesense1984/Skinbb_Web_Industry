@@ -12,7 +12,7 @@ function Table({ className, containerProps, ...props }: TableProps) {
     <div
       data-slot="table-container"
       className={cn(
-        "relative w-full max-w-full overflow-x-auto rounded-lg",
+        "relative w-full overflow-auto rounded-lg",
         containerClassName,
       )}
       {...rest}

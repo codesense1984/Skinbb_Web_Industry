@@ -23,7 +23,7 @@ import {
   userFormFieldConfigs,
   userFormSchema,
   type UserFormData,
-} from "@/modules/panel/features/users/user-form/formSchema";
+} from "@/modules/panel/features/company/users/user-form/formSchema";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import {
   apiGetCompanyDetailById,
@@ -67,7 +67,7 @@ const CompanyUserForm = () => {
       return userFormSchema.partial({ password: true });
     } else if (mode === MODE.ADD) {
       // For add mode, make active optional (comes from backend)
-      return userFormSchema.partial({ active: true });
+      return userFormSchema.partial({ status: true });
     }
     return userFormSchema;
   };
@@ -83,7 +83,7 @@ const CompanyUserForm = () => {
       roleId: "",
       allowedBrands: [],
       allowedAddresses: [],
-      active: true,
+      status: "",
     },
   });
 
@@ -514,7 +514,7 @@ const CompanyUserForm = () => {
                     </h3>
 
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                      {userFormFieldConfigs.map((field) => {
+                      {userFormFieldConfigs({ mode }).map((field) => {
                         return <FormInput {...field} control={form.control} />;
                       })}
                     </div>
