@@ -37,20 +37,25 @@ const CompanyLocationBrandsList = () => {
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
-  // Debug logging to see the actual API response structure
-  console.log("Brands API Response:", brandsData);
-  
   // Extract brands array from the API response
   // API response structure: { statusCode: 200, data: { status: "success", data: [...] }, message: "...", success: true }
   const rawBrands = brandsData?.data?.data || [];
   
-  // Transform brands to include location information
+  // Transform brands to include location information and ensure data safety
   const brands = rawBrands.map((brand: any) => ({
     ...brand,
     locationId: locationId!,
     locationType: 'unknown',
     locationCity: 'Location',
     locationState: 'unknown',
+    // Ensure productCategory is always an array
+    productCategory: Array.isArray(brand.productCategory) ? brand.productCategory : [],
+    // Ensure sellingOn is always an array
+    sellingOn: Array.isArray(brand.sellingOn) ? brand.sellingOn : [],
+    // Ensure numeric fields are numbers
+    totalSKU: Number(brand.totalSKU) || 0,
+    averageSellingPrice: Number(brand.averageSellingPrice) || 0,
+    marketingBudget: Number(brand.marketingBudget) || 0,
   }));
 
   if (isLoading) {

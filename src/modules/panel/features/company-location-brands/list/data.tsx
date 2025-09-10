@@ -70,20 +70,34 @@ export const columns = (companyId: string, locationId: string): ColumnDef<Compan
   {
     header: "Product Categories",
     accessorKey: "productCategory",
-    cell: ({ row }) => (
-      <div className="flex flex-wrap gap-1">
-        {row.original.productCategory?.slice(0, 2).map((category, index) => (
-          <Badge key={index} variant="outline" className="text-xs">
-            {category}
-          </Badge>
-        ))}
-        {row.original.productCategory?.length > 2 && (
-          <Badge variant="outline" className="text-xs">
-            +{row.original.productCategory.length - 2} more
-          </Badge>
-        )}
-      </div>
-    ),
+    cell: ({ row }) => {
+      const categories = row.original.productCategory || [];
+      
+      // Handle both string array and object array formats
+      const categoryNames = categories.map((category: any) => {
+        if (typeof category === 'string') {
+          return category;
+        } else if (category && typeof category === 'object' && category.name) {
+          return category.name;
+        }
+        return String(category);
+      });
+
+      return (
+        <div className="flex flex-wrap gap-1">
+          {categoryNames.slice(0, 2).map((category, index) => (
+            <Badge key={index} variant="outline" className="text-xs">
+              {category}
+            </Badge>
+          ))}
+          {categoryNames.length > 2 && (
+            <Badge variant="outline" className="text-xs">
+              +{categoryNames.length - 2} more
+            </Badge>
+          )}
+        </div>
+      );
+    },
   },
   {
     header: "Status",
