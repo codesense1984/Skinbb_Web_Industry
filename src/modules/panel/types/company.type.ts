@@ -4,6 +4,7 @@ export interface CompanyDocument {
   number: string;
   type: "coi" | "gstLicense" | "pan" | "msme" | "brandAuthorisation";
   url: string;
+  verified: boolean;
 }
 export interface CompanyAddress {
   addressType: "registered" | "office";

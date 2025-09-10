@@ -1,10 +1,9 @@
 import { MODE } from "@/core/types";
-import { StepKey, STEP_ORDER } from "../config/steps.config";
+import { STEP_ORDER, StepKey } from "../config/steps.config";
 import {
   fullCompanyDetailsSchema,
   type FullCompanyFormType,
 } from "../schema/fullCompany.schema";
-import type { CompanyDropdownItem } from "@/modules/panel/services/http/company.service";
 
 // STEP_ORDER moved to config to avoid circular imports
 
@@ -127,8 +126,6 @@ export function getFieldNamesForStep(
       if (!values.password) names.push("password");
       if (!values.phoneVerified) names.push("phoneVerified");
 
-
-
       return names;
     }
 
@@ -181,6 +178,9 @@ export function getFieldNamesForStep(
           .map((f) => f.name) as Array<keyof FullCompanyFormType>;
         names = [...names, ...dName];
       });
+
+      if (!values.companyName) names.push("companyName");
+      if (!values.establishedIn) names.push("establishedIn");
       return names;
     }
 

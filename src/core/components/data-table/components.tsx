@@ -334,7 +334,6 @@ export function DataTableAction<TData>({
   const columnFilter = () => {
     if (viewMode === DataViewMode.grid) return;
 
-    console.log("columnOptions", table?.getAllColumns());
     const columnOptions =
       table
         ?.getAllColumns()

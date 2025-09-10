@@ -130,6 +130,12 @@ export const ENDPOINTS = {
     TOP_BRANDS: `${API_PREFIX}/dashboard/admin/top-brands-analytics`,
     TOP_SELLERS: `${API_PREFIX}/dashboard/admin/top-sellers-analytics`,
   },
+
+  VERIFICATION: {
+    VERIFY_PAN: `${API_PREFIX}/company-verification/verify-pan`,
+    VERIFY_GST: `${API_PREFIX}/company-verification/verify-gst`,
+    VERIFY_CIN: `${API_PREFIX}/company-verification/verify-cin`,
+  },
 } as const;
 
 export type Endpoints = typeof ENDPOINTS;

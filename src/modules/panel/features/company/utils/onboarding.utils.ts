@@ -1,14 +1,15 @@
+import { MODE } from "@/core/types";
+import { formatDateForApi } from "@/core/utils";
 import type {
   CompanyOnboading,
   CompanyOnboardingSubmitRequest,
 } from "@/modules/panel/types/company.type";
 import type { FullCompanyFormType } from "../schema/fullCompany.schema";
 import { createCompanySchema } from "../schema/fullCompany.schema";
-import { MODE } from "@/core/types";
 
 // Constants
 const DEFAULT_ROLE_ID = "6875fc068683bb026013181b";
-const DEFAULT_MONTH = "01";
+// const DEFAULT_MONTH = "01";
 
 const ADDRESS_TYPES = {
   REGISTERED: "registered",
@@ -38,10 +39,10 @@ const safeBoolean = (value: unknown): boolean => {
   return false;
 };
 
-const safeFileArray = (value: unknown): File[] => {
-  // return Array.isArray(value) ? (value as File[]) : [];
-  return value as File[];
-};
+// const safeFileArray = (value: unknown): File[] => {
+//   // return Array.isArray(value) ? (value as File[]) : [];
+//   return value as File[];
+// };
 
 // Cache for date formatting to avoid redundant operations
 const dateFormatCache = new Map<string, string>();
@@ -82,69 +83,69 @@ export function getCompanySchema(
  * Formats established date from YYYY-MM to MM/YYYY format
  * Uses caching to improve performance for repeated calls
  */
-function formatEstablishedDate(dateString: string): string {
-  if (!dateString?.trim()) return "";
+// function formatEstablishedDate(dateString: string): string {
+//   if (!dateString?.trim()) return "";
 
-  const trimmedDate = dateString.trim();
+//   const trimmedDate = dateString.trim();
 
-  // Check cache first
-  if (dateFormatCache.has(trimmedDate)) {
-    return dateFormatCache.get(trimmedDate)!;
-  }
+//   // Check cache first
+//   if (dateFormatCache.has(trimmedDate)) {
+//     return dateFormatCache.get(trimmedDate)!;
+//   }
 
-  let result = trimmedDate;
+//   let result = trimmedDate;
 
-  // Handle YYYY-MM format
-  if (trimmedDate.includes("-")) {
-    const [year, month] = trimmedDate.split("-");
-    if (year && month) {
-      result = `${month}/${year}`;
-    }
-  }
-  // Handle MM/YYYY format (already correct) - no change needed
-  // Handle YYYY format (assume January)
-  else if (trimmedDate.length === 4 && /^\d{4}$/.test(trimmedDate)) {
-    result = `${DEFAULT_MONTH}/${trimmedDate}`;
-  }
+//   // Handle YYYY-MM format
+//   if (trimmedDate.includes("-")) {
+//     const [year, month] = trimmedDate.split("-");
+//     if (year && month) {
+//       result = `${month}/${year}`;
+//     }
+//   }
+//   // Handle MM/YYYY format (already correct) - no change needed
+//   // Handle YYYY format (assume January)
+//   else if (trimmedDate.length === 4 && /^\d{4}$/.test(trimmedDate)) {
+//     result = `${DEFAULT_MONTH}/${trimmedDate}`;
+//   }
 
-  // Cache the result
-  dateFormatCache.set(trimmedDate, result);
-  return result;
-}
+//   // Cache the result
+//   dateFormatCache.set(trimmedDate, result);
+//   return result;
+// }
 
-/**
- * Converts established date from MM/YYYY format to YYYY-MM format for month input
- * Uses caching to improve performance for repeated calls
- */
-function convertEstablishedInToMonthFormat(dateString: string): string {
-  if (!dateString?.trim()) return "";
+// /**
+//  * Converts established date from MM/YYYY format to YYYY-MM format for month input
+//  * Uses caching to improve performance for repeated calls
+//  */
+// function convertEstablishedInToMonthFormat(dateString: string): string {
+//   if (!dateString?.trim()) return "";
 
-  const trimmedDate = dateString.trim();
+//   const trimmedDate = dateString.trim();
 
-  // Check cache first
-  if (dateFormatCache.has(trimmedDate)) {
-    return dateFormatCache.get(trimmedDate)!;
-  }
+//   // Check cache first
+//   if (dateFormatCache.has(trimmedDate)) {
+//     return dateFormatCache.get(trimmedDate)!;
+//   }
 
-  let result = trimmedDate;
+//   let result = trimmedDate;
 
-  // Handle MM/YYYY format (from API)
-  if (trimmedDate.includes("/")) {
-    const [month, year] = trimmedDate.split("/");
-    if (year && month) {
-      result = `${year}-${month.padStart(2, "0")}`;
-    }
-  }
-  // Handle YYYY-MM format (already correct) - no change needed
-  // Handle YYYY format (assume January)
-  else if (trimmedDate.length === 4 && /^\d{4}$/.test(trimmedDate)) {
-    result = `${trimmedDate}-${DEFAULT_MONTH}`;
-  }
+//   // Handle MM/YYYY format (from API)
+//   if (trimmedDate.includes("/")) {
+//     const [month, year] = trimmedDate.split("/");
+//     if (year && month) {
+//       result = `${year}-${month.padStart(2, "0")}`;
+//     }
+//   }
+//   // Handle YYYY-MM format (already correct) - no change needed
+//   // Handle YYYY format (assume January)
+//   else if (trimmedDate.length === 4 && /^\d{4}$/.test(trimmedDate)) {
+//     result = `${trimmedDate}-${DEFAULT_MONTH}`;
+//   }
 
-  // Cache the result
-  dateFormatCache.set(trimmedDate, result);
-  return result;
-}
+//   // Cache the result
+//   dateFormatCache.set(trimmedDate, result);
+//   return result;
+// }
 
 /**
  * Transforms the form data to the API request format for onboarding submission.
@@ -206,7 +207,7 @@ export function transformFormDataToApiRequest(
     businessType: safeString(formData.businessType),
     headquartersAddress: safeString(formData.headquarterLocation),
     establishedIn: formData.establishedIn
-      ? formatEstablishedDate(String(formData.establishedIn))
+      ? formatDateForApi(formData.establishedIn)
       : "",
     subsidiaryOfGlobalBusiness: safeBoolean(formData.isSubsidiary),
     companyCategory: safeString(formData.category),
@@ -371,11 +372,21 @@ export function transformApiResponseToFormData(
 
     // Step 3 (four documents)
     documents: [
-      { type: DOCUMENT_TYPES.COI, number: "", url: "" },
-      { type: DOCUMENT_TYPES.PAN, number: "", url: "" },
-      { type: DOCUMENT_TYPES.GST_LICENSE, number: "", url: "" },
-      { type: DOCUMENT_TYPES.MSME, number: "", url: "" },
-      { type: DOCUMENT_TYPES.BRAND_AUTHORIZATION, number: "", url: "" },
+      { type: DOCUMENT_TYPES.COI, number: "", url: "", verified: false },
+      { type: DOCUMENT_TYPES.PAN, number: "", url: "", verified: false },
+      {
+        type: DOCUMENT_TYPES.GST_LICENSE,
+        number: "",
+        url: "",
+        verified: false,
+      },
+      { type: DOCUMENT_TYPES.MSME, number: "", url: "", verified: true },
+      {
+        type: DOCUMENT_TYPES.BRAND_AUTHORIZATION,
+        number: "",
+        url: "",
+        verified: true,
+      },
     ],
 
     // Terms
@@ -420,7 +431,7 @@ export function transformApiResponseToFormData(
       safeString(apiData.headquaterLocation) ||
       defaultValues.headquarterLocation,
     establishedIn: apiData.establishedIn
-      ? convertEstablishedInToMonthFormat(safeString(apiData.establishedIn))
+      ? new Date(safeString(apiData.establishedIn))
       : defaultValues.establishedIn,
     description:
       safeString(apiData.companyDescription) || defaultValues.description,
@@ -492,26 +503,31 @@ export function transformApiResponseToFormData(
           type: DOCUMENT_TYPES.COI,
           number: address.cinNumber,
           url: address.coiCertificate,
+          verified: true,
         },
         {
           type: DOCUMENT_TYPES.PAN,
           number: address.panNumber,
           url: address.panDocument,
+          verified: true,
         },
         {
           type: DOCUMENT_TYPES.GST_LICENSE,
           number: address.gstNumber,
           url: address.gstDocument,
+          verified: true,
         },
         {
           type: DOCUMENT_TYPES.MSME,
           number: address.msmeNumber,
           url: address.msmeCertificate,
+          verified: false,
         },
         {
           type: DOCUMENT_TYPES.BRAND_AUTHORIZATION,
           number: "",
           url: brand.authorizationLetter,
+          verified: true,
         },
       ];
 

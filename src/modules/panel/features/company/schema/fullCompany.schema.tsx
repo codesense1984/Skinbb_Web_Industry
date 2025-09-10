@@ -31,6 +31,7 @@ const DocumentSchema = z
     number: z.string().optional(),
     url: z.string().optional(),
     url_files: z.any().optional(),
+    verified: z.boolean(),
   })
   .superRefine((doc, ctx) => {
     if (doc.type === "coi") {
@@ -382,6 +383,7 @@ type FieldProps = {
     productCategoryOptions?: Array<{ label: string; value: string }>;
   };
   [StepKey.DOCUMENTS_DETAILS]: ModeProps & {
+    key?: string;
     index: number;
     numberLabel?: string;
     numberPlaceholder?: string;
@@ -442,7 +444,8 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
   company_name: () => [
     {
       name: "companyName",
-      label: "Company Name",
+      label: <span>Company Name </span>,
+      note: "Enter the company name exactly as it appears on the PAN card",
       type: INPUT_TYPES.CUSTOM,
       render() {
         return <div>Company</div>;
@@ -481,19 +484,21 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
     {
       name: "establishedIn",
       label: "Established In",
-      type: INPUT_TYPES.CUSTOM,
+      note: "Enter the year of establishment as per PAN card",
+      type: INPUT_TYPES.DATEPICKER,
       placeholder: "Enter year of establishment",
       disabled: disabled || mode === MODE.VIEW,
-      render({ field }) {
-        return (
-          <Input
-            className="block w-full"
-            type="month"
-            disabled={disabled || mode === MODE.VIEW}
-            {...field}
-          />
-        );
-      },
+      mode: "single",
+      // render({ field }) {
+      //   return (
+      //     <Input
+      //       className="block w-full"
+      //       type="month"
+      //       disabled={disabled || mode === MODE.VIEW}
+      //       {...field}
+      //     />
+      //   );
+      // },
     },
 
     {
@@ -536,6 +541,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
   ],
 
   documents_information: ({
+    key,
     mode,
     index,
     numberLabel = "Number",
@@ -558,6 +564,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
         type: INPUT_TYPES.TEXT,
         placeholder: numberPlaceholder,
         disabled: mode === MODE.VIEW,
+        key: key,
       });
     }
 
@@ -569,6 +576,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       placeholder: uploadPlaceholder,
       disabled: mode === MODE.VIEW,
       inputProps: { accept: ACCEPTED_FILE_TYPES.join(", ") },
+      key: key,
     });
 
     return fields;
