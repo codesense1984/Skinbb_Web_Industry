@@ -223,19 +223,15 @@ const ProductCreate = () => {
           hairTypeRes,
           skinTypeRes,
         ] = await Promise.all([
-          apiGetBrandsForDropdown({ page: 1, limit: 50 }),
-          apiGetCategoriesForDropdown({
-            page: 1,
-            limit: 50,
-            parentCategory: "all",
-          }),
-          apiGetTagsForDropdown({ page: 1, limit: 50 }),
+          apiGetBrandsForDropdown(),
+          apiGetCategoriesForDropdown(),
+          apiGetTagsForDropdown(),
           apiGetVariationTypes(),
-          apiGetMarketedBy({ page: 1, limit: 50 }),
-          apiGetManufacturedBy({ page: 1, limit: 50 }),
-          apiGetImportedBy({ page: 1, limit: 50 }),
-          apiGetIngredients({ page: 1, limit: 50 }),
-          apiGetBenefits({ page: 1, limit: 50 }),
+          apiGetMarketedBy(),
+          apiGetManufacturedBy(),
+          apiGetImportedBy(),
+          apiGetIngredients(),
+          apiGetBenefits(),
           // Product Attributes
           apiGetProductAttributeValues("685545232be6a9f5abc15be4"), // Target Concerns
           apiGetProductAttributeValues("685544f12be6a9f5abc15bdd"), // Product Features
@@ -255,53 +251,103 @@ const ProductCreate = () => {
         ]);
 
         // Basic dropdowns
-        if (brandsRes.success) setBrands(brandsRes.data.brands);
-        if (categoriesRes.success)
-          setCategories(categoriesRes.data.productCategories);
-        if (tagsRes.success) setTags(tagsRes.data.tags);
-        if (variationTypesRes.success)
-          setVariationTypes(variationTypesRes.data.productVariationTypes);
-        if (marketedByRes.success) setMarketedBy(marketedByRes.data.marketedBy);
-        if (manufacturedByRes.success)
-          setManufacturedBy(manufacturedByRes.data.manufacturedBy);
-        if (importedByRes.success)
-          setImportedBy(importedByRes.data.importedBys);
-        if (ingredientsRes.success)
-          setIngredients(ingredientsRes.data.ingredientLists);
-        if (benefitsRes.success) setBenefitsOptions(benefitsRes.data.benefits);
+        if ((brandsRes as any)?.success) {
+          setBrands((brandsRes as any).data.brands || []);
+        }
+        
+        if ((categoriesRes as any)?.success) {
+          setCategories((categoriesRes as any).data.productCategories || []);
+        }
+        
+        if ((tagsRes as any)?.success) {
+          setTags((tagsRes as any).data.tags || []);
+        }
+        
+        if ((variationTypesRes as any)?.success) {
+          setVariationTypes((variationTypesRes as any).data.productVariationTypes || []);
+        }
+        
+        if ((marketedByRes as any)?.success) {
+          setMarketedBy((marketedByRes as any).data.marketedBy || []);
+        }
+        
+        if ((manufacturedByRes as any)?.success) {
+          setManufacturedBy((manufacturedByRes as any).data.manufacturedBy || []);
+        }
+        
+        if ((importedByRes as any)?.success) {
+          setImportedBy((importedByRes as any).data.importedBys || []);
+        }
+        
+        if ((ingredientsRes as any)?.success) {
+          setIngredients((ingredientsRes as any).data.ingredientLists || []);
+        }
+        
+        if ((benefitsRes as any)?.success) {
+          setBenefitsOptions((benefitsRes as any).data.benefits || []);
+        }
 
         // Product Attributes
-        if (targetConcernsRes.success)
-          setTargetConcerns(targetConcernsRes.data.productAttributeValues);
-        if (productFeaturesRes.success)
-          setProductFeatures(productFeaturesRes.data.productAttributeValues);
-        if (countryOfOriginRes.success)
-          setCountryOfOrigin(countryOfOriginRes.data.productAttributeValues);
-        if (benefitsAttributeRes.success)
+        if ((targetConcernsRes as any)?.success) {
+          setTargetConcerns((targetConcernsRes as any).data.productAttributeValues || []);
+        }
+        
+        if ((productFeaturesRes as any)?.success) {
+          setProductFeatures((productFeaturesRes as any).data.productAttributeValues || []);
+        }
+        
+        if ((countryOfOriginRes as any)?.success) {
+          setCountryOfOrigin((countryOfOriginRes as any).data.productAttributeValues || []);
+        }
+        
+        if ((benefitsAttributeRes as any)?.success) {
           setBenefitsAttribute(
-            benefitsAttributeRes.data.productAttributeValues,
+            (benefitsAttributeRes as any).data.productAttributeValues || [],
           );
-        if (certificationsRes.success)
-          setCertifications(certificationsRes.data.productAttributeValues);
-        if (productFormRes.success)
-          setProductForm(productFormRes.data.productAttributeValues);
-        if (genderRes.success) setGender(genderRes.data.productAttributeValues);
-        if (productTypeRes.success)
-          setProductType(productTypeRes.data.productAttributeValues);
-        if (targetAreaRes.success)
-          setTargetArea(targetAreaRes.data.productAttributeValues);
+        }
+        
+        if ((certificationsRes as any)?.success) {
+          setCertifications((certificationsRes as any).data.productAttributeValues || []);
+        }
+        
+        if ((productFormRes as any)?.success) {
+          setProductForm((productFormRes as any).data.productAttributeValues || []);
+        }
+        
+        if ((genderRes as any)?.success) {
+          setGender((genderRes as any).data.productAttributeValues || []);
+        }
+        
+        if ((productTypeRes as any)?.success) {
+          setProductType((productTypeRes as any).data.productAttributeValues || []);
+        }
+        
+        if ((targetAreaRes as any)?.success) {
+          setTargetArea((targetAreaRes as any).data.productAttributeValues || []);
+        }
+        
         // Additional Attributes
-        if (finishRes.success) setFinish(finishRes.data.productAttributeValues);
-        if (fragranceRes.success)
-          setFragrance(fragranceRes.data.productAttributeValues);
-        if (skinConcernsRes.success)
-          setSkinConcerns(skinConcernsRes.data.productAttributeValues);
-        if (hairTypeRes.success)
-          setHairType(hairTypeRes.data.productAttributeValues);
-        if (skinTypeRes.success)
-          setSkinType(skinTypeRes.data.productAttributeValues);
+        if ((finishRes as any)?.success) {
+          setFinish((finishRes as any).data.productAttributeValues || []);
+        }
+        
+        if ((fragranceRes as any)?.success) {
+          setFragrance((fragranceRes as any).data.productAttributeValues || []);
+        }
+        
+        if ((skinConcernsRes as any)?.success) {
+          setSkinConcerns((skinConcernsRes as any).data.productAttributeValues || []);
+        }
+        
+        if ((hairTypeRes as any)?.success) {
+          setHairType((hairTypeRes as any).data.productAttributeValues || []);
+        }
+        
+        if ((skinTypeRes as any)?.success) {
+          setSkinType((skinTypeRes as any).data.productAttributeValues || []);
+        }
       } catch (error) {
-        console.error("Failed to load dropdown data:", error);
+        // Handle error silently
       }
     };
 
@@ -313,7 +359,7 @@ const ProductCreate = () => {
         const fetchProductData = async () => {
             if (productId && (isEditMode || isViewMode)) {
                 try {
-                    const response = await apiGetProductById<{ success: boolean; data: any }>(productId)
+                    const response = await apiGetProductById(productId) as { success: boolean; data: any }
                     if (response.success && response.data) {
                         const product = response.data
                         
@@ -370,7 +416,6 @@ const ProductCreate = () => {
                         })
                     }
                 } catch (error) {
-                    console.error('Failed to fetch product data:', error)
                     setError('Failed to load product data')
                 }
             }
@@ -388,8 +433,6 @@ const ProductCreate = () => {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Submitted values", formData);
-    console.log("Uploaded images", uploadedImages);
     setIsSubmitting(true);
     setError(null);
 
@@ -425,8 +468,6 @@ const ProductCreate = () => {
             
             if (isEditMode && productId) {
                 // Update existing product
-                console.log('Updating product with ID:', productId)
-                console.log('Form data:', formData)
                 
                 // For updates, try sending JSON data instead of FormData
                 const updateData = {
@@ -441,13 +482,10 @@ const ProductCreate = () => {
                     skinConcerns: formData.skinConcerns,
                 }
                 
-                console.log('Update data being sent:', updateData)
-                
                 try {
                     // Try PATCH with JSON data first
                     result = await api.patch(`${ENDPOINTS.PRODUCT.MAIN}/${productId}`, updateData) as { success: boolean; message?: string }
                 } catch (patchError) {
-                    console.log('PATCH failed, trying PUT:', patchError)
                     // Fallback to PUT with FormData
                     result = await api.put(`${ENDPOINTS.PRODUCT.MAIN}/${productId}`, submitData, {
                         headers: {
@@ -457,7 +495,7 @@ const ProductCreate = () => {
                 }
                 
                 if (result.success) {
-                    console.log('Product updated successfully:', result.message)
+                    // Product updated successfully
                 }
             } else {
                 // Create new product
@@ -468,7 +506,7 @@ const ProductCreate = () => {
                 }) as { success: boolean; message?: string }
                 
                 if (result.success) {
-                    console.log('Product created successfully:', result.message)
+                    // Product created successfully
                 }
             }
             
@@ -477,9 +515,7 @@ const ProductCreate = () => {
                 navigate(PANEL_ROUTES.LISTING.LIST)
             }
         } catch (error: any) {
-            console.error('Failed to create/update product:', error)
-            console.error('Error response:', error?.response?.data)
-            console.error('Error status:', error?.response?.status)
+            // Handle error silently
             
             const errorMessage = isEditMode 
                 ? 'Failed to update product. Please check your input and try again.'
