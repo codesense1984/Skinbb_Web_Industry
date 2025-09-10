@@ -117,10 +117,11 @@ export const createColumns = (
             to: PANEL_ROUTES.COMPANY_LOCATION.VIEW(companyId, row.original._id),
             title: "View location details",
           }}
-          // edit={{
-          //   to: PANEL_ROUTES.COMPANY_LOCATION.EDIT(companyId, row.original._id),
-          //   title: "Edit location",
-          // }}
+          edit={{
+            to: PANEL_ROUTES.ONBOARD.COMPANY_EDIT(companyId, row.original._id),
+            title: "Edit location",
+          }}
+
           // delete={{
           //   onClick: () => console.log("Delete location:", row.original._id),
           //   tooltip: "Delete location",
