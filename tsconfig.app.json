@@ -14,9 +14,20 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
+
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@core/*": ["src/core/*"],
+      "@components/*": ["src/core/components/*"],
+      "@hooks/*": ["src/core/hooks/*"],
+      "@config/*": ["src/core/config/*"],
+      "@services/*": ["src/core/services/*"],
+      "@store/*": ["src/core/store/*"],
+      "@types/*": ["src/core/types/*"],
+      "@utils/*": ["src/core/utils/*"],
+      "@auth/*": ["src/modules/auth/*"],
+      "@survey/*": ["src/modules/survey/*"]
     },
 
     /* Linting */
@@ -25,7 +36,7 @@
     "noUnusedParameters": true,
     // "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
-    "types": ["vite/client"]
+    "types": ["vite/client", "node"]
   },
   "include": ["src"]
 }

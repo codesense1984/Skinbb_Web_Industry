@@ -1,521 +1,182 @@
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { PageContent } from "@/components/ui/structure";
-import { Textarea } from "@/components/ui/textarea";
-import { basePythonApiUrl } from "@/config/baseUrls";
+import { Badge } from "@components/ui/badge";
+import { Button } from "@components/ui/button";
+import { PageContent } from "@components/ui/structure";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@components/ui/accordion";
+import { Textarea } from "@components/ui/textarea";
 import {
   BuildingStorefrontIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
+import React, {
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  useEffect,
+} from "react";
 import axios from "axios";
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import { basePythonApiUrl } from "@/core/config/baseUrls";
 
-type AnalyzeRequest = { inci_names: string[] };
+// Types and Interfaces
+interface AnalyzeRequest {
+  inci_names: string[];
+}
 
-type MatchedItem = {
+interface MatchedItem {
   ingredient_name: string;
   supplier_name: string;
   description: string;
   functionality_category_tree: string[][];
   chemical_class_category_tree: string[][];
-  match_score: number; // 0..1
+  match_score: number;
   matched_inci: string[];
   matched_count: number;
   total_brand_inci: number;
-};
+}
 
-type AnalyzeResponse = {
-  matched: MatchedItem[];
+interface GroupItem {
+  inci_list: string[];
+  items: MatchedItem[];
+  count: number;
+}
+
+interface AnalyzeResponse {
+  grouped: GroupItem[];
   unmatched: string[];
-  overall_confidence: number; // 0..1
-  processing_time: number; // 0..1
+  overall_confidence: number;
+  processing_time: number;
+}
+
+type ActiveTab = "grouped" | "unmatched" | "analysis";
+
+interface ReportState {
+  loading: boolean;
+  data: string | null;
+  pdfLoading: boolean;
+}
+
+const api = {
+  async analyzeIngredients(req: AnalyzeRequest): Promise<AnalyzeResponse> {
+    const response = await axios.post(
+      `${basePythonApiUrl}/api/analyze-inci`,
+      req,
+    );
+    return response.data;
+  },
+
+  async generateReport(inciList: string[]): Promise<string> {
+    const response = await axios.post(
+      `${basePythonApiUrl}/api/formulation-report`,
+      { inciList },
+      { headers: { "Content-Type": "application/json" } },
+    );
+    return response.data;
+  },
+
+  async downloadPDF(): Promise<Blob> {
+    const response = await axios.get(
+      `${basePythonApiUrl}/api/formulation-report/pdf`,
+      { responseType: "blob" },
+    );
+    return response.data;
+  },
 };
-// const MOCK_RESPONSE: AnalyzeResponse = {
-//   matched: [
-//     {
-//       ingredient_name: "Exfo-Bio",
-//       supplier_name: "Chemyunion",
-//       description:
-//         "Exfo-Bio is a fruit extract containing carbohydrates and alpha-hydroxy acids that stimulates gentle biological exfoliation through the intelligent cell renewal. It also stimulates the production of extracellular matrix and acts as a wrinkles and fine lines filler.",
-//       functionality_category_tree: [
-//         ["Skin Conditioning Agents", "Miscellaneous"],
-//       ],
-//       chemical_class_category_tree: [["Botanical Products", "Derivatives"]],
-//       match_score: 1,
-//       matched_inci: [
-//         "benzyl alcohol",
-//         "glycerin",
-//         "mangifera indica (mango) pulp extract",
-//         "aqua",
-//         "potassium sorbate",
-//         "spondias mombin pulp extract",
-//         "musa sapientum (banana) pulp extract",
-//       ],
-//       matched_count: 7,
-//       total_brand_inci: 7,
-//     },
-//     {
-//       ingredient_name: "Exfo-Bio",
-//       supplier_name: "Chemyunion",
-//       description:
-//         "Exfo-Bio is a fruit extract containing carbohydrates and alpha-hydroxy acids that stimulates gentle biological exfoliation through the intelligent cell renewal. It also stimulates the production of extracellular matrix and acts as a wrinkles and fine lines filler.",
-//       functionality_category_tree: [
-//         ["Skin Conditioning Agents", "Miscellaneous"],
-//       ],
-//       chemical_class_category_tree: [["Botanical Products", "Derivatives"]],
-//       match_score: 1,
-//       matched_inci: [
-//         "benzyl alcohol",
-//         "glycerin",
-//         "aqua",
-//         "mangifera indica (mango) pulp extract",
-//         "potassium sorbate",
-//         "spondias mombin pulp extract",
-//         "musa sapientum (banana) pulp extract",
-//       ],
-//       matched_count: 7,
-//       total_brand_inci: 7,
-//     },
-//     {
-//       ingredient_name: "euxyl® K 700",
-//       supplier_name: "DKSH",
-//       description:
-//         "euxyl® K 700 from Ashland is a liquid cosmetic preservative, which can be used in leave-on as well as rinse-off products. It was developed for use in cosmetic formulations with a skin-friendly pH value up to 5.5. euxyl® K 700 has a broad, balanced spectrum of effect against bacteria, yeasts and mould fungi as well as a good vapour phase effectiveness. As a result of the special preparation, the tendency to discolouration known for sorbic acid can be reduced or prevented. In addition euxyl® K 700 can be stored for a longer period.",
-//       functionality_category_tree: [
-//         ["Oral Care Agents"],
-//         ["Antioxidants"],
-//         ["Fragrance Ingredients"],
-//         ["Skin Conditioning Agents", "Miscellaneous"],
-//         ["Skin Conditioning Agents", "Occlusives"],
-//         ["Preservatives"],
-//         ["Solvents"],
-//         ["Viscosity Modifiers", "Decreasing"],
-//         ["External Analgesics"],
-//       ],
-//       chemical_class_category_tree: [["Mixtures"]],
-//       match_score: 1,
-//       matched_inci: [
-//         "phenoxyethanol",
-//         "tocopherol",
-//         "benzyl alcohol",
-//         "aqua",
-//         "potassium sorbate",
-//       ],
-//       matched_count: 5,
-//       total_brand_inci: 5,
-//     },
-//     {
-//       ingredient_name: "euxyl® K 700",
-//       supplier_name: "DKSH",
-//       description:
-//         "euxyl® K 700 from Ashland is a liquid cosmetic preservative, which can be used in leave-on as well as rinse-off products. It was developed for use in cosmetic formulations with a skin-friendly pH value up to 5.5. euxyl® K 700 has a broad, balanced spectrum of effect against bacteria, yeasts and mould fungi as well as a good vapour phase effectiveness. As a result of the special preparation, the tendency to discolouration known for sorbic acid can be reduced or prevented. In addition euxyl® K 700 can be stored for a longer period.",
-//       functionality_category_tree: [
-//         ["Oral Care Agents"],
-//         ["Antioxidants"],
-//         ["Fragrance Ingredients"],
-//         ["Skin Conditioning Agents", "Miscellaneous"],
-//         ["Skin Conditioning Agents", "Occlusives"],
-//         ["Preservatives"],
-//         ["Solvents"],
-//         ["Viscosity Modifiers", "Decreasing"],
-//         ["External Analgesics"],
-//       ],
-//       chemical_class_category_tree: [["Mixtures"]],
-//       match_score: 1,
-//       matched_inci: [
-//         "phenoxyethanol",
-//         "tocopherol",
-//         "benzyl alcohol",
-//         "aqua",
-//         "potassium sorbate",
-//       ],
-//       matched_count: 5,
-//       total_brand_inci: 5,
-//     },
-//     {
-//       ingredient_name: "euxyl® K 900",
-//       supplier_name: "DKSH",
-//       description:
-//         "euxyl® K 900 from Schuelke is a liquid cosmetic preservative based on benzyl alcohol and ethylhexylglycerin. The addition of ethylhexylglycerin affects the interfacial tension at the cell membrane of microorganisms, improving the preservative activity of benzyl alcohol. Its use is permitted both in products that remain on the skin as well as in rinse-off products. It has a broad, balanced spectrum of effect against bacteria, yeasts and mould fungi.",
-//       functionality_category_tree: [
-//         ["Fragrance Ingredients"],
-//         ["Preservatives"],
-//         ["Solvents"],
-//       ],
-//       chemical_class_category_tree: [["Mixtures"]],
-//       match_score: 1,
-//       matched_inci: ["benzyl alcohol", "ethylhexylglycerin", "tocopherol"],
-//       matched_count: 3,
-//       total_brand_inci: 3,
-//     },
-//     {
-//       ingredient_name: "Frulix Guava",
-//       supplier_name: "Assessa Indústria Comércio e Exportação Ltda",
-//       description:
-//         "Frulix Guava is obtained through an exclusive biotechnological process that mimics the natural ripening of fruit. Using the fruits’ native enzymes that change the texture of the fruit during its ripening, it transforms its pulp into a crystalline liquid. FRULIX preserves the properties of each fruit as found in nature. No water is added to the process. Solvent-free. 29 different fruits and 5 fruit complexes containing moisturizing mucilages, antioxidant flavonoids, vitamins, bioflavonoids, organic acids, essential sugars, and anthocyanins.",
-//       functionality_category_tree: [["Bioactives"]],
-//       chemical_class_category_tree: [["Mixtures"]],
-//       match_score: 1,
-//       matched_inci: [
-//         "psidium guajava fruit extract",
-//         "ethylhexylglycerin",
-//         "phenoxyethanol",
-//       ],
-//       matched_count: 3,
-//       total_brand_inci: 3,
-//     },
-//     {
-//       ingredient_name: "GINGER OIL",
-//       supplier_name: "Provital",
-//       description:
-//         "GINGER OIL is an anti-inflammatory. Sensitive and/or irritated skin. Antioxidant. Anti-aging. Photoprotection. Hair color protection.",
-//       functionality_category_tree: [],
-//       chemical_class_category_tree: [],
-//       match_score: 1,
-//       matched_inci: [
-//         "helianthus annuus (sunflower) seed oil",
-//         "tocopherol",
-//         "zingiber officinale (ginger) root extract",
-//       ],
-//       matched_count: 3,
-//       total_brand_inci: 3,
-//     },
-//     {
-//       ingredient_name: "euxyl® K 900",
-//       supplier_name: "DKSH",
-//       description:
-//         "euxyl® K 900 from Schuelke is a liquid cosmetic preservative based on benzyl alcohol and ethylhexylglycerin. The addition of ethylhexylglycerin affects the interfacial tension at the cell membrane of microorganisms, improving the preservative activity of benzyl alcohol. Its use is permitted both in products that remain on the skin as well as in rinse-off products. It has a broad, balanced spectrum of effect against bacteria, yeasts and mould fungi.",
-//       functionality_category_tree: [
-//         ["Fragrance Ingredients"],
-//         ["Preservatives"],
-//         ["Solvents"],
-//       ],
-//       chemical_class_category_tree: [["Mixtures"]],
-//       match_score: 1,
-//       matched_inci: ["benzyl alcohol", "ethylhexylglycerin", "tocopherol"],
-//       matched_count: 3,
-//       total_brand_inci: 3,
-//     },
-//     {
-//       ingredient_name: "Frulix Guava",
-//       supplier_name: "Assessa Indústria Comércio e Exportação Ltda",
-//       description:
-//         "Frulix Guava is obtained through an exclusive biotechnological process that mimics the natural ripening of fruit. Using the fruits’ native enzymes that change the texture of the fruit during its ripening, it transforms its pulp into a crystalline liquid. FRULIX preserves the properties of each fruit as found in nature. No water is added to the process. Solvent-free. 29 different fruits and 5 fruit complexes containing moisturizing mucilages, antioxidant flavonoids, vitamins, bioflavonoids, organic acids, essential sugars, and anthocyanins.",
-//       functionality_category_tree: [["Bioactives"]],
-//       chemical_class_category_tree: [["Mixtures"]],
-//       match_score: 1,
-//       matched_inci: [
-//         "psidium guajava fruit extract",
-//         "ethylhexylglycerin",
-//         "phenoxyethanol",
-//       ],
-//       matched_count: 3,
-//       total_brand_inci: 3,
-//     },
-//     {
-//       ingredient_name: "GINGER OIL",
-//       supplier_name: "Provital",
-//       description:
-//         "GINGER OIL is an anti-inflammatory. Sensitive and/or irritated skin. Antioxidant. Anti-aging. Photoprotection. Hair color protection.",
-//       functionality_category_tree: [],
-//       chemical_class_category_tree: [],
-//       match_score: 1,
-//       matched_inci: [
-//         "helianthus annuus (sunflower) seed oil",
-//         "tocopherol",
-//         "zingiber officinale (ginger) root extract",
-//       ],
-//       matched_count: 3,
-//       total_brand_inci: 3,
-//     },
-//     {
-//       ingredient_name: "Cetearyl Olivate (and) Sorbitan Olivate",
-//       supplier_name: "Suzhou Greenway Biotech Co.,Ltd",
-//       description:
-//         "Cetearyl Olivate (and) Sorbitan Olivate is a natural emulsifier derived from olive oil. It has gentle and stable properties, enhances the texture and moisturizing effects of skincare products, and is suitable for dry and sensitive skin.",
-//       functionality_category_tree: [
-//         ["Hair Conditioning Agents"],
-//         ["Skin Conditioning Agents", "Emollients"],
-//         ["Slip Modifiers"],
-//         ["Stabilizers", "Emulsion Stabilizers"],
-//         ["Surfactants", "Emulsifying Agents"],
-//       ],
-//       chemical_class_category_tree: [["Mixtures"]],
-//       match_score: 1,
-//       matched_inci: ["cetearyl olivate", "sorbitan olivate"],
-//       matched_count: 2,
-//       total_brand_inci: 2,
-//     },
-//     {
-//       ingredient_name: "euxyl® PE 9010",
-//       supplier_name: "DKSH",
-//       description:
-//         "Euxyl® PE9010 from Ashland, is a liquid cosmetic preservative with a broad, balanced spectrum of effect against bacteria, yeasts and mould fungi. It acts even in very low use-concentrations and has good vapor phase effectiveness. It can be used for leave on, rinse off, Leave on, sensitive and wet wipes application. Available in select countries. Please inquire for more details.",
-//       functionality_category_tree: [
-//         ["Anti", "Microbial Agents"],
-//         ["Anti", "Fungal Agents"],
-//         ["Preservatives"],
-//       ],
-//       chemical_class_category_tree: [["Mixtures"]],
-//       match_score: 1,
-//       matched_inci: ["phenoxyethanol", "ethylhexylglycerin"],
-//       matched_count: 2,
-//       total_brand_inci: 2,
-//     },
-//     {
-//       ingredient_name: "Florasun™ 90",
-//       supplier_name: "Cargill Beauty",
-//       description:
-//         "Florasun™ 90 is a natural, triglyceride oil with superb oxidative stability and excellent emollient properties. The unprecedented resistance of Florasun 90 to rancidity is largely due to its high oleic acid content which represents 85% to 90% of the oil. By including this monounsaturated fatty acid and excluding high levels of polyunsaturates, exceptional oxidative stability is achieved without the presence of trans fatty acids.",
-//       functionality_category_tree: [
-//         ["Hair Conditioning Agents"],
-//         ["Skin Conditioning Agents", "Emollients"],
-//       ],
-//       chemical_class_category_tree: [["Fats and Oils"]],
-//       match_score: 1,
-//       matched_inci: ["helianthus annuus (sunflower) seed oil", "tocopherol"],
-//       matched_count: 2,
-//       total_brand_inci: 2,
-//     },
-//     {
-//       ingredient_name: "AE ProTek® Plus",
-//       supplier_name: "AE Chemie",
-//       description:
-//         "New AE ProTek® Plus effectively reduces the surface tension of water, thus the wetting of surface is improved. This phenomenon makes the mixture of phenoxyethanol and ethylhexylglycerin very effective in penetrating the cell membranes of microorganisms resulting in optimized anti- microbial efficacy.",
-//       functionality_category_tree: [
-//         ["Anti", "Microbial Agents", "Cosmetic Biocides"],
-//         ["Fragrance Ingredients"],
-//         ["Skin Conditioning Agents", "Miscellaneous"],
-//         ["Preservatives"],
-//         ["Deodorant Agents"],
-//       ],
-//       chemical_class_category_tree: [["Mixtures"]],
-//       match_score: 1,
-//       matched_inci: ["phenoxyethanol", "ethylhexylglycerin"],
-//       matched_count: 2,
-//       total_brand_inci: 2,
-//     },
-//     {
-//       ingredient_name: "AmviShield® PE 9010",
-//       supplier_name: "AMVIGOR ORGANICS PVT LTD",
-//       description:
-//         "AmviShield® PE 9010 is a liquid cosmetic preservative designed to prevent degradation of ingredients and deterioration of physical and chemical stability. It is used to prevent contamination during formulation, shipment, storage or consumer use in cosmetics. It also has a large spectrum of antimicrobial activity and is effective against various Gram-negative and Gram-positive as well as against yeasts.",
-//       functionality_category_tree: [
-//         ["Anti", "Microbial Agents", "Cosmetic Biocides"],
-//         ["Fragrance Ingredients"],
-//         ["Skin Conditioning Agents", "Miscellaneous"],
-//         ["Preservatives"],
-//         ["Deodorant Agents"],
-//       ],
-//       chemical_class_category_tree: [["Mixtures"]],
-//       match_score: 1,
-//       matched_inci: ["phenoxyethanol", "ethylhexylglycerin"],
-//       matched_count: 2,
-//       total_brand_inci: 2,
-//     },
-//     {
-//       ingredient_name: "AE ProTek® NPB",
-//       supplier_name: "AE Chemie",
-//       description:
-//         "New AE ProTek® NPB has a broad spectrum efficacy against Gram Positive, Gram Negative, Yeast, and Fungi. It has efficacy booster and stabilizer for antimicrobials in combination with other ingredients. Non-Paraben Preservative for Cosmetics and Toiletries.",
-//       functionality_category_tree: [
-//         ["Anti", "Microbial Agents", "Cosmetic Biocides"],
-//         ["Fragrance Ingredients"],
-//         ["Skin Conditioning Agents", "Miscellaneous"],
-//         ["Preservatives"],
-//         ["Deodorant Agents"],
-//       ],
-//       chemical_class_category_tree: [["Mixtures"]],
-//       match_score: 1,
-//       matched_inci: ["phenoxyethanol", "ethylhexylglycerin"],
-//       matched_count: 2,
-//       total_brand_inci: 2,
-//     },
-//     {
-//       ingredient_name: "AdvensProtect PEHG",
-//       supplier_name: "Seqens",
-//       description:
-//         "AdvensProtect PEHG is a combination of phenoxyethanol and ethylhexylglycerin. Phenoxyethanol is a broad-spectrum antimicrobial effective against Gram-negative and Gram-positive bacteria, as well as against yeasts. Ethylhexylglycerin is a multifunctional ingredient with great emollient and preservative booster properties. It is a strong booster for better protection against microbial growth. The boosting effect is due to the surfactant properties of ethylhexylglycerin, which affects the surface tension properties of bacteria, improving the contact between phenoxyethanol and the bacterial membrane.",
-//       functionality_category_tree: [
-//         ["Anti", "Microbial Agents", "Cosmetic Biocides"],
-//         ["Fragrance Ingredients"],
-//         ["Skin Conditioning Agents", "Miscellaneous"],
-//         ["Preservatives"],
-//         ["Deodorant Agents"],
-//       ],
-//       chemical_class_category_tree: [["Mixtures"]],
-//       match_score: 1,
-//       matched_inci: ["phenoxyethanol", "ethylhexylglycerin"],
-//       matched_count: 2,
-//       total_brand_inci: 2,
-//     },
-//     {
-//       ingredient_name: "Biochemica® Sunflower Oil REF",
-//       supplier_name: "Hallstar",
-//       description:
-//         "Biochemica® Sunflower Oil REF exhibits excellent penetrating qualities and good spreadability on the skin, making it ideal as a massage oil or as a carrier oil for cosmetics and treatment products. It adds moisturizing attributes to creams, lotions and bar soaps. This product may be used in cosmetics, toiletries, bar soaps, massage oils, hair care and sun care applications.",
-//       functionality_category_tree: [],
-//       chemical_class_category_tree: [],
-//       match_score: 1,
-//       matched_inci: ["helianthus annuus (sunflower) seed oil"],
-//       matched_count: 1,
-//       total_brand_inci: 1,
-//     },
-//     {
-//       ingredient_name: "Beta-Carotene",
-//       supplier_name: "COSROMA",
-//       description:
-//         "Beta-Carotene offered by COSROMA® is called Cosroma® BCT-S. Cosroma® BCT-S is one of the carotenoids. It serves as an antioxidant and precursor to vitamin A, it is referred to as provitamin A. Cosroma® BCT-S is a wonderful skin conditioning ingredient and is also used as a cosmetic colorant. Cosroma® BCT-S is commonly used into skincare products for protecting against UVA-light induced damage.",
-//       functionality_category_tree: [],
-//       chemical_class_category_tree: [],
-//       match_score: 1,
-//       matched_inci: ["beta-carotene"],
-//       matched_count: 1,
-//       total_brand_inci: 1,
-//     },
-//     {
-//       ingredient_name: "Covi-ox® T-70 C",
-//       supplier_name: "BASF",
-//       description:
-//         "Covi-ox® T 70 C is an active ingredient and antioxidant in skin and hair care preparations.",
-//       functionality_category_tree: [],
-//       chemical_class_category_tree: [],
-//       match_score: 1,
-//       matched_inci: ["tocopherol"],
-//       matched_count: 1,
-//       total_brand_inci: 1,
-//     },
-//     {
-//       ingredient_name: "Covi-ox® T-50 C",
-//       supplier_name: "BASF",
-//       description:
-//         "Covi-ox® T 50 C is an active ingredient and antioxidant in skin and hair care preparations.",
-//       functionality_category_tree: [],
-//       chemical_class_category_tree: [],
-//       match_score: 1,
-//       matched_inci: ["tocopherol"],
-//       matched_count: 1,
-//       total_brand_inci: 1,
-//     },
-//     {
-//       ingredient_name: "Covi-Ox® T-90 EU C",
-//       supplier_name: "BASF",
-//       description:
-//         "Covi-ox® T-90 EU C is an active ingredient and antioxidant in skin and hair care preparations. It is derived from non-genetically modified sources.",
-//       functionality_category_tree: [],
-//       chemical_class_category_tree: [],
-//       match_score: 1,
-//       matched_inci: ["tocopherol"],
-//       matched_count: 1,
-//       total_brand_inci: 1,
-//     },
-//     {
-//       ingredient_name: "Edeta® BD",
-//       supplier_name: "BASF",
-//       description:
-//         "EDETA® BD is a complex builder for sequestering undesirable metal ions in cosmetic preparations.",
-//       functionality_category_tree: [],
-//       chemical_class_category_tree: [],
-//       match_score: 1,
-//       matched_inci: ["disodium edta"],
-//       matched_count: 1,
-//       total_brand_inci: 1,
-//     },
-//     {
-//       ingredient_name: "Copherol® F 1300 C",
-//       supplier_name: "BASF",
-//       description:
-//         "Copherol® F 1300 C is an active ingredient in skin care and hair care preparations",
-//       functionality_category_tree: [],
-//       chemical_class_category_tree: [],
-//       match_score: 1,
-//       matched_inci: ["tocopherol"],
-//       matched_count: 1,
-//       total_brand_inci: 1,
-//     },
-//   ],
-//   unmatched: [
-//     "arisaema amurense extract",
-//     "carica papaya fruit extract",
-//     "citrus limon (lemon) peel extract",
-//     "fragrance",
-//     "lactic acid/glycolic acid copolymer",
-//     "linoleic acid",
-//     "methyl lactate",
-//     "norisoleucyl sh-nonapeptide-1",
-//     "nymphaea alba flower extract",
-//     "palmitoyl sh-octapeptide-24 amide",
-//     "palmitoyl sh-tripeptide-5",
-//     "polyvinyl alcohol",
-//     "saxifraga sarmentosa extract",
-//     "sodium palmitoyl proline",
-//     "xanthophylls",
-//   ],
-//   overall_confidence: 1,
-//   processing_time: 3.971,
-// };
 
-async function fetchIngredientAnalysis(
-  req: AnalyzeRequest,
-): Promise<AnalyzeResponse> {
-  // simulate an API call (kept synchronous-fast for now)
-  //   console.log("Analyze payload", req);
-  //   return Promise.resolve(MOCK_RESPONSE);
-  const response = await axios.post(
-    `${basePythonApiUrl}/api/analyze-inci`,
-    req,
-  );
-  return response.data;
-}
+// UI Components
+const SectionTitle = React.memo(
+  ({ children }: { children: React.ReactNode }) => (
+    <h2 className="text-lg font-semibold tracking-tight">{children}</h2>
+  ),
+);
 
-/* ---------------------------------- UI ------------------------------------ */
+const TabButton = React.memo(
+  ({
+    active,
+    onClick,
+    icon,
+    label,
+    count,
+  }: {
+    active: boolean;
+    onClick: () => void;
+    icon: React.ReactNode;
+    label: string;
+    count: number;
+  }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+        active
+          ? "bg-blue-50 text-blue-700 ring-1 ring-blue-600/20"
+          : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+      }`}
+    >
+      {icon}
+      <span>{label}</span>
+      {count > 0 && (
+        <span
+          className={`inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-xs font-medium ${
+            active ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"
+          }`}
+        >
+          {count}
+        </span>
+      )}
+    </button>
+  ),
+);
 
-// const Badge = memo(function Badge({ children }: { children: React.ReactNode }) {
-//   return (
-//     <span
-//       className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700 ring-1 ring-indigo-600/10 ring-inset"
-//       role="status"
-//     >
-//       {children}
-//     </span>
-//   );
-// });
+const LoadingSpinner = React.memo(
+  ({
+    size = "sm",
+    className = "",
+  }: {
+    size?: "sm" | "md" | "lg";
+    className?: string;
+  }) => {
+    const sizeClasses = {
+      sm: "h-4 w-4",
+      md: "h-6 w-6",
+      lg: "h-8 w-8",
+    };
 
-// function Progress({ value }: { value: number }) {
-//   const pct = Math.max(0, Math.min(100, Math.round(value * 100)));
-//   return (
-//     <div aria-label="match score" className="w-24">
-//       <div className="flex items-center justify-end gap-2 text-sm font-semibold">
-//         <span>{pct}%</span>
-//       </div>
-//       <div
-//         className="mt-1 h-2 w-full rounded-full bg-gray-200"
-//         role="progressbar"
-//         aria-valuenow={pct}
-//         aria-valuemin={0}
-//         aria-valuemax={100}
-//       >
-//         <div
-//           className="h-2 rounded-full bg-emerald-500"
-//           style={{ width: `${pct}%` }}
-//         />
-//       </div>
-//     </div>
-//   );
-// }
+    return (
+      <div
+        className={`animate-spin rounded-full border-2 border-current border-t-transparent ${sizeClasses[size]} ${className}`}
+      />
+    );
+  },
+);
 
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <h2 className="text-lg font-semibold tracking-tight">{children}</h2>;
-}
+const EmptyState = React.memo(
+  ({ title, description }: { title: string; description: string }) => (
+    <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-6 text-center">
+      <div className="mx-auto mb-4 h-12 w-12 text-gray-400">
+        <MagnifyingGlassIcon />
+      </div>
+      <h3 className="mb-2 text-sm font-semibold text-gray-900">{title}</h3>
+      <p className="text-sm text-gray-500">{description}</p>
+    </div>
+  ),
+);
 
 function IngredientAnalyzer() {
+  // State management
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [resp, setResp] = useState<AnalyzeResponse | null>(null);
-  console.log("🚀 ~ IngredientAnalyzer ~ resp:", resp);
-  const [activeTab, setActiveTab] = useState<"matched" | "unmatched">(
-    "matched",
-  );
+  const [activeTab, setActiveTab] = useState<ActiveTab>("grouped");
+  const [reportState, setReportState] = useState<ReportState>({
+    loading: false,
+    data: null,
+    pdfLoading: false,
+  });
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
 
   // Parse list on the fly (fast + memoized)
@@ -530,17 +191,88 @@ function IngredientAnalyzer() {
 
   const detectedCount = parsed?.length;
 
+  // API callbacks
   const onAnalyze = useCallback(async () => {
+    if (!parsed.length) return;
+
     setLoading(true);
     try {
-      const payload: AnalyzeRequest = { inci_names: parsed };
-      const data = await fetchIngredientAnalysis(payload);
+      const data = await api.analyzeIngredients({ inci_names: parsed });
       setResp(data);
-      setActiveTab("matched");
+      setActiveTab("grouped");
+    } catch (error) {
+      console.error("Error analyzing ingredients:", error);
     } finally {
       setLoading(false);
     }
   }, [parsed]);
+
+  const generateReport = useCallback(async () => {
+    if (!parsed.length) return;
+
+    setReportState((prev) => ({ ...prev, loading: true }));
+    try {
+      const data = await api.generateReport(parsed);
+      setReportState((prev) => ({ ...prev, data, loading: false }));
+    } catch (error) {
+      console.error("Error generating report:", error);
+      setReportState((prev) => ({
+        ...prev,
+        data: "Error generating report. Please try again.",
+        loading: false,
+      }));
+    }
+  }, [parsed]);
+
+  const downloadPDF = useCallback(async () => {
+    setReportState((prev) => ({ ...prev, pdfLoading: true }));
+    try {
+      const blob = await api.downloadPDF();
+
+      // Create blob link to download
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "formulation_report.pdf");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error downloading PDF:", error);
+      alert("Error downloading PDF. Please try again.");
+    } finally {
+      setReportState((prev) => ({ ...prev, pdfLoading: false }));
+    }
+  }, []);
+
+  const openReportInNewTab = useCallback(() => {
+    if (!reportState.data) return;
+
+    const newWindow = window.open("", "_blank");
+    if (newWindow) {
+      newWindow.document.write(reportState.data);
+      newWindow.document.close();
+    }
+  }, [reportState.data]);
+
+  // Auto-generate report when switching to analysis tab
+  useEffect(() => {
+    if (
+      activeTab === "analysis" &&
+      parsed.length > 0 &&
+      !reportState.data &&
+      !reportState.loading
+    ) {
+      generateReport();
+    }
+  }, [
+    activeTab,
+    parsed.length,
+    reportState.data,
+    reportState.loading,
+    generateReport,
+  ]);
 
   //   const tryExample = useCallback(() => {
   //     const sample = [
@@ -622,15 +354,15 @@ function IngredientAnalyzer() {
           {/* Tabs */}
           <div className="mb-5 flex flex-wrap gap-2">
             <TabButton
-              active={activeTab === "matched"}
-              onClick={() => setActiveTab("matched")}
+              active={activeTab === "grouped"}
+              onClick={() => setActiveTab("grouped")}
               icon={
                 <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-indigo-600 text-[11px] font-bold text-white">
                   ⓘ
                 </span>
               }
               label={"Branded Ingredients"}
-              count={resp.matched?.length}
+              count={resp.grouped?.length}
             />
             <TabButton
               active={activeTab === "unmatched"}
@@ -642,6 +374,17 @@ function IngredientAnalyzer() {
               }
               label="Unmatched INCI"
               count={resp.unmatched?.length}
+            />
+            <TabButton
+              active={activeTab === "analysis"}
+              onClick={() => setActiveTab("analysis")}
+              icon={
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-green-600 text-[11px] text-white">
+                  📊
+                </span>
+              }
+              label="Analysis Report"
+              count={0}
             />
             {/* <TabButton
               active={activeTab === "conflicts"}
@@ -656,72 +399,70 @@ function IngredientAnalyzer() {
             /> */}
           </div>
 
-          {activeTab === "matched" && (
+          {activeTab === "grouped" && (
             <div className="space-y-6">
-              {resp.matched?.map((m) => (
-                <article
-                  key={m.ingredient_name}
-                  className="bg-card ring-border hover:ring-primary rounded-lg p-5 shadow-lg ring transition hover:ring-2"
-                >
-                  <div className="flex flex-wrap items-start gap-4">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="truncate text-lg font-semibold capitalize">
-                          {m.ingredient_name}
-                        </h3>
-                        {/* <Badge>High Confidence</Badge> */}
-                      </div>
-                      <div className="text-muted-foreground mt-1 flex gap-1 text-sm">
-                        <BuildingStorefrontIcon className="size-5 capitalize" />{" "}
-                        {m.supplier_name}
-                      </div>
+              {resp.grouped?.map((m: GroupItem) => {
+                return (
+                  <div key={m.inci_list.join("-")}>
+                    {/* {m.inci_list.join("-")} */}
 
-                      <p className="mt-3 max-w-3xl text-sm leading-6 text-gray-700">
-                        {m.description}
-                      </p>
-
-                      <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                        <div>
-                          <SectionTitle>
-                            Matched INCI Names{" "}
-                            {m.matched_count && (
-                              <span className="text-muted-foreground text-sm">
-                                ({m.matched_count})
-                              </span>
-                            )}
-                          </SectionTitle>
-                          <div className="mt-2 flex flex-wrap gap-1.5">
-                            {m.matched_inci?.map((i) => (
-                              //   <Pill key={i}>{i}</Pill>
-                              <Badge
-                                variant={"outline"}
-                                className="text-muted-foreground border-primary capitalize"
-                                key={i}
-                              >
-                                {i}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                        {/* <div className="sm:text-right">
-                          <SectionTitle>Match Count</SectionTitle>
-                          <div className="mt-2 inline-flex items-center gap-4">
-                            {m.matched_count}
-                          </div>
-                        </div> */}
-                      </div>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {m.inci_list?.map((i) => (
+                        <Badge
+                          variant={"outline"}
+                          className="text-muted-foreground border-primary capitalize"
+                          key={i}
+                        >
+                          {i}
+                        </Badge>
+                      ))}
                     </div>
+
+                    <Accordion
+                      type="single"
+                      collapsible
+                      className="mt-5 w-full rounded-2xl border px-5 py-2"
+                      defaultValue="item-1"
+                    >
+                      {m.items.map((item) => (
+                        <AccordionItem
+                          value={item.ingredient_name}
+                          key={item.ingredient_name}
+                        >
+                          <AccordionTrigger>
+                            <div className="flex w-full justify-between">
+                              <h3 className="truncate text-lg capitalize">
+                                {item.ingredient_name}
+                              </h3>
+                              <div className="text-muted-foreground flex items-center gap-1">
+                                <span className="!no-underline">
+                                  {item.supplier_name}
+                                </span>
+                                <BuildingStorefrontIcon className="size-5 capitalize" />{" "}
+                              </div>
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="flex w-full flex-col gap-4 text-balance">
+                            <p className="text-un w-full leading-6">
+                              {item.description}
+                            </p>
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
                   </div>
-                </article>
-              ))}
+                );
+              })}
             </div>
           )}
+
+          {/* */}
 
           {activeTab === "unmatched" && (
             <div>
               <SectionTitle>Unmatched INCI</SectionTitle>
               <p className="mt-2 text-sm text-gray-600">
-                We couldn’t match these items to branded ingredients. Check
+                We couldn't match these items to branded ingredients. Check
                 spelling or upload a TDS.
               </p>
               <div className="mt-3 flex flex-wrap gap-1.5">
@@ -734,6 +475,92 @@ function IngredientAnalyzer() {
                     {u}
                   </Badge>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === "analysis" && (
+            <div>
+              <SectionTitle>Analysis Report</SectionTitle>
+
+              <div className="mt-4 space-y-4">
+                {reportState.loading && (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="flex items-center gap-3">
+                      <LoadingSpinner size="md" className="text-blue-600" />
+                      <span className="text-sm text-gray-600">
+                        Generating comprehensive report...
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {reportState.data && (
+                  <div className="flex flex-wrap gap-3">
+                    <Button
+                      onClick={openReportInNewTab}
+                      variant="outlined"
+                      className="flex items-center gap-2"
+                    >
+                      🔗 Open in New Tab
+                    </Button>
+
+                    <Button
+                      onClick={downloadPDF}
+                      disabled={reportState.pdfLoading}
+                      variant="outlined"
+                      className="flex items-center gap-2"
+                    >
+                      {reportState.pdfLoading ? (
+                        <>
+                          <LoadingSpinner size="sm" className="text-gray-600" />
+                          Downloading...
+                        </>
+                      ) : (
+                        <>📄 Download PDF</>
+                      )}
+                    </Button>
+                  </div>
+                )}
+
+                {reportState.data && (
+                  <div className="mt-6">
+                    <div className="rounded-lg border bg-white p-4">
+                      <h3 className="mb-3 text-sm font-medium text-gray-900">
+                        Report Preview
+                      </h3>
+                      <div className="max-h-96 overflow-y-auto rounded-lg border">
+                        {reportState.data.includes("<html") ? (
+                          <iframe
+                            srcDoc={reportState.data}
+                            className="h-96 w-full border-0"
+                            title="Formulation Report Preview"
+                          />
+                        ) : (
+                          <pre className="p-4 font-mono text-xs whitespace-pre-wrap text-gray-700">
+                            {reportState.data}
+                          </pre>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {!parsed.length && (
+                  <EmptyState
+                    title="No ingredients to analyze"
+                    description="Please analyze some ingredients first to view the report."
+                  />
+                )}
+
+                {parsed.length > 0 &&
+                  !reportState.data &&
+                  !reportState.loading && (
+                    <EmptyState
+                      title="Report ready to generate"
+                      description="Report will be generated automatically when you switch to this tab."
+                    />
+                  )}
               </div>
             </div>
           )}
@@ -751,46 +578,6 @@ function IngredientAnalyzer() {
 }
 
 /* ------------------------------- Small bits ------------------------------- */
-
-function TabButton({
-  active,
-  onClick,
-  icon,
-  label,
-  count,
-}: {
-  active: boolean;
-  onClick: () => void;
-  icon: React.ReactNode;
-  label: string;
-  count: number;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={[
-        "inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm ring-1 ring-inset",
-        active
-          ? "bg-primary ring-primary text-white"
-          : "bg-white ring-gray-300 hover:bg-gray-50",
-      ].join(" ")}
-      aria-pressed={active}
-    >
-      {icon}
-      <span>{label}</span>
-      <span
-        className={
-          active
-            ? "rounded bg-white/20 px-2 py-0.5 text-xs"
-            : "rounded bg-gray-100 px-2 py-0.5 text-xs"
-        }
-      >
-        {count}
-      </span>
-    </button>
-  );
-}
 
 // function EmptyState({
 //   title,

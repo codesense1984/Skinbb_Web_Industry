@@ -57,6 +57,7 @@ export default defineConfig([
         location: true,
         getComputedStyle: true,
         requestAnimationFrame: true,
+        __dirname: true,
       },
     },
 

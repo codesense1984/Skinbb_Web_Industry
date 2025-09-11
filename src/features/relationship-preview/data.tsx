@@ -1,7 +1,6 @@
 import type { Core, EventObject, LayoutOptions, NodeSingular } from "cytoscape";
-import type { ApiResponse } from "@/services";
 import DATA from "./cleaned-data.json";
-import type { Option } from "@/components/ui/combo-box";
+import type { Option } from "@/core/types";
 export type Product = {
   brand_name: string;
   product_name: string;
@@ -201,20 +200,17 @@ export const relationshipLayouts: Record<
   }),
 };
 
-export async function fetchData(): Promise<ApiResponse<Product[]>> {
-  return {
-    data: PRODUCT_INGREDIENT,
-    error: "",
-  };
+export async function fetchData(): Promise<Product[]> {
+  return PRODUCT_INGREDIENT;
 }
 
 export async function autocompleteIngredient(query: string): Promise<Option[]> {
-  const { data: products } = await fetchData();
+  const products = await fetchData();
   const ingredientSet = new Set<string>();
 
   // Collect all ingredients from all products
-  products?.forEach((product) => {
-    product.all_ingredients.forEach((ingredient) => {
+  products?.forEach((product: Product) => {
+    product.all_ingredients.forEach((ingredient: string) => {
       ingredientSet.add(ingredient);
     });
   });
