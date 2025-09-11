@@ -1,15 +1,16 @@
+import { fadeInUp } from "@/core/styles/animation/presets";
 import { cn } from "@/core/utils";
+import { ArrowLeftIcon } from "@heroicons/react/24/solid";
+import { motion } from "motion/react";
 import React, {
   useEffect,
   useState,
   type ElementType,
   type ReactNode,
 } from "react";
-import { Button } from "./button";
-import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import { useNavigate } from "react-router";
-import { motion } from "motion/react";
-import { fadeInUp } from "@/core/styles/animation/presets";
+import { Button } from "./button";
+import { FullLoader } from "./loader";
 
 type PageContentProps = {
   as?: ElementType;
@@ -20,6 +21,8 @@ type PageContentProps = {
   header?: PageHeaderProps;
   hideGradient?: boolean;
   showBorder?: boolean;
+  loading?: boolean;
+  error?: Error | null;
 };
 
 export function PageContent({
@@ -31,6 +34,8 @@ export function PageContent({
   noPadding,
   hideGradient = false,
   showBorder = false,
+  loading = false,
+  error,
 }: PageContentProps) {
   return (
     <Tag
@@ -50,7 +55,18 @@ export function PageContent({
         )}
       >
         {header && <PageHeader {...header} />}
-        {children}
+        {loading && <FullLoader />}
+
+        {error ? (
+          <div className="border-destructive mt-5 rounded-md border p-4">
+            <h4 className="mb-2">Error</h4>
+            <p className="text-destructive">
+              {error?.message ?? "Unknown error"}
+            </p>
+          </div>
+        ) : (
+          children
+        )}
       </div>
     </Tag>
   );

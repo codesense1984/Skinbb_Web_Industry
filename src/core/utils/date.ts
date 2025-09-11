@@ -1,3 +1,5 @@
+import { formatDate as fnsDateFormat } from "date-fns";
+
 export function formatDate(date: string | Date, locale = "en-US") {
   const d = new Date(date);
   return d.toLocaleDateString(locale, {
@@ -24,4 +26,8 @@ export function timeAgo(date: string | Date) {
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   return `${Math.floor(diff / 86400)}d ago`;
+}
+
+export function formatDateForApi(dateString: string | Date): string {
+  return fnsDateFormat(dateString, "dd/MM/yyyy");
 }

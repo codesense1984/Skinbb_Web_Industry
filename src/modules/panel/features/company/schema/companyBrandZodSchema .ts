@@ -1,7 +1,7 @@
 // schema/companyBrand.schema.ts
 import type { FormFieldConfig } from "@/core/components/ui/form-input";
 import { MODE } from "@/core/types";
-import { type CompanyBrand } from "@/modules/panel/types";
+import { type CompanyOnboardingBrand } from "@/modules/panel/types";
 import { z } from "zod";
 
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/jpg"];
@@ -15,7 +15,9 @@ export const companyBrandZodSchema = z.object({
   letterOfAuthorization: z.any().optional(),
 });
 
-export const companyBrandDefaultValues = (data?: Partial<CompanyBrand>) => ({
+export const companyBrandDefaultValues = (
+  data?: Partial<CompanyOnboardingBrand>,
+) => ({
   logo_files: data?.logo_files ?? [],
   brandName: data?.brandName ?? "",
   category: data?.category ?? "",
@@ -26,7 +28,7 @@ export const companyBrandDefaultValues = (data?: Partial<CompanyBrand>) => ({
 
 export const companyBrandSchema: Record<
   string,
-  ({ mode }: { mode?: MODE }) => FormFieldConfig<CompanyBrand>[]
+  ({ mode }: { mode?: MODE }) => FormFieldConfig<CompanyOnboardingBrand>[]
 > = {
   uploadImage: ({ mode }) => [
     {

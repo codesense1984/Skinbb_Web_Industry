@@ -41,7 +41,7 @@ export interface UseTableOptions<TData> {
   columns: ColumnDef<TData, unknown>[];
   pageSize?: number;
   filterableKeys?: (keyof TData)[];
-  defaultViewMode: DataViewMode;
+  // defaultViewMode: DataViewMode;
 
   // Server-side options (new functionality)
   /** Enable server-side mode */
@@ -53,7 +53,7 @@ export interface UseTableOptions<TData> {
   initialColumnFilters?: ColumnFiltersState;
   initialGlobalFilter?: string;
   /** Optional: persist key for view mode if you need different tables to keep separate prefs */
-  storageKey?: string;
+  // storageKey?: string;
   /** Debounce (ms) for global search in server-side mode */
   searchDebounceMs?: number;
   /** Optional: prefix for query keys to allow independent caching of different tables */
@@ -69,9 +69,9 @@ export interface UseTableResponse<TData> {
     pageSize: number;
   };
   setGlobalFilter: Dispatch<SetStateAction<string>>;
-  toggleViewMode: () => void;
-  viewMode: DataViewMode;
-  setViewMode: Dispatch<SetStateAction<DataViewMode>>;
+  // toggleViewMode: () => void;
+  // viewMode: DataViewMode;
+  // setViewMode: Dispatch<SetStateAction<DataViewMode>>;
 
   // Server-side additional return values
   isLoading?: boolean;
@@ -105,6 +105,7 @@ export interface DataPaginationProps<TData> extends ComponentProps<"div"> {
 
   /** Optional total rows from server (for manual/server-side pagination) */
   serverTotal?: number;
+  isServerSide?: boolean;
 }
 
 export interface DataTableActionProps<TData> extends ComponentProps<"div"> {
@@ -113,6 +114,7 @@ export interface DataTableActionProps<TData> extends ComponentProps<"div"> {
   showViewToggle?: boolean;
   showColumnsFilter?: boolean;
   tableHeading?: string;
+  viewMode?: DataViewMode;
 }
 
 export interface DataTableProps<TData extends object>

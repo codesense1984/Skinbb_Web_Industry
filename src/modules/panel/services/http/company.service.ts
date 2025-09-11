@@ -1,17 +1,18 @@
 import { api } from "@/core/services/http";
-import { ENDPOINTS } from "../../config/endpoint.config";
+import type { ApiResponse, PaginationParams } from "@/core/types";
+import { createFormData } from "@/core/utils/formdata.utils";
 import type {
-  ApiResponse,
-  PaginationParams,
-} from "@/core/types";
+  CompanyLocationBrandResponse,
+  CompanyLocationBrandsResponse,
+} from "@/modules/panel/types/brand.type";
 import type {
+  CompanyDetailDataResponse,
+  CompanyDetailResponse,
+  CompanyListItem,
   CompanyOnboading,
   CompanyOnboardingSubmitRequest,
-  CompanyListItem,
-  CompanyDetailDataResponse,
 } from "@/modules/panel/types/company.type";
-import type { CompanyLocationBrandsResponse, CompanyLocationBrandResponse } from "@/modules/panel/types/brand.type";
-import { createFormData } from "@/core/utils/formdata.utils";
+import { ENDPOINTS } from "../../config/endpoint.config";
 
 // Get all onboard entries (with params for search, paging, sorting)
 export async function apiGetOnboardList<T, U extends Record<string, unknown>>(
@@ -29,10 +30,17 @@ export async function apiGetOnboardById<T>(id: string) {
 export async function apiUpdateOnboardById<
   T,
   U extends Record<string, unknown>,
->(id: string, data: U) {
-  return api.put<T>(ENDPOINTS.ONBOARDING.ADMIN_BY_ID(id), {
-    data,
-  });
+>(companyId: string, locationId: string, data: U) {
+  const formData = createFormData(data, ["addresses", "sellingOn"]);
+  return api.put<T>(
+    ENDPOINTS.ONBOARDING.COMPANY_LOCATION_DETAILS(companyId, locationId),
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    },
+  );
 }
 
 // ---- Onboarding ----
@@ -135,6 +143,7 @@ export async function apiGetCompanyDetails<T>() {
 export interface CompanyDropdownItem {
   _id: string;
   companyName: string;
+  companyStatus: string;
 }
 
 export async function apiGetCompanyDropdownList<
@@ -151,7 +160,7 @@ export async function apiGetOnboardCompanyDetailById<
 }
 
 export async function apiGetCompanyDetailById<
-  T = ApiResponse<CompanyOnboading>,
+  T = ApiResponse<CompanyDetailResponse>,
 >(companyId: string) {
   return api.get<T>(ENDPOINTS.SELLER.GET_COMPANY_DETAILS(companyId));
 }
@@ -192,7 +201,9 @@ export async function apiGetOnboardingCheckStatus(
 }
 
 // Get company list with pagination
-export interface CompanyListParams extends PaginationParams {
+export interface CompanyListParams
+  extends PaginationParams,
+    Record<string, unknown> {
   status?: string;
 }
 
@@ -204,13 +215,21 @@ export async function apiGetCompanyList<
     total: number;
   }>,
 >(params: CompanyListParams, signal?: AbortSignal) {
-  return api.get<T>(ENDPOINTS.SELLER.MAIN, { params, signal });
+  return api.get<T>(ENDPOINTS.SELLER.MAIN, {
+    params: {
+      ...params,
+      ...(params.companyStatus
+        ? { status: params.companyStatus as string }
+        : {}),
+    },
+    signal,
+  });
 }
 
 // Update company status (approval/rejection)
 export interface CompanyStatusUpdateRequest {
   status: string;
-  reason: string;
+  reason?: string;
 }
 
 export interface CompanyStatusUpdateResponse {
@@ -233,96 +252,111 @@ export async function apiUpdateCompanyStatus(
 }
 
 // Get company details for onboarding format
-export async function apiGetCompanyDetailsForOnboarding<T = ApiResponse<{
-  company: {
-    companyId: string;
-    logo: string;
-    establishedIn: string;
-    companyName: string;
-    companyCategory: string;
-    businessType: string;
-    subsidiaryOfGlobalBusiness: boolean;
-    headquaterLocation: string;
-    website: string;
-    status: string;
-    landlineNo: string;
-    isCompanyBrand: boolean;
-    isDeleted: boolean;
-    createdAt: string;
-    updatedAt: string;
-    addresses: Array<{
-      addressId: string;
-      addressType: string;
-      addressLine1: string;
-      addressLine2: string;
-      city: string;
-      state: string;
-      postalCode: string;
-      country: string;
-      isPrimary: boolean;
-      landmark: string;
-      gstNumber: string;
-      panNumber: string;
-      cinNumber: string;
-      msmeNumber: string;
-      landlineNumber: string;
-      coiCertificate: string;
-      panCertificate: string;
-      gstCertificate: string;
-      msmeCertificate: string;
+export async function apiGetCompanyDetailsForOnboarding<
+  T = ApiResponse<{
+    company: {
+      companyId: string;
+      logo: string;
+      establishedIn: string;
+      companyName: string;
+      companyCategory: string;
+      businessType: string;
+      subsidiaryOfGlobalBusiness: boolean;
+      headquaterLocation: string;
+      website: string;
       status: string;
-      statusChangeReason: string;
-      statusChangedAt: string;
-      lat: number;
-      lng: number;
+      landlineNo: string;
+      isCompanyBrand: boolean;
+      isDeleted: boolean;
       createdAt: string;
       updatedAt: string;
-      brands: Array<{
-        _id: string;
-        name: string;
-        slug: string;
-        totalSKU: number;
-        instagramUrl: string;
-        facebookUrl: string;
-        youtubeUrl: string;
-        productCategory: string[];
-        averageSellingPrice: number;
-        marketingBudget: number;
-        sellingOn: Array<{
-          platform: string;
-          url: string;
-        }>;
-        aboutTheBrand: string;
-        websiteUrl: string;
-        isActive: boolean;
-        logoImage: string;
-        coverImage: string;
-        authorizationLetter: string;
-        createdBy: string;
-        isDeleted: boolean;
-        deletedAt: string;
-        deletedBy: string;
+      addresses: Array<{
+        addressId: string;
+        addressType: string;
+        addressLine1: string;
+        addressLine2: string;
+        city: string;
+        state: string;
+        postalCode: string;
+        country: string;
+        isPrimary: boolean;
+        landmark: string;
+        gstNumber: string;
+        panNumber: string;
+        cinNumber: string;
+        msmeNumber: string;
+        landlineNumber: string;
+        coiCertificate: string;
+        panCertificate: string;
+        gstCertificate: string;
+        msmeCertificate: string;
+        status: string;
+        statusChangeReason: string;
+        statusChangedAt: string;
+        lat: number;
+        lng: number;
         createdAt: string;
         updatedAt: string;
+        brands: Array<{
+          _id: string;
+          name: string;
+          slug: string;
+          totalSKU: number;
+          instagramUrl: string;
+          facebookUrl: string;
+          youtubeUrl: string;
+          productCategory: string[];
+          averageSellingPrice: number;
+          marketingBudget: number;
+          sellingOn: Array<{
+            platform: string;
+            url: string;
+          }>;
+          aboutTheBrand: string;
+          websiteUrl: string;
+          isActive: boolean;
+          logoImage: string;
+          coverImage: string;
+          authorizationLetter: string;
+          createdBy: string;
+          isDeleted: boolean;
+          deletedAt: string;
+          deletedBy: string;
+          createdAt: string;
+          updatedAt: string;
+        }>;
       }>;
-    }>;
-    owner: {
-      ownerUserId: string;
-      ownerUser: string;
-      ownerEmail: string;
-      ownerPhone: string;
-      ownerPassword: string;
-      ownerDesignation: string;
+      owner: {
+        ownerUserId: string;
+        ownerUser: string;
+        ownerEmail: string;
+        ownerPhone: string;
+        ownerPassword: string;
+        ownerDesignation: string;
+      };
     };
-  };
-}>>(companyId: string) {
+  }>,
+>(companyId: string) {
   return api.get<T>(ENDPOINTS.ONBOARDING.COMPANY_DETAILS(companyId));
+}
+
+export interface CompanyUserResponse {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber: string;
+  status: string;
+  isActive: boolean;
+  roleId: string;
+  roleValue: string;
+  createdAt: string;
 }
 
 // Get company users
 export async function apiGetCompanyUsers<
   T = ApiResponse<{
-    items: any[];
+    items: Array<CompanyUserResponse>;
     page: number;
     limit: number;
     total: number;
@@ -333,59 +367,69 @@ export async function apiGetCompanyUsers<
 
 // ---- Company Location Brands ----
 // Get brands for a specific company location
-export async function apiGetCompanyLocationBrands<T = CompanyLocationBrandsResponse>(
+export async function apiGetCompanyLocationBrands<
+  T = CompanyLocationBrandsResponse,
+>(
   companyId: string,
   locationId: string,
   params?: PaginationParams,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ) {
-  return api.get<T>(ENDPOINTS.COMPANY_LOCATION_BRANDS.LIST(companyId, locationId), { 
-    params, 
-    signal 
-  });
+  return api.get<T>(
+    ENDPOINTS.COMPANY_LOCATION_BRANDS.LIST(companyId, locationId),
+    {
+      params,
+      signal,
+    },
+  );
 }
 
 // Get brand details for a specific company location
-export async function apiGetCompanyLocationBrandById<T = CompanyLocationBrandResponse>(
-  companyId: string,
-  locationId: string,
-  brandId: string
-) {
-  return api.get<T>(ENDPOINTS.COMPANY_LOCATION_BRANDS.GET_BY_ID(companyId, locationId, brandId));
+export async function apiGetCompanyLocationBrandById<
+  T = CompanyLocationBrandResponse,
+>(companyId: string, locationId: string, brandId: string) {
+  return api.get<T>(
+    ENDPOINTS.COMPANY_LOCATION_BRANDS.GET_BY_ID(companyId, locationId, brandId),
+  );
 }
 
 // Create brand for a specific company location
-export async function apiCreateCompanyLocationBrand<T = CompanyLocationBrandResponse>(
-  companyId: string,
-  locationId: string,
-  data: FormData
-) {
-  return api.post<T>(ENDPOINTS.COMPANY_LOCATION_BRANDS.CREATE(companyId, locationId), data, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
+export async function apiCreateCompanyLocationBrand<
+  T = CompanyLocationBrandResponse,
+>(companyId: string, locationId: string, data: FormData) {
+  return api.post<T>(
+    ENDPOINTS.COMPANY_LOCATION_BRANDS.CREATE(companyId, locationId),
+    data,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
     },
-  });
+  );
 }
 
 // Update brand for a specific company location
-export async function apiUpdateCompanyLocationBrand<T = CompanyLocationBrandResponse>(
-  companyId: string,
-  locationId: string,
-  brandId: string,
-  data: FormData
-) {
-  return api.put<T>(ENDPOINTS.COMPANY_LOCATION_BRANDS.UPDATE(companyId, locationId, brandId), data, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
+export async function apiUpdateCompanyLocationBrand<
+  T = CompanyLocationBrandResponse,
+>(companyId: string, locationId: string, brandId: string, data: FormData) {
+  return api.put<T>(
+    ENDPOINTS.COMPANY_LOCATION_BRANDS.UPDATE(companyId, locationId, brandId),
+    data,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
     },
-  });
+  );
 }
 
 // Delete brand for a specific company location
 export async function apiDeleteCompanyLocationBrand<T = ApiResponse<any>>(
   companyId: string,
   locationId: string,
-  brandId: string
+  brandId: string,
 ) {
-  return api.delete<T>(ENDPOINTS.COMPANY_LOCATION_BRANDS.DELETE(companyId, locationId, brandId));
+  return api.delete<T>(
+    ENDPOINTS.COMPANY_LOCATION_BRANDS.DELETE(companyId, locationId, brandId),
+  );
 }

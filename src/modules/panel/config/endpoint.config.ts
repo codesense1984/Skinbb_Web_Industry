@@ -26,6 +26,7 @@ export const ENDPOINTS = {
 
   COMPANY: {
     MAIN: `${API_PREFIX}/company`,
+    DETAIL: (id: string) => `${API_PREFIX}/company/${id}`,
     LOCATION: (companyId: string) =>
       `${API_PREFIX}/company/${companyId}/locations`,
     LOCATION_DETAILS: (companyId: string, locationId: string) =>
@@ -142,6 +143,12 @@ export const ENDPOINTS = {
     TOP_PRODUCTS: `${API_PREFIX}/dashboard/admin/top-products-analytics`,
     TOP_BRANDS: `${API_PREFIX}/dashboard/admin/top-brands-analytics`,
     TOP_SELLERS: `${API_PREFIX}/dashboard/admin/top-sellers-analytics`,
+  },
+
+  VERIFICATION: {
+    VERIFY_PAN: `${API_PREFIX}/company-verification/verify-pan`,
+    VERIFY_GST: `${API_PREFIX}/company-verification/verify-gst`,
+    VERIFY_CIN: `${API_PREFIX}/company-verification/verify-cin`,
   },
 } as const;
 

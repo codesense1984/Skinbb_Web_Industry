@@ -15,12 +15,28 @@ import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 // Validation schema for approval form
-const approvalSchema = z.object({
-  status: z.string({
-    required_error: "Please select a status",
-  }),
-  reason: z.string().min(10, "Reason must be at least 10 characters"),
-});
+const approvalSchema = z
+  .object({
+    status: z.string({
+      required_error: "Please select a status",
+    }),
+    reason: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      // If status is rejected, reason is required and must be at least 10 characters
+      if (data.status === "rejected") {
+        return data.reason && data.reason.length >= 10;
+      }
+      // If status is approved, reason is optional
+      return true;
+    },
+    {
+      message:
+        "Reason is required and must be at least 10 characters when rejecting",
+      path: ["reason"],
+    },
+  );
 
 type ApprovalFormData = z.infer<typeof approvalSchema>;
 
@@ -47,6 +63,7 @@ export const CompanyApprovalDialog: React.FC<CompanyApprovalDialogProps> = ({
     control,
     formState: { errors },
     reset,
+    trigger,
   } = useForm<ApprovalFormData>({
     resolver: zodResolver(approvalSchema),
     defaultValues: {
@@ -78,8 +95,10 @@ export const CompanyApprovalDialog: React.FC<CompanyApprovalDialogProps> = ({
     onClose();
   };
 
-  const handleStatusChange = (status: "approved" | "rejected") => {
+  const handleStatusChange = async (status: "approved" | "rejected") => {
     setValue("status", status);
+    // Trigger validation to update the reason field validation
+    await trigger("reason");
   };
 
   return (
@@ -126,13 +145,16 @@ export const CompanyApprovalDialog: React.FC<CompanyApprovalDialogProps> = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="reason">Reason</Label>
+            <Label htmlFor="reason">
+              Reason{" "}
+              {status === "rejected" && <span className="text-red-500">*</span>}
+            </Label>
             <Textarea
               id="reason"
               placeholder={
                 status === "approved"
-                  ? "Enter reason for approval..."
-                  : "Enter reason for rejection..."
+                  ? "Enter reason for approval (optional)..."
+                  : "Enter reason for rejection (required)..."
               }
               {...register("reason")}
               className="min-h-[100px]"

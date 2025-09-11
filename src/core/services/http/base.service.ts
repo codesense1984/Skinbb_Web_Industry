@@ -91,7 +91,7 @@ async function refreshAccessToken(): Promise<string | null> {
 http.interceptors.response.use(
   (res) => res,
   async (error: unknown) => {
-    console.log("🚀 ~response error:", error);
+    // console.log("🚀 ~response error:", error);
     // If request was aborted by React Query, surface a friendly error
     if (axios.isCancel(error)) {
       return Promise.reject(
@@ -207,10 +207,11 @@ export const api = {
 // ---- React Query: sane defaults + helpers --------------------------------
 export const defaultQueryOptions: DefaultOptions = {
   queries: {
-    staleTime: 60_000, // 1 min: avoid over‑fetching
-    gcTime: 5 * 60_000, // 5 min cache
+    staleTime: 5_000, // 10 seconds: avoid over‑fetching
+    // gcTime: 5 * 60_000, // 5 min cache
     refetchOnReconnect: true,
-    refetchOnWindowFocus: "always",
+    // refetchOnWindowFocus: "always",
+    refetchOnWindowFocus: false,
     retry(failureCount, err) {
       const e = err as AxiosError;
       const status = e.response?.status ?? 0;

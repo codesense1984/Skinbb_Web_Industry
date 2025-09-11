@@ -38,17 +38,14 @@ export const AddressDetails: React.FC<AddressDetailsProps> = ({ mode }) => {
     <div className="space-y-6">
       {fields.map((field, idx) => {
         // Check if this address is already "registered"
-        const isCurrentRegistered = field.addressType === "registered";
-
         return (
           <Fragment key={field.id}>
             <AddressForm
               mode={mode}
               addressIndex={idx}
               field={field}
-              isCurrentRegistered={isCurrentRegistered}
-              hasRegisteredAddress={hasRegisteredAddress}
               companyId={companyId}
+              hasRegisteredAddress={hasRegisteredAddress}
             />
             {idx !== fields.length - 1 && <Separator className="my-8" />}
           </Fragment>

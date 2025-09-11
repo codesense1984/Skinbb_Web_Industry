@@ -178,11 +178,11 @@ const columns: ColumnDef<Brand>[] = [
         <TableAction
           view={{
             to: PANEL_ROUTES.BRAND.VIEW(row.original._id),
-            tooltip: "View brand details",
+            title: "View brand details",
           }}
           edit={{
             to: PANEL_ROUTES.BRAND.EDIT(row.original._id),
-            tooltip: "Edit brand",
+            title: "Edit brand",
           }}
         />
       );

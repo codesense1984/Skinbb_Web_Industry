@@ -1,3 +1,4 @@
+import { useDebounce } from "@/core/hooks/useDebounce";
 import { useQuery } from "@tanstack/react-query";
 import {
   getCoreRowModel,
@@ -10,21 +11,16 @@ import {
   type VisibilityState,
 } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
-import { useDebounce } from "@/core/hooks/useDebounce";
 import { createGlobalFilter } from "./utils";
-import { LOCAL_STORAGE_VIEW_MODE_KEY } from "./constants";
-import {
-  DataViewMode,
-  type UseTableOptions,
-  type UseTableResponse,
-} from "./types";
+// import { LOCAL_STORAGE_VIEW_MODE_KEY } from "./constants";
+import { type UseTableOptions, type UseTableResponse } from "./types";
 
 export function useTable<TData extends object>({
   rows: clientRows,
   columns,
   pageSize = 10,
   filterableKeys = [],
-  defaultViewMode = DataViewMode.list,
+  // defaultViewMode = DataViewMode.list,
 
   // Server-side options
   isServerSide = false,
@@ -32,7 +28,7 @@ export function useTable<TData extends object>({
   initialSorting = [],
   initialColumnFilters = [],
   initialGlobalFilter = "",
-  storageKey,
+  // storageKey,
   searchDebounceMs = 400,
   queryKeyPrefix,
   meta,
@@ -48,21 +44,21 @@ export function useTable<TData extends object>({
   const [globalFilter, setGlobalFilter] = useState(initialGlobalFilter);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
-  const [viewMode, setViewMode] = useState<DataViewMode | undefined>(undefined);
+  // const [viewMode, setViewMode] = useState<DataViewMode | undefined>(undefined);
 
-  // Persist & hydrate view mode
-  const storageKeyFinal =
-    storageKey ?? `${LOCAL_STORAGE_VIEW_MODE_KEY}::default`;
+  // // Persist & hydrate view mode
+  // const storageKeyFinal =
+  //   storageKey ?? `${LOCAL_STORAGE_VIEW_MODE_KEY}::default`;
 
-  useEffect(() => {
-    const saved = localStorage.getItem(storageKeyFinal) as DataViewMode | null;
-    if (saved) setViewMode(saved);
-    else localStorage.setItem(storageKeyFinal, defaultViewMode);
-  }, [storageKeyFinal, defaultViewMode]);
+  // useEffect(() => {
+  //   const saved = localStorage.getItem(storageKeyFinal) as DataViewMode | null;
+  //   if (saved) setViewMode(saved);
+  //   else localStorage.setItem(storageKeyFinal, defaultViewMode);
+  // }, [storageKeyFinal, defaultViewMode]);
 
-  useEffect(() => {
-    if (viewMode) localStorage.setItem(storageKeyFinal, viewMode);
-  }, [viewMode, storageKeyFinal]);
+  // useEffect(() => {
+  //   if (viewMode) localStorage.setItem(storageKeyFinal, viewMode);
+  // }, [viewMode, storageKeyFinal]);
 
   // Always call hooks, but conditionally use their results
   // Debounce the search string so we don't spam the API while typing
@@ -78,7 +74,7 @@ export function useTable<TData extends object>({
   const queryKey = useMemo<
     [
       string,
-      string,
+      // string,
       {
         p: typeof pagination;
         s: SortingState;
@@ -89,15 +85,23 @@ export function useTable<TData extends object>({
   >(
     () => [
       queryKeyPrefix ?? "server-table",
-      storageKeyFinal,
-      { p: pagination, s: sorting, f: columnFilters, g: debouncedGlobal },
+      // storageKeyFinal,
+      // For server-side: include all state changes
+      // For client-side: only include global filter (search) changes
+      isServerSide && !!fetcher
+        ? { p: pagination, s: sorting, f: columnFilters, g: debouncedGlobal }
+        : { p: pagination, s: [], f: [], g: debouncedGlobal },
     ],
     [
       queryKeyPrefix,
-      storageKeyFinal,
-      pagination,
-      sorting,
-      columnFilters,
+      // storageKeyFinal,
+      isServerSide,
+      fetcher,
+      // Only include pagination, sorting, columnFilters for server-side
+      ...(isServerSide && !!fetcher
+        ? [pagination, sorting, columnFilters]
+        : []),
+      // Always include global filter for both scenarios
       debouncedGlobal,
     ],
   );
@@ -112,20 +116,36 @@ export function useTable<TData extends object>({
   } = useQuery({
     queryKey,
     queryFn: ({ signal }) => {
-      if (!isServerSide || !fetcher) {
-        throw new Error("Server-side mode not properly configured");
+      if (!fetcher) {
+        throw new Error("Fetcher not provided");
       }
-      return fetcher({
-        pageIndex: pagination.pageIndex,
-        pageSize: pagination.pageSize,
-        sorting,
-        columnFilters,
-        globalFilter: debouncedGlobal,
-        signal,
-      });
+
+      // For scenario 3 (client-side with auto-recall), we fetch all data without pagination
+      // For scenario 2 (server-side), we pass pagination parameters
+      if (isServerSide) {
+        return fetcher({
+          pageIndex: pagination.pageIndex,
+          pageSize: pagination.pageSize,
+          sorting,
+          columnFilters,
+          globalFilter: debouncedGlobal,
+          signal,
+        });
+      } else {
+        // Scenario 3: Fetch all data for client-side processing
+        // Only use global filter for server-side search, everything else is client-side
+        return fetcher({
+          pageIndex: 0,
+          pageSize: -1, // Large page size to get all data
+          sorting: [], // No server-side sorting
+          columnFilters: [], // No server-side filtering
+          globalFilter: debouncedGlobal, // Only use global filter for search
+          signal,
+        });
+      }
     },
-    // Only enable the query if we're in server-side mode with a fetcher
-    enabled: isServerSide && !!fetcher,
+    // Enable query if fetcher is provided
+    enabled: !!fetcher,
     // Cache & UX tuning
     staleTime: 30_000, // keep cached data fresh for 30s
     gcTime: 5 * 60_000, // cache garbage-collect after 5min
@@ -134,18 +154,32 @@ export function useTable<TData extends object>({
   });
 
   // Server-side functionality - conditionally assign values
-  const serverData = isServerSide && fetcher ? data : undefined;
-  const isLoading = isServerSide && fetcher ? isPending : false;
-  const isRefetching = isServerSide && fetcher ? isFetching : false;
-  const error = isServerSide && fetcher ? (queryError?.message ?? null) : null;
+  const serverData = fetcher ? data : undefined;
+  const isLoading = fetcher ? isPending : false;
+  const isRefetching = fetcher ? isFetching : false;
+  const error = fetcher ? (queryError?.message ?? null) : null;
   const total = isServerSide && fetcher ? (data?.total ?? 0) : 0;
-  const refetch = isServerSide && fetcher ? queryRefetch : undefined;
+  const refetch = fetcher ? queryRefetch : undefined;
 
   // Determine which data to use
-  const finalRows = isServerSide
-    ? (serverData?.rows ?? [])
-    : (clientRows ?? []);
-  const finalTotal = isServerSide ? total : (clientRows?.length ?? 0);
+  let finalRows: TData[];
+  let finalTotal: number;
+
+  if (!!fetcher) {
+    if (isServerSide) {
+      // Scenario 2: Server-side pagination
+      finalRows = serverData?.rows ?? [];
+      finalTotal = total;
+    } else {
+      // Scenario 3: Client-side pagination with auto-recall
+      finalRows = serverData?.rows ?? [];
+      finalTotal = serverData?.rows.length ?? 0;
+    }
+  } else {
+    // Scenario 1: Basic client-side
+    finalRows = clientRows ?? [];
+    finalTotal = clientRows?.length ?? 0;
+  }
 
   const table = useReactTable({
     data: finalRows,
@@ -154,9 +188,10 @@ export function useTable<TData extends object>({
     onColumnFiltersChange: setColumnFilters,
     onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
-    // Use appropriate pagination model based on mode
-    ...(isServerSide
+    // Use appropriate pagination model based on scenario
+    ...(isServerSide && !!fetcher
       ? {
+          // Scenario 2: Server-side pagination
           manualPagination: true,
           manualSorting: true,
           manualFiltering: true,
@@ -166,6 +201,7 @@ export function useTable<TData extends object>({
           ),
         }
       : {
+          // Scenario 1 & 3: Client-side pagination
           getPaginationRowModel: getPaginationRowModel(),
           getSortedRowModel: getSortedRowModel(),
           getFilteredRowModel: getFilteredRowModel(),
@@ -189,19 +225,20 @@ export function useTable<TData extends object>({
     table,
     pagination,
     setGlobalFilter,
-    toggleViewMode: () =>
-      setViewMode((prev) =>
-        prev === DataViewMode.list ? DataViewMode.grid : DataViewMode.list,
-      ),
-    viewMode: viewMode ?? defaultViewMode,
-    setViewMode: setViewMode as any,
 
-    // Server-side additional return values
-    ...(isServerSide && {
+    // toggleViewMode: () =>
+    //   setViewMode((prev) =>
+    //     prev === DataViewMode.list ? DataViewMode.grid : DataViewMode.list,
+    //   ),
+    // viewMode: viewMode ?? defaultViewMode,
+    // setViewMode: setViewMode as any,
+
+    // Server-side additional return values (for both server-side and client-side with auto-recall)
+    ...(fetcher && {
       isLoading,
       isRefetching,
       error,
-      total,
+      total: finalTotal,
       refetch,
     }),
   };

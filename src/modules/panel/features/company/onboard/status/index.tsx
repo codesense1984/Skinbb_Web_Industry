@@ -1,8 +1,9 @@
-import { StatusBadge } from "@/core/components/ui/badge";
+import { Badge, StatusBadge } from "@/core/components/ui/badge";
 import { Button } from "@/core/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/core/components/ui/card";
 import { Input } from "@/core/components/ui/input";
 import { PageHeader } from "@/core/components/ui/structure";
+import { STATUS_MAP } from "@/core/config/status";
 import { fadeInUp } from "@/core/styles/animation/presets";
 import { formatDate } from "@/core/utils";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
@@ -14,6 +15,7 @@ import { useMutation } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 import { AnimatePresence, motion } from "motion/react";
 import { type ChangeEvent, type FormEvent, useState } from "react";
+import { Link } from "react-router";
 import { toast } from "sonner";
 const OnboardStatus = () => {
   const [inputValue, setInputValue] = useState("");
@@ -149,7 +151,7 @@ const OnboardStatus = () => {
 
                   <div className="space-y-3">
                     <span className="text-sm font-medium">Addresses:</span>
-                    {statusData.addresses.map((address, index) => (
+                    {statusData.addresses.map((address) => (
                       <div
                         key={address.addressId}
                         className="bg-muted border-border space-y-2 rounded-md border p-3"
@@ -158,13 +160,28 @@ const OnboardStatus = () => {
                           <span className="text-sm font-medium capitalize">
                             {address.addressType} Address
                           </span>
-                          <StatusBadge
-                            module="company"
-                            variant="contained"
-                            status={address.status}
-                            className="px-2 py-1 text-xs"
-                            showDot={false}
-                          />
+                          <div className="flex items-center gap-2">
+                            <StatusBadge
+                              module="company"
+                              variant="contained"
+                              status={address.status}
+                              className="px-2 py-1 text-xs"
+                              showDot={false}
+                            />
+                            {address.status ===
+                              STATUS_MAP.company.rejected.value && (
+                              <Badge variant={"secondary"} asChild>
+                                <Link
+                                  to={PANEL_ROUTES.ONBOARD.COMPANY_EDIT(
+                                    statusData.companyId,
+                                    address.addressId,
+                                  )}
+                                >
+                                  Edit
+                                </Link>
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                         <div className="text-sm">
                           <span className="font-medium">Location:</span>{" "}

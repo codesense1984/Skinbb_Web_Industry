@@ -1,5 +1,5 @@
 import { MODE } from "@/core/types";
-import { StepKey, STEP_ORDER } from "../config/steps.config";
+import { STEP_ORDER, StepKey } from "../config/steps.config";
 import {
   fullCompanyDetailsSchema,
   type FullCompanyFormType,
@@ -125,6 +125,7 @@ export function getFieldNamesForStep(
       if (!values.phoneNumber) names.push("phoneNumber");
       if (!values.password) names.push("password");
       if (!values.phoneVerified) names.push("phoneVerified");
+
       return names;
     }
 
@@ -177,6 +178,9 @@ export function getFieldNamesForStep(
           .map((f) => f.name) as Array<keyof FullCompanyFormType>;
         names = [...names, ...dName];
       });
+
+      if (!values.companyName) names.push("companyName");
+      if (!values.establishedIn) names.push("establishedIn");
       return names;
     }
 

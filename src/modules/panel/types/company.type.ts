@@ -4,6 +4,7 @@ export interface CompanyDocument {
   number: string;
   type: "coi" | "gstLicense" | "pan" | "msme" | "brandAuthorisation";
   url: string;
+  verified: boolean;
 }
 export interface CompanyAddress {
   addressType: "registered" | "office";
@@ -39,7 +40,7 @@ export interface ShortCompany {
   email: string;
 }
 
-export interface CompanyBrand {
+export interface CompanyOnboardingBrand {
   logo?: string;
   logo_files?: File[];
   brandName: string;
@@ -62,26 +63,25 @@ export interface CompanyOnboardingSubmitRequest
   extends Record<string, unknown> {
   companyId?: string | null;
   logo?: string;
-  gst: File;
-  pan: File;
-  authorizationLetter: File;
-  coiCertificate: File;
-  msmeCertificate: File;
-
+  gst?: File;
+  pan?: File;
+  authorizationLetter?: File;
+  coiCertificate?: File;
+  msmeCertificate?: File;
   ownerName: string;
   ownerEmail: string;
   phoneNumber: string;
   headquartersAddress: string;
   subsidiaryOfGlobalBusiness: boolean;
-  password: string;
+  password?: string;
   roleId: string;
   companyName: string;
   companyDescription: string;
   businessType: string;
   companyCategory: string;
   establishedIn: string;
-  cinNumber: string;
-  msmeNumber: string;
+  // cinNumber: string;
+  // msmeNumber: string;
   website: string;
   instagramUrl: string;
   facebookUrl: string;
@@ -93,8 +93,11 @@ export interface CompanyOnboardingSubmitRequest
   brandWebsite: string;
   brandLogo?: string;
   addresses: Array<{
+    addressId?: string;
     gstNumber: string;
     panNumber: string;
+    cinNumber: string;
+    msmeNumber: string;
     addressType: string;
     addressLine1: string;
     addressLine2?: string;
@@ -174,6 +177,7 @@ export interface CompanyOnboading {
   companyName: string;
   companyCategory: string;
   companyDescription: string;
+  designation?: string;
   businessType: string;
   subsidiaryOfGlobalBusiness: boolean;
   headquaterLocation: string;
@@ -184,8 +188,63 @@ export interface CompanyOnboading {
   isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
-  addresses: CompanyAddressDetail[];
+  addresses: CompanyOnboardingAddressDetail[];
   owner: CompanyOwner;
+}
+
+// New API response structure for company details
+export interface CompanyDetailResponse {
+  _id: string;
+  ownerUserId: string;
+  companyName: string;
+  establishedIn: string;
+  businessType: "public" | "private";
+  companyCategory: "principal" | "subsidiary";
+  subsidiaryOfGlobalBusiness: boolean;
+  cinNumber: string;
+  msmeNumber: string;
+  coiCertificate: string;
+  msmeCertificate: string;
+  totalSKU: number;
+  productCategory: string[];
+  averageSellingPrice: number;
+  marketingBudget: number;
+  sellingOn: Array<{
+    platform: string;
+    url: string;
+  }>;
+  website: string;
+  instagramUrl: string;
+  facebookUrl: string;
+  youtubeUrl: string;
+  landlineNo: string;
+  isCompanyBrand: boolean;
+  isDeleted: boolean;
+  createdAt: string;
+  updatedAt: string;
+  status: "pending" | "approved" | "rejected";
+  statusChangeReason: string;
+  statusChangedAt: string;
+  companyId: string;
+  addresses: Array<{
+    addressId: string;
+    addressType: "registered" | "office";
+    gstNumber: string;
+    panNumber: string;
+    addressLine1: string;
+    addressLine2: string;
+    landmark: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    country: string;
+    isPrimary: boolean;
+    brands: Array<{
+      _id: string;
+      name: string;
+      slug: string;
+    }>;
+  }>;
 }
 
 // API response type for company list (new API structure)
@@ -206,6 +265,7 @@ export interface CompanyListItem {
   subsidiaryOfGlobalBusiness: boolean;
   logo: string | null;
   productCategory: string[];
+  companyStatus: string;
   sellingOn: Array<{
     platform: string;
     url: string;
@@ -286,7 +346,7 @@ export interface CompanyOwner {
   ownerDesignation: string;
 }
 
-export interface CompanyBrand {
+export interface CompanyOnboardingBrand {
   _id: string;
   name: string;
   slug: string;
@@ -309,17 +369,21 @@ export interface CompanyBrand {
   authorizationLetter: string;
   createdBy: string;
   isDeleted: boolean;
-  deletedAt: string | null;
+  deletedAt: any;
   deletedBy: string;
   createdAt: string;
   updatedAt: string;
+  brandStatus: string;
+  statusChangeReason: string;
+  statusChangedAt: string;
+  owner: CompanyOwner;
 }
 
-export interface CompanyAddressDetail {
+export interface CompanyOnboardingAddressDetail {
   addressId: string;
   addressType: string;
   addressLine1: string;
-  landlineNumber:string
+  landlineNumber: string;
   city: string;
   state: string;
   postalCode: string;
@@ -341,7 +405,7 @@ export interface CompanyAddressDetail {
   lng: number;
   createdAt: string;
   updatedAt: string;
-  brands: CompanyBrand[];
+  brands: CompanyOnboardingBrand[];
 }
 
 export interface CompanyDetailData {
@@ -360,7 +424,7 @@ export interface CompanyDetailData {
   isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
-  addresses: CompanyAddressDetail[];
+  addresses: CompanyOnboardingAddressDetail[];
   owner: CompanyOwner;
 }
 

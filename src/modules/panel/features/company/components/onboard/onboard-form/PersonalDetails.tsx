@@ -20,6 +20,7 @@ import {
   fullCompanyDetailsSchema,
   type FullCompanyFormType,
 } from "../../../schema/fullCompany.schema";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 
 interface PersonalDetailsProps {
   mode: MODE;
@@ -27,7 +28,12 @@ interface PersonalDetailsProps {
 // const isValidPhone = (val?: string) => !!val && /^[6-9]\d{9}$/.test(val);
 
 const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
-  const { control, setValue } = useFormContext<FullCompanyFormType>();
+  const {
+    control,
+    setValue,
+    formState: { errors },
+  } = useFormContext<FullCompanyFormType>();
+  console.log("🚀 ~ PersonalDetails ~ errors:", errors);
   const otpModalRef = useRef<OtpModalRef>(null);
 
   const phoneNumber = useWatch({
@@ -43,6 +49,7 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
 
   const rawInfoFields = fullCompanyDetailsSchema.personal_information({
     mode,
+    disabled: mode === MODE.EDIT,
   }) as FormFieldConfig<FullCompanyFormType>[];
 
   // Send OTP
@@ -69,59 +76,69 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
   return (
     <>
       <FormFieldsRenderer<FullCompanyFormType>
-        className="gap-6 md:grid-cols-1 lg:grid-cols-2"
+        className="flex flex-wrap gap-6 md:grid md:grid-cols-2 lg:grid-cols-2 [&>div]:w-full [&>div]:flex-[1_1_200px]"
         control={control}
         fieldConfigs={rawInfoFields}
       >
-        <div className="flex items-end gap-4">
-          <FormInput
-            className="grow"
-            type="text"
-            control={control}
-            name="phoneNumber"
-            label="Phone Number"
-            placeholder="Enter phone number"
-            inputProps={{
-              keyfilter: "int",
-              maxLength: 10,
-              endIcon:
-                mode !== MODE.EDIT ? (
-                  <Button
-                    variant={"contained"}
-                    color={"primary"}
-                    disableAnimation
-                    type="button"
-                    className="text-background !mr-0 rounded-l-none"
-                    disabled={
-                      phoneVerified ||
-                      sendOtpMutation.isPending ||
-                      verifyOtpMutation.isPending ||
-                      phoneNumber.length !== 10
+        <FormInput
+          type="text"
+          control={control}
+          name="phoneNumber"
+          label={
+            <span>
+              Phone Number{" "}
+              <span className="text-green-500">
+                {phoneVerified ? "(Verified)" : ""}
+              </span>
+            </span>
+          }
+          placeholder="Enter phone number"
+          className=""
+          inputProps={{
+            keyfilter: "int",
+            maxLength: 10,
+            endIcon:
+              mode !== MODE.EDIT && !phoneVerified ? (
+                <Button
+                  variant={"contained"}
+                  color={"primary"}
+                  disableAnimation
+                  type="button"
+                  className="text-background !mr-0 rounded-l-none"
+                  disabled={
+                    sendOtpMutation.isPending ||
+                    verifyOtpMutation.isPending ||
+                    phoneNumber.length !== 10
+                  }
+                  onClick={() => otpModalRef.current?.setOpen(true)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      otpModalRef.current?.setOpen(true);
                     }
-                    onClick={() => otpModalRef.current?.setOpen(true)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        otpModalRef.current?.setOpen(true);
-                      }
-                    }}
-                  >
-                    {phoneVerified
-                      ? "Verified"
-                      : sendOtpMutation.isPending
-                        ? "Sending..."
-                        : "Send OTP"}
-                  </Button>
-                ) : phoneVerified ? (
-                  <span className="px-2 text-sm text-green-600">
-                    ✓ Verified
-                  </span>
-                ) : undefined,
-            }}
-            disabled={
-              mode === MODE.EDIT || phoneVerified || sendOtpMutation.isPending
-            }
-          />
-        </div>
+                  }}
+                >
+                  {sendOtpMutation.isPending ? "Sending..." : "Send OTP"}
+                </Button>
+              ) : mode !== MODE.EDIT ? (
+                <Button
+                  variant={"outlined"}
+                  color={"default"}
+                  type="button"
+                  className="!mr-0 rounded-l-none px-3"
+                  startIcon={<XMarkIcon className="size-4" />}
+                  onClick={() => {
+                    setValue("phoneVerified", false, {
+                      shouldValidate: true,
+                    });
+                    setValue("phoneNumber", "", { shouldValidate: true });
+                  }}
+                ></Button>
+              ) : undefined,
+          }}
+          disabled={
+            mode === MODE.EDIT || phoneVerified || sendOtpMutation.isPending
+          }
+        />
 
         <FormInput
           className="col-span-2"
@@ -130,6 +147,7 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
           name="password"
           label="Password"
           placeholder="Enter phone number"
+          disabled={mode === MODE.EDIT}
         />
 
         <FormFieldsRenderer<FullCompanyFormType>
@@ -137,7 +155,7 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
           fieldConfigs={fullCompanyDetailsSchema.terms({
             mode,
           })}
-          className="col-span-2 flex"
+          className="!flex-[1_1_100%] md:!col-span-2"
         />
       </FormFieldsRenderer>
 

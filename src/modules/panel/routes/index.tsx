@@ -47,6 +47,10 @@ export const panelRoutes: RouteObject = {
       Component: lazy(() => import("@/modules/panel/features/company/edit")),
     },
     {
+      path: PANEL_ROUTES.COMPANY.VIEW(),
+      Component: lazy(() => import("@/modules/panel/features/company/view")),
+    },
+    {
       path: PANEL_ROUTES.COMPANY_LOCATION.VIEW(),
       Component: lazy(
         () => import("@/modules/panel/features/company-location/view"),
@@ -182,7 +186,9 @@ export const panelRoutes: RouteObject = {
     },
     {
       path: PANEL_ROUTES.CUSTOMER.CREATE,
-      Component: lazy(() => import("@/modules/panel/features/customers/customer-form")),
+      Component: lazy(
+        () => import("@/modules/panel/features/customers/customer-form"),
+      ),
     },
     {
       path: PANEL_ROUTES.CUSTOMER.EDIT(),

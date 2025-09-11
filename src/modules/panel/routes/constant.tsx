@@ -53,8 +53,18 @@ export const PANEL_ROUTES = {
     COMPANY: ROUTE.build(ONBOARD_BASE, COMPANY_BASE), // /onboard/create
     COMPANY_STATUS: ROUTE.build(ONBOARD_BASE, COMPANY_BASE, STATUS_BASE), // /onboard/create
     COMPANY_CREATE: ROUTE.build(ONBOARD_BASE, COMPANY_BASE, ROUTE.seg.create), // /onboard/create
-    COMPANY_EDIT: (id: string = ROUTE.seg.id) =>
-      ROUTE.build(ONBOARD_BASE, COMPANY_BASE, id, ROUTE.seg.edit), // /onboard/company/:id/edit
+    COMPANY_EDIT: (
+      id: string = ROUTE.seg.id,
+      locationId: string = ":locationId",
+    ) =>
+      ROUTE.build(
+        ONBOARD_BASE,
+        COMPANY_BASE,
+        id,
+        "location",
+        locationId,
+        ROUTE.seg.edit,
+      ), // /onboard/company/:id/edit
   },
 
   // ---- Company ----
@@ -62,15 +72,19 @@ export const PANEL_ROUTES = {
     BASE: COMPANY_BASE, // /company
     LIST: COMPANIES, // /companies
     CREATE: ROUTE.build(COMPANY_BASE, ROUTE.seg.create), // /company/create
+    VIEW: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(COMPANY_BASE, id, ROUTE.seg.view), // /company/view/:id
     EDIT: (id: string = ROUTE.seg.id) =>
       ROUTE.build(COMPANY_BASE, id, ROUTE.seg.edit), // /company/edit/:id
-    // VIEW: (id: string = ROUTE.seg.id) =>
-    //   ROUTE.build(COMPANY_BASE, id, ROUTE.seg.view), // /company/edit/:id
     DETAIL: (id: string = ROUTE.seg.id) => ROUTE.build(COMPANY_BASE, id), // /company/:id
-    USERS: (id: string = ROUTE.seg.id) => ROUTE.build(COMPANY_BASE, id, "users"), // /company/:id/users
-    USER_CREATE: (id: string = ROUTE.seg.id) => ROUTE.build(COMPANY_BASE, id, "users", ROUTE.seg.create), // /company/:id/users/create
-    USER_EDIT: (id: string = ROUTE.seg.id, userId: string = ":userId") => ROUTE.build(COMPANY_BASE, id, "users", userId, ROUTE.seg.edit), // /company/:id/users/:userId/edit
-    USER_VIEW: (id: string = ROUTE.seg.id, userId: string = ":userId") => ROUTE.build(COMPANY_BASE, id, "users", userId, ROUTE.seg.view), // /company/:id/users/:userId/view
+    USERS: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(COMPANY_BASE, id, "users"), // /company/:id/users
+    USER_CREATE: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(COMPANY_BASE, id, "users", ROUTE.seg.create), // /company/:id/users/create
+    USER_EDIT: (id: string = ROUTE.seg.id, userId: string = ":userId") =>
+      ROUTE.build(COMPANY_BASE, id, "users", userId, ROUTE.seg.edit), // /company/:id/users/:userId/edit
+    USER_VIEW: (id: string = ROUTE.seg.id, userId: string = ":userId") =>
+      ROUTE.build(COMPANY_BASE, id, "users", userId, ROUTE.seg.view), // /company/:id/users/:userId/view
     BRANDS: (id: string = ROUTE.seg.id) => ROUTE.build(COMPANY_BASE, id, "brands"), // /company/:id/brands
     BRAND_CREATE: (id: string = ROUTE.seg.id) => ROUTE.build(COMPANY_BASE, id, "brands", ROUTE.seg.create), // /company/:id/brands/create
     BRAND_EDIT: (id: string = ROUTE.seg.id, brandId: string = ":brandId") => ROUTE.build(COMPANY_BASE, id, "brands", brandId, ROUTE.seg.edit), // /company/:id/brands/:brandId/edit
