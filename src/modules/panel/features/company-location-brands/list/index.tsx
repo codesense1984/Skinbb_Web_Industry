@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router';
+import { useParams, useNavigate } from "react-router";
 import { DataTable } from "@/core/components/data-table";
 import { StatusFilter } from "@/core/components/data-table/components/table-filter";
 import { PageContent } from "@/core/components/ui/structure";
@@ -8,11 +8,20 @@ import { apiGetCompanyLocationBrands } from "@/modules/panel/services/http/compa
 import { useQuery } from "@tanstack/react-query";
 import { columns } from "./data";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
+import type { CompanyLocationBrand } from "@/modules/panel/types/brand.type";
 
 
 const CompanyLocationBrandsList = () => {
   const { companyId, locationId } = useParams();
   const navigate = useNavigate();
+
+  // Fetch brands for the specific company location
+  const { data: brandsData, isLoading, error } = useQuery({
+    queryKey: ["company-location-brands", companyId, locationId],
+    queryFn: () => apiGetCompanyLocationBrands(companyId!, locationId!),
+    enabled: !!companyId && !!locationId,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
 
   if (!companyId || !locationId) {
     return (
@@ -29,25 +38,17 @@ const CompanyLocationBrandsList = () => {
     );
   }
 
-  // Fetch brands for the specific company location
-  const { data: brandsData, isLoading, error } = useQuery({
-    queryKey: ["company-location-brands", companyId, locationId],
-    queryFn: () => apiGetCompanyLocationBrands(companyId!, locationId!),
-    enabled: !!companyId && !!locationId,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-  });
-
   // Extract brands array from the API response
-  // API response structure: { statusCode: 200, data: { status: "success", data: [...] }, message: "...", success: true }
-  const rawBrands = brandsData?.data?.data || [];
+  // API response structure: { statusCode: 200, data: [...], message: "...", success: true }
+  const rawBrands = Array.isArray(brandsData?.data) ? brandsData.data : [];
   
   // Transform brands to include location information and ensure data safety
-  const brands = rawBrands.map((brand: any) => ({
+  const brands = rawBrands.map((brand: CompanyLocationBrand) => ({
     ...brand,
     locationId: locationId!,
-    locationType: 'unknown',
-    locationCity: 'Location',
-    locationState: 'unknown',
+    locationType: "unknown",
+    locationCity: "Location",
+    locationState: "unknown",
     // Ensure productCategory is always an array
     productCategory: Array.isArray(brand.productCategory) ? brand.productCategory : [],
     // Ensure sellingOn is always an array
@@ -84,7 +85,7 @@ const CompanyLocationBrandsList = () => {
         <div className="py-8 text-center">
           <p className="text-red-500 mb-4">Error loading brands. Please try again.</p>
           <p className="text-sm text-gray-500 mb-4">
-            Error details: {error instanceof Error ? error.message : 'Unknown error'}
+            Error details: {error instanceof Error ? error.message : "Unknown error"}
           </p>
           <div className="bg-gray-50 p-4 rounded-lg mb-4">
             <p className="text-sm text-gray-600 mb-2">
@@ -134,7 +135,7 @@ const CompanyLocationBrandsList = () => {
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">No Brands Found</h3>
             <p className="text-gray-500 mb-4">
-              This location doesn't have any brands yet. Create your first brand to get started.
+              This location doesn&apos;t have any brands yet. Create your first brand to get started.
             </p>
             <p className="text-sm text-gray-400 mb-6">
               Location ID: {locationId}

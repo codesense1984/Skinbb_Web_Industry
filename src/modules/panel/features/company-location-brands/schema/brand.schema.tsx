@@ -27,7 +27,8 @@ export const brandFormSchema = z.object({
       }),
     )
     .optional(),
-  isActive: z.boolean().optional(),
+  authorizationLetter: z.string().optional(),
+  isActive: z.string().optional(),
 });
 
 export type BrandFormData = z.infer<typeof brandFormSchema>;
@@ -86,6 +87,17 @@ export const brandSchema: BrandSchemaProps = {
       disabled: mode === MODE.VIEW,
       inputProps: {
         rows: 4,
+      },
+    },
+    {
+      name: "authorizationLetter",
+      label: "Authorization Letter",
+      type: INPUT_TYPES.FILE,
+      placeholder: "Upload authorization letter",
+      disabled: mode === MODE.VIEW,
+      required: mode === MODE.ADD || mode === MODE.EDIT,
+      inputProps: {
+        accept: ".pdf,.doc,.docx,.jpg,.jpeg,.png",
       },
     },
   ],
@@ -165,8 +177,13 @@ export const brandSchema: BrandSchemaProps = {
   status: ({ mode }) => [
     {
       name: "isActive",
-      label: "Active",
-      type: INPUT_TYPES.CHECKBOX,
+      label: "Status",
+      type: INPUT_TYPES.SELECT,
+      options: [
+        { label: "Active", value: "true" },
+        { label: "Inactive", value: "false" },
+      ],
+      placeholder: "Select status",
       disabled: mode === MODE.VIEW,
     },
   ],

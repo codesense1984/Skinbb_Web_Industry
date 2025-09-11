@@ -129,6 +129,11 @@ export const ENDPOINTS = {
 
   COUPON: {
     MAIN: `${API_PREFIX}/coupons/admin`,
+    LIST: `${API_PREFIX}/coupons/admin/all`,
+    CREATE: `${API_PREFIX}/coupons/admin`,
+    UPDATE: (id: string) => `${API_PREFIX}/coupons/admin/${id}`,
+    DELETE: (id: string) => `${API_PREFIX}/coupons/admin/${id}`,
+    GET_BY_ID: (id: string) => `${API_PREFIX}/coupons/admin/${id}`,
   },
 
   ORDER: {

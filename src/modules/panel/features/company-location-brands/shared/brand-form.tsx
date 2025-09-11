@@ -19,12 +19,6 @@ import { brandFormSchema, brandSchema, type BrandFormData } from "../schema/bran
 import { MODE } from "@/core/types";
 
 // Type definitions for API responses
-interface BrandApiResponse {
-  data: {
-    data?: CompanyLocationBrand | { data: CompanyLocationBrand };
-  };
-}
-
 interface ApiError {
   response?: {
     data?: {
@@ -48,7 +42,8 @@ const getDefaultValues = (brandData?: CompanyLocationBrand | null): BrandFormDat
     youtubeUrl: brandData?.youtubeUrl || "",
     productCategory: brandData?.productCategory || [],
     sellingOn: brandData?.sellingOn || [],
-    isActive: brandData?.isActive ?? true,
+    authorizationLetter: brandData?.authorizationLetter || "",
+    isActive: brandData?.isActive ? "true" : "false",
   };
 };
 
@@ -99,26 +94,12 @@ const BrandForm = () => {
     // retry: 1,
   });
 
-  // Extract brand data from the nested response structure
+  // Extract brand data from the API response
   const brand: CompanyLocationBrand | null = React.useMemo(() => {
     if (!brandData?.data) return null;
 
-    const response = brandData as BrandApiResponse;
-    
-    // Check if data has nested data structure
-    if (response.data?.data && typeof response.data.data === "object") {
-      const nestedData = response.data.data as { data?: CompanyLocationBrand };
-      if (nestedData.data) {
-        return nestedData.data;
-      }
-    }
-    
-    // Check if data is directly the brand object
-    if (response.data?.data && "name" in response.data.data) {
-      return response.data.data as CompanyLocationBrand;
-    }
-
-    return null;
+    // The API response structure is: { statusCode: 200, data: CompanyLocationBrand, message: "...", success: true }
+    return brandData.data as CompanyLocationBrand;
   }, [brandData]);
 
   // Populate form when brand data is loaded
@@ -149,7 +130,12 @@ const BrandForm = () => {
             }
           });
         } else if (value !== null && value !== undefined) {
-          formData.append(key, value.toString());
+          // Convert isActive from string to boolean for API
+          if (key === "isActive") {
+            formData.append(key, value === "true" ? "true" : "false");
+          } else {
+            formData.append(key, value.toString());
+          }
         }
       });
 

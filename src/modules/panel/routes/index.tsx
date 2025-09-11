@@ -165,6 +165,32 @@ export const panelRoutes: RouteObject = {
       ),
     },
 
+    // master data - discount coupons
+    {
+      path: PANEL_ROUTES.MASTER.DISCOUNT_COUPON,
+      Component: lazy(
+        () => import("@/modules/panel/features/master/discount-coupons/list"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.MASTER.DISCOUNT_COUPON_CREATE,
+      Component: lazy(
+        () => import("@/modules/panel/features/master/discount-coupons/create"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.MASTER.DISCOUNT_COUPON_EDIT(),
+      Component: lazy(
+        () => import("@/modules/panel/features/master/discount-coupons/edit"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.MASTER.DISCOUNT_COUPON_VIEW(),
+      Component: lazy(
+        () => import("@/modules/panel/features/master/discount-coupons/view"),
+      ),
+    },
+
     // orders
     {
       path: PANEL_ROUTES.ORDER.LIST,
