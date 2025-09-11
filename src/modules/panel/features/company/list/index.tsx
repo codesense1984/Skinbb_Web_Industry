@@ -1,9 +1,9 @@
 import { createSimpleFetcher, DataTable } from "@/core/components/data-table";
 import { StatusFilter } from "@/core/components/data-table/components/table-filter";
 import { PageContent } from "@/core/components/ui/structure";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { apiGetCompanyList } from "@/modules/panel/services/http/company.service";
 import { columns } from "./data";
-import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 
 // const CompanyForm = lazy(() => import("../components/AddCompanyForm"));
 
@@ -11,9 +11,9 @@ import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 const fetcher = () =>
   createSimpleFetcher(apiGetCompanyList, {
     dataPath: "data.items",
-    totalPath: "data.total",
+    totalPath: "data.totalRecords",
     filterMapping: {
-      status: "status", // Map the status column filter to the status API parameter
+      companyStatus: "companyStatus", // Map the status column filter to the status API parameter
     },
   });
 
@@ -52,7 +52,7 @@ const CompanyList = () => {
 
       <DataTable
         columns={columns}
-        isServerSide
+        isServerSide={true}
         fetcher={fetcher()}
         queryKeyPrefix={PANEL_ROUTES.COMPANY.LIST}
         actionProps={(tableState) => ({
@@ -60,7 +60,8 @@ const CompanyList = () => {
             <StatusFilter
               tableState={tableState}
               module="company"
-              multi={false} // Single selection mode
+              multi={true}
+              name="companyStatus"
             />
           ),
         })}

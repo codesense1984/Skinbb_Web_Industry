@@ -198,7 +198,9 @@ export async function apiGetOnboardingCheckStatus(
 }
 
 // Get company list with pagination
-export interface CompanyListParams extends PaginationParams {
+export interface CompanyListParams
+  extends PaginationParams,
+    Record<string, unknown> {
   status?: string;
 }
 
@@ -210,7 +212,15 @@ export async function apiGetCompanyList<
     total: number;
   }>,
 >(params: CompanyListParams, signal?: AbortSignal) {
-  return api.get<T>(ENDPOINTS.SELLER.MAIN, { params, signal });
+  return api.get<T>(ENDPOINTS.SELLER.MAIN, {
+    params: {
+      ...params,
+      ...(params.companyStatus
+        ? { status: params.companyStatus as string }
+        : {}),
+    },
+    signal,
+  });
 }
 
 // Update company status (approval/rejection)

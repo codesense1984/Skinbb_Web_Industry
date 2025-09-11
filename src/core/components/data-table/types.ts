@@ -103,6 +103,7 @@ export interface DataPaginationProps<TData> extends ComponentProps<"div"> {
 
   /** Optional total rows from server (for manual/server-side pagination) */
   serverTotal?: number;
+  isServerSide?: boolean;
 }
 
 export interface DataTableActionProps<TData> extends ComponentProps<"div"> {

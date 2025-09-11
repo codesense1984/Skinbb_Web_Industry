@@ -10,9 +10,8 @@ import type {
   CompanyList,
   CompanyListItem,
 } from "@/modules/panel/types/company.type";
-import { MapPinIcon } from "@heroicons/react/24/solid";
+import { MapPinIcon, UserIcon } from "@heroicons/react/24/solid";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Link } from "react-router";
 
 export const statsData = [
   {
@@ -136,8 +135,9 @@ export const columns: ColumnDef<CompanyListItem>[] = [
   {
     header: "Company Name",
     accessorKey: "companyName",
+    size: 250,
     cell: ({ row }) => (
-      <div className="flex w-max items-center gap-3 font-medium">
+      <div className="flex flex-wrap items-center gap-3 font-medium">
         {row.original.brandLogo && (
           <Avatar
             src={row.original.brandLogo}
@@ -151,22 +151,30 @@ export const columns: ColumnDef<CompanyListItem>[] = [
   {
     header: "Business Type",
     accessorKey: "businessType",
-    cell: ({ row }) => <div className="w-max">{row.original.businessType}</div>,
+    size: 120,
+    // cell: ({ row }) => <div className="">{row.original.businessType}</div>,
   },
   {
     header: "Location",
     accessorKey: "address",
+    size: 130,
     cell: ({ row }) => (
       <div className="flex flex-wrap gap-2">
-        {row.original?.address.map((address) => (
-          <Badge variant={"outline"}>{address.city}</Badge>
+        {row.original?.address.slice(0, 1).map((address) => (
+          <Badge className="whitespace-normal" variant={"outline"}>
+            {address.city}
+          </Badge>
         ))}
+        {row.original?.address.length > 1 && (
+          <Badge variant={"outline"}>+{row.original?.address.length - 1}</Badge>
+        )}
       </div>
     ),
   },
   {
     header: "Status",
     accessorKey: "companyStatus",
+    size: 120,
     cell: ({ row }) => (
       <StatusBadge
         status={row.original.companyStatus}
@@ -183,45 +191,10 @@ export const columns: ColumnDef<CompanyListItem>[] = [
   {
     header: "Created Date",
     accessorKey: "createdAt",
+    size: 120,
     cell: ({ row }) => {
       const createdAt = row.getValue("createdAt") as string;
       return <div className="w-max">{formatDate(createdAt)}</div>;
-    },
-  },
-  {
-    header: "Users",
-    accessorKey: "users",
-    enableSorting: false,
-    enableHiding: false,
-    cell: ({ row }) => {
-      return (
-        <TableAction>
-          {renderActionButton(
-            {
-              className: "w-auto px-2 text-muted-foreground",
-              size: "md",
-              variant: "outlined",
-              to: `/company/${row.original._id}/users`,
-              children: "Users",
-              title: "View Users",
-            },
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="size-4"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
-              />
-            </svg>
-          )}
-        </TableAction>
-      );
     },
   },
   {
@@ -229,14 +202,15 @@ export const columns: ColumnDef<CompanyListItem>[] = [
     accessorKey: "actions",
     enableSorting: false,
     enableHiding: false,
+    size: 250,
     cell: ({ row }) => {
       return (
         <TableAction
-          // view={{
-          //   // onClick: () => console.log("View company:", row.original._id),
-          //   to: PANEL_ROUTES.COMPANY.VIEW(row.original._id),
-          //   title: "View company details",
-          // }}
+          view={{
+            // onClick: () => console.log("View company:", row.original._id),
+            to: PANEL_ROUTES.COMPANY.VIEW(row.original._id),
+            title: "View company details",
+          }}
           // edit={{
           //   loading: false,
           //   // onClick: () => console.log("Edit company:", row.original._id),
@@ -248,6 +222,17 @@ export const columns: ColumnDef<CompanyListItem>[] = [
           //   tooltip: "Delete company",
           // }}
         >
+          {renderActionButton(
+            {
+              className: "w-auto px-2 text-muted-foreground",
+              size: "md",
+              variant: "outlined",
+              to: `/company/${row.original._id}/users`,
+              children: "Users",
+              title: "View Users",
+            },
+            <UserIcon className="size-4" />,
+          )}
           {renderActionButton(
             {
               className: "w-auto px-2 text-muted-foreground",

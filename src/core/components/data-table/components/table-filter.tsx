@@ -276,7 +276,7 @@ const createStatusToggleHandler = <T,>(
 export function StatusFilter<T>({
   tableState,
   module,
-  multi = true,
+  multi = false,
   className,
   icon,
   name = "status",

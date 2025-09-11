@@ -24,6 +24,8 @@ import {
 } from "@/core/components/ui/table";
 import { cn } from "@/core/utils";
 import {
+  ChevronDoubleLeftIcon,
+  ChevronDoubleRightIcon,
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -44,6 +46,11 @@ import {
   type DataTableProps,
   type DataTableToggleProps,
 } from "./types";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+} from "../ui/pagination";
 
 /* /* NOSONAR */ // Suppresses this line from being flagged
 // <div
@@ -278,15 +285,18 @@ export function DataPagination<TData>({
   showEntryCount = true,
   showPageSizeOptions = true,
   serverTotal,
+  isServerSide = false,
   className,
   ...props
 }: DataPaginationProps<TData>) {
-  console.log("🚀 ~ DataPagination ~ serverTotal:", serverTotal);
   const pageSize = table.getState().pagination.pageSize;
   const pageIndex = table.getState().pagination.pageIndex;
-  // If serverTotal is provided, prefer it; otherwise keep existing behavior
+  // If serverTotal is provided and we're in server-side mode, use it
+  // For client-side mode (scenario 1 & 3), use table row count
   const total =
-    typeof serverTotal === "number" ? serverTotal : table.getRowCount();
+    typeof serverTotal === "number" && isServerSide
+      ? serverTotal
+      : table.getRowCount();
 
   // Avoid "1 to 0 of 0" when total is zero
   const startEntry = total > 0 ? pageIndex * pageSize + 1 : 0;
@@ -301,14 +311,14 @@ export function DataPagination<TData>({
   return (
     <div
       className={cn(
-        "flex flex-wrap items-center justify-between gap-2 py-1 md:gap-4",
+        "flex flex-wrap items-center justify-between gap-4 py-1 md:gap-4 md:gap-8",
         className,
       )}
       {...props}
     >
       {showPageSizeOptions && (
-        <div className="flex items-center gap-2">
-          Rows per page
+        <div className="flex flex-1 items-center gap-2">
+          <span className="hidden md:block">Rows per page</span>
           <SelectRoot
             value={String(pageSize)}
             onValueChange={(value) => table.setPageSize(Number(value))}
@@ -326,39 +336,77 @@ export function DataPagination<TData>({
           </SelectRoot>
         </div>
       )}
-      <div className="flex flex-wrap items-center gap-2 md:gap-4">
-        {showEntryCount && (
-          <div className="text-muted-foreground flex justify-end whitespace-nowrap">
-            <p
-              className="text-muted-foreground whitespace-nowrap"
-              aria-live="polite"
-            >
-              <span className="text-foreground">
-                {startEntry}-{endEntry}
-              </span>{" "}
-              of <span className="text-foreground">{total}</span>
-            </p>
-          </div>
-        )}
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-8"
-            startIcon={<ChevronLeftIcon className="!size-5" />}
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          />
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-8"
-            startIcon={<ChevronRightIcon className="!size-5" />}
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          />
+      {/* <div className="flex flex-wrap items-center gap-8 md:gap-4"> */}
+      {showEntryCount && (
+        <div className="text-muted-foreground flex justify-end whitespace-nowrap">
+          <p
+            className="text-muted-foreground whitespace-nowrap"
+            aria-live="polite"
+          >
+            <span className="text-foreground">
+              {startEntry}-{endEntry}
+            </span>{" "}
+            of <span className="text-foreground">{total}</span>
+          </p>
         </div>
-      </div>
+      )}
+
+      <Pagination className="w-fit">
+        <PaginationContent>
+          {/* First page button */}
+          <PaginationItem className="hidden md:block">
+            <Button
+              size="icon"
+              variant="outlined"
+              className="disabled:bg-muted/50 disabled:pointer-events-none"
+              onClick={() => table.firstPage()}
+              disabled={!table.getCanPreviousPage()}
+              aria-label="Go to first page"
+            >
+              <ChevronDoubleLeftIcon aria-hidden="true" />
+            </Button>
+          </PaginationItem>
+          {/* Previous page button */}
+          <PaginationItem>
+            <Button
+              size="icon"
+              variant="outlined"
+              className="disabled:bg-muted/50 disabled:pointer-events-none"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+              aria-label="Go to previous page"
+            >
+              <ChevronLeftIcon aria-hidden="true" />
+            </Button>
+          </PaginationItem>
+          {/* Next page button */}
+          <PaginationItem>
+            <Button
+              size="icon"
+              variant="outlined"
+              className="disabled:bg-muted/50 disabled:pointer-events-none"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+              aria-label="Go to next page"
+            >
+              <ChevronRightIcon aria-hidden="true" />
+            </Button>
+          </PaginationItem>
+          {/* Last page button */}
+          <PaginationItem className="hidden md:block">
+            <Button
+              size="icon"
+              variant="outlined"
+              className="disabled:bg-muted/50 disabled:pointer-events-none"
+              onClick={() => table.lastPage()}
+              disabled={!table.getCanNextPage()}
+              aria-label="Go to last page"
+            >
+              <ChevronDoubleRightIcon aria-hidden="true" />
+            </Button>
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
     </div>
   );
 }
@@ -451,12 +499,14 @@ export function DataTable<TData extends object>({
   tableHeading,
   className,
   pageSize,
+  isServerSide = false,
   ...props
 }: DataTableProps<TData>) {
   const tableState = useTable({
     rows,
     columns,
     pageSize: !showPagination ? -1 : pageSize,
+    isServerSide: isServerSide,
     ...props,
   });
   const { table, total = 0 } = tableState;
@@ -478,8 +528,9 @@ export function DataTable<TData extends object>({
       />
       {showPagination && (
         <DataPagination
-          serverTotal={total}
+          serverTotal={isServerSide ? total : undefined}
           table={table}
+          isServerSide={isServerSide}
           {...paginationProps}
         />
       )}
