@@ -1,18 +1,16 @@
+import { fadeInUp } from "@/core/styles/animation/presets";
 import { cn } from "@/core/utils";
+import { ArrowLeftIcon } from "@heroicons/react/24/solid";
+import { motion } from "motion/react";
 import React, {
   useEffect,
   useState,
   type ElementType,
   type ReactNode,
 } from "react";
-import { Button } from "./button";
-import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import { useNavigate } from "react-router";
-import { motion } from "motion/react";
-import { fadeInUp } from "@/core/styles/animation/presets";
+import { Button } from "./button";
 import { FullLoader } from "./loader";
-import { AxiosError } from "axios";
-import { normalizeAxiosError } from "@/core/services/http";
 
 type PageContentProps = {
   as?: ElementType;
@@ -39,7 +37,6 @@ export function PageContent({
   loading = false,
   error,
 }: PageContentProps) {
-  console.log("🚀 ~ PageContent ~ error:", error);
   return (
     <Tag
       aria-label={ariaLabel}

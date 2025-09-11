@@ -1,6 +1,13 @@
 import { ConfirmationDialog } from "@/core/components/ui/alert-dialog";
 import { MODE } from "@/core/types";
-import { createContext, lazy, Suspense, useContext, useMemo } from "react";
+import {
+  createContext,
+  lazy,
+  Suspense,
+  useContext,
+  useEffect,
+  useMemo,
+} from "react";
 import { FormProvider } from "react-hook-form";
 import { useNavigate } from "react-router";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
@@ -14,6 +21,7 @@ import { FormHeader } from "./components/FormHeader";
 import { FormFooter } from "./components/FormFooter";
 import { LoadingSection } from "./components/LoadingSection";
 import { FormSteps } from "./constants";
+import { transformApiResponseToFormData } from "../../../utils/onboarding.utils";
 
 // Lazy load step components
 const CompanyDetails = lazy(() => import("./CompanyDetails"));
@@ -28,7 +36,7 @@ const DocumentDetails = lazy(() =>
 );
 
 // Create STEPS array with components
-const STEPS_WITH_COMPONENTS = [
+export const STEPS_WITH_COMPONENTS = [
   {
     step: 1,
     stepTitle: "Company information",
@@ -168,6 +176,13 @@ const OnBoardForm = ({
   const handleGoBack = () => {
     goBack(STEPS_WITH_COMPONENTS);
   };
+
+  useEffect(() => {
+    if (onboardingMutation.isSuccess) {
+      onNext(STEPS_WITH_COMPONENTS);
+      methods.reset(transformApiResponseToFormData());
+    }
+  }, [onboardingMutation.isSuccess, onNext, methods.reset]);
 
   // Pick page-specific component
   const { title, description, Component } = currentItem;

@@ -47,6 +47,10 @@ export const panelRoutes: RouteObject = {
       Component: lazy(() => import("@/modules/panel/features/company/edit")),
     },
     {
+      path: PANEL_ROUTES.COMPANY.VIEW(),
+      Component: lazy(() => import("@/modules/panel/features/company/view")),
+    },
+    {
       path: PANEL_ROUTES.COMPANY_LOCATION.VIEW(),
       Component: lazy(
         () => import("@/modules/panel/features/company-location/view"),

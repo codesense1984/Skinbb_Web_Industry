@@ -1,25 +1,25 @@
-import { useCallback, useEffect, useState } from "react";
-import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import type { AxiosError } from "axios";
+import { useCallback, useEffect, useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { toast } from "sonner";
 
 import { MODE } from "@/core/types";
 import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
-import type { CompanyOnboading } from "@/modules/panel/types";
 import {
   apiGetCompanyDropdownList,
   apiOnboardingSubmit,
   apiUpdateOnboardById,
 } from "@/modules/panel/services/http/company.service";
+import type { CompanyOnboading } from "@/modules/panel/types";
 
 import { StepKey } from "../../../../config/steps.config";
+import type { FullCompanyFormType } from "../../../../schema/fullCompany.schema";
 import {
   areAllStepsCompleted as areAllStepsCompletedUtil,
   computeFirstIncompleteStep,
 } from "../../../../utils/onboard-steps.utils";
-import type { FullCompanyFormType } from "../../../../schema/fullCompany.schema";
 import {
   getCompanySchema,
   transformApiResponseToFormData,
@@ -108,7 +108,6 @@ export const useOnboardingForm = ({
           "Profile submitted successfully!",
       );
       setConfirmation([false, undefined]);
-      reset(transformApiResponseToFormData());
       qc.invalidateQueries({ queryKey: [ENDPOINTS.SELLER.GET_COMPANY_LIST] });
     },
     onError: (error: AxiosError<{ message?: string }>) => {

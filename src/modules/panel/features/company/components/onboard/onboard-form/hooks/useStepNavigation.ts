@@ -1,18 +1,17 @@
-import { useCallback, useMemo, useState } from "react";
-import { toast } from "sonner";
-import { LastStep } from "../constants";
-import { STEP_ORDER, StepKey } from "../../../../config/steps.config";
-import { getFieldNamesForStep } from "../../../../utils/onboard-steps.utils";
 import type { MODE } from "@/core/types";
-import type { UseFormReturn } from "react-hook-form";
-import type { FullCompanyFormType } from "../../../../schema/fullCompany.schema";
 import {
-  apiVerifyPan,
-  apiVerifyGst,
   apiVerifyCin,
+  apiVerifyGst,
+  apiVerifyPan,
 } from "@/modules/panel/services/http/verification.service";
 import { format } from "date-fns";
-import { formatDateForApi } from "@/core/utils";
+import { useCallback, useMemo, useState } from "react";
+import type { UseFormReturn } from "react-hook-form";
+import { toast } from "sonner";
+import { STEP_ORDER, StepKey } from "../../../../config/steps.config";
+import type { FullCompanyFormType } from "../../../../schema/fullCompany.schema";
+import { getFieldNamesForStep } from "../../../../utils/onboard-steps.utils";
+import { LastStep } from "../constants";
 
 interface UseStepNavigationProps {
   currentValue: StepKey;
@@ -212,7 +211,6 @@ export const useStepNavigation = ({
             toast.dismiss("document-verification");
             return;
           }
-
           toast.success("All documents verified successfully!", {
             id: "document-verification",
           });

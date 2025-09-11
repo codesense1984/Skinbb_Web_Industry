@@ -66,6 +66,7 @@ interface StatusFilterProps<T> {
   className?: string;
   /** Icon component to display in the filter button */
   icon?: ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
+  name?: string;
 }
 
 /**
@@ -148,7 +149,7 @@ export function TableFilter({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outlined" className={cn("ml-auto", className)}>
+        <Button variant="outlined" className={cn(className)}>
           <Icon className="text-muted-foreground" aria-hidden={true} />
           {label}
           {hasSelection && (
@@ -239,9 +240,10 @@ const createStatusFilterOptions = (
 const createStatusToggleHandler = <T,>(
   tableState: UseTableResponse<T>,
   multi: boolean,
+  name: string,
 ) => {
   return (value: string, checked: boolean) => {
-    const statusColumn = tableState.table.getColumn("status");
+    const statusColumn = tableState.table.getColumn(name);
     if (!statusColumn) return;
 
     if (checked) {
@@ -277,13 +279,14 @@ export function StatusFilter<T>({
   multi = true,
   className,
   icon,
+  name = "status",
 }: StatusFilterProps<T>) {
   const statusOptions = STATUS_MAP[module] || {};
   const statusEntries = Object.entries(statusOptions);
   const filterOptions = createStatusFilterOptions(statusEntries);
   const currentFilter =
-    (tableState.table.getColumn("status")?.getFilterValue() as string[]) || [];
-  const toggleHandler = createStatusToggleHandler(tableState, multi);
+    (tableState.table.getColumn(name)?.getFilterValue() as string[]) || [];
+  const toggleHandler = createStatusToggleHandler(tableState, multi, name);
 
   const optionsWithState = filterOptions.map((option) => ({
     ...option,

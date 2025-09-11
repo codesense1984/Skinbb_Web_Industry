@@ -192,6 +192,61 @@ export interface CompanyOnboading {
   owner: CompanyOwner;
 }
 
+// New API response structure for company details
+export interface CompanyDetailResponse {
+  _id: string;
+  ownerUserId: string;
+  companyName: string;
+  establishedIn: string;
+  businessType: "public" | "private";
+  companyCategory: "principal" | "subsidiary";
+  subsidiaryOfGlobalBusiness: boolean;
+  cinNumber: string;
+  msmeNumber: string;
+  coiCertificate: string;
+  msmeCertificate: string;
+  totalSKU: number;
+  productCategory: string[];
+  averageSellingPrice: number;
+  marketingBudget: number;
+  sellingOn: Array<{
+    platform: string;
+    url: string;
+  }>;
+  website: string;
+  instagramUrl: string;
+  facebookUrl: string;
+  youtubeUrl: string;
+  landlineNo: string;
+  isCompanyBrand: boolean;
+  isDeleted: boolean;
+  createdAt: string;
+  updatedAt: string;
+  status: "pending" | "approved" | "rejected";
+  statusChangeReason: string;
+  statusChangedAt: string;
+  companyId: string;
+  addresses: Array<{
+    addressId: string;
+    addressType: "registered" | "office";
+    gstNumber: string;
+    panNumber: string;
+    addressLine1: string;
+    addressLine2: string;
+    landmark: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    country: string;
+    isPrimary: boolean;
+    brands: Array<{
+      _id: string;
+      name: string;
+      slug: string;
+    }>;
+  }>;
+}
+
 // API response type for company list (new API structure)
 export interface CompanyListItem {
   _id: string;

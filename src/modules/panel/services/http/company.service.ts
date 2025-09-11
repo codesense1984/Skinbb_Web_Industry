@@ -6,6 +6,7 @@ import type {
   CompanyOnboardingSubmitRequest,
   CompanyListItem,
   CompanyDetailDataResponse,
+  CompanyDetailResponse,
 } from "@/modules/panel/types/company.type";
 import { createFormData } from "@/core/utils/formdata.utils";
 import type { CompanyUser } from "../../types/user.type";
@@ -156,7 +157,7 @@ export async function apiGetOnboardCompanyDetailById<
 }
 
 export async function apiGetCompanyDetailById<
-  T = ApiResponse<CompanyOnboading>,
+  T = ApiResponse<CompanyDetailResponse>,
 >(companyId: string) {
   return api.get<T>(ENDPOINTS.SELLER.GET_COMPANY_DETAILS(companyId));
 }
@@ -334,7 +335,6 @@ export interface CompanyUserResponse {
   orgType: string;
   createdAt: string;
 }
-
 
 // Get company users
 export async function apiGetCompanyUsers<

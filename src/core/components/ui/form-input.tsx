@@ -355,20 +355,29 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
     case INPUT_TYPES.SELECT: {
       return (
         <FormControl {...formControlProps}>
+          {/* <select
+            value={value}
+            {...field}
+            onChange={(e) => {
+              field.onChange(
+                transform ? transform.output(e.target.value) : e.target.value,
+              );
+            }}
+          ></select> */}
           <SelectRoot
             {...field}
             value={value}
             disabled={disabled}
             onValueChange={(val) => {
-              clearErrors(name);
-              field.onChange(transform ? transform.output(val) : val);
+              if (val) {
+                clearErrors(name);
+                field.onChange(transform ? transform.output(val) : val);
+              }
             }}
           >
-            <FormControl>
-              <SelectTrigger {...inputProps}>
-                <SelectValue placeholder={placeholder}></SelectValue>
-              </SelectTrigger>
-            </FormControl>
+            <SelectTrigger {...inputProps}>
+              <SelectValue placeholder={placeholder}></SelectValue>
+            </SelectTrigger>
             <SelectContent>
               {"options" in props &&
                 props?.options?.map((option: SelectOption) => (

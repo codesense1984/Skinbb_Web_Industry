@@ -51,6 +51,7 @@ export function DatePicker<M extends Mode = "single">({
   calendarProps,
   placeholder = "Select date",
   className,
+  disabled,
   ...props
 }: DatePickerProps<M>) {
   const [open, setOpen] = React.useState(false);
@@ -110,7 +111,7 @@ export function DatePicker<M extends Mode = "single">({
             "rounded-md outline-none",
             "focus-visible:border-primary h-10 border",
             "focus-visible:ring-primary/50 focus-visible:ring-[3px]",
-            "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
+            "disabled:bg-muted/50 disabled:pointer-events-none disabled:cursor-not-allowed",
             "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40",
             "aria-invalid:border-destructive",
             className,
@@ -124,6 +125,7 @@ export function DatePicker<M extends Mode = "single">({
               e.stopPropagation();
             }
           }}
+          disabled={disabled}
           {...props}
         >
           {startIcon && (
@@ -135,7 +137,7 @@ export function DatePicker<M extends Mode = "single">({
             <InputIcon
               icon={
                 <div className="cursor-pointer space-x-1">
-                  {clearable && internalDate && (
+                  {clearable && internalDate && !disabled && (
                     <XMarkIcon
                       tabIndex={0}
                       role="button"
@@ -157,6 +159,7 @@ export function DatePicker<M extends Mode = "single">({
             />
           )}
           <span
+            data-disabled={disabled}
             className={inputVariants({
               withStartIcon: !!startIcon,
               withEndIcon: true,
