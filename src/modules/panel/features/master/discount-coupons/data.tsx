@@ -1,0 +1,177 @@
+import { TableAction } from "@/core/components/data-table/components/table-action";
+import { Badge, StatusBadge } from "@/core/components/ui/badge";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
+import type { ColumnDef } from "@tanstack/react-table";
+import type { Coupon } from "@/modules/panel/services/http/coupon.service";
+
+export const columns = (): ColumnDef<Coupon>[] => [
+  {
+    accessorKey: "code",
+    header: "Coupon Code",
+    cell: ({ row }) => {
+      const code = row.getValue("code") as string;
+      return (
+        <div className="font-mono font-medium text-sm bg-gray-100 px-2 py-1 rounded">
+          {code}
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "title",
+    header: "Title",
+    cell: ({ row }) => {
+      const title = row.getValue("title") as string;
+      return <div className="font-medium">{title}</div>;
+    },
+  },
+  {
+    accessorKey: "type",
+    header: "Type",
+    cell: ({ row }) => {
+      const type = row.getValue("type") as string;
+      const typeLabels = {
+        bogo: "BOGO",
+        product: "Product",
+        cart: "Cart",
+      };
+      return (
+        <Badge variant="outline">
+          {typeLabels[type as keyof typeof typeLabels] || type}
+        </Badge>
+      );
+    },
+  },
+  {
+    accessorKey: "discountType",
+    header: "Discount Type",
+    cell: ({ row }) => {
+      const discountType = row.getValue("discountType") as string;
+      const discountValue = row.original.discountValue;
+      const typeLabels = {
+        percentage: `${discountValue}%`,
+        fixed_amount: `₹${discountValue}`,
+        free_product: "Free Product",
+      };
+      return (
+        <Badge variant="secondary">
+          {typeLabels[discountType as keyof typeof typeLabels] || discountType}
+        </Badge>
+      );
+    },
+  },
+  {
+    accessorKey: "usageLimit",
+    header: "Usage",
+    cell: ({ row }) => {
+      const usageLimit = row.getValue("usageLimit") as number;
+      const usedCount = row.original.usedCount;
+      return (
+        <div className="text-sm">
+          <div className="font-medium">{usedCount} / {usageLimit}</div>
+          <div className="text-gray-500">
+            {usageLimit - usedCount} remaining
+          </div>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "validFrom",
+    header: "Valid Period",
+    cell: ({ row }) => {
+      const validFrom = new Date(row.getValue("validFrom"));
+      const expiresAt = new Date(row.original.expiresAt);
+      return (
+        <div className="text-sm">
+          <div className="font-medium">
+            {validFrom.toLocaleDateString()}
+          </div>
+          <div className="text-gray-500">
+            to {expiresAt.toLocaleDateString()}
+          </div>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row }) => {
+      const status = row.getValue("status") as string;
+      const isActive = row.original.isActive;
+      
+      // Determine the actual status based on isActive and status
+      let actualStatus = status;
+      if (status === "active" && !isActive) {
+        actualStatus = "inactive";
+      }
+      
+      return (
+        <StatusBadge
+          module="discount_coupon"
+          status={actualStatus}
+          variant="badge"
+        />
+      );
+    },
+  },
+  {
+    accessorKey: "createdAt",
+    header: "Created",
+    cell: ({ row }) => {
+      const date = new Date(row.getValue("createdAt"));
+      return (
+        <div className="text-sm">
+          {date.toLocaleDateString()}
+        </div>
+      );
+    },
+  },
+  {
+    id: "actions",
+    header: "Actions",
+    cell: ({ row, table }) => {
+      const coupon = row.original;
+      const meta = table.options.meta as any;
+      
+      return (
+        <TableAction
+          view={{
+            onClick: () => {
+              if (meta?.onView) {
+                meta.onView(coupon._id);
+              } else {
+                // Fallback to navigation
+                window.open(PANEL_ROUTES.MASTER.DISCOUNT_COUPON_VIEW(coupon._id), '_blank');
+              }
+            },
+            title: "View coupon",
+          }}
+          edit={{
+            onClick: () => {
+              if (meta?.onEdit) {
+                meta.onEdit(coupon._id);
+              } else {
+                // Fallback to navigation
+                window.open(PANEL_ROUTES.MASTER.DISCOUNT_COUPON_EDIT(coupon._id), '_blank');
+              }
+            },
+            title: "Edit coupon",
+          }}
+          delete={{
+            onClick: () => {
+              if (meta?.onDelete) {
+                meta.onDelete(coupon._id);
+              } else {
+                // TODO: Implement delete functionality
+                console.log("Delete coupon:", coupon._id);
+              }
+            },
+            title: "Delete coupon",
+          }}
+        />
+      );
+    },
+  },
+];

@@ -1,3 +1,4 @@
+import React from "react";
 import { Badge, StatusBadge } from "@/core/components/ui/badge";
 import { Button } from "@/core/components/ui/button";
 import {
@@ -39,6 +40,38 @@ import { CompanyApprovalDialog } from "../../company/components/approval/Company
 import type { CompanyOnboardingAddressDetail } from "@/modules/panel/types";
 import { formatCurrency, formatDate } from "@/core/utils";
 import { LocationService } from "@/core/services/location.service";
+
+// Type definitions for brand data
+interface BrandOwner {
+  ownerUser?: string;
+  ownerPhone?: string;
+  ownerEmail?: string;
+  landlineNo?: string;
+  ownerDesignation?: string;
+}
+
+interface SellingPlatform {
+  platform: string;
+  url: string;
+}
+
+interface Brand {
+  _id: string;
+  name: string;
+  status?: string;
+  aboutTheBrand?: string;
+  websiteUrl?: string;
+  logoImage?: string;
+  totalSKU?: number;
+  averageSellingPrice?: number;
+  productCategory?: string[];
+  marketingBudget?: number;
+  sellingOn?: SellingPlatform[];
+  instagramUrl?: string;
+  facebookUrl?: string;
+  youtubeUrl?: string;
+  owner?: BrandOwner;
+}
 
 // Reusable InfoItem component for displaying information with icons
 interface InfoItemProps {
@@ -415,7 +448,7 @@ const CompanyLocationView = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-              {currentLocation.brands.map((brand: any) => (
+              {currentLocation.brands.map((brand: Brand) => (
                 <div key={brand._id} className="rounded-lg border p-4">
                   <div className="mb-4 flex items-start gap-4">
                     {brand.logoImage && (
@@ -463,7 +496,7 @@ const CompanyLocationView = () => {
                       label="Total SKU"
                       value={
                         <span className="text-lg font-bold">
-                          {brand.totalSKU?.toLocaleString() || "-"}
+                          {brand.totalSKU ? brand.totalSKU.toLocaleString() : "-"}
                         </span>
                       }
                       // iconBgColor="bg-blue-100"
@@ -475,7 +508,7 @@ const CompanyLocationView = () => {
                       label="Avg Selling Price"
                       value={
                         <span className="text-lg font-bold">
-                          {formatCurrency(brand.averageSellingPrice)}
+                          {formatCurrency(brand.averageSellingPrice || 0)}
                         </span>
                       }
                       // iconBgColor="bg-green-100"
@@ -487,7 +520,7 @@ const CompanyLocationView = () => {
                       label="Product Categories"
                       value={
                         <span className="text-lg font-bold">
-                          {brand.productCategory?.length || 0}
+                          {brand.productCategory ? brand.productCategory.length : 0}
                         </span>
                       }
                       // iconBgColor="bg-purple-100"
@@ -499,7 +532,7 @@ const CompanyLocationView = () => {
                       label="Marketing Budget"
                       value={
                         <span className="text-lg font-bold">
-                          {formatCurrency(brand.marketingBudget)}
+                          {formatCurrency(brand.marketingBudget || 0)}
                         </span>
                       }
                       // iconBgColor="bg-orange-100"
@@ -519,7 +552,7 @@ const CompanyLocationView = () => {
                       </CardHeader>
                       <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
                         {brand.sellingOn.map(
-                          (platform: any, platformIndex: number) => (
+                          (platform: SellingPlatform, platformIndex: number) => (
                             <div
                               key={platformIndex}
                               className="flex items-center gap-3"
@@ -592,7 +625,7 @@ const CompanyLocationView = () => {
                       />
                       <InfoItem
                         icon={<PhoneIcon className="h-5 w-5" />}
-                        label="Landline Number"
+                        label="Fixed landline Number"
                         value={brand.owner?.landlineNo || "-"}
                         // iconBgColor="bg-orange-100"
                         // iconTextColor="text-orange-600"
@@ -804,7 +837,7 @@ const CompanyLocationView = () => {
             {company.companyDescription && (
               <InfoItem
                 icon={<GlobeAltIcon className="h-5 w-5" />}
-                label="Company Description"
+                label="Company Information"
                 value={company.companyDescription}
                 // iconBgColor="bg-blue-100"
                 // iconTextColor="text-blue-600"

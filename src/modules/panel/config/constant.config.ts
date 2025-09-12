@@ -3,16 +3,12 @@ export const COMPANY = {
     { label: "Public", value: "public" },
     { label: "Private Ltd", value: "privateLtd" },
     { label: "Proprietor", value: "prePropietier" },
-    { label: "Partnership", value: "partnership" },
-    { label: "LLP", value: "llp" },
-    {
-      label: "Limited Liability Partnership",
-      value: "limitedLiabilityPartnership",
-    },
-    { label: "Unknown", value: "unknown" },
+    { label: "Other", value: "unknown" },
   ],
   CATEGORY_OPTIONS: [
-    { label: "Principal", value: "principal" },
+    { label: "Brand", value: "brand" },
     { label: "Distributor", value: "distributor" },
+    { label: "Manufacturer", value: "manufacturer" },
+    { label: "Principal", value: "principal" },
   ],
 };

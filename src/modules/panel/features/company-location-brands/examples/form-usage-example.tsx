@@ -21,7 +21,8 @@ const getDefaultValues = (brandData?: CompanyLocationBrand | null): BrandFormDat
     youtubeUrl: brandData?.youtubeUrl || "",
     productCategory: brandData?.productCategory || [],
     sellingOn: brandData?.sellingOn || [],
-    isActive: brandData?.isActive ?? true,
+    authorizationLetter: brandData?.authorizationLetter || "",
+    isActive: brandData?.isActive ? "true" : "false",
   };
 };
 
@@ -65,6 +66,7 @@ const BrandFormExample = () => {
         { platform: "amazon", url: "https://amazon.com/example" },
         { platform: "flipkart", url: "https://flipkart.com/example" }
       ],
+      authorizationLetter: "authorization-letter.pdf",
       isActive: true,
     };
     reset(getDefaultValues(mockBrandData as CompanyLocationBrand));

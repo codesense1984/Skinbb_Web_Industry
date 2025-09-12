@@ -187,12 +187,12 @@ export const brandFormSchema: BrandFormSchema = {
       placeholder: "Select product category",
       options: [], // Will be populated dynamically
     },
-    {
-      type: "text",
-      name: "average_selling_price",
-      label: "Average Selling Price (ASP)",
-      placeholder: "Enter average selling price",
-    },
+    // {
+    //   type: "text",
+    //   name: "average_selling_price",
+    //   label: "Average Selling Price (ASP)",
+    //   placeholder: "Enter average selling price",
+    // },
   ],
 
   social_media_urls: [
