@@ -1,34 +1,31 @@
 // src/components/onboarding/AddressForm.tsx
-import React from "react";
-import { useFormContext, useWatch } from "react-hook-form";
 import {
   FormFieldsRenderer,
   type FormFieldConfig,
 } from "@/core/components/ui/form-input";
 import { MODE } from "@/core/types";
+import React from "react";
+import { useFormContext, useWatch } from "react-hook-form";
+import { StepKey } from "../../../config/steps.config";
 import {
   fullCompanyDetailsSchema,
   type FullCompanyFormType,
 } from "../../../schema/fullCompany.schema";
-import { StepKey } from "../../../config/steps.config";
-import { useLocationData } from "../../../hooks/useLocationData";
+import { useLocationData } from "../hooks/useLocationData";
 
 interface AddressFormProps {
   mode: MODE;
   addressIndex: number;
   field: any;
-  isCurrentRegistered: boolean;
-  hasRegisteredAddress: boolean;
   companyId?: string;
+  hasRegisteredAddress: boolean;
 }
 
 export const AddressForm: React.FC<AddressFormProps> = ({
   mode,
+  hasRegisteredAddress,
   addressIndex,
   field,
-  isCurrentRegistered,
-  hasRegisteredAddress,
-  companyId,
 }) => {
   const { control } = useFormContext<FullCompanyFormType>();
 
@@ -50,9 +47,11 @@ export const AddressForm: React.FC<AddressFormProps> = ({
   const configs = fullCompanyDetailsSchema[StepKey.ADDRESS_DETAILS]({
     mode,
     index: addressIndex,
-    disabledAddressType: isCurrentRegistered && !!companyId,
-    disabled:
-      (field.addressType === "registered" && !!companyId) || !!field.addressId,
+    // disabledAddressType: isCurrentRegistered && !!companyId,
+    // disabled:
+    //   (field.addressType === "registered" && !!companyId) || !!field.addressId,
+    disabled: mode === MODE.EDIT ? false : !!field.addressId,
+    disabledAddressType: false,
     isCountrySelected,
     dynamicOptions: {
       countries: locationData.countries,
@@ -68,14 +67,10 @@ export const AddressForm: React.FC<AddressFormProps> = ({
     ) {
       return {
         ...config,
-        options: config.options?.filter((option) => {
-          // If this address is already registered, show all options
-          if (isCurrentRegistered) return true;
-          // If another address is registered, hide "registered" option
-          if (hasRegisteredAddress && option.value === "registered")
-            return false;
-          return true;
-        }),
+        options: config.options?.map((option) => ({
+          ...option,
+          disabled: hasRegisteredAddress && option.value === "registered",
+        })),
       };
     }
     return config;

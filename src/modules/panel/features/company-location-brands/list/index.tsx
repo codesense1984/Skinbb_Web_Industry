@@ -1,11 +1,13 @@
 import { useParams, useNavigate } from "react-router";
 import { DataTable } from "@/core/components/data-table";
 import { StatusFilter } from "@/core/components/data-table/components/table-filter";
-import { PageContent } from "@/core/components/ui/structure";
 import { Button } from "@/core/components/ui/button";
-import { PlusIcon } from "@heroicons/react/24/solid";
+import { PageContent } from "@/core/components/ui/structure";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { apiGetCompanyLocationBrands } from "@/modules/panel/services/http/company.service";
+import { PlusIcon } from "@heroicons/react/24/solid";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate, useParams } from "react-router";
 import { columns } from "./data";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import type { CompanyLocationBrand } from "@/modules/panel/types/brand.type";
@@ -28,11 +30,14 @@ const CompanyLocationBrandsList = () => {
       <PageContent
         header={{
           title: "Brands",
-          description: "Company ID and Location ID are required to view brands.",
+          description:
+            "Company ID and Location ID are required to view brands.",
         }}
       >
         <div className="py-8 text-center">
-          <p className="text-gray-500">Invalid company or location ID provided.</p>
+          <p className="text-gray-500">
+            Invalid company or location ID provided.
+          </p>
         </div>
       </PageContent>
     );
@@ -49,8 +54,13 @@ const CompanyLocationBrandsList = () => {
     locationType: "unknown",
     locationCity: "Location",
     locationState: "unknown",
+    locationType: "unknown",
+    locationCity: "Location",
+    locationState: "unknown",
     // Ensure productCategory is always an array
-    productCategory: Array.isArray(brand.productCategory) ? brand.productCategory : [],
+    productCategory: Array.isArray(brand.productCategory)
+      ? brand.productCategory
+      : [],
     // Ensure sellingOn is always an array
     sellingOn: Array.isArray(brand.sellingOn) ? brand.sellingOn : [],
     // Ensure numeric fields are numbers
@@ -87,16 +97,19 @@ const CompanyLocationBrandsList = () => {
           <p className="text-sm text-gray-500 mb-4">
             Error details: {error instanceof Error ? error.message : "Unknown error"}
           </p>
-          <div className="bg-gray-50 p-4 rounded-lg mb-4">
-            <p className="text-sm text-gray-600 mb-2">
-              <strong>API Response:</strong> {JSON.stringify(brandsData, null, 2)}
+          <div className="mb-4 rounded-lg bg-gray-50 p-4">
+            <p className="mb-2 text-sm text-gray-600">
+              <strong>API Response:</strong>{" "}
+              {JSON.stringify(brandsData, null, 2)}
             </p>
           </div>
-          <p className="text-sm text-gray-400 mb-4">
+          <p className="mb-4 text-sm text-gray-400">
             Location ID: {locationId}
           </p>
-          <Button 
-            onClick={() => navigate(PANEL_ROUTES.COMPANY_LOCATION.LIST(companyId))}
+          <Button
+            onClick={() =>
+              navigate(PANEL_ROUTES.COMPANY_LOCATION.LIST(companyId))
+            }
             variant="outlined"
           >
             Back to Locations
@@ -114,8 +127,15 @@ const CompanyLocationBrandsList = () => {
           title: "Brands",
           description: "Manage brands for this location",
           actions: (
-            <Button 
-              onClick={() => navigate(PANEL_ROUTES.COMPANY_LOCATION.BRAND_CREATE(companyId, locationId))}
+            <Button
+              onClick={() =>
+                navigate(
+                  PANEL_ROUTES.COMPANY_LOCATION.BRAND_CREATE(
+                    companyId,
+                    locationId,
+                  ),
+                )
+              }
               variant="contained"
               color="secondary"
             >
@@ -127,28 +147,51 @@ const CompanyLocationBrandsList = () => {
       >
         <div className="py-8 text-center">
           <div className="mb-4">
-            <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" />
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+              <svg
+                className="h-8 w-8 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 6h.008v.008H6V6z"
+                />
               </svg>
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">No Brands Found</h3>
             <p className="text-gray-500 mb-4">
               This location doesn&apos;t have any brands yet. Create your first brand to get started.
             </p>
-            <p className="text-sm text-gray-400 mb-6">
+            <p className="mb-6 text-sm text-gray-400">
               Location ID: {locationId}
             </p>
-            <div className="flex gap-3 justify-center">
-              <Button 
-                onClick={() => navigate(PANEL_ROUTES.COMPANY_LOCATION.LIST(companyId))}
+            <div className="flex justify-center gap-3">
+              <Button
+                onClick={() =>
+                  navigate(PANEL_ROUTES.COMPANY_LOCATION.LIST(companyId))
+                }
                 variant="outlined"
               >
                 Back to Locations
               </Button>
-              <Button 
-                onClick={() => navigate(PANEL_ROUTES.COMPANY_LOCATION.BRAND_CREATE(companyId, locationId))}
+              <Button
+                onClick={() =>
+                  navigate(
+                    PANEL_ROUTES.COMPANY_LOCATION.BRAND_CREATE(
+                      companyId,
+                      locationId,
+                    ),
+                  )
+                }
                 variant="contained"
                 color="secondary"
               >
@@ -168,8 +211,15 @@ const CompanyLocationBrandsList = () => {
         title: "Brands",
         description: "Manage brands for this location",
         actions: (
-          <Button 
-            onClick={() => navigate(PANEL_ROUTES.COMPANY_LOCATION.BRAND_CREATE(companyId, locationId))}
+          <Button
+            onClick={() =>
+              navigate(
+                PANEL_ROUTES.COMPANY_LOCATION.BRAND_CREATE(
+                  companyId,
+                  locationId,
+                ),
+              )
+            }
             variant="contained"
             color="secondary"
           >
@@ -183,8 +233,11 @@ const CompanyLocationBrandsList = () => {
         <DataTable
           columns={columns(companyId, locationId)}
           rows={brands}
-          isServerSide={false}
-          queryKeyPrefix={PANEL_ROUTES.COMPANY_LOCATION.BRANDS(companyId, locationId)}
+          isServerSide={true}
+          queryKeyPrefix={PANEL_ROUTES.COMPANY_LOCATION.BRANDS(
+            companyId,
+            locationId,
+          )}
           actionProps={(tableState) => ({
             children: (
               <StatusFilter

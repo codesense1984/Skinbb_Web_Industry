@@ -10,9 +10,12 @@ import type {
   CompanyList,
   CompanyListItem,
 } from "@/modules/panel/types/company.type";
-import { MapPinIcon } from "@heroicons/react/24/solid";
+import { MapPinIcon, UserIcon } from "@heroicons/react/24/solid";
 import type { ColumnDef } from "@tanstack/react-table";
-import { convertApiResponseToCompanyList, sampleApiResponse } from "./sample-api-data";
+import {
+  convertApiResponseToCompanyList,
+  sampleApiResponse,
+} from "./sample-api-data";
 
 export const statsData = [
   {
@@ -134,59 +137,55 @@ export const companyData: CompanyList[] = [
 ];
 
 // New API-based company data
-export const apiCompanyData: CompanyListItem[] = convertApiResponseToCompanyList(sampleApiResponse);
+export const apiCompanyData: CompanyListItem[] =
+  convertApiResponseToCompanyList(sampleApiResponse);
 
 export const columns: ColumnDef<CompanyListItem>[] = [
   {
     header: "Company Name",
     accessorKey: "companyName",
+    size: 250,
     cell: ({ row }) => (
-      <div className="flex w-max items-center gap-3 font-medium">
+      <div className="flex items-center gap-3 font-medium">
         {row.original.logo && (
           <Avatar
             src={row.original.logo}
             feedback={row.original.companyName.charAt(0)}
           />
         )}
-        <span>{row.original.companyName}</span>
+        <span className="break-all">{row.original.companyName}</span>
       </div>
     ),
   },
   {
     header: "Business Type",
     accessorKey: "businessType",
-    cell: ({ row }) => <div className="w-max">{row.original.businessType}</div>,
-  },
-  {
-    header: "Website",
-    accessorKey: "website",
+    size: 120,
     cell: ({ row }) => (
-      <a
-        href={row.original.website}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-blue-600 underline hover:text-blue-800"
-      >
-        {row.original.website}
-      </a>
+      <span className="break-all">{row.original.businessType}</span>
     ),
   },
   {
     header: "Location",
     accessorKey: "address",
+    size: 130,
     cell: ({ row }) => (
       <div className="flex flex-wrap gap-2">
-        {row.original?.address?.map((address, index) => (
-          <Badge key={address._id || index} variant={"outline"}>
+        {row.original?.address.slice(0, 1).map((address) => (
+          <Badge className="whitespace-normal" variant={"outline"}>
             {address.city}
           </Badge>
         ))}
+        {row.original?.address.length > 1 && (
+          <Badge variant={"outline"}>+{row.original?.address.length - 1}</Badge>
+        )}
       </div>
     ),
   },
   {
     header: "Status",
     accessorKey: "companyStatus",
+    size: 120,
     cell: ({ row }) => (
       <StatusBadge
         status={row.original.companyStatus}
@@ -203,45 +202,10 @@ export const columns: ColumnDef<CompanyListItem>[] = [
   {
     header: "Created Date",
     accessorKey: "createdAt",
+    size: 120,
     cell: ({ row }) => {
       const createdAt = row.getValue("createdAt") as string;
       return <div className="w-max">{formatDate(createdAt)}</div>;
-    },
-  },
-  {
-    header: "Users",
-    accessorKey: "users",
-    enableSorting: false,
-    enableHiding: false,
-    cell: ({ row }) => {
-      return (
-        <TableAction>
-          {renderActionButton(
-            {
-              className: "w-auto px-2 text-muted-foreground",
-              size: "md",
-              variant: "outlined",
-              to: `/company/${row.original._id}/users`,
-              children: "Users",
-              title: "View Users",
-            },
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="size-4"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
-              />
-            </svg>
-          )}
-        </TableAction>
-      );
     },
   },
   {
@@ -249,14 +213,15 @@ export const columns: ColumnDef<CompanyListItem>[] = [
     accessorKey: "actions",
     enableSorting: false,
     enableHiding: false,
+    size: 250,
     cell: ({ row }) => {
       return (
         <TableAction
-          // view={{
-          //   // onClick: () => console.log("View company:", row.original._id),
-          //   to: PANEL_ROUTES.COMPANY.VIEW(row.original._id),
-          //   title: "View company details",
-          // }}
+          view={{
+            // onClick: () => console.log("View company:", row.original._id),
+            to: PANEL_ROUTES.COMPANY.VIEW(row.original._id),
+            title: "View company details",
+          }}
           // edit={{
           //   loading: false,
           //   // onClick: () => console.log("Edit company:", row.original._id),
@@ -268,6 +233,17 @@ export const columns: ColumnDef<CompanyListItem>[] = [
           //   tooltip: "Delete company",
           // }}
         >
+          {renderActionButton(
+            {
+              className: "w-auto px-2 text-muted-foreground",
+              size: "md",
+              variant: "outlined",
+              to: `/company/${row.original._id}/users`,
+              children: "Users",
+              title: "View Users",
+            },
+            <UserIcon className="size-4" />,
+          )}
           {renderActionButton(
             {
               className: "w-auto px-2 text-muted-foreground",

@@ -82,7 +82,7 @@ export function TableAction({
   return (
     <div
       className={cn(
-        "flex w-max items-center",
+        "flex flex-wrap items-center",
         spacingClasses[spacing],
         className,
       )}

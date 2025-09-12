@@ -11,7 +11,7 @@ const fetcher = (companyId: string) =>
       apiGetCompanyLocationList(companyId, params, signal),
     {
       dataPath: "data.items",
-      totalPath: "data.total",
+      totalPath: "data.totalRecords",
     },
   );
 

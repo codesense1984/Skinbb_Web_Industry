@@ -62,7 +62,6 @@ const CompanyForm: React.FC<CompanyFormProps> = ({
     queryKey: [PANEL_ROUTES.COMPANY.DETAIL(id)],
     queryFn: () => apiGetCompanyDetailById(id!),
     enabled: !!id,
-    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Update form data when company data is fetched

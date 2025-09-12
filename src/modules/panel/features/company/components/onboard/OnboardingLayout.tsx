@@ -15,7 +15,7 @@ const OnboardLayout = () => {
       </style> */}
       <div className="relative grid grid-cols-1 lg:grid-cols-12">
         <div
-          className="from-secondary to-secondary relative flex h-[100dvh] items-center justify-center bg-linear-to-b p-4 py-10 md:top-0 md:px-8 md:py-12 lg:sticky lg:col-span-5"
+          className="from-secondary to-secondary relative order-2 flex items-center justify-center bg-linear-to-b p-4 py-10 md:top-0 md:px-8 md:py-12 lg:sticky lg:order-1 lg:col-span-5 lg:h-[100dvh]"
           // className="before:from-secondary before:to-secondary relative flex items-center justify-center p-4 py-10 before:absolute before:inset-0 before:bg-linear-to-b  md:sticky md:top-0 md:col-span-5 md:min-h-[100dvh] md:px-8 md:py-12 md:before:z-[-1]"
           // style={{
           //   // backgroundImage: `url(${onBoarding})`,
@@ -68,7 +68,7 @@ const OnboardLayout = () => {
             {/* <img src={onBoarding} alt="" className="w-80 h-full object-cover mx-auto" /> */}
           </div>
         </div>
-        <div className="col-span-7 w-full">
+        <div className="order-1 col-span-7 w-full lg:order-2">
           <div className="mx-auto h-full w-full max-w-2xl space-y-10 p-4 py-6 md:px-6 md:pt-12 lg:pb-0">
             <Outlet />
           </div>

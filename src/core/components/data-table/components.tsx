@@ -24,20 +24,26 @@ import {
 } from "@/core/components/ui/table";
 import { cn } from "@/core/utils";
 import {
-  ArrowDownIcon,
-  ArrowUpIcon,
+  ChevronDoubleLeftIcon,
+  ChevronDoubleRightIcon,
+  ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  ChevronUpIcon,
   MagnifyingGlassIcon,
-  Squares2X2Icon,
-  TableCellsIcon,
   ViewColumnsIcon,
 } from "@heroicons/react/24/outline";
 import { flexRender, type Header } from "@tanstack/react-table";
-import { useMemo, type KeyboardEvent } from "react";
-import { DEFAULT_PAGE_SIZES } from "./constants";
+import { useMemo } from "react";
 import {
-  DataViewMode,
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+} from "../ui/pagination";
+import { TableFilter } from "./components/table-filter";
+import { DEFAULT_PAGE_SIZES } from "./constants";
+import { useTable } from "./hooks";
+import {
   type DataGridViewProps,
   type DataPaginationProps,
   type DataTableActionProps,
@@ -45,60 +51,91 @@ import {
   type DataTableProps,
   type DataTableToggleProps,
 } from "./types";
-import { useTable } from "./hooks";
-import { TableFilter } from "./components/table-filter";
+
+/* /* NOSONAR */ // Suppresses this line from being flagged
+// <div
+//   role="button"
+//   tabIndex={0}
+//   aria-pressed={!!isSorted}
+//   aria-label={`Sort by ${String(header.column.columnDef.header)}`}
+//   onKeyDown={handleKeyDown}
+//   className={cn(
+//     "group flex h-full w-full items-center gap-2 px-3 py-2 focus:outline-none",
+//     header.column.getCanSort() ? "cursor-pointer" : "text-left",
+//   )}
+//   onClick={(e) => {
+//     // Prevent toggling sort if clicking inside an actual button
+//     if ((e.target as HTMLElement).closest("button")) return;
+
+//     toggleHandler?.(e);
+//   }}
+// >
+//   {flexRender(header.column.columnDef.header, header.getContext())}
+//   {(header.column.getCanSort() && (
+//     <button
+//       type="button"
+//       className={cn(
+//         "hover:bg-background grid size-7 cursor-pointer place-content-center rounded-md opacity-0 group-hover:opacity-100",
+//         header.column.getIsSorted() && "opacity-100",
+//       )}
+//       onClick={header.column.getToggleSortingHandler()}
+//     >
+//       {
+//         {
+//           asc: <ArrowUpIcon className="text-muted-foreground size-4" />,
+//           desc: <ArrowDownIcon className="text-muted-foreground size-4" />,
+//           false: <ArrowUpIcon className="text-border size-4" />,
+//         }[header.column.getIsSorted() as string]
+//       }
+//     </button>
+//   )) ??
+//     null}
+// </div> */}
 
 function SortableHeader<TData>({ header }: { header: Header<TData, unknown> }) {
-  const isSorted = header.column.getIsSorted() as string;
-  const toggleHandler = header.column.getToggleSortingHandler();
-
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if (["Enter", " "].includes(e.key)) {
-      e.preventDefault();
-      toggleHandler?.(e);
-    }
-  };
-
   return (
-    /* NOSONAR */ // Suppresses this line from being flagged
-    <div
-      role="button"
-      tabIndex={0}
-      aria-pressed={!!isSorted}
-      aria-label={`Sort by ${String(header.column.columnDef.header)}`}
-      onKeyDown={handleKeyDown}
-      className={cn(
-        "group flex h-full w-full items-center gap-2 px-3 py-2 focus:outline-none",
-        header.column.getCanSort() ? "cursor-pointer" : "text-left",
-      )}
-      onClick={(e) => {
-        // Prevent toggling sort if clicking inside an actual button
-        if ((e.target as HTMLElement).closest("button")) return;
-
-        toggleHandler?.(e);
-      }}
-    >
-      {flexRender(header.column.columnDef.header, header.getContext())}
-      {(header.column.getCanSort() && (
-        <button
-          type="button"
+    <>
+      {header.isPlaceholder ? null : header.column.getCanSort() ? (
+        <div
           className={cn(
-            "hover:bg-background grid size-7 cursor-pointer place-content-center rounded-md opacity-0 group-hover:opacity-100",
-            header.column.getIsSorted() && "opacity-100",
+            header.column.getCanSort() &&
+              "flex h-full cursor-pointer items-center justify-between gap-2 select-none",
           )}
           onClick={header.column.getToggleSortingHandler()}
+          onKeyDown={(e) => {
+            // Enhanced keyboard handling for sorting
+            if (
+              header.column.getCanSort() &&
+              (e.key === "Enter" || e.key === " ")
+            ) {
+              e.preventDefault();
+              header.column.getToggleSortingHandler()?.(e);
+            }
+          }}
+          tabIndex={header.column.getCanSort() ? 0 : undefined}
         >
-          {
-            {
-              asc: <ArrowUpIcon className="text-muted-foreground size-4" />,
-              desc: <ArrowDownIcon className="text-muted-foreground size-4" />,
-              false: <ArrowUpIcon className="text-border size-4" />,
-            }[header.column.getIsSorted() as string]
-          }
-        </button>
-      )) ??
-        null}
-    </div>
+          <span className="truncate">
+            {flexRender(header.column.columnDef.header, header.getContext())}
+          </span>
+          {{
+            asc: (
+              <ChevronUpIcon
+                className="size-4 shrink-0 opacity-60"
+                aria-hidden="true"
+              />
+            ),
+            desc: (
+              <ChevronDownIcon
+                className="size-4 shrink-0 opacity-60"
+                aria-hidden="true"
+              />
+            ),
+          }[header.column.getIsSorted() as string] ?? null}
+        </div>
+      ) : (
+        flexRender(header.column.columnDef.header, header.getContext())
+      )}
+    </>
   );
 }
 
@@ -108,23 +145,29 @@ export function DataTableBody<TData>({
   isLoading = false,
   loadingMessage,
   loadingRows = 5,
+  className,
   ...props
 }: DataTableBodyProps<TData> & TableProps) {
   return (
-    <Table {...props}>
+    <Table className={cn("table-fixed", className)} {...props}>
       <TableHeader>
         {table.getHeaderGroups().map((group) => (
           <TableRow key={group.id}>
-            {group.headers.map((header, index) => (
+            {group.headers.map((header) => (
               <TableHead
                 key={header.id}
-                className={cn(
-                  "p-0 first:pl-0 last:pr-0",
-                  index === 0 && "first:pl-2",
-                  index === group.headers.length - 1 && "last:pr-2",
-                )}
+                className={
+                  cn()
+                  // "first:pl-0 last:pr-0",
+                  // index === 0 && "first:pl-2",
+                  // index === group.headers.length - 1 && "last:pr-2",
+                }
+                style={{
+                  width: `${header.getSize()}px`,
+                }}
               >
-                {!header.isPlaceholder && <SortableHeader header={header} />}
+                {/* {!header.isPlaceholder && <SortableHeader header={header} />} */}
+                {<SortableHeader header={header} />}
               </TableHead>
             ))}
           </TableRow>
@@ -144,7 +187,11 @@ export function DataTableBody<TData>({
           ))
         ) : table.getRowModel().rows.length ? (
           table.getRowModel().rows.map((row) => (
-            <TableRow key={row.id} className="hover:bg-muted">
+            <TableRow
+              key={row.id}
+              className="hover:bg-muted"
+              data-state={row.getIsSelected() && "selected"}
+            >
               {row.getVisibleCells().map((cell) => (
                 <TableCell key={cell.id}>
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -238,14 +285,18 @@ export function DataPagination<TData>({
   showEntryCount = true,
   showPageSizeOptions = true,
   serverTotal,
+  isServerSide = false,
   className,
   ...props
 }: DataPaginationProps<TData>) {
   const pageSize = table.getState().pagination.pageSize;
   const pageIndex = table.getState().pagination.pageIndex;
-  // If serverTotal is provided, prefer it; otherwise keep existing behavior
+  // If serverTotal is provided and we're in server-side mode, use it
+  // For client-side mode (scenario 1 & 3), use table row count
   const total =
-    typeof serverTotal === "number" ? serverTotal : table.getRowCount();
+    typeof serverTotal === "number" && isServerSide
+      ? serverTotal
+      : table.getRowCount();
 
   // Avoid "1 to 0 of 0" when total is zero
   const startEntry = total > 0 ? pageIndex * pageSize + 1 : 0;
@@ -260,62 +311,102 @@ export function DataPagination<TData>({
   return (
     <div
       className={cn(
-        "flex flex-wrap items-center justify-between gap-2 py-1 md:gap-4",
+        "flex flex-wrap items-center justify-between gap-4 py-1 md:gap-4 md:gap-8",
         className,
       )}
       {...props}
     >
-      {showEntryCount && (
-        <div>
-          Showing {startEntry} to {endEntry} of {total} entries
-          {!!table.getFilteredSelectedRowModel().rows.length && (
-            <>
-              {" "}
-              (row {table.getFilteredSelectedRowModel().rows.length} selected)
-            </>
-          )}
+      {showPageSizeOptions && (
+        <div className="flex flex-1 items-center gap-2">
+          <span className="hidden md:block">Rows per page</span>
+          <SelectRoot
+            value={String(pageSize)}
+            onValueChange={(value) => table.setPageSize(Number(value))}
+          >
+            <SelectTrigger className="w-[80px]" size="sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {DEFAULT_PAGE_SIZES.map((size) => (
+                <SelectItem key={size} value={String(size)}>
+                  {size}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </SelectRoot>
         </div>
       )}
-      <div className="flex flex-wrap items-center gap-2 md:gap-4">
-        {showPageSizeOptions && (
-          <div className="flex items-center gap-2">
-            <SelectRoot
-              value={String(pageSize)}
-              onValueChange={(value) => table.setPageSize(Number(value))}
-            >
-              <SelectTrigger className="w-[80px]" size="sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {DEFAULT_PAGE_SIZES.map((size) => (
-                  <SelectItem key={size} value={String(size)}>
-                    {size}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </SelectRoot>
-            Entries per page
-          </div>
-        )}
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-8"
-            startIcon={<ChevronLeftIcon className="!size-5" />}
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          />
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-8"
-            startIcon={<ChevronRightIcon className="!size-5" />}
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          />
+      {/* <div className="flex flex-wrap items-center gap-8 md:gap-4"> */}
+      {showEntryCount && (
+        <div className="text-muted-foreground flex justify-end whitespace-nowrap">
+          <p
+            className="text-muted-foreground whitespace-nowrap"
+            aria-live="polite"
+          >
+            <span className="text-foreground">
+              {startEntry}-{endEntry}
+            </span>{" "}
+            of <span className="text-foreground">{total}</span>
+          </p>
         </div>
-      </div>
+      )}
+
+      <Pagination className="w-fit">
+        <PaginationContent>
+          {/* First page button */}
+          <PaginationItem className="hidden md:block">
+            <Button
+              size="icon"
+              variant="outlined"
+              className="disabled:bg-muted/50 disabled:pointer-events-none"
+              onClick={() => table.firstPage()}
+              disabled={!table.getCanPreviousPage()}
+              aria-label="Go to first page"
+            >
+              <ChevronDoubleLeftIcon aria-hidden="true" />
+            </Button>
+          </PaginationItem>
+          {/* Previous page button */}
+          <PaginationItem>
+            <Button
+              size="icon"
+              variant="outlined"
+              className="disabled:bg-muted/50 disabled:pointer-events-none"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+              aria-label="Go to previous page"
+            >
+              <ChevronLeftIcon aria-hidden="true" />
+            </Button>
+          </PaginationItem>
+          {/* Next page button */}
+          <PaginationItem>
+            <Button
+              size="icon"
+              variant="outlined"
+              className="disabled:bg-muted/50 disabled:pointer-events-none"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+              aria-label="Go to next page"
+            >
+              <ChevronRightIcon aria-hidden="true" />
+            </Button>
+          </PaginationItem>
+          {/* Last page button */}
+          <PaginationItem className="hidden md:block">
+            <Button
+              size="icon"
+              variant="outlined"
+              className="disabled:bg-muted/50 disabled:pointer-events-none"
+              onClick={() => table.lastPage()}
+              disabled={!table.getCanNextPage()}
+              aria-label="Go to last page"
+            >
+              <ChevronDoubleRightIcon aria-hidden="true" />
+            </Button>
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
     </div>
   );
 }
@@ -327,14 +418,14 @@ export function DataTableAction<TData>({
   tableHeading = "",
   showViewToggle = true,
   showColumnsFilter = true,
+  viewMode,
   ...props
 }: DataTableActionProps<TData>) {
-  const { table, viewMode, toggleViewMode } = tableState;
+  const { table } = tableState;
 
   const columnFilter = () => {
-    if (viewMode === DataViewMode.grid) return;
+    // if (viewMode === DataViewMode.grid) return;
 
-    console.log("columnOptions", table?.getAllColumns());
     const columnOptions =
       table
         ?.getAllColumns()
@@ -361,23 +452,29 @@ export function DataTableAction<TData>({
   };
   return (
     <div
-      className={cn("flex items-center justify-between", className)}
+      className={cn(
+        "flex w-full flex-wrap items-center gap-2 md:gap-4",
+        className,
+      )}
       {...props}
     >
-      <h5 className="table-heading">{tableHeading}</h5>
-      <div className="flex flex-wrap gap-2 md:gap-4">
-        <Input
-          startIcon={<MagnifyingGlassIcon />}
-          placeholder="Search..."
-          onChange={(event) => table?.setGlobalFilter(event.target.value)}
-          className="max-w-52"
-          aria-label="Search table content"
-        />
+      {tableHeading && <h5 className="table-heading flex-1">{tableHeading}</h5>}
+      {/* <div className="flex flex-wrap gap-2 md:gap-4"> */}
+      <Input
+        startIcon={<MagnifyingGlassIcon />}
+        placeholder="Search by..."
+        onChange={(event) => table?.setGlobalFilter(event.target.value)}
+        className="max-w-72"
+        containerProps={{
+          className: !tableHeading ? "flex-1" : "",
+        }}
+        aria-label="Search table content"
+      />
 
-        {children}
-        {showColumnsFilter && columnFilter()}
-        {/* {viewMode === DataViewMode.list && } */}
-        {showViewToggle && (
+      {children}
+      {showColumnsFilter && columnFilter()}
+      {/* {viewMode === DataViewMode.list && } */}
+      {/* {showViewToggle && (
           <Button variant={"outlined"} size={"icon"} onClick={toggleViewMode}>
             {viewMode !== DataViewMode.grid ? (
               <TableCellsIcon />
@@ -385,8 +482,8 @@ export function DataTableAction<TData>({
               <Squares2X2Icon />
             )}
           </Button>
-        )}
-      </div>
+        )} */}
+      {/* </div> */}
     </div>
   );
 }
@@ -402,16 +499,17 @@ export function DataTable<TData extends object>({
   tableHeading,
   className,
   pageSize,
+  isServerSide = false,
   ...props
 }: DataTableProps<TData>) {
   const tableState = useTable({
     rows,
     columns,
     pageSize: !showPagination ? -1 : pageSize,
+    isServerSide: isServerSide,
     ...props,
-    defaultViewMode: DataViewMode.list,
   });
-  const { table } = tableState;
+  const { table, total = 0 } = tableState;
   return (
     <div className={cn("space-y-5", className)}>
       {showAction && (
@@ -428,7 +526,14 @@ export function DataTable<TData extends object>({
         isLoading={tableState?.isLoading}
         {...bodyProps}
       />
-      {showPagination && <DataPagination table={table} {...paginationProps} />}
+      {showPagination && (
+        <DataPagination
+          serverTotal={isServerSide ? total : undefined}
+          table={table}
+          isServerSide={isServerSide}
+          {...paginationProps}
+        />
+      )}
     </div>
   );
 }
@@ -444,13 +549,13 @@ export function DataTableToogle<TData extends object>({
   showPagination = true,
   ...props
 }: DataTableToggleProps<TData>) {
+  // const [viewMode, setViewMode] = useState(DataViewMode.list);
   const tableState = useTable({
     rows,
     columns,
-    defaultViewMode: DataViewMode.grid,
     ...props,
   });
-  const { table, viewMode } = tableState;
+  const { table } = tableState;
   return (
     <div className="space-y-5">
       {showAction && (
@@ -460,7 +565,13 @@ export function DataTableToogle<TData extends object>({
         ></DataTableAction>
       )}
 
-      {viewMode === DataViewMode.list ? (
+      <DataTableBody
+        table={table}
+        className="overflow-hidden rounded-md shadow-md"
+        {...bodyProps}
+      />
+
+      {/* {viewMode === DataViewMode.list ? (
         <DataTableBody
           table={table}
           className="overflow-hidden rounded-md shadow-md"
@@ -474,7 +585,7 @@ export function DataTableToogle<TData extends object>({
           loadingItems={bodyProps?.loadingRows}
           {...gridProps}
         />
-      )}
+      )} */}
       {showPagination && <DataPagination table={table} {...paginationProps} />}
     </div>
   );

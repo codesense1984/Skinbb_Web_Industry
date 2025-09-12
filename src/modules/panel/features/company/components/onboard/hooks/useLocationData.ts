@@ -1,9 +1,6 @@
 import { useEffect, useMemo } from "react";
-import { useWatch, useFormContext } from "react-hook-form";
-import {
-  LocationService,
-  type LocationOption,
-} from "../services/location.service";
+import { useFormContext, useWatch } from "react-hook-form";
+import { LocationService, type LocationOption } from "../../../../../../../core/services/location.service";
 
 interface UseLocationDataProps {
   addressIndex: number;

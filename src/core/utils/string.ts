@@ -1,3 +1,5 @@
+import type { Option } from "../types";
+
 export function capitalize(str: string) {
   if (!str || typeof str !== "string") {
     return "";
@@ -20,10 +22,6 @@ export function kebabToTitle(str: string) {
   return str.split("-").map(capitalize).join(" ");
 }
 
-export interface SelectOption {
-  label: string;
-  value: string;
-}
 export function mapToSelectOptions<T extends string | Record<string, unknown>>(
   values: T[],
   labelKey?: T extends string
@@ -32,7 +30,7 @@ export function mapToSelectOptions<T extends string | Record<string, unknown>>(
   valueKey?: T extends string
     ? never
     : keyof Extract<T, Record<string, unknown>>,
-): SelectOption[] {
+): Option[] {
   return values.map((item) => {
     if (typeof item === "string") {
       return {

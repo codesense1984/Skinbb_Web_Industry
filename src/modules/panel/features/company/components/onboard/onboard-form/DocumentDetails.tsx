@@ -1,19 +1,45 @@
-// src/components/onboarding/AddressDetails.tsx
-import { FormFieldsRenderer } from "@/core/components/ui/form-input";
+import {
+  FormFieldsRenderer,
+  type FormFieldConfig,
+} from "@/core/components/ui/form-input";
 import { MODE } from "@/core/types";
-import React, { useMemo } from "react";
-import { useFieldArray, useFormContext } from "react-hook-form";
+import type { CompanyDocument } from "@/modules/panel/types";
+import { CheckCircleIcon } from "@heroicons/react/24/solid";
+import React from "react";
+import {
+  useFieldArray,
+  useFormContext,
+  useWatch,
+  type Control,
+  type FieldArrayWithId,
+  type UseFormSetValue,
+} from "react-hook-form";
 import {
   fullCompanyDetailsSchema,
   type FullCompanyFormType,
 } from "../../../schema/fullCompany.schema";
-import type { CompanyDocument } from "@/modules/panel/types";
+import { XMarkIcon } from "@heroicons/react/24/outline";
+import { Button } from "@/core/components/ui/button";
 
 interface DocumentDetailsProps {
   mode: MODE;
+  onVerificationComplete?: (index: number) => void;
 }
 
-const DOC_CONFIGS = [
+interface DocumentConfigItemProps {
+  key: string;
+  title: string;
+  numberLabel: string;
+  numberPlaceholder: string;
+  uploadLabel: string;
+  uploadPlaceholder: string;
+  required: boolean;
+  showNumber?: false;
+}
+
+const DOC_VERIFIED_KEYS = ["coi", "gstLicense", "pan"];
+
+const DOC_CONFIGS: DocumentConfigItemProps[] = [
   {
     key: "coi" as CompanyDocument["type"],
     title: "Certificate of Incorporation",
@@ -34,7 +60,7 @@ const DOC_CONFIGS = [
   },
   {
     key: "gstLicense" as CompanyDocument["type"],
-    title: "Goods & Services Tax (GST) (optional)",
+    title: "Goods & Services Tax (GST)",
     numberLabel: "GST Number",
     numberPlaceholder: "Enter GST number",
     uploadLabel: "Upload GST Certificate",
@@ -63,48 +89,117 @@ const DOC_CONFIGS = [
 ];
 
 export const DocumentDetails: React.FC<DocumentDetailsProps> = ({ mode }) => {
-  const { control } = useFormContext<FullCompanyFormType>();
+  const { control, setValue } = useFormContext<FullCompanyFormType>();
 
-  const { fields, append } = useFieldArray({
+  const { fields } = useFieldArray({
     control,
     name: "documents",
   });
 
-  const blankDoc: CompanyDocument = useMemo(
-    () => ({ type: "coi", number: "", url: "" }),
-    [],
-  );
-
   return (
     <div className="space-y-6">
-      {DOC_CONFIGS.map(({ key, title, ...labels }) => {
-        const idx = fields.findIndex((f) => f.type === key);
-        if (idx === -1) {
-          append({ ...blankDoc, type: key as CompanyDocument["type"] });
-          return null;
-        }
+      {DOC_CONFIGS.map((document) => (
+        <DocumentItem
+          key={document.key}
+          document={document}
+          fields={fields}
+          mode={mode}
+          control={control}
+          setValue={setValue}
+        />
+      ))}
+    </div>
+  );
+};
 
-        const configs = fullCompanyDetailsSchema.documents_information({
-          mode,
-          index: idx,
-          numberLabel: labels.numberLabel,
-          numberPlaceholder: labels.numberPlaceholder,
-          uploadLabel: labels.uploadLabel,
-          uploadPlaceholder: labels.uploadPlaceholder,
-          showNumber: labels.showNumber,
-        });
+const DocumentItem = ({
+  document,
+  fields,
+  mode,
+  control,
+  setValue,
+}: {
+  document: DocumentConfigItemProps;
+  fields: FieldArrayWithId<FullCompanyFormType, "documents", "id">[];
+  mode: MODE;
+  control: Control<FullCompanyFormType>;
+  setValue: UseFormSetValue<FullCompanyFormType>;
+}) => {
+  const { key, title, ...labels } = document;
+  const idx = fields.findIndex((f) => f.type === key);
 
-        return (
-          <div key={key} className="space-y-4">
-            <p className="text-foreground text-lg font-medium">{title}</p>
-            <FormFieldsRenderer<FullCompanyFormType>
-              control={control}
-              fieldConfigs={configs}
-              className="lg:grid-cols-2"
-            />
-          </div>
-        );
-      })}
+  const isVerified = useWatch({
+    control,
+    name: `documents.${idx}.verified`,
+  });
+
+  if (idx === -1) {
+    return null;
+  }
+
+  const configs = fullCompanyDetailsSchema.documents_information({
+    mode,
+    index: idx,
+    numberLabel: labels.numberLabel,
+    numberPlaceholder: labels.numberPlaceholder,
+    uploadLabel: labels.uploadLabel,
+    uploadPlaceholder: labels.uploadPlaceholder,
+    showNumber: labels.showNumber,
+    key: key,
+  });
+
+  const changeConfigs = configs.map((config) => {
+    if (DOC_VERIFIED_KEYS.includes(String(config.key ?? ""))) {
+      return {
+        ...config,
+        disabled:
+          mode === MODE.VIEW || config.type === "text" ? isVerified : false,
+        label:
+          config.type === "text" && isVerified ? (
+            <span className="flex items-center gap-1">
+              {config.label}
+              <CheckCircleIcon
+                className="h-4 w-4 text-green-500"
+                title={`${config.label} is verified`}
+              />
+            </span>
+          ) : (
+            config.label
+          ),
+        inputProps: {
+          ...config.inputProps,
+          endIcon:
+            config.type === "text" && isVerified ? (
+              <Button
+                type="button"
+                size={"icon"}
+                variant={"outlined"}
+                className="-me-0.5 rounded-l-none"
+                onClick={() => {
+                  setValue(`documents.${idx}.verified`, false, {
+                    shouldValidate: true,
+                  });
+                }}
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </Button>
+            ) : undefined,
+        },
+      };
+    }
+    return config;
+  }) as FormFieldConfig<FullCompanyFormType>[];
+
+  return (
+    <div key={key} className="space-y-4">
+      <div className="flex items-center gap-2">
+        <p className="text-foreground text-lg font-medium">{title}</p>
+      </div>
+      <FormFieldsRenderer<FullCompanyFormType>
+        control={control}
+        fieldConfigs={changeConfigs}
+        className="lg:grid-cols-2"
+      />
     </div>
   );
 };

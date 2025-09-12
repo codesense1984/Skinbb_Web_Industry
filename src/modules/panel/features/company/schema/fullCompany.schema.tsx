@@ -31,6 +31,7 @@ const DocumentSchema = z
     number: z.string().optional(),
     url: z.string().optional(),
     url_files: z.any().optional(),
+    verified: z.boolean(),
   })
   .superRefine((doc, ctx) => {
     if (doc.type === "coi") {
@@ -164,133 +165,194 @@ const sellingPlatformSchema = z
     }
   });
 
-// Main company schema
-export const fullCompanyZodSchema = z
-  .object({
-    // Basic company information
-    _id: z.string().optional(),
-    name: createRequiredString("Name"),
-    email: createEmailValidator("Email"),
-    phoneNumber: createPhoneValidator("Phone number"),
-    designation: createRequiredString("Designation"),
-    phoneVerified: z.boolean().refine((val) => val, {
-      message: "Phone number is not verified",
-    }),
-    password: createPasswordValidator(),
+/**
+ * Creates a conditional schema based on the mode
+ * For MODE.EDIT: removes validation refinements (allows empty/invalid data)
+ * For other modes (ADD, VIEW): applies full validation with all required checks
+ *
+ * @param mode - The mode string (MODE.ADD, MODE.EDIT, MODE.VIEW)
+ * @returns Zod schema with conditional validation rules
+ *
+ * @example
+ * // For adding new company - strict validation
+ * const addSchema = createCompanySchema(MODE.ADD);
+ *
+ * // For editing existing company - relaxed validation
+ * const editSchema = createCompanySchema(MODE.EDIT);
+ *
+ * // Validation differences:
+ * // ADD mode: name, email, phoneNumber, etc. are required
+ * // EDIT mode: all fields are optional strings/booleans
+ */
+export function createCompanySchema(
+  mode?: string,
+  companyOptions?: Array<{ companyName: string }>,
+) {
+  const isEditMode = mode === MODE.EDIT;
 
-    // Company assets
-    logo: z.any().optional().or(z.literal("")),
-    logo_files: z.any().optional(),
+  // Base schema structure
+  const baseSchema = z
+    .object({
+      // Basic company information
+      mode: z.string(),
+      _id: z.string().optional(),
+      name: createRequiredString("Name"),
+      email: createEmailValidator("Email"),
+      phoneNumber: createPhoneValidator("Phone number"),
+      designation: createRequiredString("Designation"),
+      phoneVerified: z.boolean().refine((val) => val, {
+        message: "Phone number is not verified",
+      }),
+      password: isEditMode ? z.string().optional() : createPasswordValidator(),
 
-    // Company details
-    companyName: createRequiredString("Company name"),
-    isCreatingNewCompany: z.boolean(),
-    category: createRequiredString("Category"),
-    businessType: createRequiredString("Business type"),
-    establishedIn: z.union([
-      createRequiredString("Established year"),
-      z.date(),
-    ]),
-    website: createUrlValidator("website"),
-    isSubsidiary: z.string(),
-    headquarterLocation: createOptionalString(),
-    description: createOptionalString(),
+      // Company assets
+      logo: z.any().optional().or(z.literal("")),
+      logo_files: z.any().optional(),
 
-    // Brand details
-    brandName: createRequiredString("Brand name"),
-    totalSkus: createRequiredString("Total number of SKUs"),
-    productCategory: z.array(z.string().optional()).optional(),
-    averageSellingPrice: createRequiredString("Average selling price"),
-    sellingOn: z.array(sellingPlatformSchema).optional(),
+      // Company details
+      companyName: createRequiredString("Company name"),
+      isCreatingNewCompany: z.boolean(),
+      category: createRequiredString("Category"),
+      businessType: createRequiredString("Business type"),
+      establishedIn: z.union([
+        createRequiredString("Established year"),
+        z.date(),
+      ]),
+      website: createUrlValidator("website"),
+      isSubsidiary: z.string(),
+      headquarterLocation: createOptionalString(),
+      description: createOptionalString(),
 
-    // Social media URLs
-    instagramUrl: createUrlValidator("Instagram"),
-    facebookUrl: createUrlValidator("Facebook"),
-    youtubeUrl: createUrlValidator("YouTube"),
+      // Brand details
+      brandName: createRequiredString("Brand name"),
+      totalSkus: createRequiredString("Total number of SKUs"),
+      productCategory: z.array(z.string().optional()).optional(),
+      averageSellingPrice: createRequiredString("Average selling price"),
+      sellingOn: z.array(sellingPlatformSchema).optional(),
 
-    marketingBudget: createRequiredString("Marketing budget"),
-    brand_logo: z.any().optional().or(z.literal("")),
-    brand_logo_files: z.any().optional(),
+      // Social media URLs
+      instagramUrl: createUrlValidator("Instagram"),
+      facebookUrl: createUrlValidator("Facebook"),
+      youtubeUrl: createUrlValidator("YouTube"),
 
-    // Addresses
-    address: z
-      .array(addressSchema)
-      .min(1, "You must provide your registered address")
-      .superRefine((arr, ctx) => {
-        const hasRegistered = arr.some((a) => a.addressType === "registered");
-        if (!hasRegistered) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "At least one address must be 'registered'",
-          });
-        }
+      marketingBudget: createRequiredString("Marketing budget"),
+      brand_logo: z.any().optional().or(z.literal("")),
+      brand_logo_files: z.any().optional(),
+
+      // Addresses
+      address: z
+        .array(addressSchema)
+        .min(1, "You must provide your registered address")
+        .superRefine((arr, ctx) => {
+          if (!isEditMode) {
+            const hasRegistered = arr.some(
+              (a) => a.addressType === "registered",
+            );
+            if (!hasRegistered) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "At least one address must be 'registered'",
+              });
+            }
+          }
+        }),
+
+      // Documents and terms
+      documents: z.array(DocumentSchema),
+      agreeTermsConditions: z.boolean().refine((val) => val === true, {
+        message: "You must agree to the Terms & Conditions",
       }),
 
-    // Documents and terms
-    documents: z.array(DocumentSchema),
-    agreeTermsConditions: z.boolean().refine((val) => val === true, {
-      message: "You must agree to the Terms & Conditions",
-    }),
+      brands: z.array(z.string()).optional(),
 
-    brands: z.array(z.string()).optional(),
-  })
-  .superRefine((data, ctx) => {
-    // Logo file validation
-    const logoFiles = data?.logo_files;
-    if (logoFiles && logoFiles.length) {
-      const file = logoFiles[0];
+      disabledCompanyName: z.boolean(),
+      disabledCompanyDetails: z.boolean(),
+      disabledPersonalDetails: z.boolean(),
+      disabledAddressDetails: z.boolean(),
+      isPrimary: z.boolean(),
+    })
+    .superRefine((data, ctx) => {
+      // Logo file validation
+      const logoFiles = data?.logo_files;
+      if (logoFiles && logoFiles.length) {
+        const file = logoFiles[0];
 
-      if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+        if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+          ctx.addIssue({
+            path: ["logo"],
+            code: z.ZodIssueCode.custom,
+            message: "Only .jpg and .png files are accepted.",
+          });
+        }
+
+        if (file.size > MAX_FILE_SIZE) {
+          ctx.addIssue({
+            path: ["logo"],
+            code: z.ZodIssueCode.custom,
+            message: `Max file size is ${MAX_FILE_SIZE}MB.`,
+          });
+        }
+      }
+
+      // Subsidiary validation
+      const isSubsidiary = JSON.parse(data?.isSubsidiary) ?? false;
+      const headquarterLocation = data?.headquarterLocation;
+
+      if (isSubsidiary && !String(headquarterLocation).trim()) {
         ctx.addIssue({
-          path: ["logo"],
+          path: ["headquarterLocation"],
           code: z.ZodIssueCode.custom,
-          message: "Only .jpg and .png files are accepted.",
+          message: "Headquarter location is required for subsidiaries.",
         });
       }
 
-      if (file.size > MAX_FILE_SIZE) {
+      // Phone verification validation
+      const phoneVerified = data?.phoneVerified;
+      if (!phoneVerified && data?.phoneNumber) {
         ctx.addIssue({
-          path: ["logo"],
+          path: ["phoneNumber"],
           code: z.ZodIssueCode.custom,
-          message: `Max file size is ${MAX_FILE_SIZE}MB.`,
+          message: "Phone number is not verified",
         });
       }
-    }
 
-    // Subsidiary validation
-    const isSubsidiary = JSON.parse(data?.isSubsidiary) ?? false;
-    const headquarterLocation = data?.headquarterLocation;
+      const brands = data?.brands;
+      const brandName = data?.brandName?.toLowerCase();
+      if (
+        brands &&
+        brands.length &&
+        brands?.includes(brandName?.toLowerCase())
+      ) {
+        ctx.addIssue({
+          path: ["brandName"],
+          code: z.ZodIssueCode.custom,
+          message: "Brand name already exists",
+        });
+      }
 
-    if (isSubsidiary && !String(headquarterLocation).trim()) {
-      ctx.addIssue({
-        path: ["headquarterLocation"],
-        code: z.ZodIssueCode.custom,
-        message: "Headquarter location is required for subsidiaries.",
-      });
-    }
+      // Company name uniqueness validation (only in ADD mode and when creating new company)
+      if (!isEditMode && companyOptions && data?.isCreatingNewCompany) {
+        const companyName = data?.companyName?.toLowerCase();
+        if (companyName) {
+          const companyExists = companyOptions.some(
+            (company) => company.companyName.toLowerCase() === companyName,
+          );
+          if (companyExists) {
+            ctx.addIssue({
+              path: ["companyName"],
+              code: z.ZodIssueCode.custom,
+              message: "Company already exists",
+            });
+          }
+        }
+      }
+    });
+  return baseSchema;
+}
 
-    // Phone verification validation
-    const phoneVerified = data?.phoneVerified;
-    if (!phoneVerified && data?.phoneNumber) {
-      ctx.addIssue({
-        path: ["phoneNumber"],
-        code: z.ZodIssueCode.custom,
-        message: "Phone number is not verified",
-      });
-    }
-
-    const brands = data?.brands;
-    const brandName = data?.brandName?.toLowerCase();
-    if (brands && brands.length && brands?.includes(brandName?.toLowerCase())) {
-      ctx.addIssue({
-        path: ["brandName"],
-        code: z.ZodIssueCode.custom,
-        message: "Brand name already exists",
-      });
-    }
-  });
-
-export type FullCompanyFormType = z.infer<typeof fullCompanyZodSchema>;
+export type FullCompanyFormType = z.infer<
+  ReturnType<typeof createCompanySchema>
+>;
 
 // Default values function has been merged into transformApiResponseToFormData
 // in /src/modules/panel/features/company/utils/onboarding.utils.ts
@@ -298,12 +360,14 @@ export type FullCompanyFormType = z.infer<typeof fullCompanyZodSchema>;
 type ModeProps = { mode: MODE };
 type FieldProps = {
   uploadImage: ModeProps & {
-    hasCompany: boolean;
+    disabled: boolean;
   };
   uploadbrandImage: ModeProps;
-  [StepKey.PERSONAL_INFORMATION]: ModeProps;
+  [StepKey.PERSONAL_INFORMATION]: ModeProps & {
+    disabled?: boolean;
+  };
   [StepKey.COMPANY_DETAILS]: ModeProps & {
-    hasCompany?: boolean;
+    disabled?: boolean;
   };
   [StepKey.ADDRESS_DETAILS]: ModeProps & {
     index: number;
@@ -319,6 +383,7 @@ type FieldProps = {
     productCategoryOptions?: Array<{ label: string; value: string }>;
   };
   [StepKey.DOCUMENTS_DETAILS]: ModeProps & {
+    key?: string;
     index: number;
     numberLabel?: string;
     numberPlaceholder?: string;
@@ -341,20 +406,20 @@ export type FullCompanyDetailsSchemaProps = {
 };
 
 export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
-  personal_information: ({ mode }) => [
+  personal_information: ({ mode, disabled = false }) => [
     {
       name: "name",
       label: "Full Name",
       type: INPUT_TYPES.TEXT,
       placeholder: "Enter full name",
-      disabled: mode === MODE.VIEW,
+      disabled: disabled || mode === MODE.VIEW,
     },
     {
       name: "email",
       label: "Email Address",
       type: INPUT_TYPES.TEXT,
       placeholder: "Enter email address",
-      disabled: mode === MODE.VIEW,
+      disabled: disabled || mode === MODE.VIEW,
     },
     {
       name: "designation",
@@ -364,12 +429,12 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       disabled: mode === MODE.VIEW,
     },
   ],
-  uploadImage: ({ mode, hasCompany }) => [
+  uploadImage: ({ mode, disabled }) => [
     {
       name: "logo",
       label: "Company Logo",
       type: "file",
-      disabled: hasCompany || mode === MODE.VIEW,
+      disabled: disabled || mode === MODE.VIEW,
       // placeholder: "Upload company logo",
       inputProps: {
         accept: ACCEPTED_IMAGE_TYPES.join(", "),
@@ -379,14 +444,15 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
   company_name: () => [
     {
       name: "companyName",
-      label: "Company Name",
+      label: <span>Company Name </span>,
+      note: "Enter the company name exactly as it appears on the PAN card",
       type: INPUT_TYPES.CUSTOM,
       render() {
         return <div>Company</div>;
       },
     },
   ],
-  company_information: ({ mode, hasCompany }) => [
+  company_information: ({ mode, disabled }) => [
     // {
     //   name: "companyName",
     //   label: "Company Name",
@@ -405,7 +471,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       type: INPUT_TYPES.SELECT,
       options: COMPANY.CATEGORY_OPTIONS,
       placeholder: "Select category",
-      disabled: hasCompany || mode === MODE.VIEW,
+      disabled: disabled || mode === MODE.VIEW,
     },
     {
       name: "businessType",
@@ -413,24 +479,26 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       type: INPUT_TYPES.SELECT,
       options: COMPANY.TYPE_OPTIONS,
       placeholder: "Select business type",
-      disabled: hasCompany || mode === MODE.VIEW,
+      disabled: disabled || mode === MODE.VIEW,
     },
     {
       name: "establishedIn",
       label: "Established In",
-      type: INPUT_TYPES.CUSTOM,
+      note: "Enter the year of establishment as per PAN card",
+      type: INPUT_TYPES.DATEPICKER,
       placeholder: "Enter year of establishment",
-      disabled: hasCompany || mode === MODE.VIEW,
-      render({ field }) {
-        return (
-          <Input
-            className="block w-full"
-            type="month"
-            disabled={hasCompany || mode === MODE.VIEW}
-            {...field}
-          />
-        );
-      },
+      disabled: disabled || mode === MODE.VIEW,
+      mode: "single",
+      // render({ field }) {
+      //   return (
+      //     <Input
+      //       className="block w-full"
+      //       type="month"
+      //       disabled={disabled || mode === MODE.VIEW}
+      //       {...field}
+      //     />
+      //   );
+      // },
     },
 
     {
@@ -438,7 +506,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       label: "Website (optional)",
       type: INPUT_TYPES.TEXT,
       placeholder: "Enter website URL",
-      disabled: hasCompany || mode === MODE.VIEW,
+      disabled: disabled || mode === MODE.VIEW,
       // inputProps: {
       //   startIcon: <p>https://</p>,
       //   className: "pl-17",
@@ -453,26 +521,27 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
         { label: "No", value: "false" },
       ],
       placeholder: "Select option",
-      disabled: hasCompany || mode === MODE.VIEW,
+      disabled: disabled || mode === MODE.VIEW,
     },
     {
       name: "headquarterLocation",
       label: "Headquarters Location",
       type: INPUT_TYPES.TEXT,
       placeholder: "Enter HQ location",
-      disabled: hasCompany || mode === MODE.VIEW,
+      disabled: disabled || mode === MODE.VIEW,
     },
     {
       name: "description",
       label: "Company Description (optional)",
-      type: INPUT_TYPES.RICH_TEXT,
+      type: INPUT_TYPES.TEXTAREA,
       placeholder: "Brief description about the company",
-      disabled: hasCompany || mode === MODE.VIEW,
+      disabled: disabled || mode === MODE.VIEW,
       className: "sm:col-span-2",
     },
   ],
 
   documents_information: ({
+    key,
     mode,
     index,
     numberLabel = "Number",
@@ -495,6 +564,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
         type: INPUT_TYPES.TEXT,
         placeholder: numberPlaceholder,
         disabled: mode === MODE.VIEW,
+        key: key,
       });
     }
 
@@ -506,6 +576,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       placeholder: uploadPlaceholder,
       disabled: mode === MODE.VIEW,
       inputProps: { accept: ACCEPTED_FILE_TYPES.join(", ") },
+      key: key,
     });
 
     return fields;
@@ -736,15 +807,16 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
     {
       name: "agreeTermsConditions",
       label: (
-        <>
+        <span>
           I agree to the&nbsp;{" "}
           <Link to="https://ecom.skintruth.in/tnc-brands">
             Terms & Conditions
           </Link>
-        </>
+        </span>
       ),
       type: INPUT_TYPES.CHECKBOX,
       disabled: mode === MODE.VIEW,
+      className: "md:col-span-2",
     },
   ],
 };
