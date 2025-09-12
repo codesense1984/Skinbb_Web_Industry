@@ -1,16 +1,14 @@
-import { useParams, useNavigate } from "react-router";
 import { DataTable } from "@/core/components/data-table";
 import { StatusFilter } from "@/core/components/data-table/components/table-filter";
 import { Button } from "@/core/components/ui/button";
 import { PageContent } from "@/core/components/ui/structure";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { apiGetCompanyLocationBrands } from "@/modules/panel/services/http/company.service";
+import type { CompanyLocationBrand } from "@/modules/panel/types/brand.type";
 import { PlusIcon } from "@heroicons/react/24/solid";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router";
 import { columns } from "./data";
-import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
-import type { CompanyLocationBrand } from "@/modules/panel/types/brand.type";
 
 
 const CompanyLocationBrandsList = () => {
@@ -54,9 +52,7 @@ const CompanyLocationBrandsList = () => {
     locationType: "unknown",
     locationCity: "Location",
     locationState: "unknown",
-    locationType: "unknown",
-    locationCity: "Location",
-    locationState: "unknown",
+   
     // Ensure productCategory is always an array
     productCategory: Array.isArray(brand.productCategory)
       ? brand.productCategory

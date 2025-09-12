@@ -408,6 +408,41 @@ export async function apiCreateCompanyLocationBrand<
   );
 }
 
+// Create brand for a specific company location (JSON version)
+export async function apiCreateCompanyLocationBrandJson<
+  T = CompanyLocationBrandResponse,
+>(companyId: string, locationId: string, data: Record<string, unknown>) {
+  const url = ENDPOINTS.COMPANY_LOCATION_BRANDS.CREATE(companyId, locationId);
+  
+  // Ensure sellerId is explicitly included and is a string
+  const requestData = {
+    ...data,
+    sellerId: String(companyId), // Force string conversion
+  };
+  
+  console.log("API Service - URL:", url);
+  console.log("API Service - Original Data:", JSON.stringify(data, null, 2));
+  console.log("API Service - Request Data:", JSON.stringify(requestData, null, 2));
+  console.log("API Service - CompanyId:", companyId);
+  console.log("API Service - LocationId:", locationId);
+  console.log("API Service - sellerId in request:", requestData.sellerId);
+  
+  // Try different approaches to ensure sellerId is received
+  const config = {
+    headers: {
+      "Content-Type": "application/json",
+    },
+    // Add sellerId as query parameter as well
+    params: {
+      sellerId: companyId,
+    },
+  };
+  
+  console.log("API Service - Config:", JSON.stringify(config, null, 2));
+  
+  return api.post<T>(url, requestData, config);
+}
+
 // Update brand for a specific company location
 export async function apiUpdateCompanyLocationBrand<
   T = CompanyLocationBrandResponse,
@@ -424,7 +459,7 @@ export async function apiUpdateCompanyLocationBrand<
 }
 
 // Delete brand for a specific company location
-export async function apiDeleteCompanyLocationBrand<T = ApiResponse<any>>(
+export async function apiDeleteCompanyLocationBrand<T = ApiResponse<unknown>>(
   companyId: string,
   locationId: string,
   brandId: string,
