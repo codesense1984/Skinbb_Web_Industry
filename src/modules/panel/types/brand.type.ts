@@ -38,20 +38,14 @@ export interface CompanyLocationBrand {
 
 export interface CompanyLocationBrandsResponse {
   statusCode: number;
-  data: {
-    status: string;
-    data: CompanyLocationBrand[];
-  };
+  data: CompanyLocationBrand[];
   message: string;
   success: boolean;
 }
 
 export interface CompanyLocationBrandResponse {
   statusCode: number;
-  data: {
-    status: string;
-    data: CompanyLocationBrand;
-  };
+  data: CompanyLocationBrand;
   message: string;
   success: boolean;
 }

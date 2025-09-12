@@ -25,6 +25,7 @@ const LISTING_BASE = "/listing";
 const MASTER_BASE = "/master";
 const PRODUCT_CATEGORY_BASE = "/product-category";
 const PRODUCT_TAG_BASE = "/product-tag";
+const DISCOUNT_COUPON_BASE = "/discount-coupons";
 
 export const PANEL_ROUTES = {
   // ---- Brand ----
@@ -223,6 +224,12 @@ export const PANEL_ROUTES = {
       ROUTE.build(MASTER_BASE, PRODUCT_TAG_BASE, id, ROUTE.seg.edit), // /master/product-tag/edit/:id
     PRODUCT_TAG_VIEW: (id: string = ROUTE.seg.id) =>
       ROUTE.build(MASTER_BASE, PRODUCT_TAG_BASE, id, ROUTE.seg.view), // /master/product-tag/view/:id
+    DISCOUNT_COUPON: ROUTE.build(MASTER_BASE, DISCOUNT_COUPON_BASE), // /master/discount-coupons
+    DISCOUNT_COUPON_CREATE: ROUTE.build(MASTER_BASE, DISCOUNT_COUPON_BASE, ROUTE.seg.create), // /master/discount-coupons/create
+    DISCOUNT_COUPON_EDIT: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(MASTER_BASE, DISCOUNT_COUPON_BASE, id, ROUTE.seg.edit), // /master/discount-coupons/edit/:id
+    DISCOUNT_COUPON_VIEW: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(MASTER_BASE, DISCOUNT_COUPON_BASE, id, ROUTE.seg.view), // /master/discount-coupons/view/:id
   },
 
   // ---- Misc panel pages ----

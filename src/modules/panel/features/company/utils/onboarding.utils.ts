@@ -404,9 +404,9 @@ export function transformApiResponseToFormData(
   if (!apiData) {
     return defaultValues;
   }
-
+  let mergedData: FullCompanyFormType = {} as FullCompanyFormType;
   // Merge API data with default values
-  let mergedData: FullCompanyFormType = {
+  mergedData = {
     ...defaultValues,
     _id: safeString(apiData.companyId) || defaultValues._id,
     logo: safeString(apiData.logo) || defaultValues.logo,
@@ -490,7 +490,7 @@ export function transformApiResponseToFormData(
       mergedData.brandName = brand.name;
       mergedData.totalSkus = brand.totalSKU.toString();
       mergedData.productCategory = brand.productCategory;
-      mergedData.averageSellingPrice = brand.averageSellingPrice.toString();
+      //mergedData.averageSellingPrice = brand.averageSellingPrice.();
       mergedData.marketingBudget = brand.marketingBudget.toString();
       mergedData.sellingOn = brand.sellingOn;
       mergedData.instagramUrl = brand.instagramUrl;

@@ -40,7 +40,13 @@ export const companyEditZodSchema = z
     businessType: createRequiredString("Business type"),
     establishedIn: z.union([
       createRequiredString("Established year"),
-      z.date(),
+      z.date().refine((date) => {
+        const today = new Date();
+        today.setHours(23, 59, 59, 999); // Set to end of today to allow today's date
+        return date <= today;
+      }, {
+        message: "Established date cannot be in the future. Please select today or a past date.",
+      }),
     ]),
     website: createUrlValidator("website"),
     isSubsidiary: z.string(),
@@ -170,10 +176,14 @@ export const companyEditDetailsSchema: CompanyEditDetailsSchemaProps = {
       placeholder: "Enter year of establishment",
       disabled: hasCompany || mode === MODE.VIEW,
       render({ field }) {
+        const today = new Date();
+        const maxDate = today.toISOString().slice(0, 7); // Format as YYYY-MM for month input
+        
         return (
           <Input
             className="block w-full"
             type="month"
+            max={maxDate}
             disabled={hasCompany || mode === MODE.VIEW}
             {...field}
           />
@@ -208,7 +218,7 @@ export const companyEditDetailsSchema: CompanyEditDetailsSchemaProps = {
     },
     {
       name: "description",
-      label: "Company Description (optional)",
+      label: "Company Information (optional)",
       type: INPUT_TYPES.TEXTAREA,
       placeholder: "Brief description about the company",
       disabled: hasCompany || mode === MODE.VIEW,
@@ -257,9 +267,9 @@ export const companyEditDetailsSchema: CompanyEditDetailsSchemaProps = {
       },
       {
         name: makeName("phoneNumber"),
-        label: "Landline number",
+        label: "Fixed landline number",
         type: INPUT_TYPES.TEXT,
-        placeholder: "Enter landline number",
+        placeholder: "Enter fixed landline number",
         disabled: disabled || mode === MODE.VIEW,
         inputProps: {
           keyfilter: "int",

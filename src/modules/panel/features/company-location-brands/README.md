@@ -24,6 +24,7 @@ This directory contains the refactored company location brands components that n
   - Applied card-based styling similar to product forms
   - Added `PageContent` wrapper with proper headers
   - Organized form sections into logical cards
+  - **Added Authorization Letter field** for document upload in create/edit modes
 
 ### 3. Default Values Function Pattern
 
@@ -43,7 +44,8 @@ const getDefaultValues = (brandData?: CompanyLocationBrand | null): BrandFormDat
     youtubeUrl: brandData?.youtubeUrl || "",
     productCategory: brandData?.productCategory || [],
     sellingOn: brandData?.sellingOn || [],
-    isActive: brandData?.isActive ?? true,
+    authorizationLetter: brandData?.authorizationLetter || "",
+    isActive: brandData?.isActive ? "true" : "false",
   };
 };
 
@@ -163,11 +165,43 @@ export const brandSchema: BrandSchemaProps = {
       placeholder: "https://example.com",
       disabled: mode === MODE.VIEW,
     },
+    {
+      name: "authorizationLetter",
+      label: "Authorization Letter",
+      type: INPUT_TYPES.FILE,
+      placeholder: "Upload authorization letter",
+      disabled: mode === MODE.VIEW,
+      required: mode === MODE.ADD || mode === MODE.EDIT,
+      inputProps: {
+        accept: ".pdf,.doc,.docx,.jpg,.jpeg,.png",
+      },
+    },
+    {
+      name: "isActive",
+      label: "Status",
+      type: INPUT_TYPES.SELECT,
+      options: [
+        { label: "Active", value: "true" },
+        { label: "Inactive", value: "false" },
+      ],
+      placeholder: "Select status",
+      disabled: mode === MODE.VIEW,
+    },
     // ... more fields
   ],
   // ... more sections
 };
 ```
+
+### 6. Authorization Letter Field
+
+The form now includes an **Authorization Letter** field for document upload:
+
+- **File Type**: Uses `INPUT_TYPES.FILE` for file upload
+- **Required**: Required in CREATE and EDIT modes, optional in VIEW mode
+- **File Types**: Accepts PDF, DOC, DOCX, JPG, JPEG, PNG files
+- **Styling**: Uses existing form-input component styling for consistency
+- **Validation**: Built-in file validation through the form-input component
 
 ## Usage
 

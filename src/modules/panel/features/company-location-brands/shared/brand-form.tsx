@@ -4,27 +4,31 @@ import { useForm, FormProvider, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/core/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/core/components/ui/card";
 import { FormFieldsRenderer } from "@/core/components/ui/form-input";
 import {
   apiGetCompanyLocationBrandById,
   apiCreateCompanyLocationBrand,
+  apiCreateCompanyLocationBrandJson,
   apiUpdateCompanyLocationBrand,
 } from "@/modules/panel/services/http/company.service";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import type { CompanyLocationBrand } from "@/modules/panel/types/brand.type";
 import { toast } from "sonner";
 import type { AxiosError } from "axios";
-import { brandFormSchema, brandSchema, type BrandFormData } from "../schema/brand.schema";
+import {
+  brandFormSchema,
+  brandSchema,
+  type BrandFormData,
+} from "../schema/brand.schema";
 import { MODE } from "@/core/types";
 
 // Type definitions for API responses
-interface BrandApiResponse {
-  data: {
-    data?: CompanyLocationBrand | { data: CompanyLocationBrand };
-  };
-}
-
 interface ApiError {
   response?: {
     data?: {
@@ -35,25 +39,33 @@ interface ApiError {
 }
 
 // Default values function with parameters
-const getDefaultValues = (brandData?: CompanyLocationBrand | null): BrandFormData => {
+const getDefaultValues = (
+  brandData?: CompanyLocationBrand | null,
+): BrandFormData => {
   return {
     name: brandData?.name || "",
     aboutTheBrand: brandData?.aboutTheBrand || "",
     websiteUrl: brandData?.websiteUrl || "",
     totalSKU: brandData?.totalSKU ? String(brandData.totalSKU) : "0",
-    averageSellingPrice: brandData?.averageSellingPrice ? String(brandData.averageSellingPrice) : "0",
-    marketingBudget: brandData?.marketingBudget ? String(brandData.marketingBudget) : "0",
+    averageSellingPrice: brandData?.averageSellingPrice
+      ? String(brandData.averageSellingPrice)
+      : "0",
+    marketingBudget: brandData?.marketingBudget
+      ? String(brandData.marketingBudget)
+      : "0",
     instagramUrl: brandData?.instagramUrl || "",
     facebookUrl: brandData?.facebookUrl || "",
     youtubeUrl: brandData?.youtubeUrl || "",
     productCategory: brandData?.productCategory || [],
     sellingOn: brandData?.sellingOn || [],
-    isActive: brandData?.isActive ?? true,
+    authorizationLetter: brandData?.authorizationLetter || "",
+    isActive: brandData?.isActive ? "true" : "false",
   };
 };
 
 const BrandForm = () => {
   const { companyId, locationId, brandId } = useParams();
+
   const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -69,13 +81,14 @@ const BrandForm = () => {
     defaultValues: getDefaultValues(),
   });
 
-  const {
-    handleSubmit,
-    control,
-  } = form;
+  const { handleSubmit, control } = form;
 
   // Field array for selling platforms
-  const { fields: sellingPlatformFields, append: addSellingPlatform, remove: removeSellingPlatform } = useFieldArray({
+  const {
+    fields: sellingPlatformFields,
+    append: addSellingPlatform,
+    remove: removeSellingPlatform,
+  } = useFieldArray({
     control,
     name: "sellingOn",
   });
@@ -99,26 +112,12 @@ const BrandForm = () => {
     // retry: 1,
   });
 
-  // Extract brand data from the nested response structure
+  // Extract brand data from the API response
   const brand: CompanyLocationBrand | null = React.useMemo(() => {
     if (!brandData?.data) return null;
 
-    const response = brandData as BrandApiResponse;
-    
-    // Check if data has nested data structure
-    if (response.data?.data && typeof response.data.data === "object") {
-      const nestedData = response.data.data as { data?: CompanyLocationBrand };
-      if (nestedData.data) {
-        return nestedData.data;
-      }
-    }
-    
-    // Check if data is directly the brand object
-    if (response.data?.data && "name" in response.data.data) {
-      return response.data.data as CompanyLocationBrand;
-    }
-
-    return null;
+    // The API response structure is: { statusCode: 200, data: CompanyLocationBrand, message: "...", success: true }
+    return brandData.data as CompanyLocationBrand;
   }, [brandData]);
 
   // Populate form when brand data is loaded
@@ -135,7 +134,28 @@ const BrandForm = () => {
       if (!companyId || !locationId)
         throw new Error("Missing company or location ID");
 
+      console.log("=== MUTATION DEBUG ===");
+      console.log("companyId:", companyId);
+      console.log("locationId:", locationId);
+      console.log("companyId type:", typeof companyId);
+      console.log("companyId length:", companyId?.length);
+      console.log("=== END MUTATION DEBUG ===");
+
+      // Try using regular object instead of FormData first
+      const requestData = {
+        sellerId: companyId,
+        ...data,
+        // Convert isActive from string to boolean for API
+        isActive: data.isActive === "true",
+      };
+
+      // Debug: Log the request data
+      console.log("Request data:", requestData);
+
       const formData = new FormData();
+
+      // Add sellerId first
+      formData.append("sellerId", companyId);
 
       // Add form data
       Object.entries(data).forEach(([key, value]) => {
@@ -149,9 +169,20 @@ const BrandForm = () => {
             }
           });
         } else if (value !== null && value !== undefined) {
-          formData.append(key, value.toString());
+          // Convert isActive from string to boolean for API
+          if (key === "isActive") {
+            formData.append(key, value === "true" ? "true" : "false");
+          } else {
+            formData.append(key, value.toString());
+          }
         }
       });
+
+      // Debug: Log the FormData contents
+      console.log("FormData contents:");
+      for (const [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
+      }
 
       if (mode === MODE.EDIT && brandId) {
         return apiUpdateCompanyLocationBrand(
@@ -161,7 +192,86 @@ const BrandForm = () => {
           formData,
         );
       } else {
-        return apiCreateCompanyLocationBrand(companyId, locationId, formData);
+        // Prepare JSON data with proper structure - ensure sellerId is first
+        const jsonData = {
+          sellerId: companyId, // Ensure sellerId is explicitly included and first
+          name: data.name,
+          aboutTheBrand: data.aboutTheBrand || "",
+          websiteUrl: data.websiteUrl || "https://example.com", // Provide default if empty
+          totalSKU: data.totalSKU ? parseInt(data.totalSKU) : 0,
+          averageSellingPrice: data.averageSellingPrice
+            ? parseFloat(data.averageSellingPrice)
+            : 0,
+          marketingBudget: data.marketingBudget
+            ? parseFloat(data.marketingBudget)
+            : 0,
+          instagramUrl: data.instagramUrl || "",
+          facebookUrl: data.facebookUrl || "",
+          youtubeUrl: data.youtubeUrl || "",
+          productCategory: data.productCategory || [],
+          sellingOn: (data.sellingOn || []).filter(
+            (item) => item.platform && item.url,
+          ), // Filter out empty entries
+          authorizationLetter: data.authorizationLetter || "",
+          isActive: data.isActive === "true",
+        };
+
+        // Double-check sellerId is included
+        if (!jsonData.sellerId) {
+          throw new Error("sellerId is missing from request data");
+        }
+        console.log("=== BRAND CREATION DEBUG ===");
+        console.log("Sending JSON data:", JSON.stringify(jsonData, null, 2));
+        console.log("CompanyId (sellerId):", companyId);
+        console.log("LocationId:", locationId);
+        console.log(
+          "API Endpoint:",
+          `/sellers/${companyId}/locations/${locationId}/brands`,
+        );
+        console.log("=== END DEBUG ===");
+
+        // Try different approaches for sellerId
+        try {
+          // Try with sellerId as first property and different casing
+          const testData = {
+            sellerId: companyId,
+            seller_id: companyId, // Try snake_case as well
+            name: data.name,
+            websiteUrl: data.websiteUrl || "https://example.com",
+          };
+          console.log("Trying test data with multiple sellerId formats:", testData);
+          
+          const result = await apiCreateCompanyLocationBrandJson(
+            companyId,
+            locationId,
+            testData,
+          );
+          console.log("Test data approach succeeded:", result);
+          return result;
+        } catch (error: unknown) {
+          console.log("Test data approach failed:", error);
+          const axiosError = error as { response?: { data?: unknown } };
+          console.log("Error response:", axiosError?.response?.data);
+          
+          // Try with full data
+          try {
+            console.log("Trying full JSON data...");
+            const result = await apiCreateCompanyLocationBrandJson(
+              companyId,
+              locationId,
+              jsonData,
+            );
+            console.log("Full JSON approach succeeded:", result);
+            return result;
+          } catch (fullError: unknown) {
+            console.log("Full JSON approach also failed:", fullError);
+            const fullAxiosError = fullError as { response?: { data?: unknown } };
+            console.log("Full error response:", fullAxiosError?.response?.data);
+            console.log("Trying FormData approach as final fallback...");
+            // Fallback to FormData if JSON fails
+            return apiCreateCompanyLocationBrand(companyId, locationId, formData);
+          }
+        }
       }
     },
     onSuccess: () => {
@@ -184,7 +294,6 @@ const BrandForm = () => {
     },
     onError: (error: AxiosError<{ message?: string; error?: string }>) => {
       toast.error(error?.message ?? "Failed to save brand");
-      
     },
   });
 
@@ -235,7 +344,7 @@ const BrandForm = () => {
   if (isLoading) {
     return (
       <div className="w-full">
-        <div className="bg-background rounded-xl border shadow-sm p-8">
+        <div className="bg-background rounded-xl border p-8 shadow-sm">
           <div className="py-8 text-center">
             <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900"></div>
             <p className="mt-2 text-gray-500">Loading brand data...</p>
@@ -247,7 +356,7 @@ const BrandForm = () => {
 
   return (
     <div className="w-full">
-      <div className="bg-background rounded-xl border shadow-sm p-8">
+      <div className="bg-background rounded-xl border p-8 shadow-sm">
         {fetchError && (
           <div className="mb-6 rounded-md border border-red-200 bg-red-50 p-4">
             <div className="text-sm text-red-800">
@@ -261,7 +370,7 @@ const BrandForm = () => {
 
         <FormProvider {...form}>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
               {/* Left Column - Basic Information */}
               <Card>
                 <CardHeader className="border-b">
@@ -333,14 +442,18 @@ const BrandForm = () => {
               <CardContent className="pt-6">
                 <div className="space-y-4">
                   {sellingPlatformFields.map((field, index) => (
-                    <div key={field.id} className="flex items-end gap-4 p-4 border border-gray-200 rounded-lg">
+                    <div
+                      key={field.id}
+                      className="flex items-end gap-4 rounded-lg border border-gray-200 p-4"
+                    >
                       <div className="flex-1">
                         <FormFieldsRenderer<BrandFormData>
                           control={control}
                           fieldConfigs={brandSchema.selling_platforms({
                             mode,
                             index,
-                            availableOptions: getAvailablePlatformOptions(index),
+                            availableOptions:
+                              getAvailablePlatformOptions(index),
                           })}
                           className="grid grid-cols-1 gap-4 md:grid-cols-2"
                         />
@@ -351,7 +464,7 @@ const BrandForm = () => {
                           onClick={() => removeSellingPlatform(index)}
                           variant="outlined"
                           size="sm"
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          className="text-red-600 hover:bg-red-50 hover:text-red-700"
                         >
                           Remove
                         </Button>
@@ -359,10 +472,12 @@ const BrandForm = () => {
                     </div>
                   ))}
                   {sellingPlatformFields.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
+                    <div className="py-8 text-center text-gray-500">
                       <p>No selling platforms added yet.</p>
                       {mode !== MODE.VIEW && (
-                        <p className="text-sm">Click &quot;Add Platform&quot; to get started.</p>
+                        <p className="text-sm">
+                          Click &quot;Add Platform&quot; to get started.
+                        </p>
                       )}
                     </div>
                   )}
@@ -389,7 +504,7 @@ const BrandForm = () => {
             )}
 
             {/* Action Buttons */}
-            <div className="flex justify-end space-x-4 pt-8 mt-8 border-t border-gray-200">
+            <div className="mt-8 flex justify-end space-x-4 border-t border-gray-200 pt-8">
               <Button
                 type="button"
                 variant="outlined"

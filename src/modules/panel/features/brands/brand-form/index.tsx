@@ -173,7 +173,7 @@ import {
 import { PageContent } from "@/core/components/ui/structure";
 import { useImagePreview } from "@/core/hooks/useImagePreview";
 import { MODE } from "@/core/types/base.type";
-import { apiGetAllProductCategories } from "@/modules/panel/services/http/master.service";
+// import { apiGetAllProductCategories } from "@/modules/panel/services/http/master.service";
 import { apiGetBrandById } from "@/modules/panel/services/http/company.service";
 import { useQuery } from "@tanstack/react-query";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
@@ -265,7 +265,7 @@ const BrandForm = () => {
         total_skus: (brand as any).total_skus || (brand as any).skus || "",
         marketing_budget: (brand as any).marketing_budget || (brand as any).budget || "",
         product_category: (brand as any).product_category || (brand as any).category || "",
-        average_selling_price: (brand as any).average_selling_price || (brand as any).asp || "2",
+        // average_selling_price: (brand as any).average_selling_price || (brand as any).asp || "2",
         instagram_url: (brand as any).instagram_url || (brand as any).instagram || "",
         facebook_url: (brand as any).facebook_url || (brand as any).facebook || "",
         youtube_url: (brand as any).youtube_url || (brand as any).youtube || "",
@@ -304,18 +304,26 @@ const BrandForm = () => {
     }) || [];
 
   // Fetch product categories for dropdown
-  const { data: categoriesResponse } =
-    useQuery({
-      queryKey: ["productCategories"],
-      queryFn: () => apiGetAllProductCategories(),
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    });
+  // const { data: categoriesResponse } =
+  //   useQuery({
+  //     queryKey: ["productCategories"],
+  //     queryFn: () => apiGetAllProductCategories(),
+  //     staleTime: 5 * 60 * 1000, // 5 minutes
+  //   });
 
-  const formatted =
-    categoriesResponse?.data.map((item) => ({
-      value: item._id,
-      label: item.name,
-    })) ?? [];
+  // const formatted =
+  //   categoriesResponse?.data.map((item) => ({
+  //     value: item._id,
+  //     label: item.name,
+  //   })) ?? [];
+
+  // Static product category options
+  const formatted = [
+    { value: "colour-cosmetics", label: "Colour Cosmetics" },
+    { value: "personal-care-products", label: "Personal Care Products" },
+    { value: "nutraceuticals-and-wellness", label: "Nutraceuticals and Wellness" },
+    { value: "devices", label: "Devices" },
+  ];
 
   const { element } = useImagePreview(profileData, existingLogoUrl, {
     clear: () => {
