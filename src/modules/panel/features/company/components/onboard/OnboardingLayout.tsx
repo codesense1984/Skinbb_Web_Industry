@@ -39,7 +39,9 @@ const OnboardLayout = () => {
                 transition: { ...fadeInUp.transition, delay: 0.03 },
               }}
             >
-              Join the Skincare Metaverse — Where Knowledge, Trust & Commerce
+              Welcome to the <br /><span className="text-primary">
+              Skincare Metaverse, </span> <br /> Where Knowledge, 
+              Trust & Commerce
               Converge
             </motion.h1>
 
@@ -50,8 +52,8 @@ const OnboardLayout = () => {
               }}
             >
               <b>SkinBB</b> is more than a platform — it&apos;s the operating
-              system for skincare brands. From consumer intelligence to
-              dermatologist validation and seamless commerce, we help you cut
+              system for skincare industry stakeholders. From consumer intelligence to
+              dermatologist connected and seamless commerce, we help you cut
               through noise, build trust, and drive measurable growth.
             </motion.p>
 
@@ -61,7 +63,7 @@ const OnboardLayout = () => {
                 transition: { ...fadeInUp.transition, delay: 0.08 },
               }}
             >
-              Be an early mover. Join <b>SkinBB</b> today and redefine the
+              Join <b>SkinBB</b> today and redefine the
               future of skincare with us. 🚀
             </motion.p>
 
