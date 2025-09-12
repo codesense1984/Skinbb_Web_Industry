@@ -2,7 +2,7 @@ import {
   INPUT_TYPES,
   type FormFieldConfig,
 } from "@/core/components/ui/form-input";
-import { Input } from "@/core/components/ui/input";
+import type { DatePickerProps } from "@/core/components/ui/date-picker";
 import { MAX_FILE_SIZE } from "@/core/config/constants";
 import { MODE } from "@/core/types";
 import { COMPANY } from "@/modules/panel/config/constant.config";
@@ -216,7 +216,13 @@ export function createCompanySchema(
       businessType: createRequiredString("Business type"),
       establishedIn: z.union([
         createRequiredString("Established year"),
-        z.date(),
+        z.date().refine((date) => {
+          const today = new Date();
+          today.setHours(23, 59, 59, 999); // Set to end of today to allow today's date
+          return date <= today;
+        }, {
+          message: "Established date cannot be in the future. Please select today or a past date.",
+        }),
       ]),
       website: createUrlValidator("website"),
       isSubsidiary: z.string(),
@@ -489,6 +495,16 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       placeholder: "Enter year of establishment",
       disabled: disabled || mode === MODE.VIEW,
       mode: "single",
+      inputProps: {
+        mode: "single" as const,
+        calendarProps: {
+          disabled: (date: Date) => {
+            const today = new Date();
+            today.setHours(23, 59, 59, 999); // Set to end of today to allow today's date
+            return date > today;
+          },
+        },
+      } as unknown as DatePickerProps<"single">,
       // render({ field }) {
       //   return (
       //     <Input
@@ -532,7 +548,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
     },
     {
       name: "description",
-      label: "Company Description (optional)",
+      label: "Company Information (optional)",
       type: INPUT_TYPES.TEXTAREA,
       placeholder: "Brief description about the company",
       disabled: disabled || mode === MODE.VIEW,
@@ -625,9 +641,9 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       },
       {
         name: makeName("phoneNumber"),
-        label: "Landline number",
+        label: "Fixed landline number",
         type: INPUT_TYPES.TEXT,
-        placeholder: "Enter landline number",
+        placeholder: "Enter fixed landline number",
         disabled: disabled || mode === MODE.VIEW,
         inputProps: {
           keyfilter: "int",
@@ -717,14 +733,14 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       disabled: mode === MODE.VIEW,
       className: "lg:col-span-3",
     },
-    {
-      name: "averageSellingPrice",
-      label: "Average Selling Price (ASP)",
-      type: INPUT_TYPES.NUMBER,
-      placeholder: "Enter average selling price",
-      disabled: mode === MODE.VIEW,
-      className: "lg:col-span-3",
-    },
+    // {
+    //   name: "averageSellingPrice",
+    //   label: "Average Selling Price (ASP)",
+    //   type: INPUT_TYPES.NUMBER,
+    //   placeholder: "Enter average selling price",
+    //   disabled: mode === MODE.VIEW,
+    //   className: "lg:col-span-3",
+    // },
     {
       name: "marketingBudget",
       label: "Marketing Budget",

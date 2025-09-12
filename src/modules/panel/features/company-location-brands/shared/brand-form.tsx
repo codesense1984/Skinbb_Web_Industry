@@ -197,7 +197,7 @@ const BrandForm = () => {
           sellerId: companyId, // Ensure sellerId is explicitly included and first
           name: data.name,
           aboutTheBrand: data.aboutTheBrand || "",
-          websiteUrl: data.websiteUrl || "",
+          websiteUrl: data.websiteUrl || "https://example.com", // Provide default if empty
           totalSKU: data.totalSKU ? parseInt(data.totalSKU) : 0,
           averageSellingPrice: data.averageSellingPrice
             ? parseFloat(data.averageSellingPrice)
@@ -230,24 +230,26 @@ const BrandForm = () => {
         );
         console.log("=== END DEBUG ===");
 
-        // Try JSON version first
+        // Try different approaches for sellerId
         try {
-          // Try with minimal data first to test sellerId
-          const minimalData = {
+          // Try with sellerId as first property and different casing
+          const testData = {
             sellerId: companyId,
+            seller_id: companyId, // Try snake_case as well
             name: data.name,
+            websiteUrl: data.websiteUrl || "https://example.com",
           };
-          console.log("Trying minimal data first:", minimalData);
+          console.log("Trying test data with multiple sellerId formats:", testData);
           
           const result = await apiCreateCompanyLocationBrandJson(
             companyId,
             locationId,
-            minimalData,
+            testData,
           );
-          console.log("Minimal JSON approach succeeded:", result);
+          console.log("Test data approach succeeded:", result);
           return result;
         } catch (error: unknown) {
-          console.log("Minimal JSON approach failed:", error);
+          console.log("Test data approach failed:", error);
           const axiosError = error as { response?: { data?: unknown } };
           console.log("Error response:", axiosError?.response?.data);
           
