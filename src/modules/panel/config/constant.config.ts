@@ -3,7 +3,7 @@ export const COMPANY = {
     { label: "Public", value: "public" },
     { label: "Private Ltd", value: "privateLtd" },
     { label: "Proprietor", value: "proprietor" },
-    { label: "Other", value: "unknown" },
+    { label: "Other", value: "other" },
   ],
   CATEGORY_OPTIONS: [
     { label: "Brand", value: "brand" },
