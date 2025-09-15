@@ -64,7 +64,7 @@ interface Brand {
   logoImage?: string;
   totalSKU?: number;
   averageSellingPrice?: number;
-  productCategory?: string[];
+  brandType?: string[];
   marketingBudget?: number;
   sellingOn?: SellingPlatform[];
   instagramUrl?: string;
@@ -522,7 +522,7 @@ const CompanyLocationView = () => {
                       label="Product Categories"
                       value={
                         <span className="text-lg font-bold">
-                          {brand.productCategory ? brand.productCategory.length : 0}
+                          {brand.brandType ? brand.brandType.length : 0}
                         </span>
                       }
                       // iconBgColor="bg-purple-100"

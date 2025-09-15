@@ -223,7 +223,16 @@ export function transformFormDataToApiRequest(
     totalSKU: safeString(formData.totalSkus),
     averageSellingPrice: safeString(formData.averageSellingPrice),
     marketingBudget: safeString(formData.marketingBudget),
-    productCategory: safeArray(formData.productCategory),
+    brandType: (() => {
+      const categoryArray = safeArray(formData.brandType);
+      console.log("🔍 Product Category Debug:", {
+        original: formData.brandType,
+        processed: categoryArray,
+        type: typeof formData.brandType,
+        isArray: Array.isArray(formData.brandType)
+      });
+      return categoryArray;
+    })(),
     addresses: primaryAddress
       ? [
           {
@@ -342,7 +351,7 @@ export function transformApiResponseToFormData(
     brand_logo_files: undefined,
     brandName: "",
     totalSkus: "",
-    productCategory: [],
+    brandType: [],
     averageSellingPrice: "2",
     sellingOn: [
       {
@@ -489,7 +498,7 @@ export function transformApiResponseToFormData(
       mergedData.brand_logo = brand.logoImage;
       mergedData.brandName = brand.name;
       mergedData.totalSkus = brand.totalSKU.toString();
-      mergedData.productCategory = brand.productCategory;
+      mergedData.brandType = brand.brandType;
       //mergedData.averageSellingPrice = brand.averageSellingPrice.();
       mergedData.marketingBudget = brand.marketingBudget.toString();
       mergedData.sellingOn = brand.sellingOn;

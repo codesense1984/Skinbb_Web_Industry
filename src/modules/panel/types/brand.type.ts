@@ -19,6 +19,7 @@ export interface CompanyLocationBrand {
   facebookUrl: string;
   youtubeUrl: string;
   productCategory: string[];
+  brandType: string[];
   averageSellingPrice: number;
   marketingBudget: number;
   sellingOn: SellingPlatform[];

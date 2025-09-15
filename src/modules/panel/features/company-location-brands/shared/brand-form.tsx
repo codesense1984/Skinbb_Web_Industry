@@ -55,7 +55,7 @@ const getDefaultValues = (
     instagramUrl: brandData?.instagramUrl || "",
     facebookUrl: brandData?.facebookUrl || "",
     youtubeUrl: brandData?.youtubeUrl || "",
-    productCategory: brandData?.productCategory || [],
+    brandType: brandData?.brandType || [],
     sellingOn: brandData?.sellingOn || [],
     authorizationLetter: brandData?.authorizationLetter || "",
   };
@@ -199,7 +199,7 @@ const BrandForm = () => {
           instagramUrl: data.instagramUrl || "",
           facebookUrl: data.facebookUrl || "",
           youtubeUrl: data.youtubeUrl || "",
-          productCategory: data.productCategory || [],
+          brandType: data.brandType || [],
           sellingOn: (data.sellingOn || []).filter(
             (item) => item.platform && item.url,
           ),

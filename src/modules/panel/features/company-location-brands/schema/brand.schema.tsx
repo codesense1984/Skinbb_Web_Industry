@@ -18,7 +18,7 @@ export const brandFormSchema = z.object({
   instagramUrl: z.string().url().optional().or(z.literal("")),
   facebookUrl: z.string().url().optional().or(z.literal("")),
   youtubeUrl: z.string().url().optional().or(z.literal("")),
-  productCategory: z.array(z.string()).optional(),
+  brandType: z.array(z.string()).optional(),
   sellingOn: z
     .array(
       z.object({

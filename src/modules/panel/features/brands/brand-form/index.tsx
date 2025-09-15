@@ -185,6 +185,35 @@ import {
   type BrandFormData,
 } from "./formSchema";
 
+// Interface for brand API response
+interface BrandApiResponse {
+  name?: string;
+  aboutTheBrand?: string;
+  isActive?: boolean;
+  logoImage?: { url?: string };
+  authorizationLetter?: { url?: string };
+  total_skus?: string;
+  skus?: string;
+  marketing_budget?: string;
+  budget?: string;
+  product_category?: string;
+  category?: string;
+  instagram_url?: string;
+  instagram?: string;
+  facebook_url?: string;
+  facebook?: string;
+  youtube_url?: string;
+  youtube?: string;
+  sellingOn?: Array<{ platform: string; url: string }>;
+  platforms?: Array<{ platform: string; url: string }>;
+  brand_logo?: string;
+  logo?: string;
+  brand_name?: string;
+  description?: string;
+  brand_authorization_letter?: string;
+  authorization_letter?: string;
+}
+
 const BrandForm = () => {
   const { id } = useParams();
   const location = useLocation();
@@ -200,10 +229,10 @@ const BrandForm = () => {
   // Determine mode based on URL path
   let mode = MODE.ADD;
   if (id) {
-    if (pathname.endsWith('/view')) {
+    if (pathname.endsWith("/view")) {
       mode = MODE.VIEW;
       console.log("DETECTED VIEW MODE - pathname ends with /view");
-    } else if (pathname.endsWith('/edit')) {
+    } else if (pathname.endsWith("/edit")) {
       mode = MODE.EDIT;
       console.log("DETECTED EDIT MODE - pathname ends with /edit");
     } else {
@@ -220,8 +249,8 @@ const BrandForm = () => {
     isViewMode: mode === MODE.VIEW,
     isEditMode: mode === MODE.EDIT,
     isAddMode: mode === MODE.ADD,
-    pathnameIncludesView: pathname.includes('/view/'),
-    pathnameIncludesEdit: pathname.includes('/edit/'),
+    pathnameIncludesView: pathname.includes("/view/"),
+    pathnameIncludesEdit: pathname.includes("/edit/"),
     MODE_VALUES: { ADD: MODE.ADD, EDIT: MODE.EDIT, VIEW: MODE.VIEW }
   });
   
@@ -236,7 +265,7 @@ const BrandForm = () => {
     queryKey: ["brand", id],
     queryFn: () => {
       console.log("Fetching brand data for ID:", id);
-      return apiGetBrandById<{ data: any }>(id!);
+      return apiGetBrandById<{ data: BrandApiResponse }>(id!);
     },
     enabled: !!id && (mode === MODE.EDIT || mode === MODE.VIEW),
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -258,20 +287,19 @@ const BrandForm = () => {
       
       const formData = {
         brand_logo_files: [],
-        brand_logo: brand.logoImage?.url || (brand as any).brand_logo || (brand as any).logo || "",
-        brand_name: brand.name || (brand as any).brand_name || "",
-        description: brand.aboutTheBrand || (brand as any).description || "",
-        status: brand.isActive ? "active" : "inactive",
-        total_skus: (brand as any).total_skus || (brand as any).skus || "",
-        marketing_budget: (brand as any).marketing_budget || (brand as any).budget || "",
-        product_category: (brand as any).product_category || (brand as any).category || "",
-        // average_selling_price: (brand as any).average_selling_price || (brand as any).asp || "2",
-        instagram_url: (brand as any).instagram_url || (brand as any).instagram || "",
-        facebook_url: (brand as any).facebook_url || (brand as any).facebook || "",
-        youtube_url: (brand as any).youtube_url || (brand as any).youtube || "",
-        sellingOn: (brand as any).sellingOn || (brand as any).platforms || [],
+        brand_logo: brand.logoImage?.url || brand.brand_logo || brand.logo || "",
+        brand_name: brand.name || brand.brand_name || "",
+        description: brand.aboutTheBrand || brand.description || "",
+        total_skus: brand.total_skus || brand.skus || "",
+        marketing_budget: brand.marketing_budget || brand.budget || "",
+        product_category: brand.product_category || brand.category || "",
+        // average_selling_price: brand.average_selling_price || brand.asp || "2",
+        instagram_url: brand.instagram_url || brand.instagram || "",
+        facebook_url: brand.facebook_url || brand.facebook || "",
+        youtube_url: brand.youtube_url || brand.youtube || "",
+        sellingOn: brand.sellingOn || brand.platforms || [],
         brand_authorization_letter_files: [],
-        brand_authorization_letter: brand.authorizationLetter?.url || (brand as any).brand_authorization_letter || (brand as any).authorization_letter || "",
+        brand_authorization_letter: brand.authorizationLetter?.url || brand.brand_authorization_letter || brand.authorization_letter || "",
       };
       
       console.log("Form data being set:", formData);
@@ -282,10 +310,9 @@ const BrandForm = () => {
         const currentValues = form.getValues();
         console.log("Form values after reset:", currentValues);
         console.log("Description after reset:", currentValues.description);
-        console.log("Status after reset:", currentValues.status);
       }, 100);
     }
-  }, [brandData, mode, reset]);
+  }, [brandData, mode, reset, form]);
 
   const profileData = useWatch({
     control,
@@ -402,6 +429,13 @@ const BrandForm = () => {
     // Handle form submission here
   };
 
+  // Force re-render when pathname changes
+  useEffect(() => {
+    console.log("=== PATHNAME CHANGED ===");
+    console.log("New pathname:", pathname);
+    console.log("New mode:", mode);
+  }, [pathname, mode]);
+
   // Show loading state while fetching brand data
   if (isLoadingBrand && (mode === MODE.EDIT || mode === MODE.VIEW)) {
     return (
@@ -448,13 +482,6 @@ const BrandForm = () => {
       </PageContent>
     );
   }
-
-  // Force re-render when pathname changes
-  useEffect(() => {
-    console.log("=== PATHNAME CHANGED ===");
-    console.log("New pathname:", pathname);
-    console.log("New mode:", mode);
-  }, [pathname, mode]);
 
   // Debug the mode before rendering
   console.log("Rendering Brand Form with mode:", mode, "Title will be:", mode === MODE.VIEW ? "View Brand" : mode === MODE.EDIT ? "Edit Brand" : "Create Brand");
@@ -603,7 +630,7 @@ const BrandForm = () => {
 
                   {sellingOn.length === 0 && (
                     <div className="text-center py-8 text-gray-500">
-                      <p>No platforms added yet. Click "Add Platform" to get started.</p>
+                      <p>No platforms added yet. Click &quot;Add Platform&quot; to get started.</p>
                     </div>
                   )}
 
