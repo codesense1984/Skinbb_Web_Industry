@@ -23,7 +23,7 @@ export interface CompanyLocation {
   phoneNumber?: string;
   isPrimary: boolean;
   status: CompanyLocationStatus;
-  brands?: any[]; // Brands associated with this location
+  brands?: unknown[]; // Brands associated with this location
   createdAt: string;
   updatedAt: string;
   __v: number;

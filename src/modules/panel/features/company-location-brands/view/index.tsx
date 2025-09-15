@@ -17,7 +17,6 @@ const CompanyLocationBrandView = () => {
         description: "View brand information and details",
         actions: (
           <div className="flex gap-2">
-            
             <Button
               onClick={() =>
                 navigate(

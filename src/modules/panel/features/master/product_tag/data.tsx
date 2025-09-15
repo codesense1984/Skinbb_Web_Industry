@@ -25,7 +25,7 @@ export const columns = (): ColumnDef<ProductTag>[] => [
         <div className="flex items-center space-x-2">
           {tag.color && (
             <div
-              className="w-3 h-3 rounded-full"
+              className="h-3 w-3 rounded-full"
               style={{ backgroundColor: tag.color }}
             />
           )}
@@ -38,7 +38,7 @@ export const columns = (): ColumnDef<ProductTag>[] => [
     accessorKey: "slug",
     header: "Slug",
     cell: ({ row }) => (
-      <code className="text-sm bg-gray-100 px-2 py-1 rounded">
+      <code className="rounded bg-gray-100 px-2 py-1 text-sm">
         {row.getValue("slug")}
       </code>
     ),
@@ -95,16 +95,24 @@ export const columns = (): ColumnDef<ProductTag>[] => [
       return (
         <TableAction
           view={{
-            onClick: () => window.open(PANEL_ROUTES.MASTER.PRODUCT_TAG_VIEW(tag._id), '_blank')
+            onClick: () =>
+              window.open(
+                PANEL_ROUTES.MASTER.PRODUCT_TAG_VIEW(tag._id),
+                "_blank",
+              ),
           }}
           edit={{
-            onClick: () => window.open(PANEL_ROUTES.MASTER.PRODUCT_TAG_EDIT(tag._id), '_blank')
+            onClick: () =>
+              window.open(
+                PANEL_ROUTES.MASTER.PRODUCT_TAG_EDIT(tag._id),
+                "_blank",
+              ),
           }}
           delete={{
             onClick: () => {
               // TODO: Implement delete functionality
               console.log("Delete tag:", tag._id);
-            }
+            },
           }}
         />
       );

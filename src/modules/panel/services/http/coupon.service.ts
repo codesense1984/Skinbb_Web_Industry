@@ -73,10 +73,15 @@ export async function apiUpdateCoupon(id: string, data: UpdateCouponRequest) {
 
 // Delete coupon
 export async function apiDeleteCoupon(id: string) {
-  return api.delete<ApiResponse<{ message: string }>>(ENDPOINTS.COUPON.DELETE(id));
+  return api.delete<ApiResponse<{ message: string }>>(
+    ENDPOINTS.COUPON.DELETE(id),
+  );
 }
 
 // Toggle coupon status
 export async function apiToggleCouponStatus(id: string) {
-  return api.put<ApiResponse<Coupon>>(`${ENDPOINTS.COUPON.UPDATE(id)}/toggle-status`, { id });
+  return api.put<ApiResponse<Coupon>>(
+    `${ENDPOINTS.COUPON.UPDATE(id)}/toggle-status`,
+    { id },
+  );
 }

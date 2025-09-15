@@ -161,7 +161,7 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
                 <Input
                   type="text"
                   placeholder="Enter new company name..."
-                  className={`pe-15`}
+                  className={"pe-15"}
                   invalid={!!fieldState.error}
                   disabled={disabledCompanyName}
                   endIcon={

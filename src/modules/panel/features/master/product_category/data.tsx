@@ -113,7 +113,7 @@ export const columns = (): ColumnDef<ProductCategory>[] => [
     cell: ({ row, table }) => {
       const category = row.original;
       const meta = table.options.meta as any;
-      
+
       return (
         <TableAction
           view={{
@@ -122,7 +122,10 @@ export const columns = (): ColumnDef<ProductCategory>[] => [
                 meta.onView(category._id);
               } else {
                 // Fallback to navigation
-                window.open(PANEL_ROUTES.MASTER.PRODUCT_CATEGORY_VIEW(category._id), '_blank');
+                window.open(
+                  PANEL_ROUTES.MASTER.PRODUCT_CATEGORY_VIEW(category._id),
+                  "_blank",
+                );
               }
             },
             title: "View category",
@@ -133,7 +136,10 @@ export const columns = (): ColumnDef<ProductCategory>[] => [
                 meta.onEdit(category._id);
               } else {
                 // Fallback to navigation
-                window.open(PANEL_ROUTES.MASTER.PRODUCT_CATEGORY_EDIT(category._id), '_blank');
+                window.open(
+                  PANEL_ROUTES.MASTER.PRODUCT_CATEGORY_EDIT(category._id),
+                  "_blank",
+                );
               }
             },
             title: "Edit category",

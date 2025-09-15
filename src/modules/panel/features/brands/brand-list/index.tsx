@@ -122,7 +122,7 @@ const columns: ColumnDef<Brand>[] = [
       const cleanDescription = description.replace(/<[^>]*>/g, ""); // Remove HTML tags
       return (
         <div className="w-max max-w-xs truncate" title={cleanDescription}>
-          {cleanDescription || 'No description'}
+          {cleanDescription || "No description"}
         </div>
       );
     },
@@ -133,8 +133,8 @@ const columns: ColumnDef<Brand>[] = [
     cell: ({ getValue }) => {
       const isActive = getValue() as boolean;
       return (
-        <StatusBadge 
-          module="brand" 
+        <StatusBadge
+          module="brand"
           status={isActive ? "active" : "inactive"}
           variant="badge"
         />

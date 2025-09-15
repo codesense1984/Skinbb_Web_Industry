@@ -13,7 +13,11 @@ export default function ViewDiscountCoupon() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const { data: coupon, isLoading, error } = useQuery({
+  const {
+    data: coupon,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["coupon", id],
     queryFn: () => apiGetCouponById(id!),
     enabled: !!id,
@@ -27,7 +31,7 @@ export default function ViewDiscountCoupon() {
           description: "Coupon details",
         }}
       >
-        <div className="flex justify-center items-center h-64">
+        <div className="flex h-64 items-center justify-center">
           <FullLoader />
         </div>
       </PageContent>
@@ -42,7 +46,7 @@ export default function ViewDiscountCoupon() {
           description: "Coupon details",
         }}
       >
-        <div className="text-center py-8">
+        <div className="py-8 text-center">
           <p className="text-red-500">Failed to load coupon details</p>
         </div>
       </PageContent>
@@ -66,7 +70,9 @@ export default function ViewDiscountCoupon() {
             </Button>
             <Button
               variant="contained"
-              onClick={() => navigate(PANEL_ROUTES.MASTER.DISCOUNT_COUPON_EDIT(id!))}
+              onClick={() =>
+                navigate(PANEL_ROUTES.MASTER.DISCOUNT_COUPON_EDIT(id!))
+              }
               className="flex items-center gap-2"
             >
               <PencilIcon className="h-4 w-4" />

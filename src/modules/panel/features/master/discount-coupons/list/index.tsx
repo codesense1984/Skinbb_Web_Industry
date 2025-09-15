@@ -9,16 +9,16 @@ import { PlusIcon } from "@heroicons/react/24/outline";
 
 export default function DiscountCouponList() {
   const navigate = useNavigate();
-  
+
   // Handle form actions
   const handleAddCoupon = () => {
     navigate(PANEL_ROUTES.MASTER.DISCOUNT_COUPON_CREATE);
   };
-  
+
   const handleViewCoupon = (id: string) => {
     navigate(PANEL_ROUTES.MASTER.DISCOUNT_COUPON_VIEW(id));
   };
-  
+
   const handleEditCoupon = (id: string) => {
     navigate(PANEL_ROUTES.MASTER.DISCOUNT_COUPON_EDIT(id));
   };

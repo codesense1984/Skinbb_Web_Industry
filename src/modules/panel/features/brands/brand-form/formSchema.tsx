@@ -5,7 +5,7 @@ export type BrandFormData = {
   // Brand Logo
   brand_logo_files: File[];
   brand_logo: string;
-  
+
   // Brand Information
   brand_name: string;
   description: string;
@@ -14,18 +14,18 @@ export type BrandFormData = {
   marketing_budget: string;
   product_category: string;
   average_selling_price: string;
-  
+
   // Social Media URLs (Optional)
   instagram_url: string;
   facebook_url: string;
   youtube_url: string;
-  
+
   // Selling Platforms
   sellingOn: Array<{
     platform: string;
     url: string;
   }>;
-  
+
   // Brand Authorization Letter
   brand_authorization_letter_files: File[];
   brand_authorization_letter: string;
@@ -70,7 +70,7 @@ export const defaultValues: BrandFormData = {
   // Brand Logo
   brand_logo_files: [],
   brand_logo: "",
-  
+
   // Brand Information
   brand_name: "",
   description: "",
@@ -79,15 +79,15 @@ export const defaultValues: BrandFormData = {
   marketing_budget: "",
   product_category: "",
   average_selling_price: "2",
-  
+
   // Social Media URLs (Optional)
   instagram_url: "",
   facebook_url: "",
   youtube_url: "",
-  
+
   // Selling Platforms
   sellingOn: [],
-  
+
   // Brand Authorization Letter
   brand_authorization_letter_files: [],
   brand_authorization_letter: "",
@@ -146,13 +146,13 @@ export const brandFormSchema: BrandFormSchema = {
         required: "Brand name is required",
       },
     },
-            {
-          type: "rich_text",
-          name: "description",
-          label: "Description",
-          placeholder: "Enter brand description",
-          className: "col-span-full",
-        },
+    {
+      type: "rich_text",
+      name: "description",
+      label: "Description",
+      placeholder: "Enter brand description",
+      className: "col-span-full",
+    },
     {
       type: "select",
       name: "status",

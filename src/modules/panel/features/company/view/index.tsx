@@ -19,10 +19,10 @@ import { apiGetCompanyLocationById } from "@/modules/panel/services/http/company
 import { useQuery } from "@tanstack/react-query";
 import { useParams, Link } from "react-router";
 import { formatDate } from "@/core/utils";
-import { 
-  BuildingOfficeIcon, 
-  MapPinIcon, 
-  PhoneIcon, 
+import {
+  BuildingOfficeIcon,
+  MapPinIcon,
+  PhoneIcon,
   CalendarIcon,
   DocumentTextIcon,
   LinkIcon,
@@ -94,7 +94,6 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
 }) => {
   const locationId = address.addressId || address._id;
 
-
   const {
     data: locationData,
     isLoading,
@@ -127,7 +126,7 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                 </Badge>
               )}
             </div>
-    <div className="min-w-0 flex-1">
+            <div className="min-w-0 flex-1">
               <p className="mb-1 font-medium text-gray-900">
                 {address.addressLine1}
               </p>
@@ -160,9 +159,9 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                 <ExclamationTriangleIcon className="mx-auto mb-2 h-8 w-8 text-red-500" />
                 <p className="text-sm text-red-600">
                   Failed to load location details
-      </p>
-    </div>
-  </div>
+                </p>
+              </div>
+            </div>
           ) : location ? (
             <>
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -329,7 +328,6 @@ const CompanyView = () => {
   const { id } = useParams();
   const [expandedAddress, setExpandedAddress] = useState<string | null>(null);
 
-
   const {
     data: companyData,
     isLoading: companyLoading,
@@ -357,14 +355,14 @@ const CompanyView = () => {
           <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
             <CardContent className="pt-6">
               <div className="flex items-start justify-between">
-            <div className="flex items-start gap-6">
+                <div className="flex items-start gap-6">
                   {/* Company Logo Placeholder */}
-                <div className="flex-shrink-0">
+                  <div className="flex-shrink-0">
                     <div className="flex h-20 w-20 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-2xl font-bold text-white">
                       {company.companyName?.charAt(0) || "C"}
                     </div>
                   </div>
-                  
+
                   {/* Company Basic Info */}
                   <div className="min-w-0 flex-1">
                     <div className="mb-2 flex items-center gap-3">
@@ -372,7 +370,7 @@ const CompanyView = () => {
                         {company.companyName}
                       </h1>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-3">
                       <div className="flex items-center gap-2 text-gray-600">
                         <CalendarIcon className="h-4 w-4" />
@@ -435,8 +433,8 @@ const CompanyView = () => {
                       />
                     ))}
                   </Accordion>
-          </CardContent>
-        </Card>
+                </CardContent>
+              </Card>
             )}
           </div>
         </div>

@@ -40,13 +40,17 @@ export const companyEditZodSchema = z
     businessType: createRequiredString("Business type"),
     establishedIn: z.union([
       createRequiredString("Established year"),
-      z.date().refine((date) => {
-        const today = new Date();
-        today.setHours(23, 59, 59, 999); // Set to end of today to allow today's date
-        return date <= today;
-      }, {
-        message: "Established date cannot be in the future. Please select today or a past date.",
-      }),
+      z.date().refine(
+        (date) => {
+          const today = new Date();
+          today.setHours(23, 59, 59, 999); // Set to end of today to allow today's date
+          return date <= today;
+        },
+        {
+          message:
+            "Established date cannot be in the future. Please select today or a past date.",
+        },
+      ),
     ]),
     website: createUrlValidator("website"),
     isSubsidiary: z.string(),
@@ -178,7 +182,7 @@ export const companyEditDetailsSchema: CompanyEditDetailsSchemaProps = {
       render({ field }) {
         const today = new Date();
         const maxDate = today.toISOString().slice(0, 7); // Format as YYYY-MM for month input
-        
+
         return (
           <Input
             className="block w-full"

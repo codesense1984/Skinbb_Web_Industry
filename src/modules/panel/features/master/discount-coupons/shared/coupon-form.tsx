@@ -3,10 +3,24 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { Button } from "@/core/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/core/components/ui/card";
 import { FormFieldsRenderer } from "@/core/components/ui/form-input";
-import { couponFormInputSchema, couponFormSchema, couponSchema, type CouponFormData } from "./formSchema";
-import { apiCreateCoupon, apiUpdateCoupon, type Coupon } from "@/modules/panel/services/http/coupon.service";
+import {
+  couponFormInputSchema,
+  couponFormSchema,
+  couponSchema,
+  type CouponFormData,
+} from "./formSchema";
+import {
+  apiCreateCoupon,
+  apiUpdateCoupon,
+  type Coupon,
+} from "@/modules/panel/services/http/coupon.service";
 import { toast } from "sonner";
 import { useNavigate } from "react-router";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
@@ -20,10 +34,18 @@ const getDefaultValues = (couponData?: Coupon | null): CouponFormData => {
     description: couponData?.description || "",
     type: couponData?.type || "product",
     discountType: couponData?.discountType || "percentage",
-    discountValue: couponData?.discountValue ? String(couponData.discountValue) : "0",
+    discountValue: couponData?.discountValue
+      ? String(couponData.discountValue)
+      : "0",
     usageLimit: couponData?.usageLimit ? String(couponData.usageLimit) : "1",
-    validFrom: couponData?.validFrom ? new Date(couponData.validFrom).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
-    expiresAt: couponData?.expiresAt ? new Date(couponData.expiresAt).toISOString().split("T")[0] : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+    validFrom: couponData?.validFrom
+      ? new Date(couponData.validFrom).toISOString().split("T")[0]
+      : new Date().toISOString().split("T")[0],
+    expiresAt: couponData?.expiresAt
+      ? new Date(couponData.expiresAt).toISOString().split("T")[0]
+      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+          .toISOString()
+          .split("T")[0],
     isActive: couponData?.isActive ? "true" : "false",
   };
 };
@@ -34,15 +56,19 @@ interface CouponFormProps {
   isView?: boolean;
 }
 
-export function CouponForm({ initialData, isEdit = false, isView = false }: CouponFormProps) {
+export function CouponForm({
+  initialData,
+  isEdit = false,
+  isView = false,
+}: CouponFormProps) {
   const navigate = useNavigate();
-  const mode = isView ? MODE.VIEW : (isEdit ? MODE.EDIT : MODE.ADD);
+  const mode = isView ? MODE.VIEW : isEdit ? MODE.EDIT : MODE.ADD;
 
   // Function to handle API errors and set form field errors
   const handleApiError = (error: unknown) => {
-    const apiError = error as { 
-      response?: { 
-        data?: { 
+    const apiError = error as {
+      response?: {
+        data?: {
           errors?: Array<{ msg?: string; field?: string; type?: string }>;
           message?: string;
         };
@@ -50,13 +76,16 @@ export function CouponForm({ initialData, isEdit = false, isView = false }: Coup
       };
       message?: string;
     };
-    
-    if (apiError.response?.data?.errors && Array.isArray(apiError.response.data.errors)) {
+
+    if (
+      apiError.response?.data?.errors &&
+      Array.isArray(apiError.response.data.errors)
+    ) {
       // Set field-specific errors
       apiError.response.data.errors.forEach((err) => {
         // Map error to field based on the error message or type
         let fieldName: keyof CouponFormData | null = null;
-        
+
         if (err.msg?.toLowerCase().includes("coupon code")) {
           fieldName = "code";
         } else if (err.msg?.toLowerCase().includes("title")) {
@@ -67,12 +96,18 @@ export function CouponForm({ initialData, isEdit = false, isView = false }: Coup
           fieldName = "discountValue";
         } else if (err.msg?.toLowerCase().includes("usage")) {
           fieldName = "usageLimit";
-        } else if (err.msg?.toLowerCase().includes("valid from") || err.msg?.toLowerCase().includes("valid from")) {
+        } else if (
+          err.msg?.toLowerCase().includes("valid from") ||
+          err.msg?.toLowerCase().includes("valid from")
+        ) {
           fieldName = "validFrom";
-        } else if (err.msg?.toLowerCase().includes("expires") || err.msg?.toLowerCase().includes("expiry")) {
+        } else if (
+          err.msg?.toLowerCase().includes("expires") ||
+          err.msg?.toLowerCase().includes("expiry")
+        ) {
           fieldName = "expiresAt";
         }
-        
+
         if (fieldName && err.msg) {
           form.setError(fieldName, {
             type: "server",
@@ -80,7 +115,7 @@ export function CouponForm({ initialData, isEdit = false, isView = false }: Coup
           });
         }
       });
-      
+
       // Show the first error as toast
       const firstError = apiError.response.data.errors[0];
       if (firstError.msg) {
@@ -88,7 +123,10 @@ export function CouponForm({ initialData, isEdit = false, isView = false }: Coup
       }
     } else {
       // Show generic error
-      const errorMessage = apiError.response?.data?.message || apiError.message || "An error occurred";
+      const errorMessage =
+        apiError.response?.data?.message ||
+        apiError.message ||
+        "An error occurred";
       toast.error(errorMessage);
     }
   };
@@ -158,7 +196,7 @@ export function CouponForm({ initialData, isEdit = false, isView = false }: Coup
     if (isView) {
       return; // Don't submit in view mode
     }
-    
+
     if (isEdit && initialData) {
       updateMutation.mutate({ id: initialData._id, ...data });
     } else {
@@ -229,7 +267,7 @@ export function CouponForm({ initialData, isEdit = false, isView = false }: Coup
 
         {/* Form Actions */}
         {!isView && (
-          <div className="flex justify-end space-x-4 pt-6 border-t">
+          <div className="flex justify-end space-x-4 border-t pt-6">
             <Button
               type="button"
               variant="outlined"
@@ -243,7 +281,11 @@ export function CouponForm({ initialData, isEdit = false, isView = false }: Coup
               variant="contained"
               color="secondary"
             >
-              {isLoading ? "Saving..." : isEdit ? "Update Coupon" : "Create Coupon"}
+              {isLoading
+                ? "Saving..."
+                : isEdit
+                  ? "Update Coupon"
+                  : "Create Coupon"}
             </Button>
           </div>
         )}

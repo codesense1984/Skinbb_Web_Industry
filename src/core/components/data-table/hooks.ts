@@ -165,7 +165,7 @@ export function useTable<TData extends object>({
   let finalRows: TData[];
   let finalTotal: number;
 
-  if (!!fetcher) {
+  if (fetcher) {
     if (isServerSide) {
       // Scenario 2: Server-side pagination
       finalRows = serverData?.rows ?? [];

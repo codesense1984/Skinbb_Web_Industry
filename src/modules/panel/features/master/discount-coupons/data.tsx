@@ -11,7 +11,7 @@ export const columns = (): ColumnDef<Coupon>[] => [
     cell: ({ row }) => {
       const code = row.getValue("code") as string;
       return (
-        <div className="font-mono font-medium text-sm bg-gray-100 px-2 py-1 rounded">
+        <div className="rounded bg-gray-100 px-2 py-1 font-mono text-sm font-medium">
           {code}
         </div>
       );
@@ -68,7 +68,9 @@ export const columns = (): ColumnDef<Coupon>[] => [
       const usedCount = row.original.usedCount;
       return (
         <div className="text-sm">
-          <div className="font-medium">{usedCount} / {usageLimit}</div>
+          <div className="font-medium">
+            {usedCount} / {usageLimit}
+          </div>
           <div className="text-gray-500">
             {usageLimit - usedCount} remaining
           </div>
@@ -84,9 +86,7 @@ export const columns = (): ColumnDef<Coupon>[] => [
       const expiresAt = new Date(row.original.expiresAt);
       return (
         <div className="text-sm">
-          <div className="font-medium">
-            {validFrom.toLocaleDateString()}
-          </div>
+          <div className="font-medium">{validFrom.toLocaleDateString()}</div>
           <div className="text-gray-500">
             to {expiresAt.toLocaleDateString()}
           </div>
@@ -100,13 +100,13 @@ export const columns = (): ColumnDef<Coupon>[] => [
     cell: ({ row }) => {
       const status = row.getValue("status") as string;
       const isActive = row.original.isActive;
-      
+
       // Determine the actual status based on isActive and status
       let actualStatus = status;
       if (status === "active" && !isActive) {
         actualStatus = "inactive";
       }
-      
+
       return (
         <StatusBadge
           module="discount_coupon"
@@ -121,11 +121,7 @@ export const columns = (): ColumnDef<Coupon>[] => [
     header: "Created",
     cell: ({ row }) => {
       const date = new Date(row.getValue("createdAt"));
-      return (
-        <div className="text-sm">
-          {date.toLocaleDateString()}
-        </div>
-      );
+      return <div className="text-sm">{date.toLocaleDateString()}</div>;
     },
   },
   {
@@ -134,7 +130,7 @@ export const columns = (): ColumnDef<Coupon>[] => [
     cell: ({ row, table }) => {
       const coupon = row.original;
       const meta = table.options.meta as any;
-      
+
       return (
         <TableAction
           view={{
@@ -143,7 +139,10 @@ export const columns = (): ColumnDef<Coupon>[] => [
                 meta.onView(coupon._id);
               } else {
                 // Fallback to navigation
-                window.open(PANEL_ROUTES.MASTER.DISCOUNT_COUPON_VIEW(coupon._id), '_blank');
+                window.open(
+                  PANEL_ROUTES.MASTER.DISCOUNT_COUPON_VIEW(coupon._id),
+                  "_blank",
+                );
               }
             },
             title: "View coupon",
@@ -154,7 +153,10 @@ export const columns = (): ColumnDef<Coupon>[] => [
                 meta.onEdit(coupon._id);
               } else {
                 // Fallback to navigation
-                window.open(PANEL_ROUTES.MASTER.DISCOUNT_COUPON_EDIT(coupon._id), '_blank');
+                window.open(
+                  PANEL_ROUTES.MASTER.DISCOUNT_COUPON_EDIT(coupon._id),
+                  "_blank",
+                );
               }
             },
             title: "Edit coupon",

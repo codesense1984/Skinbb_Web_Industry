@@ -3,11 +3,11 @@ import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
 
 // Product Category APIs
 export async function apiGetProductCategories(params?: any) {
-    const response = await api.get(ENDPOINTS.PRODUCT.CATEGORY, { 
-      params: params || {}
-    });
-    
-    return response;
+  const response = await api.get(ENDPOINTS.PRODUCT.CATEGORY, {
+    params: params || {},
+  });
+
+  return response;
 }
 
 export async function apiCreateProductCategory(data: any) {

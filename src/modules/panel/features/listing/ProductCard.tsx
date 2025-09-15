@@ -84,12 +84,15 @@ export const ProductCard: FC<ProductCardProps> = ({ product }) => {
           - {formatCurrency(salePriceRange.max, { useAbbreviation: true })}
         </div>
       )}
-      
-      <div className="flex items-center justify-between text-xs text-muted-foreground">
-        <span>Added {product.capturedDate ? formatDate(product.capturedDate) : 'Unknown'}</span>
-        <StatusBadge 
-          module="product" 
-          status={product.status || 'draft'}
+
+      <div className="text-muted-foreground flex items-center justify-between text-xs">
+        <span>
+          Added{" "}
+          {product.capturedDate ? formatDate(product.capturedDate) : "Unknown"}
+        </span>
+        <StatusBadge
+          module="product"
+          status={product.status || "draft"}
           variant="badge"
         />
       </div>

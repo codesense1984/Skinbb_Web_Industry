@@ -8,7 +8,7 @@ import { ENDPOINTS } from "../../config/endpoint.config";
  * @returns Formatted data for API requests
  */
 export const transformBrandDataForApi = (brandData?: BrandFormData) => {
-  let requestData: any = {
+  const requestData: any = {
     name: brandData?.name || "",
     aboutTheBrand: brandData?.aboutTheBrand || "",
     websiteUrl: brandData?.websiteUrl || "",

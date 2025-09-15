@@ -68,7 +68,7 @@ export const columns: ColumnDef<Product>[] = [
     accessorKey: "brand",
     header: "Brand",
     cell: ({ getValue }) => {
-      const brand = (getValue() as { name: string }) || { name: 'Unknown' };
+      const brand = (getValue() as { name: string }) || { name: "Unknown" };
       return <div className="w-max font-medium">{brand.name}</div>;
     },
   },
@@ -78,7 +78,7 @@ export const columns: ColumnDef<Product>[] = [
     cell: ({ getValue }) => {
       const categories = (getValue() as Array<{ name: string }>) || [];
       return (
-        <div className="w-max flex flex-wrap gap-1">
+        <div className="flex w-max flex-wrap gap-1">
           {categories.slice(0, 2).map((category, index) => (
             <span key={index} className="rounded bg-gray-100 px-2 py-1 text-xs">
               {category.name}
@@ -98,13 +98,7 @@ export const columns: ColumnDef<Product>[] = [
     header: "Status",
     cell: ({ getValue }) => {
       const status = getValue() as string;
-      return (
-        <StatusBadge 
-          module="product" 
-          status={status}
-          variant="badge"
-        />
-      );
+      return <StatusBadge module="product" status={status} variant="badge" />;
     },
     filterFn: (row, id, value) => {
       return value.includes(row.getValue(id));
@@ -121,9 +115,10 @@ export const columns: ColumnDef<Product>[] = [
       const salePriceRange = row.original.salePriceRange || { min: 0, max: 0 };
 
       return (
-        <div className="w-max flex flex-col">
+        <div className="flex w-max flex-col">
           <span className="font-medium">
-            {formatCurrency(priceRange.min, { useAbbreviation: true })} - {formatCurrency(priceRange.max, { useAbbreviation: true })}
+            {formatCurrency(priceRange.min, { useAbbreviation: true })} -{" "}
+            {formatCurrency(priceRange.max, { useAbbreviation: true })}
           </span>
           {salePriceRange &&
             (salePriceRange.min > 0 || salePriceRange.max > 0) && (
@@ -145,7 +140,7 @@ export const columns: ColumnDef<Product>[] = [
       const variants = (getValue() as Array<unknown>) || [];
       return (
         <div className="w-max font-medium">
-          {variants.length} variant{variants.length !== 1 ? 's' : ''}
+          {variants.length} variant{variants.length !== 1 ? "s" : ""}
         </div>
       );
     },
@@ -167,11 +162,13 @@ export const columns: ColumnDef<Product>[] = [
       return (
         <TableAction
           view={{
-            to: PANEL_ROUTES.LISTING.CREATE + `?mode=view&id=${row.original._id}`,
+            to:
+              PANEL_ROUTES.LISTING.CREATE + `?mode=view&id=${row.original._id}`,
             tooltip: "View product details",
           }}
           edit={{
-            to: PANEL_ROUTES.LISTING.CREATE + `?mode=edit&id=${row.original._id}`,
+            to:
+              PANEL_ROUTES.LISTING.CREATE + `?mode=edit&id=${row.original._id}`,
             tooltip: "Edit product",
           }}
         />

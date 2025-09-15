@@ -57,4 +57,3 @@ export const customerFormFieldConfigs: FormFieldConfig<CustomerFormData>[] = [
     required: false,
   },
 ];
-

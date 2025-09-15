@@ -11,4 +11,3 @@ export const categoryFormSchema = z.object({
 });
 
 export type CategoryFormData = z.infer<typeof categoryFormSchema>;
-
