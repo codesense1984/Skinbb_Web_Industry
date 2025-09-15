@@ -23,12 +23,14 @@ The feature integrates with the following API endpoints:
 ## Components
 
 ### Pages
+
 - `DiscountCouponList` - Main list view with data table
 - `CreateDiscountCoupon` - Create new coupon form
 - `EditDiscountCoupon` - Edit existing coupon form
 - `ViewDiscountCoupon` - Detailed coupon view
 
 ### Shared Components
+
 - `CouponForm` - Reusable form component for create/edit
 - `couponFormSchema` - Zod validation schema
 - `columns` - Data table column definitions
@@ -62,11 +64,11 @@ The form includes comprehensive validation:
 ## Usage
 
 ```tsx
-import { 
-  DiscountCouponList, 
-  CreateDiscountCoupon, 
+import {
+  DiscountCouponList,
+  CreateDiscountCoupon,
   EditDiscountCoupon,
-  ViewDiscountCoupon 
+  ViewDiscountCoupon
 } from "@/modules/panel/features/master/discount-coupons";
 
 // Use in your routes

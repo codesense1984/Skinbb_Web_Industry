@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router';
+import { useParams, useNavigate } from "react-router";
 import { PageContent } from "@/core/components/ui/structure";
 import { Button } from "@/core/components/ui/button";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
@@ -40,8 +40,10 @@ const CompanyBrandCreate = () => {
       }}
     >
       <div className="py-8 text-center">
-        <p className="text-gray-500">Brand creation form will be implemented here.</p>
-        <p className="text-sm text-gray-400 mt-2">
+        <p className="text-gray-500">
+          Brand creation form will be implemented here.
+        </p>
+        <p className="mt-2 text-sm text-gray-400">
           This will use the existing brand form component with the API data.
         </p>
       </div>

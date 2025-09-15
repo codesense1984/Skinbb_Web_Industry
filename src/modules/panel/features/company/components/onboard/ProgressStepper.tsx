@@ -184,4 +184,3 @@
 // ProgressStepper.displayName = "ProgressStepper";
 
 // export default ProgressStepper;
-

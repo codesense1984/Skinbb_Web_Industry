@@ -25,6 +25,9 @@ export interface CompanyLocationBrand {
   aboutTheBrand: string;
   websiteUrl: string;
   isActive: boolean;
+  status: string;
+  statusChangeReason: string;
+  statusChangedAt: string;
   logoImage: string;
   coverImage: string;
   authorizationLetter: string;

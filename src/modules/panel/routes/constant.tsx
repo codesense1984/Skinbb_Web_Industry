@@ -86,10 +86,14 @@ export const PANEL_ROUTES = {
       ROUTE.build(COMPANY_BASE, id, "users", userId, ROUTE.seg.edit), // /company/:id/users/:userId/edit
     USER_VIEW: (id: string = ROUTE.seg.id, userId: string = ":userId") =>
       ROUTE.build(COMPANY_BASE, id, "users", userId, ROUTE.seg.view), // /company/:id/users/:userId/view
-    BRANDS: (id: string = ROUTE.seg.id) => ROUTE.build(COMPANY_BASE, id, "brands"), // /company/:id/brands
-    BRAND_CREATE: (id: string = ROUTE.seg.id) => ROUTE.build(COMPANY_BASE, id, "brands", ROUTE.seg.create), // /company/:id/brands/create
-    BRAND_EDIT: (id: string = ROUTE.seg.id, brandId: string = ":brandId") => ROUTE.build(COMPANY_BASE, id, "brands", brandId, ROUTE.seg.edit), // /company/:id/brands/:brandId/edit
-    BRAND_VIEW: (id: string = ROUTE.seg.id, brandId: string = ":brandId") => ROUTE.build(COMPANY_BASE, id, "brands", brandId, ROUTE.seg.view), // /company/:id/brands/:brandId/view
+    BRANDS: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(COMPANY_BASE, id, "brands"), // /company/:id/brands
+    BRAND_CREATE: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(COMPANY_BASE, id, "brands", ROUTE.seg.create), // /company/:id/brands/create
+    BRAND_EDIT: (id: string = ROUTE.seg.id, brandId: string = ":brandId") =>
+      ROUTE.build(COMPANY_BASE, id, "brands", brandId, ROUTE.seg.edit), // /company/:id/brands/:brandId/edit
+    BRAND_VIEW: (id: string = ROUTE.seg.id, brandId: string = ":brandId") =>
+      ROUTE.build(COMPANY_BASE, id, "brands", brandId, ROUTE.seg.view), // /company/:id/brands/:brandId/view
     // ONBOARD: ROUTE.build(COMPANY_BASE, ROUTE.seg.onboard), // /company/onboard
   },
 
@@ -126,13 +130,7 @@ export const PANEL_ROUTES = {
       companyId: string = ":companyId",
       locationId: string = ":locationId",
     ) =>
-      ROUTE.build(
-        COMPANY_BASE,
-        companyId,
-        "locations",
-        locationId,
-        "brands",
-      ), // /company/:companyId/locations/:locationId/brands
+      ROUTE.build(COMPANY_BASE, companyId, "locations", locationId, "brands"), // /company/:companyId/locations/:locationId/brands
     BRAND_CREATE: (
       companyId: string = ":companyId",
       locationId: string = ":locationId",
@@ -213,19 +211,31 @@ export const PANEL_ROUTES = {
   MASTER: {
     BASE: MASTER_BASE, // /master
     PRODUCT_CATEGORY: ROUTE.build(MASTER_BASE, PRODUCT_CATEGORY_BASE), // /master/product-category
-    PRODUCT_CATEGORY_CREATE: ROUTE.build(MASTER_BASE, PRODUCT_CATEGORY_BASE, ROUTE.seg.create), // /master/product-category/create
+    PRODUCT_CATEGORY_CREATE: ROUTE.build(
+      MASTER_BASE,
+      PRODUCT_CATEGORY_BASE,
+      ROUTE.seg.create,
+    ), // /master/product-category/create
     PRODUCT_CATEGORY_EDIT: (id: string = ROUTE.seg.id) =>
       ROUTE.build(MASTER_BASE, PRODUCT_CATEGORY_BASE, id, ROUTE.seg.edit), // /master/product-category/edit/:id
     PRODUCT_CATEGORY_VIEW: (id: string = ROUTE.seg.id) =>
       ROUTE.build(MASTER_BASE, PRODUCT_CATEGORY_BASE, id, ROUTE.seg.view), // /master/product-category/view/:id
     PRODUCT_TAG: ROUTE.build(MASTER_BASE, PRODUCT_TAG_BASE), // /master/product-tag
-    PRODUCT_TAG_CREATE: ROUTE.build(MASTER_BASE, PRODUCT_TAG_BASE, ROUTE.seg.create), // /master/product-tag/create
+    PRODUCT_TAG_CREATE: ROUTE.build(
+      MASTER_BASE,
+      PRODUCT_TAG_BASE,
+      ROUTE.seg.create,
+    ), // /master/product-tag/create
     PRODUCT_TAG_EDIT: (id: string = ROUTE.seg.id) =>
       ROUTE.build(MASTER_BASE, PRODUCT_TAG_BASE, id, ROUTE.seg.edit), // /master/product-tag/edit/:id
     PRODUCT_TAG_VIEW: (id: string = ROUTE.seg.id) =>
       ROUTE.build(MASTER_BASE, PRODUCT_TAG_BASE, id, ROUTE.seg.view), // /master/product-tag/view/:id
     DISCOUNT_COUPON: ROUTE.build(MASTER_BASE, DISCOUNT_COUPON_BASE), // /master/discount-coupons
-    DISCOUNT_COUPON_CREATE: ROUTE.build(MASTER_BASE, DISCOUNT_COUPON_BASE, ROUTE.seg.create), // /master/discount-coupons/create
+    DISCOUNT_COUPON_CREATE: ROUTE.build(
+      MASTER_BASE,
+      DISCOUNT_COUPON_BASE,
+      ROUTE.seg.create,
+    ), // /master/discount-coupons/create
     DISCOUNT_COUPON_EDIT: (id: string = ROUTE.seg.id) =>
       ROUTE.build(MASTER_BASE, DISCOUNT_COUPON_BASE, id, ROUTE.seg.edit), // /master/discount-coupons/edit/:id
     DISCOUNT_COUPON_VIEW: (id: string = ROUTE.seg.id) =>

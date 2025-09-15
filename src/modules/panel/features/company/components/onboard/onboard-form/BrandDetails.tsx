@@ -53,7 +53,10 @@ const BrandDetails = ({ mode }: BrandDetailsProps) => {
   const formatted = [
     { value: "colour-cosmetics", label: "Colour Cosmetics" },
     { value: "personal-care-products", label: "Personal Care Products" },
-    { value: "nutraceuticals-and-wellness", label: "Nutraceuticals and Wellness" },
+    {
+      value: "nutraceuticals-and-wellness",
+      label: "Nutraceuticals and Wellness",
+    },
     { value: "devices", label: "Devices" },
   ];
 

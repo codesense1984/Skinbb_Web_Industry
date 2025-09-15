@@ -1,5 +1,5 @@
-import React, { useRef, useState, useCallback } from 'react';
-import { cn } from '@/core/utils';
+import React, { useRef, useState, useCallback } from "react";
+import { cn } from "@/core/utils";
 
 interface RichTextEditorProps {
   value?: string;
@@ -11,9 +11,9 @@ interface RichTextEditorProps {
 }
 
 export const RichTextEditor: React.FC<RichTextEditorProps> = ({
-  value = '',
+  value = "",
   onChange,
-  placeholder = 'Enter text...',
+  placeholder = "Enter text...",
   className,
   disabled = false,
   readOnly = false,
@@ -32,25 +32,28 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     }
   }, [onChange]);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    // Handle keyboard shortcuts
-    if (e.ctrlKey || e.metaKey) {
-      switch (e.key) {
-        case 'b':
-          e.preventDefault();
-          executeCommand('bold');
-          break;
-        case 'i':
-          e.preventDefault();
-          executeCommand('italic');
-          break;
-        case 'u':
-          e.preventDefault();
-          executeCommand('underline');
-          break;
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      // Handle keyboard shortcuts
+      if (e.ctrlKey || e.metaKey) {
+        switch (e.key) {
+          case "b":
+            e.preventDefault();
+            executeCommand("bold");
+            break;
+          case "i":
+            e.preventDefault();
+            executeCommand("italic");
+            break;
+          case "u":
+            e.preventDefault();
+            executeCommand("underline");
+            break;
+        }
       }
-    }
-  }, [executeCommand]);
+    },
+    [executeCommand],
+  );
 
   const ToolbarButton: React.FC<{
     onClick: () => void;
@@ -64,9 +67,9 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       title={title}
       disabled={disabled || readOnly}
       className={cn(
-        "flex items-center justify-center w-8 h-8 rounded hover:bg-gray-100 transition-colors",
+        "flex h-8 w-8 items-center justify-center rounded transition-colors hover:bg-gray-100",
         isActive && "bg-gray-200",
-        (disabled || readOnly) && "opacity-50 cursor-not-allowed"
+        (disabled || readOnly) && "cursor-not-allowed opacity-50",
       )}
     >
       {children}
@@ -74,68 +77,73 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   );
 
   return (
-    <div className={cn("border border-gray-300 rounded-lg overflow-hidden", className)}>
+    <div
+      className={cn(
+        "overflow-hidden rounded-lg border border-gray-300",
+        className,
+      )}
+    >
       {/* Toolbar */}
-      <div className="flex items-center gap-1 p-2 bg-gray-50 border-b border-gray-200">
+      <div className="flex items-center gap-1 border-b border-gray-200 bg-gray-50 p-2">
         <ToolbarButton
-          onClick={() => executeCommand('bold')}
+          onClick={() => executeCommand("bold")}
           title="Bold (Ctrl+B)"
         >
-          <span className="font-bold text-sm">B</span>
+          <span className="text-sm font-bold">B</span>
         </ToolbarButton>
-        
+
         <ToolbarButton
-          onClick={() => executeCommand('italic')}
+          onClick={() => executeCommand("italic")}
           title="Italic (Ctrl+I)"
         >
-          <span className="italic text-sm">I</span>
+          <span className="text-sm italic">I</span>
         </ToolbarButton>
-        
+
         <ToolbarButton
-          onClick={() => executeCommand('strikeThrough')}
+          onClick={() => executeCommand("strikeThrough")}
           title="Strikethrough"
         >
           <span className="text-sm line-through">S</span>
         </ToolbarButton>
-        
-        <div className="w-px h-6 bg-gray-300 mx-1" />
-        
+
+        <div className="mx-1 h-6 w-px bg-gray-300" />
+
         <ToolbarButton
-          onClick={() => executeCommand('insertHTML', '<code></code>')}
+          onClick={() => executeCommand("insertHTML", "<code></code>")}
           title="Inline Code"
         >
-          <span className="text-sm font-mono">&lt;/&gt;</span>
+          <span className="font-mono text-sm">&lt;/&gt;</span>
         </ToolbarButton>
-        
+
         <ToolbarButton
-          onClick={() => executeCommand('formatBlock', 'blockquote')}
+          onClick={() => executeCommand("formatBlock", "blockquote")}
           title="Quote"
         >
           <span className="text-sm">99</span>
         </ToolbarButton>
-        
+
         <ToolbarButton
-          onClick={() => executeCommand('formatBlock', 'h2')}
+          onClick={() => executeCommand("formatBlock", "h2")}
           title="Heading"
         >
           <span className="text-sm font-bold">H</span>
         </ToolbarButton>
-        
-        <div className="w-px h-6 bg-gray-300 mx-1" />
-        
+
+        <div className="mx-1 h-6 w-px bg-gray-300" />
+
         <ToolbarButton
-          onClick={() => executeCommand('insertUnorderedList')}
+          onClick={() => executeCommand("insertUnorderedList")}
           title="Bullet List"
         >
           <div className="flex flex-col gap-0.5">
-            <div className="w-3 h-0.5 bg-current"></div>
-            <div className="w-3 h-0.5 bg-current"></div>
-            <div className="w-3 h-0.5 bg-current"></div>
+            <div className="h-0.5 w-3 bg-current"></div>
+            <div className="h-0.5 w-3 bg-current"></div>
+            <div className="h-0.5 w-3 bg-current"></div>
           </div>
         </ToolbarButton>
-        
+
         <ToolbarButton
-          onClick={() => executeCommand('insertOrderedList')}
+          onClick={() => executeCommand("insertOrderedList")}
           title="Numbered List"
         >
           <div className="flex flex-col gap-0.5">
@@ -143,19 +151,21 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             <div className="text-xs">2.</div>
           </div>
         </ToolbarButton>
-        
+
         <ToolbarButton
-          onClick={() => executeCommand('insertHTML', '<pre><code></code></pre>')}
+          onClick={() =>
+            executeCommand("insertHTML", "<pre><code></code></pre>")
+          }
           title="Code Block"
         >
-          <span className="text-sm">{'{}'}</span>
+          <span className="text-sm">{"{}"}</span>
         </ToolbarButton>
-        
+
         <ToolbarButton
-          onClick={() => executeCommand('insertHorizontalRule')}
+          onClick={() => executeCommand("insertHorizontalRule")}
           title="Horizontal Rule"
         >
-          <div className="w-4 h-0.5 bg-current"></div>
+          <div className="h-0.5 w-4 bg-current"></div>
         </ToolbarButton>
       </div>
 
@@ -169,11 +179,11 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         onBlur={() => setIsFocused(false)}
         className={cn(
           "min-h-[120px] p-3 focus:outline-none",
-          isFocused && "ring-2 ring-blue-500 ring-opacity-50",
-          (disabled || readOnly) && "bg-gray-50 cursor-not-allowed"
+          isFocused && "ring-opacity-50 ring-2 ring-blue-500",
+          (disabled || readOnly) && "cursor-not-allowed bg-gray-50",
         )}
         style={{
-          whiteSpace: 'pre-wrap',
+          whiteSpace: "pre-wrap",
         }}
         dangerouslySetInnerHTML={{ __html: value }}
         data-placeholder={placeholder}
@@ -181,7 +191,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
       {/* Placeholder */}
       {!value && (
-        <div className="absolute top-12 left-3 text-gray-400 pointer-events-none">
+        <div className="pointer-events-none absolute top-12 left-3 text-gray-400">
           {placeholder}
         </div>
       )}

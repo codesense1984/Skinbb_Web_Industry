@@ -17,7 +17,10 @@ import { MODE } from "@/core/types/base.type";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { useImagePreview } from "@/core/hooks/useImagePreview";
-import { FormFieldsRenderer, type FormFieldConfig } from "@/core/components/ui/form-input";
+import {
+  FormFieldsRenderer,
+  type FormFieldConfig,
+} from "@/core/components/ui/form-input";
 
 interface CategoryFormProps {
   mode?: MODE;
@@ -25,24 +28,28 @@ interface CategoryFormProps {
   onSuccess?: () => void;
 }
 
-export default function CategoryForm({ mode: propMode, categoryId: propCategoryId, onSuccess }: CategoryFormProps) {
+export default function CategoryForm({
+  mode: propMode,
+  categoryId: propCategoryId,
+  onSuccess,
+}: CategoryFormProps) {
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
   const pathname = location.pathname;
-  
+
   // Determine mode based on URL path (like brand form)
   let mode = MODE.ADD;
   if (id || propCategoryId) {
-    if (pathname.endsWith('/view')) {
+    if (pathname.endsWith("/view")) {
       mode = MODE.VIEW;
-    } else if (pathname.endsWith('/edit')) {
+    } else if (pathname.endsWith("/edit")) {
       mode = MODE.EDIT;
     } else {
       mode = MODE.EDIT; // fallback
     }
   }
-  
+
   // Use prop mode if provided, otherwise use detected mode
   const finalMode = propMode || mode;
   const finalCategoryId = propCategoryId || id;
@@ -61,7 +68,7 @@ export default function CategoryForm({ mode: propMode, categoryId: propCategoryI
   });
 
   const { handleSubmit, watch, setValue, control } = form;
-  
+
   // Image preview setup
   const profileData = watch("image_files")?.[0];
   const existingImageUrl = watch("image");
@@ -83,7 +90,9 @@ export default function CategoryForm({ mode: propMode, categoryId: propCategoryI
   const parentCategories = useMemo(() => {
     try {
       if (!(categoriesData as any)?.data?.productCategories) return [];
-      return (categoriesData as any).data.productCategories.filter((cat: any) => cat.isActive);
+      return (categoriesData as any).data.productCategories.filter(
+        (cat: any) => cat.isActive,
+      );
     } catch (error) {
       console.error("Error processing parent categories:", error);
       return [];
@@ -94,10 +103,13 @@ export default function CategoryForm({ mode: propMode, categoryId: propCategoryI
   const { data: categoryData, isLoading } = useQuery({
     queryKey: ["product-category", finalCategoryId],
     queryFn: () => apiGetProductCategories({ page: 1, limit: 1000 }),
-    enabled: !!finalCategoryId && (finalMode === MODE.EDIT || finalMode === MODE.VIEW),
+    enabled:
+      !!finalCategoryId && (finalMode === MODE.EDIT || finalMode === MODE.VIEW),
     select: (data: any) => {
       if (!data?.data?.productCategories) return null;
-      return data.data.productCategories.find((cat: any) => cat._id === finalCategoryId);
+      return data.data.productCategories.find(
+        (cat: any) => cat._id === finalCategoryId,
+      );
     },
   });
 
@@ -105,8 +117,9 @@ export default function CategoryForm({ mode: propMode, categoryId: propCategoryI
   useEffect(() => {
     if (categoryData) {
       console.log("Populating form with category data:", categoryData);
-      const imageUrl = categoryData.image || categoryData.imageUrl || categoryData.logo || "";
-      
+      const imageUrl =
+        categoryData.image || categoryData.imageUrl || categoryData.logo || "";
+
       form.reset({
         name: categoryData.name || "",
         slug: categoryData.slug || "",
@@ -116,7 +129,7 @@ export default function CategoryForm({ mode: propMode, categoryId: propCategoryI
         image: imageUrl,
         image_files: null,
       });
-      
+
       if (imageUrl) {
         setValue("image", imageUrl);
       }
@@ -140,7 +153,9 @@ export default function CategoryForm({ mode: propMode, categoryId: propCategoryI
     },
     onError: (error: any) => {
       console.error("Error creating category:", error);
-      toast.error(error?.response?.data?.message || "Failed to create category");
+      toast.error(
+        error?.response?.data?.message || "Failed to create category",
+      );
     },
   });
 
@@ -161,7 +176,9 @@ export default function CategoryForm({ mode: propMode, categoryId: propCategoryI
     },
     onError: (error: any) => {
       console.error("Error updating category:", error);
-      toast.error(error?.response?.data?.message || "Failed to update category");
+      toast.error(
+        error?.response?.data?.message || "Failed to update category",
+      );
     },
   });
 
@@ -169,22 +186,23 @@ export default function CategoryForm({ mode: propMode, categoryId: propCategoryI
     console.log("=== FORM SUBMISSION DEBUG ===");
     console.log("Form data received:", data);
     console.log("Mode:", mode);
-    
+
     if (!data.name || data.name.trim() === "") {
       toast.error("Category name is required");
       return;
     }
-    
+
     const jsonData = {
       name: data.name,
       slug: data.slug || "",
       description: data.description || "",
-      parentCategory: data.parentCategory === "none" ? "" : (data.parentCategory || ""),
+      parentCategory:
+        data.parentCategory === "none" ? "" : data.parentCategory || "",
       isActive: data.isActive,
     };
 
     console.log("Sending JSON data:", jsonData);
-    
+
     if (finalMode === MODE.ADD) {
       createCategoryMutation.mutate(jsonData);
     } else if (finalMode === MODE.EDIT) {
@@ -261,10 +279,10 @@ export default function CategoryForm({ mode: propMode, categoryId: propCategoryI
         }}
       >
         <div className="w-full">
-          <div className="bg-white rounded-xl border shadow-sm p-8">
+          <div className="rounded-xl border bg-white p-8 shadow-sm">
             <div className="flex items-center justify-center py-12">
               <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
                 <p className="text-gray-600">Loading category data...</p>
               </div>
             </div>
@@ -274,13 +292,19 @@ export default function CategoryForm({ mode: propMode, categoryId: propCategoryI
     );
   }
 
-  const pageTitle = finalMode === MODE.VIEW ? "View Product Category" : 
-                   finalMode === MODE.EDIT ? "Edit Product Category" : 
-                   "Create Product Category";
+  const pageTitle =
+    finalMode === MODE.VIEW
+      ? "View Product Category"
+      : finalMode === MODE.EDIT
+        ? "Edit Product Category"
+        : "Create Product Category";
 
-  const pageDescription = finalMode === MODE.VIEW ? "Category details" :
-                         finalMode === MODE.EDIT ? "Update category information" :
-                         "Add a new product category";
+  const pageDescription =
+    finalMode === MODE.VIEW
+      ? "Category details"
+      : finalMode === MODE.EDIT
+        ? "Update category information"
+        : "Add a new product category";
 
   return (
     <Form {...form}>
@@ -301,21 +325,19 @@ export default function CategoryForm({ mode: propMode, categoryId: propCategoryI
       >
         <div className="w-full">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-            <div className="bg-white rounded-xl border shadow-sm p-8 space-y-8">
+            <div className="space-y-8 rounded-xl border bg-white p-8 shadow-sm">
               {/* Category Image Section */}
               <div className="space-y-4">
                 <h2 className="text-xl font-semibold text-gray-900">
                   Category Image
                 </h2>
                 <div className="flex items-center justify-start gap-6">
-                  <div className="flex-shrink-0">
-                    {element}
-                  </div>
+                  <div className="flex-shrink-0">{element}</div>
                   <div className="flex-1">
                     <FormFieldsRenderer<CategoryFormData>
                       control={control}
                       fieldConfigs={
-                        formFields.imageUpload.map(field => ({
+                        formFields.imageUpload.map((field) => ({
                           ...field,
                           disabled: finalMode === MODE.VIEW,
                         })) as FormFieldConfig<CategoryFormData>[]
@@ -330,12 +352,12 @@ export default function CategoryForm({ mode: propMode, categoryId: propCategoryI
                 <h2 className="text-xl font-semibold text-gray-900">
                   Category Information
                 </h2>
-                
+
                 <div className="space-y-6">
                   <FormFieldsRenderer<CategoryFormData>
                     control={control}
                     fieldConfigs={
-                      formFields.basicInfo.map(field => ({
+                      formFields.basicInfo.map((field) => ({
                         ...field,
                         disabled: finalMode === MODE.VIEW,
                       })) as FormFieldConfig<CategoryFormData>[]
@@ -360,7 +382,9 @@ export default function CategoryForm({ mode: propMode, categoryId: propCategoryI
                   ? "Creating..."
                   : updateCategoryMutation.isPending
                     ? "Updating..."
-                    : finalMode === MODE.ADD ? "Create Category" : "Update Category"}
+                    : finalMode === MODE.ADD
+                      ? "Create Category"
+                      : "Update Category"}
               </Button>
               <Button
                 type="button"
@@ -377,4 +401,3 @@ export default function CategoryForm({ mode: propMode, categoryId: propCategoryI
     </Form>
   );
 }
-

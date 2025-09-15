@@ -39,10 +39,10 @@ const OnboardLayout = () => {
                 transition: { ...fadeInUp.transition, delay: 0.03 },
               }}
             >
-              Welcome to the <br /><span className="text-primary">
-              Skincare Metaverse, </span> <br /> Where Knowledge, 
-              Trust & Commerce
-              Converge
+              Welcome to the <br />
+              <span className="text-primary">
+                Skincare Metaverse,{" "}
+              </span> <br /> Where Knowledge, Trust & Commerce Converge
             </motion.h1>
 
             <motion.p
@@ -52,9 +52,10 @@ const OnboardLayout = () => {
               }}
             >
               <b>SkinBB</b> is more than a platform — it&apos;s the operating
-              system for skincare industry stakeholders. From consumer intelligence to
-              dermatologist connected and seamless commerce, we help you cut
-              through noise, build trust, and drive measurable growth.
+              system for skincare industry stakeholders. From consumer
+              intelligence to dermatologist connected and seamless commerce, we
+              help you cut through noise, build trust, and drive measurable
+              growth.
             </motion.p>
 
             <motion.p
@@ -63,8 +64,8 @@ const OnboardLayout = () => {
                 transition: { ...fadeInUp.transition, delay: 0.08 },
               }}
             >
-              Join <b>SkinBB</b> today and redefine the
-              future of skincare with us. 🚀
+              Join <b>SkinBB</b> today and redefine the future of skincare with
+              us. 🚀
             </motion.p>
 
             {/* <img src={onBoarding} alt="" className="w-80 h-full object-cover mx-auto" /> */}

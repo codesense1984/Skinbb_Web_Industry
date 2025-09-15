@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router';
+import { useParams, useNavigate } from "react-router";
 import { PageContent } from "@/core/components/ui/structure";
 import { Button } from "@/core/components/ui/button";
 import { Badge, StatusBadge } from "@/core/components/ui/badge";
@@ -16,7 +16,8 @@ const CompanyBrandView = () => {
       <PageContent
         header={{
           title: "Brand Details",
-          description: "Company ID and Brand ID are required to view brand details.",
+          description:
+            "Company ID and Brand ID are required to view brand details.",
         }}
       >
         <div className="py-8 text-center">
@@ -38,13 +39,13 @@ const CompanyBrandView = () => {
         }}
       >
         <div className="py-8 text-center">
-          <p className="text-gray-500 mb-4">
+          <p className="mb-4 text-gray-500">
             Brand details will be implemented with the proper API endpoints.
           </p>
-          <p className="text-sm text-gray-400 mb-4">
+          <p className="mb-4 text-sm text-gray-400">
             Company ID: {companyId} | Brand ID: {brandId}
           </p>
-          <Button 
+          <Button
             onClick={() => navigate(PANEL_ROUTES.COMPANY.LIST)}
             variant="outlined"
           >
@@ -70,7 +71,9 @@ const CompanyBrandView = () => {
               Back to Brands
             </Button>
             <Button
-              onClick={() => navigate(PANEL_ROUTES.COMPANY.BRAND_EDIT(companyId, brandId))}
+              onClick={() =>
+                navigate(PANEL_ROUTES.COMPANY.BRAND_EDIT(companyId, brandId))
+              }
               variant="contained"
             >
               <PencilIcon className="mr-2 h-4 w-4" />
@@ -82,16 +85,16 @@ const CompanyBrandView = () => {
     >
       <div className="space-y-6">
         {/* Brand Header */}
-        <div className="flex items-start gap-4 p-6 bg-white rounded-lg border">
+        <div className="flex items-start gap-4 rounded-lg border bg-white p-6">
           {brand.logoImage && (
             <Avatar
               src={brand.logoImage}
               feedback={brand.name.charAt(0)}
-              className="w-16 h-16"
+              className="h-16 w-16"
             />
           )}
           <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
+            <div className="mb-2 flex items-center gap-3">
               <h2 className="text-2xl font-bold">{brand.name}</h2>
               <StatusBadge
                 status={brand.brandStatus}
@@ -101,7 +104,7 @@ const CompanyBrandView = () => {
                 {brand.brandStatus}
               </StatusBadge>
             </div>
-            <p className="text-gray-600 mb-4">{brand.aboutTheBrand}</p>
+            <p className="mb-4 text-gray-600">{brand.aboutTheBrand}</p>
             <div className="flex gap-4 text-sm text-gray-500">
               <span>Created: {formatDate(brand.createdAt)}</span>
               <span>Updated: {formatDate(brand.updatedAt)}</span>
@@ -110,13 +113,15 @@ const CompanyBrandView = () => {
         </div>
 
         {/* Brand Details */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {/* Basic Information */}
-          <div className="p-6 bg-white rounded-lg border">
-            <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
+          <div className="rounded-lg border bg-white p-6">
+            <h3 className="mb-4 text-lg font-semibold">Basic Information</h3>
             <div className="space-y-3">
               <div>
-                <label className="text-sm font-medium text-gray-500">Website</label>
+                <label className="text-sm font-medium text-gray-500">
+                  Website
+                </label>
                 <p className="text-sm">
                   {brand.websiteUrl ? (
                     <a
@@ -133,11 +138,17 @@ const CompanyBrandView = () => {
                 </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-500">Status</label>
-                <p className="text-sm">{brand.isActive ? 'Active' : 'Inactive'}</p>
+                <label className="text-sm font-medium text-gray-500">
+                  Status
+                </label>
+                <p className="text-sm">
+                  {brand.isActive ? "Active" : "Inactive"}
+                </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-500">Location</label>
+                <label className="text-sm font-medium text-gray-500">
+                  Location
+                </label>
                 <div className="flex gap-2">
                   <Badge variant="outline">{brand.locationCity}</Badge>
                   <span className="text-sm text-gray-500">
@@ -149,22 +160,28 @@ const CompanyBrandView = () => {
           </div>
 
           {/* Status Information */}
-          <div className="p-6 bg-white rounded-lg border">
-            <h3 className="text-lg font-semibold mb-4">Status Information</h3>
+          <div className="rounded-lg border bg-white p-6">
+            <h3 className="mb-4 text-lg font-semibold">Status Information</h3>
             <div className="space-y-3">
               <div>
-                <label className="text-sm font-medium text-gray-500">Brand Status</label>
+                <label className="text-sm font-medium text-gray-500">
+                  Brand Status
+                </label>
                 <p className="text-sm">{brand.brandStatus}</p>
               </div>
               {brand.statusChangeReason && (
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Status Reason</label>
+                  <label className="text-sm font-medium text-gray-500">
+                    Status Reason
+                  </label>
                   <p className="text-sm">{brand.statusChangeReason}</p>
                 </div>
               )}
               {brand.statusChangedAt && (
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Status Changed</label>
+                  <label className="text-sm font-medium text-gray-500">
+                    Status Changed
+                  </label>
                   <p className="text-sm">{formatDate(brand.statusChangedAt)}</p>
                 </div>
               )}
@@ -173,12 +190,14 @@ const CompanyBrandView = () => {
         </div>
 
         {/* Documents */}
-        <div className="p-6 bg-white rounded-lg border">
-          <h3 className="text-lg font-semibold mb-4">Documents</h3>
+        <div className="rounded-lg border bg-white p-6">
+          <h3 className="mb-4 text-lg font-semibold">Documents</h3>
           <div className="space-y-3">
             {brand.authorizationLetter && (
               <div>
-                <label className="text-sm font-medium text-gray-500">Authorization Letter</label>
+                <label className="text-sm font-medium text-gray-500">
+                  Authorization Letter
+                </label>
                 <p className="text-sm">
                   <a
                     href={brand.authorizationLetter}
@@ -193,7 +212,9 @@ const CompanyBrandView = () => {
             )}
             {brand.coverImage && (
               <div>
-                <label className="text-sm font-medium text-gray-500">Cover Image</label>
+                <label className="text-sm font-medium text-gray-500">
+                  Cover Image
+                </label>
                 <p className="text-sm">
                   <a
                     href={brand.coverImage}

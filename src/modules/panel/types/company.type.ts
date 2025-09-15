@@ -40,15 +40,15 @@ export interface ShortCompany {
   email: string;
 }
 
-export interface CompanyOnboardingBrand {
-  logo?: string;
-  logo_files?: File[];
-  brandName: string;
-  category: string;
-  website?: string;
-  description?: string;
-  letterOfAuthorization?: File[];
-}
+// export interface CompanyOnboardingBrand {
+//   logo?: string;
+//   logo_files?: File[];
+//   brandName: string;
+//   category: string;
+//   website?: string;
+//   description?: string;
+//   letterOfAuthorization?: File[];
+// }
 
 export interface CompanyList
   extends Pick<Company, "id" | "logo" | "companyName" | "category" | "status"> {
@@ -314,7 +314,7 @@ export interface CompanyListItem {
       statusChangedAt?: string | null;
     }>;
   }>;
-  companyStatus: string;
+  // companyStatus: string;
   statusChangeReason: string;
   statusChangedAt: string | null;
   isDeleted: boolean;
@@ -369,7 +369,7 @@ export interface CompanyOnboardingBrand {
   authorizationLetter: string;
   createdBy: string;
   isDeleted: boolean;
-  deletedAt: any;
+  deletedAt: string;
   deletedBy: string;
   createdAt: string;
   updatedAt: string;
@@ -482,6 +482,7 @@ export interface CompanyLocationBrandCreateData {
   authorizationLetter?: File;
 }
 
-export interface CompanyLocationBrandUpdateData extends CompanyLocationBrandCreateData {
+export interface CompanyLocationBrandUpdateData
+  extends CompanyLocationBrandCreateData {
   isActive?: boolean;
 }

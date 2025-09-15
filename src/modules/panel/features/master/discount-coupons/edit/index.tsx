@@ -8,7 +8,11 @@ import { FullLoader } from "@/core/components/ui/loader";
 export default function EditDiscountCoupon() {
   const { id } = useParams<{ id: string }>();
 
-  const { data: coupon, isLoading, error } = useQuery({
+  const {
+    data: coupon,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["coupon", id],
     queryFn: () => apiGetCouponById(id!),
     enabled: !!id,
@@ -22,7 +26,7 @@ export default function EditDiscountCoupon() {
           description: "Update coupon details",
         }}
       >
-        <div className="flex justify-center items-center h-64">
+        <div className="flex h-64 items-center justify-center">
           <FullLoader />
         </div>
       </PageContent>
@@ -37,7 +41,7 @@ export default function EditDiscountCoupon() {
           description: "Update coupon details",
         }}
       >
-        <div className="text-center py-8">
+        <div className="py-8 text-center">
           <p className="text-red-500">Failed to load coupon details</p>
         </div>
       </PageContent>

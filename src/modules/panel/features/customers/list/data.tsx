@@ -76,7 +76,7 @@ export const columns: ColumnDef<CustomerList>[] = [
       return email ? (
         <div className="w-max">{email}</div>
       ) : (
-        <div className="w-max text-muted-foreground">-</div>
+        <div className="text-muted-foreground w-max">-</div>
       );
     },
   },
@@ -88,7 +88,7 @@ export const columns: ColumnDef<CustomerList>[] = [
       return city ? (
         <div className="w-max">{city}</div>
       ) : (
-        <div className="w-max text-muted-foreground">-</div>
+        <div className="text-muted-foreground w-max">-</div>
       );
     },
   },
@@ -97,9 +97,7 @@ export const columns: ColumnDef<CustomerList>[] = [
     header: "Orders",
     cell: ({ getValue }) => {
       const orders = getValue() as number;
-      return (
-        <div className="w-max font-medium">{orders}</div>
-      );
+      return <div className="w-max font-medium">{orders}</div>;
     },
   },
   {

@@ -3,14 +3,22 @@ import { useParams, useNavigate } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/core/components/ui/button";
 import { PageContent } from "@/core/components/ui/structure";
-import { Avatar, AvatarFallback, AvatarImage } from "@/core/components/ui/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/core/components/ui/avatar";
 import { Form } from "@/core/components/ui/form";
 import { FormFieldsRenderer } from "@/core/components/ui/form-input";
 import { apiGetCustomerById } from "@/modules/panel/services/http/customer.service";
 import { apiGetRoles } from "@/modules/panel/services/http/role.service";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { User } from "lucide-react";
-import { customerFormSchema, customerFormFieldConfigs, type CustomerFormData } from "../customer-form/formSchema";
+import {
+  customerFormSchema,
+  customerFormFieldConfigs,
+  type CustomerFormData,
+} from "../customer-form/formSchema";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -18,7 +26,11 @@ const CustomerView = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const { data: customerData, isLoading, error } = useQuery({
+  const {
+    data: customerData,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["customer", id],
     queryFn: () => apiGetCustomerById(id!),
     enabled: !!id,
@@ -32,13 +44,14 @@ const CustomerView = () => {
   });
 
   // Format roles for select options
-  const roleOptions = rolesResponse?.data?.roles?.map(role => ({
-    label: role.label,
-    value: role._id,
-  })) || [];
+  const roleOptions =
+    rolesResponse?.data?.roles?.map((role) => ({
+      label: role.label,
+      value: role._id,
+    })) || [];
 
   // Create dynamic field configs with role options
-  const dynamicFieldConfigs = customerFormFieldConfigs.map(field => {
+  const dynamicFieldConfigs = customerFormFieldConfigs.map((field) => {
     if (field.name === "role") {
       return {
         ...field,
@@ -91,9 +104,9 @@ const CustomerView = () => {
           description: "Please wait while we load customer data.",
         }}
       >
-        <div className="flex items-center justify-center h-64">
+        <div className="flex h-64 items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <div className="border-primary mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2"></div>
             <p className="text-muted-foreground">Loading customer data...</p>
           </div>
         </div>
@@ -109,7 +122,7 @@ const CustomerView = () => {
           description: "The customer you're looking for doesn't exist.",
         }}
       >
-        <div className="flex items-center justify-center h-64">
+        <div className="flex h-64 items-center justify-center">
           <div className="text-center">
             <p className="text-muted-foreground mb-4">Customer not found</p>
             <Button onClick={() => navigate(PANEL_ROUTES.CUSTOMER.LIST)}>
@@ -149,9 +162,9 @@ const CustomerView = () => {
       <div className="w-full">
         <Form {...form}>
           <form className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
               {/* Left Card - Basic Information */}
-              <div className="bg-white rounded-xl border shadow-sm p-8 space-y-6">
+              <div className="space-y-6 rounded-xl border bg-white p-8 shadow-sm">
                 <div className="space-y-4">
                   <h2 className="text-xl font-semibold text-gray-900">
                     Basic Information
@@ -160,8 +173,8 @@ const CustomerView = () => {
                     <FormFieldsRenderer<CustomerFormData>
                       control={form.control}
                       fieldConfigs={dynamicFieldConfigs
-                        .filter(field => field.name !== "profilePic")
-                        .map(field => ({
+                        .filter((field) => field.name !== "profilePic")
+                        .map((field) => ({
                           ...field,
                           disabled: true, // All fields disabled in view mode
                         }))}
@@ -172,7 +185,7 @@ const CustomerView = () => {
               </div>
 
               {/* Right Card - Profile Picture */}
-              <div className="bg-white rounded-xl border shadow-sm p-8 space-y-6">
+              <div className="space-y-6 rounded-xl border bg-white p-8 shadow-sm">
                 <div className="space-y-4">
                   <h2 className="text-xl font-semibold text-gray-900">
                     Profile Picture
@@ -182,7 +195,7 @@ const CustomerView = () => {
                       <Avatar className="size-32 border-2 border-gray-200">
                         <AvatarImage
                           src={customer.profilePic?.url}
-                          alt={`${customer.name || 'Customer'} profile`}
+                          alt={`${customer.name || "Customer"} profile`}
                           className="object-cover"
                         />
                         <AvatarFallback className="bg-gray-100">
@@ -191,7 +204,9 @@ const CustomerView = () => {
                       </Avatar>
                       <div className="text-center">
                         <p className="text-sm text-gray-500">
-                          {customer.profilePic?.url ? "Profile picture" : "No profile picture"}
+                          {customer.profilePic?.url
+                            ? "Profile picture"
+                            : "No profile picture"}
                         </p>
                       </div>
                     </div>

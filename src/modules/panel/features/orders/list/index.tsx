@@ -37,9 +37,7 @@ const OrderList = () => {
         header: "Order Number",
         accessorKey: "orderNumber",
         cell: ({ row }) => (
-          <div className="text-gray-900">
-            {row.original.orderNumber}
-          </div>
+          <div className="text-gray-900">{row.original.orderNumber}</div>
         ),
       },
       {
@@ -49,9 +47,7 @@ const OrderList = () => {
           const fullName = row.original.fullName;
           return (
             <div>
-              <div className="text-gray-900">
-                {fullName || "N/A"}
-              </div>
+              <div className="text-gray-900">{fullName || "N/A"}</div>
             </div>
           );
         },
@@ -63,9 +59,7 @@ const OrderList = () => {
           const totalAmount = row.original.totalAmount || 0;
           return (
             <div className="text-right">
-              <div className="text-gray-900">
-                {formatCurrency(totalAmount)}
-              </div>
+              <div className="text-gray-900">{formatCurrency(totalAmount)}</div>
             </div>
           );
         },
@@ -77,9 +71,7 @@ const OrderList = () => {
           const payment = row.original.paymentMethod || "N/A";
           return (
             <div className="text-center">
-              <div className="text-sm text-gray-900 uppercase">
-                {payment}
-              </div>
+              <div className="text-sm text-gray-900 uppercase">{payment}</div>
             </div>
           );
         },

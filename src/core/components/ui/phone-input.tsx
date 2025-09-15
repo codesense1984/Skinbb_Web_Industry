@@ -2,7 +2,14 @@ import React, { useState, useCallback } from "react";
 import { Input } from "./input";
 import { Button } from "./button";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "./command";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "./command";
 import { Check, ChevronDown, Phone } from "lucide-react";
 import { cn } from "@/core/utils/classnames";
 
@@ -48,7 +55,7 @@ export function PhoneInput({
   defaultCountry = "IN", // Default to India
 }: PhoneInputProps) {
   const [selectedCountry, setSelectedCountry] = useState(
-    countries.find(c => c.code === defaultCountry) || countries[1] // Default to India
+    countries.find((c) => c.code === defaultCountry) || countries[1], // Default to India
   );
   const [phoneNumber, setPhoneNumber] = useState("");
   const [open, setOpen] = useState(false);
@@ -57,7 +64,7 @@ export function PhoneInput({
   React.useEffect(() => {
     if (value) {
       // Try to extract country code and phone number from the value
-      const country = countries.find(c => value.startsWith(c.dialCode));
+      const country = countries.find((c) => value.startsWith(c.dialCode));
       if (country) {
         setSelectedCountry(country);
         setPhoneNumber(value.replace(country.dialCode, "").trim());
@@ -67,19 +74,25 @@ export function PhoneInput({
     }
   }, [value]);
 
-  const handleCountrySelect = useCallback((country: typeof countries[0]) => {
-    setSelectedCountry(country);
-    setOpen(false);
-    const fullNumber = country.dialCode + phoneNumber;
-    onChange?.(fullNumber, country.dialCode);
-  }, [phoneNumber, onChange]);
+  const handleCountrySelect = useCallback(
+    (country: (typeof countries)[0]) => {
+      setSelectedCountry(country);
+      setOpen(false);
+      const fullNumber = country.dialCode + phoneNumber;
+      onChange?.(fullNumber, country.dialCode);
+    },
+    [phoneNumber, onChange],
+  );
 
-  const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const newPhoneNumber = e.target.value;
-    setPhoneNumber(newPhoneNumber);
-    const fullNumber = selectedCountry.dialCode + newPhoneNumber;
-    onChange?.(fullNumber, selectedCountry.dialCode);
-  }, [selectedCountry.dialCode, onChange]);
+  const handlePhoneChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newPhoneNumber = e.target.value;
+      setPhoneNumber(newPhoneNumber);
+      const fullNumber = selectedCountry.dialCode + newPhoneNumber;
+      onChange?.(fullNumber, selectedCountry.dialCode);
+    },
+    [selectedCountry.dialCode, onChange],
+  );
 
   return (
     <div className={cn("flex", className)}>
@@ -92,13 +105,15 @@ export function PhoneInput({
             aria-expanded={open}
             className={cn(
               "w-[140px] justify-between rounded-r-none border-r-0",
-              disabled && "cursor-not-allowed opacity-50"
+              disabled && "cursor-not-allowed opacity-50",
             )}
             disabled={disabled}
           >
             <div className="flex items-center gap-2">
               <span className="text-lg">{selectedCountry.flag}</span>
-              <span className="text-sm font-medium">{selectedCountry.dialCode}</span>
+              <span className="text-sm font-medium">
+                {selectedCountry.dialCode}
+              </span>
             </div>
             <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
@@ -115,16 +130,20 @@ export function PhoneInput({
                     value={`${country.name} ${country.dialCode}`}
                     onSelect={() => handleCountrySelect(country)}
                   >
-                    <div className="flex items-center gap-3 w-full">
+                    <div className="flex w-full items-center gap-3">
                       <span className="text-lg">{country.flag}</span>
                       <div className="flex-1">
                         <div className="font-medium">{country.name}</div>
-                        <div className="text-sm text-muted-foreground">{country.dialCode}</div>
+                        <div className="text-muted-foreground text-sm">
+                          {country.dialCode}
+                        </div>
                       </div>
                       <Check
                         className={cn(
                           "ml-auto h-4 w-4",
-                          selectedCountry.code === country.code ? "opacity-100" : "opacity-0"
+                          selectedCountry.code === country.code
+                            ? "opacity-100"
+                            : "opacity-0",
                         )}
                       />
                     </div>
@@ -156,7 +175,9 @@ export function usePhoneInput(initialValue?: string) {
 
   React.useEffect(() => {
     if (initialValue) {
-      const country = countries.find(c => initialValue.startsWith(c.dialCode));
+      const country = countries.find((c) =>
+        initialValue.startsWith(c.dialCode),
+      );
       if (country) {
         setCountryCode(country.dialCode);
         setPhoneNumber(initialValue.replace(country.dialCode, "").trim());
@@ -166,11 +187,14 @@ export function usePhoneInput(initialValue?: string) {
     }
   }, [initialValue]);
 
-  const handleChange = useCallback((fullNumber: string, newCountryCode: string) => {
-    setCountryCode(newCountryCode);
-    const number = fullNumber.replace(newCountryCode, "").trim();
-    setPhoneNumber(number);
-  }, []);
+  const handleChange = useCallback(
+    (fullNumber: string, newCountryCode: string) => {
+      setCountryCode(newCountryCode);
+      const number = fullNumber.replace(newCountryCode, "").trim();
+      setPhoneNumber(number);
+    },
+    [],
+  );
 
   return {
     countryCode,

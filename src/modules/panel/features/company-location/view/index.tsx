@@ -496,7 +496,9 @@ const CompanyLocationView = () => {
                       label="Total SKU"
                       value={
                         <span className="text-lg font-bold">
-                          {brand.totalSKU ? brand.totalSKU.toLocaleString() : "-"}
+                          {brand.totalSKU
+                            ? brand.totalSKU.toLocaleString()
+                            : "-"}
                         </span>
                       }
                       // iconBgColor="bg-blue-100"
@@ -520,7 +522,9 @@ const CompanyLocationView = () => {
                       label="Product Categories"
                       value={
                         <span className="text-lg font-bold">
-                          {brand.productCategory ? brand.productCategory.length : 0}
+                          {brand.productCategory
+                            ? brand.productCategory.length
+                            : 0}
                         </span>
                       }
                       // iconBgColor="bg-purple-100"
@@ -552,7 +556,10 @@ const CompanyLocationView = () => {
                       </CardHeader>
                       <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
                         {brand.sellingOn.map(
-                          (platform: SellingPlatform, platformIndex: number) => (
+                          (
+                            platform: SellingPlatform,
+                            platformIndex: number,
+                          ) => (
                             <div
                               key={platformIndex}
                               className="flex items-center gap-3"
@@ -639,7 +646,6 @@ const CompanyLocationView = () => {
                       />
                     </CardContent>
                   </Card>
-
                 </div>
               ))}
             </div>
