@@ -3,13 +3,25 @@ import { PageContent } from "@/core/components/ui/structure";
 import { Button } from "@/core/components/ui/button";
 import { Badge, StatusBadge } from "@/core/components/ui/badge";
 import { Avatar } from "@/core/components/ui/avatar";
-import { formatDate, formatCurrency } from "@/core/utils";
+import { formatDate } from "@/core/utils";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { ArrowLeftIcon, PencilIcon } from "@heroicons/react/24/solid";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { toast } from "sonner";
+import { normalizeAxiosError } from "@/core/services/http";
+import { apiGetBrandById, apiUpdateBrandStatus, type BrandStatusUpdateRequest } from "@/modules/panel/services/http/company.service";
+import { BrandApprovalDialog } from "../components/BrandApprovalDialog";
+import { useAuth } from "@/modules/auth/hooks/useAuth";
+import { STATUS_MAP } from "@/core/config/status";
+import type { AxiosError } from "axios";
 
 const CompanyBrandView = () => {
   const { companyId, brandId } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const [isApprovalDialogOpen, setIsApprovalDialogOpen] = useState(false);
 
   if (!companyId || !brandId) {
     return (
@@ -26,8 +38,92 @@ const CompanyBrandView = () => {
     );
   }
 
-  // Placeholder for brand data - will be implemented with proper API
-  const brand = null;
+  // Fetch brand data
+  const { data: brandData, isLoading, error } = useQuery({
+    queryKey: ["brand", brandId],
+    queryFn: () => apiGetBrandById<{ data: any }>(brandId!),
+    enabled: !!brandId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Update brand status mutation (for approval)
+  const updateStatusMutation = useMutation({
+    mutationFn: (data: BrandStatusUpdateRequest) => {
+      if (!user?._id) {
+        throw new Error("Admin ID not found");
+      }
+      return apiUpdateBrandStatus(user._id, brandId!, data);
+    },
+    onSuccess: (response) => {
+      toast.success(response.message || "Brand status updated successfully!");
+      // Invalidate brand queries
+      queryClient.invalidateQueries({
+        queryKey: ["brand", brandId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["brands"],
+      });
+      setIsApprovalDialogOpen(false);
+    },
+    onError: (error: AxiosError<{ message?: string }>) => {
+      toast.error(
+        normalizeAxiosError(error)?.message ||
+        "Failed to update brand status. Please try again.",
+      );
+    },
+  });
+
+  const handleApproval = async (data: BrandStatusUpdateRequest) => {
+    await updateStatusMutation.mutateAsync(data);
+  };
+
+  if (isLoading) {
+    return (
+      <PageContent
+        header={{
+          title: "Brand Details",
+          description: "Loading brand information...",
+        }}
+      >
+        <div className="py-8 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading brand data...</p>
+        </div>
+      </PageContent>
+    );
+  }
+
+  if (error) {
+    return (
+      <PageContent
+        header={{
+          title: "Brand Details",
+          description: "Error loading brand information.",
+        }}
+      >
+        <div className="py-8 text-center">
+          <p className="text-red-600 mb-4">Error loading brand data</p>
+          <p className="text-gray-600 text-sm mb-4">
+            Brand ID: {brandId}
+          </p>
+          <Button 
+            onClick={() => navigate(PANEL_ROUTES.COMPANY.LIST)}
+            variant="outlined"
+          >
+            Back to Companies
+          </Button>
+        </div>
+      </PageContent>
+    );
+  }
+
+  const brand = brandData?.data || brandData;
+
+  // Debug logging
+  console.log("Brand data:", brand);
+  console.log("Brand status:", brand?.status);
+  console.log("Brand brandStatus:", brand?.brandStatus);
+  console.log("STATUS_MAP.brand.active.value:", STATUS_MAP.brand?.active?.value);
 
   if (!brand) {
     return (
@@ -39,7 +135,7 @@ const CompanyBrandView = () => {
       >
         <div className="py-8 text-center">
           <p className="text-gray-500 mb-4">
-            Brand details will be implemented with the proper API endpoints.
+            Brand not found or has been deleted.
           </p>
           <p className="text-sm text-gray-400 mb-4">
             Company ID: {companyId} | Brand ID: {brandId}
@@ -70,6 +166,13 @@ const CompanyBrandView = () => {
               Back to Brands
             </Button>
             <Button
+              onClick={() => setIsApprovalDialogOpen(true)}
+              variant="outlined"
+              color="secondary"
+            >
+              Manage Approval
+            </Button>
+            <Button
               onClick={() => navigate(PANEL_ROUTES.COMPANY.BRAND_EDIT(companyId, brandId))}
               variant="contained"
             >
@@ -94,11 +197,11 @@ const CompanyBrandView = () => {
             <div className="flex items-center gap-3 mb-2">
               <h2 className="text-2xl font-bold">{brand.name}</h2>
               <StatusBadge
-                status={brand.brandStatus}
+                status={brand.status || brand.brandStatus}
                 module="brand"
                 variant="badge"
               >
-                {brand.brandStatus}
+                {brand.status || brand.brandStatus}
               </StatusBadge>
             </div>
             <p className="text-gray-600 mb-4">{brand.aboutTheBrand}</p>
@@ -209,6 +312,14 @@ const CompanyBrandView = () => {
           </div>
         </div>
       </div>
+      
+      <BrandApprovalDialog
+        isOpen={isApprovalDialogOpen}
+        onClose={() => setIsApprovalDialogOpen(false)}
+        onApprove={handleApproval}
+        brandName={brand?.name}
+        isLoading={updateStatusMutation.isPending}
+      />
     </PageContent>
   );
 };

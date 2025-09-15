@@ -134,6 +134,61 @@ export async function apiToggleBrandStatus<T>(id: string) {
   return api.patch<T>(ENDPOINTS.BRAND.TOGGLE_STATUS(id));
 }
 
+// Update brand status (approval/rejection)
+export interface BrandStatusUpdateRequest {
+  status: string;
+  reason?: string;
+}
+
+export interface BrandStatusUpdateResponse {
+  _id: string;
+  name: string;
+  slug: string;
+  totalSKU: number;
+  instagramUrl: string;
+  facebookUrl: string;
+  youtubeUrl: string;
+  productCategory: string[];
+  averageSellingPrice: number;
+  marketingBudget: number;
+  sellingOn: Array<{
+    platform: string;
+    url: string;
+  }>;
+  aboutTheBrand: string;
+  websiteUrl: string;
+  isActive: boolean;
+  logoImage: string;
+  coverImage: string;
+  authorizationLetter: string;
+  createdBy: string;
+  isDeleted: boolean;
+  deletedAt: string;
+  deletedBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function apiUpdateBrandStatus(
+  adminId: string,
+  brandId: string,
+  data: BrandStatusUpdateRequest,
+) {
+  return api.put<ApiResponse<BrandStatusUpdateResponse>>(
+    ENDPOINTS.BRAND.UPDATE_STATUS(adminId, brandId),
+    data,
+  );
+}
+
+export async function apiGetBrandStatus(
+  adminId: string,
+  brandId: string,
+) {
+  return api.get<ApiResponse<BrandStatusUpdateResponse>>(
+    ENDPOINTS.BRAND.GET_STATUS(adminId, brandId),
+  );
+}
+
 // Get company details for dropdown
 export async function apiGetCompanyDetails<T>() {
   return api.get<T>(ENDPOINTS.SELLER.GET_COMPANY_DETAILS_LIST);

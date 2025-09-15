@@ -1,58 +1,355 @@
-import { StatusBadge } from "@/core/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
+import React, { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/core/components/ui/card";
 import { PageContent } from "@/core/components/ui/structure";
-import { Button } from "@/core/components/ui/button";
 import { Badge } from "@/core/components/ui/badge";
-import { Separator } from "@/core/components/ui/separator";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/core/components/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/core/components/ui/accordion";
 import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
 import { apiGetCompanyDetailById } from "@/modules/panel/services/http/company.service";
+import { apiGetCompanyLocationById } from "@/modules/panel/services/http/company-location.service";
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "react-router";
-import { formatDate, formatCurrency } from "@/core/utils";
+import { useParams, Link, useNavigate } from "react-router";
+import { formatDate } from "@/core/utils";
 import { 
   BuildingOfficeIcon, 
   MapPinIcon, 
   PhoneIcon, 
-  GlobeAltIcon,
   CalendarIcon,
-  UserIcon,
   DocumentTextIcon,
-  CurrencyDollarIcon,
-  ShoppingBagIcon,
-  ChartBarIcon,
-  EnvelopeIcon,
   LinkIcon,
   StarIcon,
   CheckCircleIcon,
   XCircleIcon,
-  ClockIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  UserGroupIcon,
+  TagIcon,
 } from "@heroicons/react/24/outline";
+import { Button } from "@/core/components/ui/button";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { LocationService } from "@/core/services/location.service";
 
 // Reusable InfoItem component for displaying information with icons
 interface InfoItemProps {
   icon: React.ReactNode;
   label: string;
-  value: string | number | null | undefined;
+  value: string | React.ReactNode;
+  iconBgColor?: string;
+  iconTextColor?: string;
   className?: string;
+  children?: React.ReactNode;
 }
 
-const InfoItem: React.FC<InfoItemProps> = ({ icon, label, value, className = "" }) => (
-  <div className={`flex items-start gap-3 ${className}`}>
-    <div className="flex-shrink-0 text-gray-500 mt-0.5">{icon}</div>
+const InfoItem: React.FC<InfoItemProps> = ({
+  icon,
+  label,
+  value,
+  iconBgColor = "bg-primary/10",
+  iconTextColor = "text-muted-foreground",
+  className = "",
+  children,
+}) => {
+  return (
+    <div className={`flex items-center gap-3 ${className}`}>
+      <div className={`${iconBgColor} border-border rounded-lg border p-2`}>
+        <div className={`${iconTextColor} h-5 w-5`}>{icon}</div>
+      </div>
+      <div>
+        <p className="text-muted-foreground text-sm">{label}</p>
+        <p className="text-foreground font-medium">{value}</p>
+        {children}
+      </div>
+    </div>
+  );
+};
+
+// Location Accordion Item Component
+interface LocationAccordionItemProps {
+  address: {
+    addressId?: string;
+    _id?: string;
+    addressType: string;
+    addressLine1: string;
+    city: string;
+    country: string;
+    state: string;
+    postalCode: string;
+    landmark?: string;
+    isPrimary: boolean;
+  };
+  companyId: string;
+  index: number;
+  isExpanded: boolean;
+  onViewBrands: (companyId: string, locationId: string) => void;
+}
+
+const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
+  address,
+  companyId,
+  index,
+  isExpanded,
+  onViewBrands,
+}) => {
+  const locationId = address.addressId || address._id;
+
+
+  const {
+    data: locationData,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: [ENDPOINTS.COMPANY.LOCATION_DETAILS(companyId, locationId || "")],
+    queryFn: () => {
+      if (!locationId) throw new Error("Location ID is required");
+      return apiGetCompanyLocationById(companyId, locationId);
+    },
+    enabled: isExpanded && !!locationId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  const location = locationData?.data;
+
+  return (
+    <AccordionItem value={`address-${index}`}>
+      <AccordionTrigger className="hover:no-underline">
+        <div className="flex w-full items-center justify-between pr-4">
+          <div className="flex items-start gap-3">
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="capitalize">
+                {address.addressType}
+              </Badge>
+              {address.isPrimary && (
+                <Badge variant="default" className="text-xs">
+                  <StarIcon className="mr-1 h-3 w-3" />
+                  Primary
+                </Badge>
+              )}
+            </div>
     <div className="min-w-0 flex-1">
-      <p className="text-sm font-medium text-gray-900">{label}</p>
-      <p className="text-sm text-gray-600 break-words">
-        {value || "-"}
+              <p className="mb-1 font-medium text-gray-900">
+                {address.addressLine1}
+              </p>
+              <p className="text-sm text-gray-600">
+                {address.city},{" "}
+                {LocationService.getStateName(address.country, address.state)} -{" "}
+                {address.postalCode}
+              </p>
+              {address.landmark && (
+                <p className="text-xs text-gray-500">Near {address.landmark}</p>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={(e) => {
+                e.stopPropagation();
+                onViewBrands(companyId, locationId || "");
+              }}
+              variant="outlined"
+              size="sm"
+              className="bg-white/80 hover:bg-white border-gray-200 text-gray-700 hover:text-gray-800"
+            >
+              <TagIcon className="mr-1 h-3 w-3" />
+              View Brands
+            </Button>
+          </div>
+        </div>
+      </AccordionTrigger>
+      <AccordionContent>
+        <div className="space-y-4">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="flex items-center gap-2">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600"></div>
+                <span className="text-sm text-gray-600">
+                  Loading location details...
+                </span>
+              </div>
+            </div>
+          ) : error ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-center">
+                <ExclamationTriangleIcon className="mx-auto mb-2 h-8 w-8 text-red-500" />
+                <p className="text-sm text-red-600">
+                  Failed to load location details
       </p>
     </div>
   </div>
-);
+          ) : location ? (
+            <>
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <InfoItem
+                  icon={<MapPinIcon className="h-5 w-5" />}
+                  label="Address Type"
+                  value={location.addressType}
+                />
+                <InfoItem
+                  icon={<MapPinIcon className="h-5 w-5" />}
+                  label="Address"
+                  value={location.addressLine1 || "-"}
+                />
+                <InfoItem
+                  icon={<MapPinIcon className="h-5 w-5" />}
+                  label="Landmark"
+                  value={location.landmark || "-"}
+                />
+                <InfoItem
+                  icon={<PhoneIcon className="h-5 w-5" />}
+                  label="Phone"
+                  value={location.phoneNumber || "-"}
+                />
+                <InfoItem
+                  icon={<MapPinIcon className="h-5 w-5" />}
+                  label="Country"
+                  value={LocationService.getCountryName(location.country)}
+                />
+                <InfoItem
+                  icon={<MapPinIcon className="h-5 w-5" />}
+                  label="State"
+                  value={LocationService.getStateName(
+                    location.country,
+                    location.state,
+                  )}
+                />
+                <InfoItem
+                  icon={<MapPinIcon className="h-5 w-5" />}
+                  label="City"
+                  value={location.city}
+                />
+                <InfoItem
+                  icon={<MapPinIcon className="h-5 w-5" />}
+                  label="Pin code"
+                  value={location.postalCode}
+                />
+                <InfoItem
+                  icon={
+                    location.isPrimary ? (
+                      <CheckCircleIcon className="h-5 w-5" />
+                    ) : (
+                      <XCircleIcon className="h-5 w-5" />
+                    )
+                  }
+                  label="Primary Location"
+                  value={location.isPrimary ? "Yes" : "No"}
+                />
+                <InfoItem
+                  icon={<CalendarIcon className="h-5 w-5" />}
+                  label="Created At"
+                  value={formatDate(location.createdAt)}
+                />
+              </div>
+
+              {/* Documents Section */}
+              {(location.coiCertificate ||
+                location.msmeCertificate ||
+                location.panDocument ||
+                location.gstDocument) && (
+                <Card className="mt-6 shadow-none">
+                  <CardHeader className="border-b">
+                    <CardTitle>Documents</CardTitle>
+                  </CardHeader>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    {location.coiCertificate && (
+                      <InfoItem
+                        icon={<DocumentTextIcon className="h-5 w-5" />}
+                        label="COI Certificate"
+                        value="Certificate Available"
+                        className="rounded-lg border p-3"
+                      >
+                        <Link
+                          to={location.coiCertificate}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs break-all text-blue-500"
+                        >
+                          View Document
+                        </Link>
+                      </InfoItem>
+                    )}
+
+                    {location.msmeCertificate && (
+                      <InfoItem
+                        icon={<DocumentTextIcon className="h-5 w-5" />}
+                        label="MSME Certificate"
+                        value="Certificate Available"
+                        className="rounded-lg border p-3"
+                      >
+                        <Link
+                          to={location.msmeCertificate}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs break-all text-blue-500"
+                        >
+                          View Document
+                        </Link>
+                      </InfoItem>
+                    )}
+
+                    {location.panDocument && (
+                      <InfoItem
+                        icon={<DocumentTextIcon className="h-5 w-5" />}
+                        label="PAN Document"
+                        value={location.panNumber ?? "-"}
+                        className="rounded-lg border p-3"
+                      >
+                        <Link
+                          to={location.panDocument}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs break-all text-blue-500"
+                        >
+                          View Document
+                        </Link>
+                      </InfoItem>
+                    )}
+
+                    {location.gstDocument && (
+                      <InfoItem
+                        icon={<DocumentTextIcon className="h-5 w-5" />}
+                        label="GST Document"
+                        value={location.gstNumber ?? "-"}
+                        className="rounded-lg border p-3"
+                      >
+                        <Link
+                          to={location.gstDocument}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs break-all text-blue-500"
+                        >
+                          View Document
+                        </Link>
+                      </InfoItem>
+                    )}
+                  </div>
+                </Card>
+              )}
+            </>
+          ) : (
+            <div className="py-8 text-center">
+              <p className="text-sm text-gray-500">
+                No detailed information available
+              </p>
+            </div>
+          )}
+        </div>
+      </AccordionContent>
+    </AccordionItem>
+  );
+};
 
 const CompanyView = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const [expandedAddress, setExpandedAddress] = useState<string | null>(null);
+
 
   const {
     data: companyData,
@@ -66,6 +363,10 @@ const CompanyView = () => {
 
   const company = companyData?.data;
 
+  const handleViewBrands = (companyId: string, locationId: string) => {
+    navigate(PANEL_ROUTES.COMPANY_LOCATION.BRANDS(companyId, locationId));
+  };
+
   return (
     <PageContent
       header={{
@@ -78,260 +379,120 @@ const CompanyView = () => {
       {company && (
         <div className="space-y-6">
           {/* Company Header Summary */}
-          <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+          <Card className="border-gray-200 bg-white shadow-sm">
             <CardContent className="pt-6">
               <div className="flex items-start justify-between">
-            <div className="flex items-start gap-6">
+                <div className="flex items-start gap-6 flex-1">
                   {/* Company Logo Placeholder */}
                 <div className="flex-shrink-0">
-                    <div className="h-20 w-20 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-2xl font-bold">
-                      {company.companyName?.charAt(0) || 'C'}
+                    <div className="flex h-20 w-20 items-center justify-center rounded-xl bg-gradient-to-br from-gray-600 to-gray-800 text-2xl font-bold text-white">
+                      {company.companyName?.charAt(0) || "C"}
                     </div>
                   </div>
                   
                   {/* Company Basic Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h1 className="text-3xl font-bold text-gray-900 truncate">
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-4 flex items-center gap-3">
+                      <h1 className="truncate text-3xl font-bold text-gray-900">
                         {company.companyName}
                       </h1>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <CalendarIcon className="h-4 w-4" />
-                        <span>Est. {company.establishedIn}</span>
+                    <div className="grid grid-cols-1 gap-6 text-sm md:grid-cols-2 lg:grid-cols-4">
+                      <div className="flex items-start gap-3">
+                        <div className="bg-gray-100 border border-gray-200 rounded-lg p-2">
+                          <CalendarIcon className="h-4 w-4 text-gray-600" />
+                        </div>
+                        <div>
+                          <p className="text-gray-500 text-xs font-medium">Established</p>
+                          <p className="text-gray-900 font-medium">{company.establishedIn}</p>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <BuildingOfficeIcon className="h-4 w-4" />
-                        <span className="capitalize">{company.businessType} • {company.companyCategory}</span>
+                      <div className="flex items-start gap-3">
+                        <div className="bg-gray-100 border border-gray-200 rounded-lg p-2">
+                          <BuildingOfficeIcon className="h-4 w-4 text-gray-600" />
+                        </div>
+                        <div>
+                          <p className="text-gray-500 text-xs font-medium">Business Type</p>
+                          <p className="text-gray-900 font-medium capitalize">{company.businessType}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="bg-gray-100 border border-gray-200 rounded-lg p-2">
+                          <BuildingOfficeIcon className="h-4 w-4 text-gray-600" />
+                        </div>
+                        <div>
+                          <p className="text-gray-500 text-xs font-medium">Company Category</p>
+                          <p className="text-gray-900 font-medium capitalize">{company.companyCategory}</p>
+                        </div>
                       </div>
                       {company.website && (
-                        <div className="flex items-center gap-2 text-blue-600">
-                          <LinkIcon className="h-4 w-4" />
-                          <a href={company.website} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                        <div className="flex items-start gap-3">
+                          <div className="bg-gray-100 border border-gray-200 rounded-lg p-2">
+                            <LinkIcon className="h-4 w-4 text-gray-600" />
+                          </div>
+                          <div>
+                            <p className="text-gray-500 text-xs font-medium">Website</p>
+                          <a
+                            href={company.website}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                              className="text-blue-600 hover:underline font-medium"
+                          >
                             Visit Website
                           </a>
+                          </div>
                         </div>
                       )}
                     </div>
                   </div>
+                </div>
+                
+                {/* Action Buttons */}
+                <div className="flex-shrink-0 ml-6">
+                  <Button
+                    onClick={() => navigate(PANEL_ROUTES.COMPANY.USERS(id!))}
+                    variant="outlined"
+                    className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
+                  >
+                    <UserGroupIcon className="mr-2 h-4 w-4" />
+                    View Users
+                  </Button>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <div className="space-y-6">
-            {/* Company Information */}
-            <Card>
-              <CardHeader className="border-b">
-                <CardTitle className="flex items-center gap-2">
-                  <BuildingOfficeIcon className="h-5 w-5" />
-                  Company Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <InfoItem
-                    icon={<DocumentTextIcon className="h-5 w-5" />}
-                    label="CIN Number"
-                    value={company.cinNumber}
-                  />
-                  <InfoItem
-                    icon={<DocumentTextIcon className="h-5 w-5" />}
-                    label="MSME Number"
-                    value={company.msmeNumber}
-                  />
-                  <InfoItem
-                    icon={<PhoneIcon className="h-5 w-5" />}
-                    label="Landline"
-                    value={company.landlineNo}
-                  />
-                  <InfoItem
-                    icon={<ShoppingBagIcon className="h-5 w-5" />}
-                    label="Product Categories"
-                    value={company.productCategory?.join(", ")}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Social Media & Platforms */}
-            <Card>
-              <CardHeader className="border-b">
-                <CardTitle className="flex items-center gap-2">
-                  <GlobeAltIcon className="h-5 w-5" />
-                  Online Presence
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <div className="space-y-6">
-                  {/* Social Media Links */}
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-900 mb-3">Social Media</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {company.instagramUrl && (
-                        <a href={company.instagramUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-3 border rounded-lg hover:bg-gray-50 transition-colors">
-                          <div className="w-8 h-8 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg flex items-center justify-center">
-                            <span className="text-white text-xs font-bold">IG</span>
-                          </div>
-                          <span className="text-sm text-gray-700">Instagram</span>
-                        </a>
-                      )}
-                      {company.facebookUrl && (
-                        <a href={company.facebookUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-3 border rounded-lg hover:bg-gray-50 transition-colors">
-                          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                            <span className="text-white text-xs font-bold">FB</span>
-                          </div>
-                          <span className="text-sm text-gray-700">Facebook</span>
-                        </a>
-                      )}
-                      {company.youtubeUrl && (
-                        <a href={company.youtubeUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-3 border rounded-lg hover:bg-gray-50 transition-colors">
-                          <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
-                            <span className="text-white text-xs font-bold">YT</span>
-                          </div>
-                          <span className="text-sm text-gray-700">YouTube</span>
-                        </a>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Selling Platforms */}
-                  {company.sellingOn && company.sellingOn.length > 0 && (
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-900 mb-3">Selling Platforms</h4>
-                      <div className="space-y-2">
-                        {company.sellingOn.map((platform, index) => (
-                          <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                                <GlobeAltIcon className="h-4 w-4 text-gray-600" />
-                              </div>
-                              <span className="font-medium">{platform.platform}</span>
-                            </div>
-                            <a href={platform.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm">
-                              Visit
-                            </a>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Company Addresses Accordion */}
             {company.addresses && company.addresses.length > 0 && (
               <Card>
                 <CardHeader className="border-b">
                   <CardTitle className="flex items-center gap-2">
                     <MapPinIcon className="h-5 w-5" />
-                    Company Addresses
+                    Company Locations
                     <Badge variant="outline" className="ml-auto">
                       {company.addresses.length}
                     </Badge>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-6">
-                  <Accordion type="single" collapsible className="w-full">
+                  <Accordion
+                    type="single"
+                    collapsible
+                    className="w-full"
+                    value={expandedAddress || ""}
+                    onValueChange={setExpandedAddress}
+                  >
                     {company.addresses.map((address, index) => (
-                      <AccordionItem key={index} value={`address-${index}`}>
-                        <AccordionTrigger className="hover:no-underline">
-                          <div className="flex items-center justify-between w-full pr-4">
-                            <div className="flex items-start gap-3">
-                              <div className="flex items-center gap-2">
-                                <Badge variant="outline" className="capitalize">
-                                  {address.addressType}
-                                </Badge>
-                                {address.isPrimary && (
-                                  <Badge variant="default" className="text-xs">
-                                    <StarIcon className="h-3 w-3 mr-1" />
-                                    Primary
-                                  </Badge>
-                                )}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium text-gray-900 mb-1">
-                                  {address.addressLine1}
-                                </p>
-                                <p className="text-sm text-gray-600">
-                                  {address.city}, {LocationService.getStateName(address.country, address.state)} - {address.postalCode}
-                                </p>
-                                {address.landmark && (
-                                  <p className="text-xs text-gray-500">
-                                    Near {address.landmark}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </AccordionTrigger>
-                        <AccordionContent>
-                          <div className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <InfoItem
-                                icon={<MapPinIcon className="h-4 w-4" />}
-                                label="Address Type"
-                                value={address.addressType}
-                              />
-                              <InfoItem
-                                icon={<MapPinIcon className="h-4 w-4" />}
-                                label="Country"
-                                value={LocationService.getCountryName(address.country)}
-                              />
-                              <InfoItem
-                                icon={<MapPinIcon className="h-4 w-4" />}
-                                label="State"
-                                value={LocationService.getStateName(address.country, address.state)}
-                              />
-                              <InfoItem
-                                icon={<MapPinIcon className="h-4 w-4" />}
-                                label="City"
-                                value={address.city}
-                              />
-                              <InfoItem
-                                icon={<MapPinIcon className="h-4 w-4" />}
-                                label="Postal Code"
-                                value={address.postalCode}
-                              />
-                              <InfoItem
-                                icon={<MapPinIcon className="h-4 w-4" />}
-                                label="Landmark"
-                                value={address.landmark}
-                              />
-                              <InfoItem
-                                icon={<DocumentTextIcon className="h-4 w-4" />}
-                                label="GST Number"
-                                value={address.gstNumber}
-                              />
-                              <InfoItem
-                                icon={<DocumentTextIcon className="h-4 w-4" />}
-                                label="PAN Number"
-                                value={address.panNumber}
-                              />
-                            </div>
-                            
-                            {address.brands && address.brands.length > 0 && (
-                              <>
-                                <Separator className="my-4" />
-                                <div>
-                                  <p className="text-sm font-medium text-gray-900 mb-3">Associated Brands</p>
-                                  <div className="flex flex-wrap gap-2">
-                                    {address.brands.map((brand, brandIndex) => (
-                                      <Badge key={brandIndex} variant="secondary" className="flex items-center gap-1">
-                                        <StarIcon className="h-3 w-3" />
-                                        {brand.name}
-                                      </Badge>
-                                    ))}
-              </div>
-            </div>
-                              </>
-                            )}
-                          </div>
-                        </AccordionContent>
-                      </AccordionItem>
+                      <LocationAccordionItem
+                        key={index}
+                        address={address}
+                        companyId={id!}
+                        index={index}
+                        isExpanded={expandedAddress === `address-${index}`}
+                        onViewBrands={handleViewBrands}
+                      />
                     ))}
                   </Accordion>
           </CardContent>

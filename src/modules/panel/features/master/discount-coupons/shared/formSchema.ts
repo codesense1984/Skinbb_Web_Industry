@@ -182,17 +182,4 @@ export const couponSchema = {
     },
   ],
 
-  status: ({ mode }: ModeProps): FormFieldConfig<CouponFormData>[] => [
-    {
-      name: "isActive",
-      label: "Status",
-      type: INPUT_TYPES.SELECT,
-      options: [
-        { label: "Active", value: "true" },
-        { label: "Inactive", value: "false" },
-      ],
-      description: "Whether the coupon is currently active",
-      disabled: mode === MODE.VIEW,
-    },
-  ],
 };

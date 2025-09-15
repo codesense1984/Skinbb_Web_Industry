@@ -101,18 +101,73 @@ export const columns = (companyId: string, locationId: string): ColumnDef<Compan
   },
   {
     header: "Status",
-    accessorKey: "isActive",
-    cell: ({ row }) => (
-      <StatusBadge
-        status={row.original.isActive ? "active" : "inactive"}
-        module="brand"
-        variant="badge"
-      >
-        {row.original.isActive ? "Active" : "Inactive"}
-      </StatusBadge>
-    ),
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id) ? "active" : "inactive");
+    accessorKey: "status",
+    cell: ({ row }) => {
+      // Use approval status if available, otherwise fallback to isActive
+      const approvalStatus = row.original.status || row.original.brandStatus;
+      const isActive = row.original.isActive;
+      
+      // Determine the status to display
+      let displayStatus = "pending"; // Default to pending
+      
+      if (approvalStatus) {
+        // Map API status values to STATUS_MAP values
+        if (approvalStatus === "approved") {
+          displayStatus = "approved";
+        } else if (approvalStatus === "rejected") {
+          displayStatus = "rejected";
+        } else if (approvalStatus === "pending") {
+          displayStatus = "pending";
+        } else if (approvalStatus === "active") {
+          displayStatus = "active";
+        } else {
+          displayStatus = approvalStatus; // Use as-is if it matches STATUS_MAP
+        }
+      } else if (isActive !== undefined) {
+        displayStatus = isActive ? "active" : "inactive";
+      }
+      
+      // Debug logging
+      console.log("Brand status debug:", {
+        brandId: row.original._id,
+        brandName: row.original.name,
+        approvalStatus,
+        isActive,
+        displayStatus
+      });
+      
+      return (
+        <StatusBadge
+          status={displayStatus}
+          module="brand"
+          variant="badge"
+        />
+      );
+    },
+    filterFn: (row, _id, value) => {
+      const approvalStatus = row.original.status || row.original.brandStatus;
+      const isActive = row.original.isActive;
+      
+      let statusValue = "pending";
+
+      if (approvalStatus) {
+        // Map API status values to STATUS_MAP values
+        if (approvalStatus === "approved") {
+          statusValue = "approved";
+        } else if (approvalStatus === "rejected") {
+          statusValue = "rejected";
+        } else if (approvalStatus === "pending") {
+          statusValue = "pending";
+        } else if (approvalStatus === "active") {
+          statusValue = "active";
+        } else {
+          statusValue = approvalStatus;
+        }
+      } else if (isActive !== undefined) {
+        statusValue = isActive ? "active" : "inactive";
+      }
+      
+      return value.includes(statusValue);
     },
   },
   {

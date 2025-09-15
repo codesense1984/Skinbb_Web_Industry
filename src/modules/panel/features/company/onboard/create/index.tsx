@@ -49,7 +49,7 @@ const CompanyOnboard = () => {
     },
     {
       icon: CurrencyDollarIcon,
-      title: "Targeted Marketing",
+      title: "Hyper-Targeted Marketing",
       description:
         "Reach exactly the right audience with hyper-segmented campaigns.",
     },

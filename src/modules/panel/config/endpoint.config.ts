@@ -67,6 +67,10 @@ export const ENDPOINTS = {
       `${API_PREFIX}/brands/admin/toggle-status/${id}`,
     MAIN_BY_ID: (id: string) => `${API_PREFIX}/brands/admin/${id}`,
     MAIN_ALL: `${API_PREFIX}/brands/admin/all`,
+    UPDATE_STATUS: (adminId: string, brandId: string) =>
+      `${API_PREFIX}/sellers/admin/${adminId}/brands/${brandId}/status`,
+    GET_STATUS: (adminId: string, brandId: string) =>
+      `${API_PREFIX}/sellers/admin/${adminId}/brands/${brandId}/status`,
   },
 
   INFO: {

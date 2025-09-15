@@ -232,7 +232,7 @@ export function createCompanySchema(
       // Brand details
       brandName: createRequiredString("Brand name"),
       totalSkus: createRequiredString("Total number of SKUs"),
-      productCategory: z.array(z.string().optional()).optional(),
+      brandType: z.array(z.string()).optional(),
       averageSellingPrice: createRequiredString("Average selling price"),
       sellingOn: z.array(sellingPlatformSchema).optional(),
 
@@ -386,7 +386,7 @@ type FieldProps = {
     };
   };
   [StepKey.BRAND_DETAILS]: ModeProps & {
-    productCategoryOptions?: Array<{ label: string; value: string }>;
+    brandTypeOptions?: Array<{ label: string; value: string }>;
   };
   [StepKey.DOCUMENTS_DETAILS]: ModeProps & {
     key?: string;
@@ -706,7 +706,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
     },
   ],
 
-  brand_information: ({ mode, productCategoryOptions = [] }) => [
+  brand_information: ({ mode, brandTypeOptions = [] }) => [
     {
       name: "brandName",
       label: "Brand Name",
@@ -716,10 +716,10 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       className: "lg:col-span-3",
     },
     {
-      name: "productCategory",
+      name: "brandType",
       label: "Product Category",
       type: INPUT_TYPES.COMBOBOX,
-      options: productCategoryOptions,
+      options: brandTypeOptions,
       placeholder: "Select product category",
       disabled: mode === MODE.VIEW,
       className: "hide-scrollbars lg:col-span-3",
