@@ -34,6 +34,11 @@ export interface CompanyLocationBrand {
   deletedBy: string | null;
   createdAt: string;
   updatedAt: string;
+  // Approval status fields
+  status?: string;
+  brandStatus?: string;
+  statusChangeReason?: string;
+  statusChangedAt?: string;
 }
 
 export interface CompanyLocationBrandsResponse {

@@ -45,25 +45,40 @@ const CompanyLocationBrandsList = () => {
   // API response structure: { statusCode: 200, data: [...], message: "...", success: true }
   const rawBrands = Array.isArray(brandsData?.data) ? brandsData.data : [];
   
+  // Debug logging for API response
+  console.log("Brands API response:", brandsData);
+  console.log("Raw brands data:", rawBrands);
+  
   // Transform brands to include location information and ensure data safety
-  const brands = rawBrands.map((brand: CompanyLocationBrand) => ({
-    ...brand,
-    locationId: locationId!,
-    locationType: "unknown",
-    locationCity: "Location",
-    locationState: "unknown",
-   
-    // Ensure productCategory is always an array
-    productCategory: Array.isArray(brand.productCategory)
-      ? brand.productCategory
-      : [],
-    // Ensure sellingOn is always an array
-    sellingOn: Array.isArray(brand.sellingOn) ? brand.sellingOn : [],
-    // Ensure numeric fields are numbers
-    totalSKU: Number(brand.totalSKU) || 0,
-    averageSellingPrice: Number(brand.averageSellingPrice) || 0,
-    marketingBudget: Number(brand.marketingBudget) || 0,
-  }));
+  const brands = rawBrands.map((brand: CompanyLocationBrand) => {
+    // Debug each brand's status information
+    console.log("Brand data:", {
+      id: brand._id,
+      name: brand.name,
+      status: brand.status,
+      brandStatus: brand.brandStatus,
+      isActive: brand.isActive
+    });
+    
+    return {
+      ...brand,
+      locationId: locationId!,
+      locationType: "unknown",
+      locationCity: "Location",
+      locationState: "unknown",
+     
+      // Ensure productCategory is always an array
+      productCategory: Array.isArray(brand.productCategory)
+        ? brand.productCategory
+        : [],
+      // Ensure sellingOn is always an array
+      sellingOn: Array.isArray(brand.sellingOn) ? brand.sellingOn : [],
+      // Ensure numeric fields are numbers
+      totalSKU: Number(brand.totalSKU) || 0,
+      averageSellingPrice: Number(brand.averageSellingPrice) || 0,
+      marketingBudget: Number(brand.marketingBudget) || 0,
+    };
+  });
 
   if (isLoading) {
     return (

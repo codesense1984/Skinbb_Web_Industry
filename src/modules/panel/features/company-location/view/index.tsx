@@ -438,7 +438,7 @@ const CompanyLocationView = () => {
       </Card>
 
       {/* Brand Details */}
-      {currentLocation.brands && currentLocation.brands.length > 0 && (
+      {currentLocation.brands && Array.isArray(currentLocation.brands) && currentLocation.brands.length > 0 && (
         <Card>
           <CardHeader className="border-b">
             <CardTitle className="flex items-center gap-2">
@@ -448,7 +448,9 @@ const CompanyLocationView = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-              {currentLocation.brands.map((brand: Brand) => (
+              {currentLocation.brands
+                .filter((brand: Brand | null) => brand != null)
+                .map((brand: Brand) => (
                 <div key={brand._id} className="rounded-lg border p-4">
                   <div className="mb-4 flex items-start gap-4">
                     {brand.logoImage && (
@@ -542,7 +544,7 @@ const CompanyLocationView = () => {
                   </div>
 
                   {/* Selling Platforms */}
-                  {brand.sellingOn && brand.sellingOn.length > 0 && (
+                  {brand.sellingOn && Array.isArray(brand.sellingOn) && brand.sellingOn.length > 0 && (
                     <Card className="shadow-none">
                       <CardHeader className="border-b">
                         <CardTitle className="flex items-center gap-2">
@@ -551,31 +553,33 @@ const CompanyLocationView = () => {
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-                        {brand.sellingOn.map(
-                          (platform: SellingPlatform, platformIndex: number) => (
-                            <div
-                              key={platformIndex}
-                              className="flex items-center gap-3"
-                            >
-                              <div className="rounded-lg bg-gray-100 p-2">
-                                <GlobeAltIcon className="h-4 w-4 text-gray-600" />
+                        {brand.sellingOn
+                          .filter((platform: SellingPlatform | null) => platform != null)
+                          .map(
+                            (platform: SellingPlatform, platformIndex: number) => (
+                              <div
+                                key={platformIndex}
+                                className="flex items-center gap-3"
+                              >
+                                <div className="rounded-lg bg-gray-100 p-2">
+                                  <GlobeAltIcon className="h-4 w-4 text-gray-600" />
+                                </div>
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium capitalize">
+                                    {platform?.platform || "Unknown Platform"}
+                                  </p>
+                                  <a
+                                    href={platform?.url || "#"}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs break-all text-blue-600 hover:text-blue-800"
+                                  >
+                                    {platform?.url || "No URL"}
+                                  </a>
+                                </div>
                               </div>
-                              <div className="flex-1">
-                                <p className="text-sm font-medium capitalize">
-                                  {platform.platform}
-                                </p>
-                                <a
-                                  href={platform.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-xs break-all text-blue-600 hover:text-blue-800"
-                                >
-                                  {platform.url}
-                                </a>
-                              </div>
-                            </div>
-                          ),
-                        )}
+                            ),
+                          )}
                       </CardContent>
                     </Card>
                   )}

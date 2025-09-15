@@ -13,7 +13,6 @@ import {
 import { FormFieldsRenderer } from "@/core/components/ui/form-input";
 import {
   apiGetCompanyLocationBrandById,
-  apiCreateCompanyLocationBrand,
   apiCreateCompanyLocationBrandJson,
   apiUpdateCompanyLocationBrand,
 } from "@/modules/panel/services/http/company.service";
@@ -59,7 +58,6 @@ const getDefaultValues = (
     productCategory: brandData?.productCategory || [],
     sellingOn: brandData?.sellingOn || [],
     authorizationLetter: brandData?.authorizationLetter || "",
-    isActive: brandData?.isActive ? "true" : "false",
   };
 };
 
@@ -145,8 +143,6 @@ const BrandForm = () => {
       const requestData = {
         sellerId: companyId,
         ...data,
-        // Convert isActive from string to boolean for API
-        isActive: data.isActive === "true",
       };
 
       // Debug: Log the request data
@@ -169,12 +165,7 @@ const BrandForm = () => {
             }
           });
         } else if (value !== null && value !== undefined) {
-          // Convert isActive from string to boolean for API
-          if (key === "isActive") {
-            formData.append(key, value === "true" ? "true" : "false");
-          } else {
-            formData.append(key, value.toString());
-          }
+          formData.append(key, value.toString());
         }
       });
 
@@ -192,12 +183,12 @@ const BrandForm = () => {
           formData,
         );
       } else {
-        // Prepare JSON data with proper structure - ensure sellerId is first
+        // Prepare JSON data with proper structure
         const jsonData = {
-          sellerId: companyId, // Ensure sellerId is explicitly included and first
+          sellerId: companyId,
           name: data.name,
           aboutTheBrand: data.aboutTheBrand || "",
-          websiteUrl: data.websiteUrl || "https://example.com", // Provide default if empty
+          websiteUrl: data.websiteUrl || "https://example.com",
           totalSKU: data.totalSKU ? parseInt(data.totalSKU) : 0,
           averageSellingPrice: data.averageSellingPrice
             ? parseFloat(data.averageSellingPrice)
@@ -211,67 +202,12 @@ const BrandForm = () => {
           productCategory: data.productCategory || [],
           sellingOn: (data.sellingOn || []).filter(
             (item) => item.platform && item.url,
-          ), // Filter out empty entries
+          ),
           authorizationLetter: data.authorizationLetter || "",
-          isActive: data.isActive === "true",
         };
 
-        // Double-check sellerId is included
-        if (!jsonData.sellerId) {
-          throw new Error("sellerId is missing from request data");
-        }
-        console.log("=== BRAND CREATION DEBUG ===");
-        console.log("Sending JSON data:", JSON.stringify(jsonData, null, 2));
-        console.log("CompanyId (sellerId):", companyId);
-        console.log("LocationId:", locationId);
-        console.log(
-          "API Endpoint:",
-          `/sellers/${companyId}/locations/${locationId}/brands`,
-        );
-        console.log("=== END DEBUG ===");
-
-        // Try different approaches for sellerId
-        try {
-          // Try with sellerId as first property and different casing
-          const testData = {
-            sellerId: companyId,
-            seller_id: companyId, // Try snake_case as well
-            name: data.name,
-            websiteUrl: data.websiteUrl || "https://example.com",
-          };
-          console.log("Trying test data with multiple sellerId formats:", testData);
-          
-          const result = await apiCreateCompanyLocationBrandJson(
-            companyId,
-            locationId,
-            testData,
-          );
-          console.log("Test data approach succeeded:", result);
-          return result;
-        } catch (error: unknown) {
-          console.log("Test data approach failed:", error);
-          const axiosError = error as { response?: { data?: unknown } };
-          console.log("Error response:", axiosError?.response?.data);
-          
-          // Try with full data
-          try {
-            console.log("Trying full JSON data...");
-            const result = await apiCreateCompanyLocationBrandJson(
-              companyId,
-              locationId,
-              jsonData,
-            );
-            console.log("Full JSON approach succeeded:", result);
-            return result;
-          } catch (fullError: unknown) {
-            console.log("Full JSON approach also failed:", fullError);
-            const fullAxiosError = fullError as { response?: { data?: unknown } };
-            console.log("Full error response:", fullAxiosError?.response?.data);
-            console.log("Trying FormData approach as final fallback...");
-            // Fallback to FormData if JSON fails
-            return apiCreateCompanyLocationBrand(companyId, locationId, formData);
-          }
-        }
+        // Use JSON API for creation
+        return apiCreateCompanyLocationBrandJson(companyId, locationId, jsonData);
       }
     },
     onSuccess: () => {
@@ -485,23 +421,6 @@ const BrandForm = () => {
               </CardContent>
             </Card>
 
-            {/* Status - Only show in edit/view mode */}
-            {(mode === MODE.EDIT || mode === MODE.VIEW) && (
-              <Card>
-                <CardHeader className="border-b">
-                  <CardTitle className="text-lg font-semibold text-gray-900">
-                    Status
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  <FormFieldsRenderer<BrandFormData>
-                    control={control}
-                    fieldConfigs={brandSchema.status({ mode })}
-                    className="flex"
-                  />
-                </CardContent>
-              </Card>
-            )}
 
             {/* Action Buttons */}
             <div className="mt-8 flex justify-end space-x-4 border-t border-gray-200 pt-8">

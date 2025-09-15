@@ -35,23 +35,25 @@ export function transformApiResponseToCompanyEditFormData(
   }
 
   return {
-    _id: data._id || "",
+    _id: data.companyId || "",
     companyName: data.companyName || "",
     category: data.companyCategory || "",
     businessType: data.businessType || "",
     establishedIn: data.establishedIn || "",
     website: data.website || "",
     isSubsidiary: data.subsidiaryOfGlobalBusiness ? "true" : "false",
-    headquarterLocation: "", // Not available in CompanyOnboading type
-    description: "", // Not available in CompanyOnboading type
-    logo: data.logo || data.brandLogo || "",
+    headquarterLocation: data.headquaterLocation || "",
+    description: data.companyDescription || "",
+    logo: data.logo || "",
     logo_files: undefined,
     address: data.addresses?.map((addr) => ({
       addressId: addr.addressId || "",
-      addressType: addr.addressType || "registered",
-      address: "", // Not available in CompanyAddressInfo type
+      addressType: (addr.addressType === "office" || addr.addressType === "registered") 
+        ? addr.addressType 
+        : "registered" as const,
+      address: addr.addressLine1 || "",
       landmark: addr.landmark || "",
-      phoneNumber: "",
+      phoneNumber: addr.landlineNumber || "",
       country: addr.country || "",
       state: addr.state || "",
       city: addr.city || "",
@@ -59,7 +61,7 @@ export function transformApiResponseToCompanyEditFormData(
     })) || [
       {
         addressId: "",
-        addressType: "registered",
+        addressType: "registered" as const,
         address: "",
         landmark: "",
         phoneNumber: "",
@@ -75,7 +77,7 @@ export function transformApiResponseToCompanyEditFormData(
 // Transform form data to API request for company edit
 export function transformCompanyEditFormDataToApiRequest(
   data: CompanyEditFormType,
-): any {
+): FormData {
   const formData = new FormData();
 
   // Add basic company information

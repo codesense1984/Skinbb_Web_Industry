@@ -28,7 +28,6 @@ export const brandFormSchema = z.object({
     )
     .optional(),
   authorizationLetter: z.string().optional(),
-  isActive: z.string().optional(),
 });
 
 export type BrandFormData = z.infer<typeof brandFormSchema>;
@@ -53,7 +52,6 @@ type FieldProps = {
     index: number;
     availableOptions?: Array<{ label: string; value: string }>;
   };
-  status: ModeProps;
 };
 
 export type BrandSchemaProps = {
@@ -174,17 +172,4 @@ export const brandSchema: BrandSchemaProps = {
     },
   ],
 
-  status: ({ mode }) => [
-    {
-      name: "isActive",
-      label: "Status",
-      type: INPUT_TYPES.SELECT,
-      options: [
-        { label: "Active", value: "true" },
-        { label: "Inactive", value: "false" },
-      ],
-      placeholder: "Select status",
-      disabled: mode === MODE.VIEW,
-    },
-  ],
 };
