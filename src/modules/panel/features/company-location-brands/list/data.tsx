@@ -1,18 +1,10 @@
 import { TableAction } from "@/core/components/data-table/components/table-action";
 import { Avatar } from "@/core/components/ui/avatar";
-import { Badge, StatusBadge } from "@/core/components/ui/badge";
-import { formatDate, formatCurrency } from "@/core/utils";
+import { StatusBadge } from "@/core/components/ui/badge";
+import { formatDate, formatCurrency, capitalize } from "@/core/utils";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import type { CompanyLocationBrand } from "@/modules/panel/types/brand.type";
 import type { ColumnDef } from "@tanstack/react-table";
-
-// Extended brand type that includes location information
-// export interface CompanyLocationBrandWithLocation extends CompanyLocationBrand {
-//   locationId: string;
-//   locationType: string;
-//   locationCity: string;
-//   locationState: string;
-// }
 
 export const columns = (
   companyId: string,
@@ -24,13 +16,13 @@ export const columns = (
     size: 180,
     cell: ({ row }) => (
       <div className="flex w-max items-center gap-3 font-medium">
-        {row.original?.logoImage && (
+        {
           <Avatar
-            src={row.original.logoImage}
-            feedback={row.original.name?.charAt(0)}
+            src={row?.original?.logoImage}
+            feedback={capitalize(row.original.name?.charAt(0))}
           />
-        )}
-        <span>{row.original.name}</span>
+        }
+        <span>{row.original?.name}</span>
       </div>
     ),
   },
@@ -59,9 +51,6 @@ export const columns = (
         {row.original.status}
       </StatusBadge>
     ),
-    // filterFn: (row, id, value) => {
-    //   return value.includes(row.getValue(id) ? "active" : "inactive");
-    // },
   },
   {
     header: "Created Date",
@@ -100,9 +89,6 @@ export const columns = (
             ),
             title: "Edit brand",
           }}
-          // delete={{
-          //   onClick: () => console.log("Delete brand:", row.original._id),
-          // }}
         />
       );
     },

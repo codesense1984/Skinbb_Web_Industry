@@ -1,80 +1,58 @@
 import { z } from "zod";
 import { INPUT_TYPES } from "@/core/components/ui/form-input";
 import { MODE } from "@/core/types";
-import type { FormFieldConfig } from "@/core/components/ui/form-input";
 import { createUrlValidator } from "@/core/utils";
 import { SURVEY } from "@/core/config/constants";
+import type { FormFieldConfig } from "@/core/components/ui/form-input";
 
-// Brand form schema factory - creates schema based on mode
-export const createBrandFormSchema = (_mode: MODE) =>
-  z.object({
-    _id: z.string().optional(),
-    name: z
-      .string()
-      .min(1, "Brand name is required")
-      .min(2, "Brand name must be at least 2 characters")
-      .max(100, "Brand name must be less than 100 characters"),
-    aboutTheBrand: z.string().optional(),
-    websiteUrl: createUrlValidator("Website"),
-    totalSKU: z.string().min(1),
-    logo_files: z.any().optional(),
-    logo: z.string().optional(),
-
-    // averageSellingPrice: z.string().min(1),
-    marketingBudget: z.string().min(1),
-    instagramUrl: createUrlValidator("Instagram"),
-    facebookUrl: createUrlValidator("Facebook"),
-    youtubeUrl: createUrlValidator("YouTube"),
-    productCategory: z.array(z.string()).min(1),
-    sellingOn: z
-      .array(
-        z.object({
-          platform: z.string(),
-          url: createUrlValidator("URL"),
-        }),
-      )
-      .optional(),
-    authorizationLetter: z.string().min(1),
-    authorizationLetter_files: z.any().optional(),
-  });
-
-// Default schema for backward compatibility
-export const brandFormSchema = createBrandFormSchema(MODE.ADD);
+export const brandFormSchema = z.object({
+  _id: z.string().optional(),
+  name: z
+    .string()
+    .min(1, "Brand name is required")
+    .min(2, "Brand name must be at least 2 characters")
+    .max(100, "Brand name must be less than 100 characters"),
+  aboutTheBrand: z.string().optional(),
+  websiteUrl: createUrlValidator("Website"),
+  totalSKU: z.string().min(1),
+  logo_files: z.any().optional(),
+  logo: z.string().optional(),
+  marketingBudget: z.string().min(1),
+  instagramUrl: createUrlValidator("Instagram"),
+  facebookUrl: createUrlValidator("Facebook"),
+  youtubeUrl: createUrlValidator("YouTube"),
+  productCategory: z.array(z.string()).min(1),
+  sellingOn: z
+    .array(
+      z.object({
+        platform: z.string(),
+        url: createUrlValidator("URL"),
+      }),
+    )
+    .optional(),
+  authorizationLetter: z.string().min(1),
+  authorizationLetter_files: z.any().optional(),
+});
 
 export type BrandFormData = z.infer<typeof brandFormSchema>;
 
-// Platform options for selling platforms
-const PLATFORM_OPTIONS = [
-  { label: "Amazon", value: "amazon" },
-  { label: "Flipkart", value: "flipkart" },
-  { label: "Myntra", value: "myntra" },
-  { label: "Nykaa", value: "nykaa" },
-  { label: "Purplle", value: "purplle" },
-  { label: "Other", value: "other" },
-];
-
 // Field configuration types
 type ModeProps = { mode: MODE };
-type FieldProps = {
-  basic_information: ModeProps;
-  uploadbrandImage: ModeProps;
-  selling_platforms: ModeProps & {
-    index: number;
-    availableOptions?: Array<{ label: string; value: string }>;
-  };
-  // status: ModeProps;
-};
-
-export type BrandSchemaProps = {
-  [K in keyof FieldProps]: (
-    props: FieldProps[K],
-  ) => FormFieldConfig<BrandFormData>[];
+type SellingPlatformProps = ModeProps & {
+  index: number;
+  availableOptions?: Array<{ label: string; value: string }>;
 };
 
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/jpg"];
 
-export const brandSchema: BrandSchemaProps = {
-  uploadbrandImage: ({ mode }) => [
+export const brandSchema: {
+  uploadbrandImage: (props: ModeProps) => FormFieldConfig<BrandFormData>[];
+  basic_information: (props: ModeProps) => FormFieldConfig<BrandFormData>[];
+  selling_platforms: (
+    props: SellingPlatformProps,
+  ) => FormFieldConfig<BrandFormData>[];
+} = {
+  uploadbrandImage: ({ mode }: ModeProps) => [
     {
       name: "logo",
       label: "Logo",
@@ -86,7 +64,7 @@ export const brandSchema: BrandSchemaProps = {
       },
     },
   ],
-  basic_information: ({ mode }) => [
+  basic_information: ({ mode }: ModeProps) => [
     {
       name: "name",
       label: "Brand Name",
@@ -182,7 +160,11 @@ export const brandSchema: BrandSchemaProps = {
     },
   ],
 
-  selling_platforms: ({ mode, index, availableOptions = PLATFORM_OPTIONS }) => [
+  selling_platforms: ({
+    mode,
+    index,
+    availableOptions = [],
+  }: SellingPlatformProps) => [
     {
       name: `sellingOn.${index}.platform` as keyof BrandFormData,
       label: "Platform",

@@ -1,5 +1,6 @@
 import { createFormData } from "@/core/utils";
-import type { BrandFormData } from "../schema/brand.schema";
+import type { BrandFormData } from "./brand.schema";
+import { ENDPOINTS } from "../../config/endpoint.config";
 
 /**
  * Transforms brand form data into API request format
@@ -57,9 +58,7 @@ export const BRAND_QUERY_KEYS = {
     brandId,
   ],
   BRANDS_LIST: (companyId: string, locationId: string) => [
-    "company-location-brands",
-    companyId,
-    locationId,
+    ENDPOINTS.COMPANY_LOCATION_BRANDS.LIST(companyId, locationId),
   ],
 } as const;
 

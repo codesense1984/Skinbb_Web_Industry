@@ -22,9 +22,9 @@ import {
 } from "react-hook-form";
 import {
   brandSchema,
-  createBrandFormSchema,
+  brandFormSchema,
   type BrandFormData,
-} from "../schema/brand.schema";
+} from "./brand.schema";
 
 // Default values function with parameters
 export const getDefaultValues = (
@@ -67,7 +67,7 @@ const BrandForm = ({
   submitting = false,
 }: BrandFormProps) => {
   const form = useForm<BrandFormData>({
-    resolver: zodResolver(createBrandFormSchema(mode)),
+    resolver: zodResolver(brandFormSchema),
     defaultValues: defaultValues || getDefaultValues(),
   });
 

@@ -3,12 +3,12 @@ import { FullLoader } from "@/core/components/ui/loader";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { apiGetCompanyLocationBrandById } from "@/modules/panel/services/http/company.service";
-import BrandForm from "../shared/brand-form";
+import BrandForm from "./brand-form";
 import { MODE } from "@/core/types";
-import type { BrandFormData } from "../schema/brand.schema";
-import { getDefaultValues } from "../shared/brand-form";
-import { BRAND_MESSAGES } from "../utils/brand.utils";
-import { useBrandData } from "../hooks/useBrandMutations";
+import type { BrandFormData } from "./brand.schema";
+import { getDefaultValues } from "./brand-form";
+import { BRAND_MESSAGES } from "./brand.utils";
+import { useBrandData } from "./useBrandMutations";
 
 interface BrandPageWrapperProps {
   mode: MODE;

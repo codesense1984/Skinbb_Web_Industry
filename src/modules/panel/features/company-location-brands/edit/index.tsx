@@ -1,7 +1,7 @@
-import { BrandPageWrapper } from "../components/BrandPageWrapper";
-import { useBrandUpdateMutation } from "../hooks/useBrandMutations";
+import { BrandPageWrapper } from "../BrandPageWrapper";
+import { useBrandUpdateMutation } from "../useBrandMutations";
 import { MODE } from "@/core/types";
-import type { BrandFormData } from "../schema/brand.schema";
+import type { BrandFormData } from "../brand.schema";
 import { useParams } from "react-router";
 
 const CompanyLocationBrandEdit = () => {

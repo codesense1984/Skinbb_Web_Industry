@@ -1,7 +1,7 @@
-import { BrandPageWrapper } from "../components/BrandPageWrapper";
-import { useBrandCreateMutation } from "../hooks/useBrandMutations";
+import { BrandPageWrapper } from "../BrandPageWrapper";
+import { useBrandCreateMutation } from "../useBrandMutations";
 import { MODE } from "@/core/types";
-import type { BrandFormData } from "../schema/brand.schema";
+import type { BrandFormData } from "../brand.schema";
 
 const CompanyLocationBrandCreate = () => {
   const brandMutation = useBrandCreateMutation();

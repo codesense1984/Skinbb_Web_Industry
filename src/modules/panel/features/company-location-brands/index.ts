@@ -1,13 +1,13 @@
 // Components
-export { BrandPageWrapper } from "./components/BrandPageWrapper";
-export { default as BrandForm } from "./shared/brand-form";
+export { BrandPageWrapper } from "./BrandPageWrapper";
+export { default as BrandForm } from "./brand-form";
 
 // Hooks
 export {
   useBrandCreateMutation,
   useBrandUpdateMutation,
   useBrandData,
-} from "./hooks/useBrandMutations";
+} from "./useBrandMutations";
 
 // Utils
 export {
@@ -16,8 +16,8 @@ export {
   BRAND_QUERY_KEYS,
   BRAND_MESSAGES,
   BRAND_ERROR_MESSAGES,
-} from "./utils/brand.utils";
+} from "./brand.utils";
 
 // Types
-export type { BrandFormData } from "./schema/brand.schema";
-export { getDefaultValues } from "./shared/brand-form";
+export type { BrandFormData } from "./brand.schema";
+export { getDefaultValues } from "./brand-form";

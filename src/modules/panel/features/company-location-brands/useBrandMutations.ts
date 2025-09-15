@@ -1,20 +1,19 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { AxiosError } from "axios";
-import { useParams, useNavigate } from "react-router";
-import { toast } from "sonner";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import {
   apiCreateCompanyLocationBrandJson,
   apiUpdateCompanyLocationBrand,
 } from "@/modules/panel/services/http/company.service";
-import { MODE } from "@/core/types";
-import type { BrandFormData } from "../schema/brand.schema";
-import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { AxiosError } from "axios";
+import { useNavigate, useParams } from "react-router";
+import { toast } from "sonner";
+import type { BrandFormData } from "./brand.schema";
 import {
-  createBrandFormData,
-  BRAND_QUERY_KEYS,
-  BRAND_MESSAGES,
   BRAND_ERROR_MESSAGES,
-} from "../utils/brand.utils";
+  BRAND_MESSAGES,
+  BRAND_QUERY_KEYS,
+  createBrandFormData,
+} from "./brand.utils";
 
 /**
  * Custom hook for brand creation mutation
