@@ -46,4 +46,26 @@ export const SURVEY = {
   MAX_QUESTIONS: 5,
   MAX_OPTIONS: 7,
   INPUT_TYPES: ["yes/no", "multiple choice", "single choice"],
+
+  BRAND_PRODUCT_CATEGORY_OPTIONS: {
+    colourCosmetics: { value: "colour-cosmetics", label: "Colour Cosmetics" },
+    personalCareProducts: {
+      value: "personal-care-products",
+      label: "Personal Care Products",
+    },
+    nutraceuticalsAndWellness: {
+      value: "nutraceuticals-and-wellness",
+      label: "Nutraceuticals and Wellness",
+    },
+    devices: { value: "devices", label: "Devices" },
+  },
+
+  SELLING_PLATFORMS: {
+    amazon: { label: "Amazon", value: "amazon" },
+    flipkart: { label: "Flipkart", value: "flipkart" },
+    myntra: { label: "Myntra", value: "myntra" },
+    nykaa: { label: "Nykaa", value: "nykaa" },
+    purplle: { label: "Purplle", value: "purplle" },
+    other: { label: "Other", value: "other" },
+  },
 };

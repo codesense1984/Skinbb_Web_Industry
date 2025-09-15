@@ -2,34 +2,44 @@ import { z } from "zod";
 import { INPUT_TYPES } from "@/core/components/ui/form-input";
 import { MODE } from "@/core/types";
 import type { FormFieldConfig } from "@/core/components/ui/form-input";
+import { createUrlValidator } from "@/core/utils";
+import { SURVEY } from "@/core/config/constants";
 
-// Brand form schema
-export const brandFormSchema = z.object({
-  name: z
-    .string()
-    .min(1, "Brand name is required")
-    .min(2, "Brand name must be at least 2 characters")
-    .max(100, "Brand name must be less than 100 characters"),
-  aboutTheBrand: z.string().optional(),
-  websiteUrl: z.string().url().optional().or(z.literal("")),
-  totalSKU: z.string().min(0).optional(),
-  averageSellingPrice: z.string().min(0).optional(),
-  marketingBudget: z.string().min(0).optional(),
-  instagramUrl: z.string().url().optional().or(z.literal("")),
-  facebookUrl: z.string().url().optional().or(z.literal("")),
-  youtubeUrl: z.string().url().optional().or(z.literal("")),
-  productCategory: z.array(z.string()).optional(),
-  sellingOn: z
-    .array(
-      z.object({
-        platform: z.string(),
-        url: z.string().url(),
-      }),
-    )
-    .optional(),
-  authorizationLetter: z.string().optional(),
-  isActive: z.string().optional(),
-});
+// Brand form schema factory - creates schema based on mode
+export const createBrandFormSchema = (_mode: MODE) =>
+  z.object({
+    _id: z.string().optional(),
+    name: z
+      .string()
+      .min(1, "Brand name is required")
+      .min(2, "Brand name must be at least 2 characters")
+      .max(100, "Brand name must be less than 100 characters"),
+    aboutTheBrand: z.string().optional(),
+    websiteUrl: createUrlValidator("Website"),
+    totalSKU: z.string().min(1),
+    logo_files: z.any().optional(),
+    logo: z.string().optional(),
+
+    // averageSellingPrice: z.string().min(1),
+    marketingBudget: z.string().min(1),
+    instagramUrl: createUrlValidator("Instagram"),
+    facebookUrl: createUrlValidator("Facebook"),
+    youtubeUrl: createUrlValidator("YouTube"),
+    productCategory: z.array(z.string()).min(1),
+    sellingOn: z
+      .array(
+        z.object({
+          platform: z.string(),
+          url: createUrlValidator("URL"),
+        }),
+      )
+      .optional(),
+    authorizationLetter: z.string().min(1),
+    authorizationLetter_files: z.any().optional(),
+  });
+
+// Default schema for backward compatibility
+export const brandFormSchema = createBrandFormSchema(MODE.ADD);
 
 export type BrandFormData = z.infer<typeof brandFormSchema>;
 
@@ -47,13 +57,12 @@ const PLATFORM_OPTIONS = [
 type ModeProps = { mode: MODE };
 type FieldProps = {
   basic_information: ModeProps;
-  business_metrics: ModeProps;
-  social_media: ModeProps;
+  uploadbrandImage: ModeProps;
   selling_platforms: ModeProps & {
     index: number;
     availableOptions?: Array<{ label: string; value: string }>;
   };
-  status: ModeProps;
+  // status: ModeProps;
 };
 
 export type BrandSchemaProps = {
@@ -62,7 +71,21 @@ export type BrandSchemaProps = {
   ) => FormFieldConfig<BrandFormData>[];
 };
 
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/jpg"];
+
 export const brandSchema: BrandSchemaProps = {
+  uploadbrandImage: ({ mode }) => [
+    {
+      name: "logo",
+      label: "Logo",
+      type: "file",
+      disabled: MODE.VIEW === mode,
+      placeholder: "Upload brand logo",
+      inputProps: {
+        accept: ACCEPTED_IMAGE_TYPES.join(", "),
+      },
+    },
+  ],
   basic_information: ({ mode }) => [
     {
       name: "name",
@@ -71,6 +94,38 @@ export const brandSchema: BrandSchemaProps = {
       placeholder: "Enter brand name",
       required: true,
       disabled: mode === MODE.VIEW,
+      className: "md:col-span-2",
+    },
+    {
+      name: "productCategory",
+      label: "Product Category",
+      type: INPUT_TYPES.COMBOBOX,
+      maxVisibleItems: 2,
+      multi: true,
+      placeholder: "https://example.com",
+      options: Object.values(SURVEY.BRAND_PRODUCT_CATEGORY_OPTIONS),
+      disabled: mode === MODE.VIEW,
+      className: "md:col-span-2",
+      required: true,
+    },
+
+    {
+      name: "totalSKU",
+      label: "Total SKU",
+      type: INPUT_TYPES.NUMBER,
+      placeholder: "Enter total SKU",
+      disabled: mode === MODE.VIEW,
+      className: "md:col-span-2 lg:col-span-1",
+      required: true,
+    },
+    {
+      name: "marketingBudget",
+      label: "Marketing Budget",
+      type: INPUT_TYPES.NUMBER,
+      placeholder: "Enter average selling price",
+      disabled: mode === MODE.VIEW,
+      className: "md:col-span-2 lg:col-span-1",
+      required: true,
     },
     {
       name: "websiteUrl",
@@ -78,6 +133,44 @@ export const brandSchema: BrandSchemaProps = {
       type: INPUT_TYPES.TEXT,
       placeholder: "https://example.com",
       disabled: mode === MODE.VIEW,
+      className: "md:col-span-2 lg:col-span-1",
+      required: true,
+    },
+    {
+      name: "instagramUrl",
+      label: "Instagram URL",
+      type: INPUT_TYPES.URL,
+      placeholder: "https://instagram.com/username",
+      className: "md:col-span-2 lg:col-span-1",
+      disabled: mode === MODE.VIEW,
+    },
+    {
+      name: "facebookUrl",
+      label: "Facebook URL",
+      type: INPUT_TYPES.URL,
+      placeholder: "https://facebook.com/username",
+      disabled: mode === MODE.VIEW,
+      className: "md:col-span-2 lg:col-span-1",
+    },
+    {
+      name: "youtubeUrl",
+      label: "YouTube URL",
+      type: INPUT_TYPES.URL,
+      placeholder: "https://youtube.com/username",
+      className: "md:col-span-2 lg:col-span-1",
+      disabled: mode === MODE.VIEW,
+    },
+    {
+      name: "authorizationLetter",
+      label: "Authorization Letter",
+      type: INPUT_TYPES.FILE,
+      placeholder: "Upload letter",
+      disabled: mode === MODE.VIEW,
+      required: mode === MODE.ADD,
+      inputProps: {
+        accept: ".pdf,.doc,.docx,.jpg,.jpeg,.png",
+      },
+      className: "md:col-span-2",
     },
     {
       name: "aboutTheBrand",
@@ -85,74 +178,7 @@ export const brandSchema: BrandSchemaProps = {
       type: INPUT_TYPES.TEXTAREA,
       placeholder: "Describe the brand...",
       disabled: mode === MODE.VIEW,
-      inputProps: {
-        rows: 4,
-      },
-    },
-    {
-      name: "authorizationLetter",
-      label: "Authorization Letter",
-      type: INPUT_TYPES.FILE,
-      placeholder: "Upload authorization letter",
-      disabled: mode === MODE.VIEW,
-      required: mode === MODE.ADD || mode === MODE.EDIT,
-      inputProps: {
-        accept: ".pdf,.doc,.docx,.jpg,.jpeg,.png",
-      },
-    },
-  ],
-
-  business_metrics: ({ mode }) => [
-    {
-      name: "totalSKU",
-      label: "Total SKU",
-      type: INPUT_TYPES.NUMBER,
-      placeholder: "0",
-      disabled: mode === MODE.VIEW,
-    },
-    {
-      name: "averageSellingPrice",
-      label: "Average Selling Price",
-      type: INPUT_TYPES.NUMBER,
-      placeholder: "0.00",
-      disabled: mode === MODE.VIEW,
-      inputProps: {
-        step: 0.01,
-      },
-    },
-    {
-      name: "marketingBudget",
-      label: "Marketing Budget",
-      type: INPUT_TYPES.NUMBER,
-      placeholder: "0.00",
-      disabled: mode === MODE.VIEW,
-      inputProps: {
-        step: 0.01,
-      },
-    },
-  ],
-
-  social_media: ({ mode }) => [
-    {
-      name: "instagramUrl",
-      label: "Instagram URL",
-      type: INPUT_TYPES.TEXT,
-      placeholder: "https://instagram.com/username",
-      disabled: mode === MODE.VIEW,
-    },
-    {
-      name: "facebookUrl",
-      label: "Facebook URL",
-      type: INPUT_TYPES.TEXT,
-      placeholder: "https://facebook.com/username",
-      disabled: mode === MODE.VIEW,
-    },
-    {
-      name: "youtubeUrl",
-      label: "YouTube URL",
-      type: INPUT_TYPES.TEXT,
-      placeholder: "https://youtube.com/username",
-      disabled: mode === MODE.VIEW,
+      className: "md:col-span-4",
     },
   ],
 
@@ -168,22 +194,8 @@ export const brandSchema: BrandSchemaProps = {
     {
       name: `sellingOn.${index}.url` as keyof BrandFormData,
       label: "URL",
-      type: INPUT_TYPES.TEXT,
+      type: INPUT_TYPES.URL,
       placeholder: "https://example.com",
-      disabled: mode === MODE.VIEW,
-    },
-  ],
-
-  status: ({ mode }) => [
-    {
-      name: "isActive",
-      label: "Status",
-      type: INPUT_TYPES.SELECT,
-      options: [
-        { label: "Active", value: "true" },
-        { label: "Inactive", value: "false" },
-      ],
-      placeholder: "Select status",
       disabled: mode === MODE.VIEW,
     },
   ],

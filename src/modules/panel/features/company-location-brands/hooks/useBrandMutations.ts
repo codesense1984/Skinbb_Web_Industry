@@ -1,0 +1,103 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { AxiosError } from "axios";
+import { useParams, useNavigate } from "react-router";
+import { toast } from "sonner";
+import {
+  apiCreateCompanyLocationBrandJson,
+  apiUpdateCompanyLocationBrand,
+} from "@/modules/panel/services/http/company.service";
+import { MODE } from "@/core/types";
+import type { BrandFormData } from "../schema/brand.schema";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
+import {
+  createBrandFormData,
+  BRAND_QUERY_KEYS,
+  BRAND_MESSAGES,
+  BRAND_ERROR_MESSAGES,
+} from "../utils/brand.utils";
+
+/**
+ * Custom hook for brand creation mutation
+ */
+export const useBrandCreateMutation = () => {
+  const { companyId, locationId } = useParams();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: BrandFormData) => {
+      if (!companyId || !locationId) {
+        throw new Error(BRAND_ERROR_MESSAGES.MISSING_IDS);
+      }
+      const formData = createBrandFormData(data);
+      return apiCreateCompanyLocationBrandJson(companyId, locationId, formData);
+    },
+    onSuccess: () => {
+      toast.success(BRAND_MESSAGES.CREATE_SUCCESS);
+
+      // Invalidate and refetch the brands list
+      queryClient.invalidateQueries({
+        queryKey: BRAND_QUERY_KEYS.BRANDS_LIST(companyId!, locationId!),
+      });
+
+      // Navigate back to brands list
+      navigate(PANEL_ROUTES.COMPANY_LOCATION.BRANDS(companyId!, locationId!));
+    },
+    onError: (error: AxiosError<{ message?: string; error?: string }>) => {
+      toast.error(error?.message ?? BRAND_MESSAGES.CREATE_ERROR);
+    },
+  });
+};
+
+/**
+ * Custom hook for brand update mutation
+ */
+export const useBrandUpdateMutation = () => {
+  const { companyId, locationId, brandId } = useParams();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: BrandFormData) => {
+      if (!companyId || !locationId || !brandId) {
+        throw new Error(BRAND_ERROR_MESSAGES.MISSING_BRAND_ID);
+      }
+      const formData = createBrandFormData(data);
+      return apiUpdateCompanyLocationBrand(
+        companyId,
+        locationId,
+        brandId,
+        formData,
+      );
+    },
+    onSuccess: () => {
+      toast.success(BRAND_MESSAGES.UPDATE_SUCCESS);
+
+      // Invalidate and refetch the brands list
+      queryClient.invalidateQueries({
+        queryKey: BRAND_QUERY_KEYS.BRANDS_LIST(companyId!, locationId!),
+      });
+
+      // Navigate back to brands list
+      navigate(PANEL_ROUTES.COMPANY_LOCATION.BRANDS(companyId!, locationId!));
+    },
+    onError: (error: AxiosError<{ message?: string; error?: string }>) => {
+      toast.error(error?.message ?? BRAND_MESSAGES.UPDATE_ERROR);
+    },
+  });
+};
+
+/**
+ * Custom hook for brand data fetching
+ */
+export const useBrandData = (brandId: string) => {
+  const { companyId, locationId } = useParams();
+
+  return {
+    companyId,
+    locationId,
+    brandId,
+    queryKey: BRAND_QUERY_KEYS.BRAND_DETAIL(companyId!, locationId!, brandId),
+    enabled: !!(brandId && companyId && locationId),
+  };
+};

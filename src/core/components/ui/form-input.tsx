@@ -48,6 +48,7 @@ import type { Option } from "@/core/types";
 
 const INPUT_TYPES = {
   TEXT: "text",
+  URL: "url",
   EMAIL: "email",
   NUMBER: "number",
   TEXTAREA: "textarea",
@@ -139,6 +140,7 @@ type NonSelectProps<
 > = BaseInputProps<T, N> & {
   type:
     | typeof INPUT_TYPES.TEXT
+    | typeof INPUT_TYPES.URL
     | typeof INPUT_TYPES.NUMBER
     | typeof INPUT_TYPES.TEXTAREA
     | typeof INPUT_TYPES.RICH_TEXT

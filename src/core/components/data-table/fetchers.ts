@@ -51,7 +51,7 @@ export function createSimpleFetcher<
     /** Path to the data array in the API response */
     dataPath: string;
     /** Path to the total count in the API response */
-    totalPath: string;
+    totalPath?: string;
     /** Optional: custom filter mapping */
     filterMapping?: Record<
       string,
@@ -66,7 +66,7 @@ export function createSimpleFetcher<
 ): ServerTableFetcher<TData> {
   const config = {
     dataPath: options.dataPath,
-    totalPath: options.totalPath,
+    totalPath: options?.totalPath || "",
     pageParam: "page" as const,
     limitParam: "limit" as const,
     searchParam: "search" as const,

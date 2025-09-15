@@ -1,36 +1,23 @@
-import { Button } from "@/core/components/ui/button";
-import { PageContent } from "@/core/components/ui/structure";
-import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
-import { ArrowLeftIcon } from "@heroicons/react/24/solid";
-import { useNavigate, useParams } from "react-router";
-import BrandForm from "../shared/brand-form";
+import { BrandPageWrapper } from "../components/BrandPageWrapper";
+import { useBrandCreateMutation } from "../hooks/useBrandMutations";
+import { MODE } from "@/core/types";
+import type { BrandFormData } from "../schema/brand.schema";
 
 const CompanyLocationBrandCreate = () => {
-  const { companyId, locationId } = useParams();
-  const navigate = useNavigate();
+  const brandMutation = useBrandCreateMutation();
+
+  const handleSubmit = (data: BrandFormData) => {
+    brandMutation.mutate(data);
+  };
 
   return (
-    <PageContent
-      header={{
-        title: "Create Brand",
-        description: "Add a new brand for this location",
-        actions: (
-          <Button
-            onClick={() =>
-              navigate(
-                PANEL_ROUTES.COMPANY_LOCATION.BRANDS(companyId!, locationId!),
-              )
-            }
-            variant="outlined"
-          >
-            <ArrowLeftIcon className="mr-2 h-4 w-4" />
-            Back to Brands
-          </Button>
-        ),
-      }}
-    >
-      <BrandForm />
-    </PageContent>
+    <BrandPageWrapper
+      mode={MODE.ADD}
+      title="Create Brand"
+      description="Add a new brand for this location"
+      onSubmit={handleSubmit}
+      submitting={brandMutation.isPending}
+    />
   );
 };
 
