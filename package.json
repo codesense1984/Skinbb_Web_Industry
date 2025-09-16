@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "VITE_API_URL=https://api.skintruth.in vite",
-    "dev-port": "VITE_API_URL=https://api.skintruth.in vite --port 3000",
+    "dev": "cross-env VITE_API_URL=https://api.skintruth.in vite",
+    "dev-port": "cross-env VITE_API_URL=https://api.skintruth.in vite --port 3000",
     "build": "tsc -b && vite build",
     "build:simple": "vite build",
     "build:dev": "tsc -b && vite build --mode development",
@@ -83,6 +83,7 @@
     "@typescript-eslint/eslint-plugin": "^8.33.1",
     "@typescript-eslint/parser": "^8.33.1",
     "@vitejs/plugin-react": "^4.4.1",
+    "cross-env": "^7.0.3",
     "eslint": "^9.28.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-react": "^7.37.5",
