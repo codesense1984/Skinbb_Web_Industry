@@ -2,8 +2,8 @@ export const COMPANY = {
   TYPE_OPTIONS: [
     { label: "Public", value: "public" },
     { label: "Private Ltd", value: "privateLtd" },
-    { label: "Proprietor", value: "prePropietier" },
-    { label: "Other", value: "unknown" },
+    { label: "Proprietor", value: "proprietor" },
+    { label: "Other", value: "other" },
   ],
   CATEGORY_OPTIONS: [
     { label: "Brand", value: "brand" },

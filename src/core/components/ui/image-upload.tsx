@@ -31,16 +31,18 @@ export function ImageUpload({
       if (!files || files.length === 0) return;
 
       const file = files[0];
-      
+
       // Validate file size
       if (file.size > maxSize) {
-        alert(`File size must be less than ${Math.round(maxSize / 1024 / 1024)}MB`);
+        alert(
+          `File size must be less than ${Math.round(maxSize / 1024 / 1024)}MB`,
+        );
         return;
       }
 
       // Validate file type
-      if (!file.type.startsWith('image/')) {
-        alert('Please select an image file');
+      if (!file.type.startsWith("image/")) {
+        alert("Please select an image file");
         return;
       }
 
@@ -52,7 +54,7 @@ export function ImageUpload({
       };
       reader.readAsDataURL(file);
     },
-    [maxSize, onChange]
+    [maxSize, onChange],
   );
 
   const handleRemove = useCallback(() => {
@@ -83,7 +85,7 @@ export function ImageUpload({
               <User className="size-8 text-gray-400" />
             </AvatarFallback>
           </Avatar>
-          
+
           {/* Remove button */}
           {value && !disabled && (
             <Button
@@ -110,9 +112,7 @@ export function ImageUpload({
             <Upload className="size-4" />
             {value ? "Change Picture" : "Upload Picture"}
           </Button>
-          <p className="text-xs text-gray-500 mt-2">
-            {placeholder}
-          </p>
+          <p className="mt-2 text-xs text-gray-500">{placeholder}</p>
           <p className="text-xs text-gray-400">
             Max size: {Math.round(maxSize / 1024 / 1024)}MB
           </p>

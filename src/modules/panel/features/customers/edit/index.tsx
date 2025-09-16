@@ -9,10 +9,14 @@ import { Form } from "@/core/components/ui/form";
 import { FormFieldsRenderer } from "@/core/components/ui/form-input";
 import { PageContent } from "@/core/components/ui/structure";
 import { ImageUpload } from "@/core/components/ui/image-upload";
-import { customerFormSchema, customerFormFieldConfigs, type CustomerFormData } from "../customer-form/formSchema";
-import { 
-  apiGetCustomerById, 
-  apiUpdateCustomer 
+import {
+  customerFormSchema,
+  customerFormFieldConfigs,
+  type CustomerFormData,
+} from "../customer-form/formSchema";
+import {
+  apiGetCustomerById,
+  apiUpdateCustomer,
 } from "@/modules/panel/services/http/customer.service";
 import { apiGetRoles } from "@/modules/panel/services/http/role.service";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
@@ -46,13 +50,14 @@ const CustomerEdit = () => {
   });
 
   // Format roles for select options
-  const roleOptions = rolesResponse?.data?.roles?.map(role => ({
-    label: role.label,
-    value: role._id,
-  })) || [];
+  const roleOptions =
+    rolesResponse?.data?.roles?.map((role) => ({
+      label: role.label,
+      value: role._id,
+    })) || [];
 
   // Create dynamic field configs with role options
-  const dynamicFieldConfigs = customerFormFieldConfigs.map(field => {
+  const dynamicFieldConfigs = customerFormFieldConfigs.map((field) => {
     if (field.name === "role") {
       return {
         ...field,
@@ -90,7 +95,9 @@ const CustomerEdit = () => {
       navigate(PANEL_ROUTES.CUSTOMER.VIEW(id!));
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || "Failed to update customer");
+      toast.error(
+        error?.response?.data?.message || "Failed to update customer",
+      );
     },
   });
 
@@ -108,9 +115,9 @@ const CustomerEdit = () => {
           description: "Please wait while we load customer data.",
         }}
       >
-        <div className="flex items-center justify-center h-64">
+        <div className="flex h-64 items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <div className="border-primary mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2"></div>
             <p className="text-muted-foreground">Loading customer data...</p>
           </div>
         </div>
@@ -126,7 +133,7 @@ const CustomerEdit = () => {
           description: "The customer you're trying to edit doesn't exist.",
         }}
       >
-        <div className="flex items-center justify-center h-64">
+        <div className="flex h-64 items-center justify-center">
           <div className="text-center">
             <p className="text-muted-foreground mb-4">Customer not found</p>
             <Button onClick={() => navigate(PANEL_ROUTES.CUSTOMER.LIST)}>
@@ -164,9 +171,9 @@ const CustomerEdit = () => {
       <div className="w-full">
         <Form {...form}>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
               {/* Left Card - Basic Information */}
-              <div className="bg-white rounded-xl border shadow-sm p-8 space-y-6">
+              <div className="space-y-6 rounded-xl border bg-white p-8 shadow-sm">
                 <div className="space-y-4">
                   <h2 className="text-xl font-semibold text-gray-900">
                     Basic Information
@@ -175,8 +182,8 @@ const CustomerEdit = () => {
                     <FormFieldsRenderer<CustomerFormData>
                       control={control}
                       fieldConfigs={dynamicFieldConfigs
-                        .filter(field => field.name !== "profilePic")
-                        .map(field => ({
+                        .filter((field) => field.name !== "profilePic")
+                        .map((field) => ({
                           ...field,
                           disabled: false,
                         }))}
@@ -187,7 +194,7 @@ const CustomerEdit = () => {
               </div>
 
               {/* Right Card - Profile Picture Upload */}
-              <div className="bg-white rounded-xl border shadow-sm p-8 space-y-6">
+              <div className="space-y-6 rounded-xl border bg-white p-8 shadow-sm">
                 <div className="space-y-4">
                   <h2 className="text-xl font-semibold text-gray-900">
                     Profile Picture
@@ -205,23 +212,19 @@ const CustomerEdit = () => {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex justify-end space-x-4 pt-6 border-t">
-                <Button
-                  type="button"
-                  variant="outlined"
-                  onClick={() => navigate(PANEL_ROUTES.CUSTOMER.VIEW(id!))}
-                  disabled={isLoading}
-                >
+            <div className="flex justify-end space-x-4 border-t pt-6">
+              <Button
+                type="button"
+                variant="outlined"
+                onClick={() => navigate(PANEL_ROUTES.CUSTOMER.VIEW(id!))}
+                disabled={isLoading}
+              >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="min-w-32"
-              >
+              <Button type="submit" disabled={isLoading} className="min-w-32">
                 {isLoading ? (
                   <div className="flex items-center space-x-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
                     <span>Updating...</span>
                   </div>
                 ) : (

@@ -34,7 +34,9 @@ export interface CompanyBrandWithLocation {
   locationState: string;
 }
 
-export const columns = (companyId: string): ColumnDef<CompanyBrandWithLocation>[] => [
+export const columns = (
+  companyId: string,
+): ColumnDef<CompanyBrandWithLocation>[] => [
   {
     header: "Brand Name",
     accessorKey: "name",

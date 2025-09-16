@@ -19,6 +19,18 @@ export interface StatusStyle {
 
 export const STATUS_MAP: Record<ModuleType, Record<string, StatusStyle>> = {
   brand: {
+    approved: {
+      label: "Approved",
+      value: "approved",
+      textColor: "text-blue-700",
+      bgColor: "bg-blue-100",
+    },
+    pending: {
+      label: "Pending",
+      value: "pending",
+      textColor: "text-gray-700",
+      bgColor: "bg-gray-100",
+    },
     active: {
       label: "Active",
       value: "active",
@@ -225,7 +237,6 @@ export const STATUS_MAP: Record<ModuleType, Record<string, StatusStyle>> = {
       bgColor: "bg-blue-100",
     },
   },
-  
 
   company_user: {
     active: {

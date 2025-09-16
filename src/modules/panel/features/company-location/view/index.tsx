@@ -498,7 +498,9 @@ const CompanyLocationView = () => {
                       label="Total SKU"
                       value={
                         <span className="text-lg font-bold">
-                          {brand.totalSKU ? brand.totalSKU.toLocaleString() : "-"}
+                          {brand.totalSKU
+                            ? brand.totalSKU.toLocaleString()
+                            : "-"}
                         </span>
                       }
                       // iconBgColor="bg-blue-100"
@@ -643,7 +645,6 @@ const CompanyLocationView = () => {
                       />
                     </CardContent>
                   </Card>
-
                 </div>
               ))}
             </div>

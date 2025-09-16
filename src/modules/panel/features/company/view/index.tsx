@@ -19,10 +19,10 @@ import { apiGetCompanyLocationById } from "@/modules/panel/services/http/company
 import { useQuery } from "@tanstack/react-query";
 import { useParams, Link, useNavigate } from "react-router";
 import { formatDate } from "@/core/utils";
-import { 
-  BuildingOfficeIcon, 
-  MapPinIcon, 
-  PhoneIcon, 
+import {
+  BuildingOfficeIcon,
+  MapPinIcon,
+  PhoneIcon,
   CalendarIcon,
   DocumentTextIcon,
   LinkIcon,
@@ -100,7 +100,6 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
 }) => {
   const locationId = address.addressId || address._id;
 
-
   const {
     data: locationData,
     isLoading,
@@ -133,7 +132,7 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                 </Badge>
               )}
             </div>
-    <div className="min-w-0 flex-1">
+            <div className="min-w-0 flex-1">
               <p className="mb-1 font-medium text-gray-900">
                 {address.addressLine1}
               </p>
@@ -180,9 +179,9 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                 <ExclamationTriangleIcon className="mx-auto mb-2 h-8 w-8 text-red-500" />
                 <p className="text-sm text-red-600">
                   Failed to load location details
-      </p>
-    </div>
-  </div>
+                </p>
+              </div>
+            </div>
           ) : location ? (
             <>
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -350,7 +349,6 @@ const CompanyView = () => {
   const navigate = useNavigate();
   const [expandedAddress, setExpandedAddress] = useState<string | null>(null);
 
-
   const {
     data: companyData,
     isLoading: companyLoading,
@@ -389,7 +387,7 @@ const CompanyView = () => {
                       {company.companyName?.charAt(0) || "C"}
                     </div>
                   </div>
-                  
+
                   {/* Company Basic Info */}
                   <div className="min-w-0 flex-1">
                     <div className="mb-4 flex items-center gap-3">
@@ -495,8 +493,8 @@ const CompanyView = () => {
                       />
                     ))}
                   </Accordion>
-          </CardContent>
-        </Card>
+                </CardContent>
+              </Card>
             )}
           </div>
         </div>

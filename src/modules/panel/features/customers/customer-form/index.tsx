@@ -9,11 +9,15 @@ import { Form } from "@/core/components/ui/form";
 import { FormFieldsRenderer } from "@/core/components/ui/form-input";
 import { PageContent } from "@/core/components/ui/structure";
 import { ImageUpload } from "@/core/components/ui/image-upload";
-import { customerFormSchema, customerFormFieldConfigs, type CustomerFormData } from "./formSchema";
-import { 
-  apiGetCustomerById, 
-  apiCreateCustomer, 
-  apiUpdateCustomer 
+import {
+  customerFormSchema,
+  customerFormFieldConfigs,
+  type CustomerFormData,
+} from "./formSchema";
+import {
+  apiGetCustomerById,
+  apiCreateCustomer,
+  apiUpdateCustomer,
 } from "@/modules/panel/services/http/customer.service";
 import { apiGetRoles } from "@/modules/panel/services/http/role.service";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
@@ -24,20 +28,20 @@ const MODE = {
   VIEW: "view",
 } as const;
 
-type Mode = typeof MODE[keyof typeof MODE];
+type Mode = (typeof MODE)[keyof typeof MODE];
 
 const CustomerForm = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
   const pathname = location.pathname;
-  
+
   // Determine mode based on URL path
   let mode: Mode = MODE.ADD;
   if (id) {
-    if (pathname.includes('/view/')) {
+    if (pathname.includes("/view/")) {
       mode = MODE.VIEW;
-    } else if (pathname.includes('/edit/')) {
+    } else if (pathname.includes("/edit/")) {
       mode = MODE.EDIT;
     } else {
       mode = MODE.EDIT; // fallback
@@ -74,13 +78,14 @@ const CustomerForm = () => {
   });
 
   // Format roles for select options
-  const roleOptions = rolesResponse?.data?.roles?.map(role => ({
-    label: role.label,
-    value: role._id,
-  })) || [];
+  const roleOptions =
+    rolesResponse?.data?.roles?.map((role) => ({
+      label: role.label,
+      value: role._id,
+    })) || [];
 
   // Create dynamic field configs with role options
-  const dynamicFieldConfigs = customerFormFieldConfigs.map(field => {
+  const dynamicFieldConfigs = customerFormFieldConfigs.map((field) => {
     if (field.name === "role") {
       return {
         ...field,
@@ -111,7 +116,9 @@ const CustomerForm = () => {
       navigate(PANEL_ROUTES.CUSTOMER.LIST);
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || "Failed to create customer");
+      toast.error(
+        error?.response?.data?.message || "Failed to create customer",
+      );
     },
   });
 
@@ -123,7 +130,9 @@ const CustomerForm = () => {
       navigate(PANEL_ROUTES.CUSTOMER.LIST);
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || "Failed to update customer");
+      toast.error(
+        error?.response?.data?.message || "Failed to update customer",
+      );
     },
   });
 
@@ -135,7 +144,8 @@ const CustomerForm = () => {
     }
   };
 
-  const isLoading = createCustomerMutation.isPending || updateCustomerMutation.isPending;
+  const isLoading =
+    createCustomerMutation.isPending || updateCustomerMutation.isPending;
 
   if ((mode === MODE.EDIT || mode === MODE.VIEW) && isLoadingCustomer) {
     return (
@@ -145,9 +155,9 @@ const CustomerForm = () => {
           description: "Please wait while we load customer data.",
         }}
       >
-        <div className="flex items-center justify-center h-64">
+        <div className="flex h-64 items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <div className="border-primary mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2"></div>
             <p className="text-muted-foreground">Loading customer data...</p>
           </div>
         </div>
@@ -158,12 +168,18 @@ const CustomerForm = () => {
   return (
     <PageContent
       header={{
-        title: mode === MODE.ADD ? "Create Customer" : mode === MODE.EDIT ? "Edit Customer" : "View Customer",
-        description: mode === MODE.ADD 
-          ? "Add a new customer to your system." 
-          : mode === MODE.EDIT 
-          ? "Update customer information and settings."
-          : "View customer information and details.",
+        title:
+          mode === MODE.ADD
+            ? "Create Customer"
+            : mode === MODE.EDIT
+              ? "Edit Customer"
+              : "View Customer",
+        description:
+          mode === MODE.ADD
+            ? "Add a new customer to your system."
+            : mode === MODE.EDIT
+              ? "Update customer information and settings."
+              : "View customer information and details.",
         actions: (
           <Button
             variant="outlined"
@@ -177,9 +193,9 @@ const CustomerForm = () => {
       <div className="w-full">
         <Form {...form}>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
               {/* Left Card - Basic Information */}
-              <div className="bg-white rounded-xl border shadow-sm p-8 space-y-6">
+              <div className="space-y-6 rounded-xl border bg-white p-8 shadow-sm">
                 <div className="space-y-4">
                   <h2 className="text-xl font-semibold text-gray-900">
                     Basic Information
@@ -188,8 +204,8 @@ const CustomerForm = () => {
                     <FormFieldsRenderer<CustomerFormData>
                       control={control}
                       fieldConfigs={dynamicFieldConfigs
-                        .filter(field => field.name !== "profilePic")
-                        .map(field => ({
+                        .filter((field) => field.name !== "profilePic")
+                        .map((field) => ({
                           ...field,
                           disabled: mode === MODE.VIEW,
                         }))}
@@ -200,7 +216,7 @@ const CustomerForm = () => {
               </div>
 
               {/* Right Card - Profile Picture Upload */}
-              <div className="bg-white rounded-xl border shadow-sm p-8 space-y-6">
+              <div className="space-y-6 rounded-xl border bg-white p-8 shadow-sm">
                 <div className="space-y-4">
                   <h2 className="text-xl font-semibold text-gray-900">
                     Profile Picture
@@ -219,7 +235,7 @@ const CustomerForm = () => {
 
             {/* Action Buttons - Only show for ADD and EDIT modes */}
             {mode !== MODE.VIEW && (
-              <div className="flex justify-end space-x-4 pt-6 border-t">
+              <div className="flex justify-end space-x-4 border-t pt-6">
                 <Button
                   type="button"
                   variant="outlined"
@@ -228,20 +244,18 @@ const CustomerForm = () => {
                 >
                   Cancel
                 </Button>
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="min-w-32"
-                >
+                <Button type="submit" disabled={isLoading} className="min-w-32">
                   {isLoading ? (
                     <div className="flex items-center space-x-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
                       <span>
                         {mode === MODE.ADD ? "Creating..." : "Updating..."}
                       </span>
                     </div>
+                  ) : mode === MODE.ADD ? (
+                    "Create Customer"
                   ) : (
-                    mode === MODE.ADD ? "Create Customer" : "Update Customer"
+                    "Update Customer"
                   )}
                 </Button>
               </div>

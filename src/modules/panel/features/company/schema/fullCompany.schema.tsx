@@ -216,13 +216,17 @@ export function createCompanySchema(
       businessType: createRequiredString("Business type"),
       establishedIn: z.union([
         createRequiredString("Established year"),
-        z.date().refine((date) => {
-          const today = new Date();
-          today.setHours(23, 59, 59, 999); // Set to end of today to allow today's date
-          return date <= today;
-        }, {
-          message: "Established date cannot be in the future. Please select today or a past date.",
-        }),
+        z.date().refine(
+          (date) => {
+            const today = new Date();
+            today.setHours(23, 59, 59, 999); // Set to end of today to allow today's date
+            return date <= today;
+          },
+          {
+            message:
+              "Established date cannot be in the future. Please select today or a past date.",
+          },
+        ),
       ]),
       website: createUrlValidator("website"),
       isSubsidiary: z.string(),

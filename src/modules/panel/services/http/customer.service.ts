@@ -1,13 +1,13 @@
 import { api } from "@/core/services/http";
-import type { 
-  CustomerListResponse, 
+import type {
+  CustomerListResponse,
   CustomerListParams,
   Customer,
   CustomerCreateRequest,
   CustomerUpdateRequest,
   CustomerCreateResponse,
   CustomerUpdateResponse,
-  CustomerDeleteResponse
+  CustomerDeleteResponse,
 } from "@/modules/panel/types/customer.type";
 import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
 
@@ -25,8 +25,10 @@ export async function apiGetCustomers(
   if (params?.sort?.key) searchParams.append("sort[key]", params.sort.key);
 
   const queryString = searchParams.toString();
-  const url = queryString ? `${ENDPOINTS.USER.CUSTOMERS}?${queryString}` : ENDPOINTS.USER.CUSTOMERS;
-  
+  const url = queryString
+    ? `${ENDPOINTS.USER.CUSTOMERS}?${queryString}`
+    : ENDPOINTS.USER.CUSTOMERS;
+
   console.log("Fetching customers with URL:", url);
   return api.get<CustomerListResponse>(url, { signal });
 }
@@ -34,21 +36,26 @@ export async function apiGetCustomers(
 export async function apiGetCustomerById(
   id: string,
   signal?: AbortSignal,
-): Promise<{ statusCode: number; data: Customer; message: string; success: boolean }> {
+): Promise<{
+  statusCode: number;
+  data: Customer;
+  message: string;
+  success: boolean;
+}> {
   // Since individual customer API might not work, fetch from the list and find the customer
   try {
     const response = await apiGetCustomers({ page: 1, limit: 1000 }, signal);
-    const customer = response.data.customers.find(c => c._id === id);
-    
+    const customer = response.data.customers.find((c) => c._id === id);
+
     if (!customer) {
       throw new Error("Customer not found");
     }
-    
+
     return {
       statusCode: 200,
       data: customer,
       message: "Customer found",
-      success: true
+      success: true,
     };
   } catch (error) {
     console.error("Error fetching customer:", error);
@@ -61,7 +68,9 @@ export async function apiCreateCustomer(
   signal?: AbortSignal,
 ): Promise<CustomerCreateResponse> {
   try {
-    return api.post<CustomerCreateResponse>(ENDPOINTS.USER.CUSTOMER, data, { signal });
+    return api.post<CustomerCreateResponse>(ENDPOINTS.USER.CUSTOMER, data, {
+      signal,
+    });
   } catch (error) {
     console.error("Create customer API failed, using mock response:", error);
     // Mock response for development
@@ -71,17 +80,19 @@ export async function apiCreateCustomer(
       email: data.email,
       phoneNumber: data.phoneNumber,
       role: data.role,
-      profilePic: data.profilePic ? { _id: "mock_pic", url: data.profilePic } : null,
+      profilePic: data.profilePic
+        ? { _id: "mock_pic", url: data.profilePic }
+        : null,
       totalOrders: 0,
       totalSpent: 0,
       createdAt: new Date().toISOString(),
     };
-    
+
     return {
       statusCode: 201,
       data: mockCustomer,
       message: "Customer created successfully (mock)",
-      success: true
+      success: true,
     };
   }
 }
@@ -103,17 +114,19 @@ export async function apiUpdateCustomer(
       email: data.email || "updated@example.com",
       phoneNumber: data.phoneNumber || "1234567890",
       role: data.role,
-      profilePic: data.profilePic ? { _id: "mock_pic", url: data.profilePic } : null,
+      profilePic: data.profilePic
+        ? { _id: "mock_pic", url: data.profilePic }
+        : null,
       totalOrders: 0,
       totalSpent: 0,
       createdAt: new Date().toISOString(),
     };
-    
+
     return {
       statusCode: 200,
       data: mockCustomer,
       message: "Customer updated successfully (mock)",
-      success: true
+      success: true,
     };
   }
 }

@@ -45,7 +45,7 @@ export const columns: ColumnDef<SellerMemberList>[] = [
       const firstName = getValue() as string;
       const user = row.original;
       const fullName = `${firstName} ${user.lastName}`;
-      
+
       return (
         <ul className="flex min-w-40 items-center gap-2">
           <Avatar className="size-10 rounded-md border">
@@ -55,13 +55,15 @@ export const columns: ColumnDef<SellerMemberList>[] = [
               alt={`${fullName} profile`}
             />
             <AvatarFallback className="rounded-md capitalize">
-              {firstName ? firstName.charAt(0) : user.email?.charAt(0) || 'U'}
+              {firstName ? firstName.charAt(0) : user.email?.charAt(0) || "U"}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
             <span className="font-medium">{fullName}</span>
             {user.email && (
-              <span className="text-sm text-muted-foreground">{user.email}</span>
+              <span className="text-muted-foreground text-sm">
+                {user.email}
+              </span>
             )}
           </div>
         </ul>
@@ -76,7 +78,7 @@ export const columns: ColumnDef<SellerMemberList>[] = [
       return phone ? (
         <div className="w-max">{phone}</div>
       ) : (
-        <div className="w-max text-muted-foreground">-</div>
+        <div className="text-muted-foreground w-max">-</div>
       );
     },
   },
@@ -90,7 +92,7 @@ export const columns: ColumnDef<SellerMemberList>[] = [
           {roleId}
         </Badge>
       ) : (
-        <div className="w-max text-muted-foreground">-</div>
+        <div className="text-muted-foreground w-max">-</div>
       );
     },
   },
@@ -100,10 +102,7 @@ export const columns: ColumnDef<SellerMemberList>[] = [
     cell: ({ getValue }) => {
       const active = getValue() as boolean;
       return (
-        <Badge 
-          variant={active ? "default" : "destructive"} 
-          className="w-max"
-        >
+        <Badge variant={active ? "default" : "destructive"} className="w-max">
           {active ? "Active" : "Inactive"}
         </Badge>
       );

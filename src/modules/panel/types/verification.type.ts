@@ -58,7 +58,7 @@ export interface GstVerificationData {
   lgnm: string;
   stj: string;
   dty: string;
-  adadr: any[];
+  adadr: unknown[];
   cxdt: string;
   gstin: string;
   nba: string[];
@@ -119,8 +119,8 @@ export interface CinCompanyMasterData {
   description_of_main_division: string;
   number_of_partners: string;
   rd_region: string;
-  balance_sheets: any[];
-  annual_returns: any[];
+  balance_sheets: unknown[];
+  annual_returns: unknown[];
 }
 
 export interface CinDirectorDetails {
@@ -135,7 +135,7 @@ export interface CinDirectorDetails {
 export interface CinVerificationData {
   "@entity": string;
   company_master_data: CinCompanyMasterData;
-  charges: any[];
+  charges: unknown[];
   "directors/signatory_details": CinDirectorDetails[];
 }
 

@@ -80,7 +80,9 @@ const CustomerList = () => {
         description: "Manage and view customer information and analytics.",
         actions: (
           <Button
-            onClick={() => window.location.href = PANEL_ROUTES.CUSTOMER.CREATE}
+            onClick={() =>
+              (window.location.href = PANEL_ROUTES.CUSTOMER.CREATE)
+            }
           >
             Add Customer
           </Button>

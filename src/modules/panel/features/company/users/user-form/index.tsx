@@ -475,10 +475,10 @@ const CompanyUserForm = () => {
 
   const pageTitle =
     mode === MODE.ADD
-      ? `Add User`
+      ? "Add User"
       : mode === MODE.EDIT
-        ? `Edit User`
-        : `View User`;
+        ? "Edit User"
+        : "View User";
 
   return (
     <PageContent

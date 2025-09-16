@@ -1,14 +1,11 @@
 import { createSimpleFetcher, DataTable } from "@/core/components/data-table";
 import { StatusFilter } from "@/core/components/data-table/components/table-filter";
-import { StatCard } from "@/core/components/ui/stat";
-import { PageContent } from "@/core/components/ui/structure";
 import { Button } from "@/core/components/ui/button";
-import { formatNumber } from "@/core/utils";
-import { useCallback, useEffect, useState } from "react";
-import { columns, initialStatsData } from "./data";
+import { PageContent } from "@/core/components/ui/structure";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { apiGetProducts } from "@/modules/panel/services/http/product.service";
 import { NavLink } from "react-router";
-import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
+import { columns } from "./data";
 
 // Create fetcher for server-side data
 const fetcher = () =>
@@ -24,60 +21,60 @@ const fetcher = () =>
   });
 
 const ProductList = () => {
-  const [stats, setStats] = useState(initialStatsData);
+  // const [stats, setStats] = useState(initialStatsData);
 
-  // Fetch stats separately since we need them for the summary cards
-  const fetchStats = useCallback(async () => {
-    try {
-      const response = await apiGetProducts({ page: 1, limit: 1000 }); // Get all for stats
+  // // Fetch stats separately since we need them for the summary cards
+  // const fetchStats = useCallback(async () => {
+  //   try {
+  //     const response = await apiGetProducts({ page: 1, limit: 1000 }); // Get all for stats
 
-      if (response.success) {
-        const publishedProducts = response.data.products.filter(
-          (p) => p.status === "publish",
-        ).length;
-        const draftProducts = response.data.products.filter(
-          (p) => p.status === "draft",
-        ).length;
-        const totalVariants = response.data.products.reduce(
-          (sum, product) => sum + (product.variants?.length || 0),
-          0,
-        );
+  //     if (response?.success) {
+  //       const publishedProducts = response?.data?.products.filter(
+  //         (p) => p.status === "publish",
+  //       ).length;
+  //       const draftProducts = response?.data?.products.filter(
+  //         (p) => p.status === "draft",
+  //       ).length;
+  //       const totalVariants = response?.data?.products.reduce(
+  //         (sum, product) => sum + (product.variants?.length || 0),
+  //         0,
+  //       );
 
-        setStats([
-          {
-            title: "Total Products",
-            value: response.data.totalRecords,
-            barColor: "bg-primary",
-            icon: true,
-          },
-          {
-            title: "Published Products",
-            value: publishedProducts,
-            barColor: "bg-blue-300",
-            icon: false,
-          },
-          {
-            title: "Draft Products",
-            value: draftProducts,
-            barColor: "bg-violet-300",
-            icon: false,
-          },
-          {
-            title: "Total Variants",
-            value: totalVariants,
-            barColor: "bg-red-300",
-            icon: true,
-          },
-        ]);
-      }
-    } catch (error) {
-      console.error("Failed to fetch product stats:", error);
-    }
-  }, []);
+  //       setStats([
+  //         {
+  //           title: "Total Products",
+  //           value: response?.data?.totalRecords,
+  //           barColor: "bg-primary",
+  //           icon: true,
+  //         },
+  //         {
+  //           title: "Published Products",
+  //           value: publishedProducts,
+  //           barColor: "bg-blue-300",
+  //           icon: false,
+  //         },
+  //         {
+  //           title: "Draft Products",
+  //           value: draftProducts || 0,
+  //           barColor: "bg-violet-300",
+  //           icon: false,
+  //         },
+  //         {
+  //           title: "Total Variants",
+  //           value: totalVariants,
+  //           barColor: "bg-red-300",
+  //           icon: true,
+  //         },
+  //       ]);
+  //     }
+  //   } catch (error) {
+  //     console.error("Failed to fetch product stats:", error);
+  //   }
+  // }, []);
 
-  useEffect(() => {
-    fetchStats();
-  }, [fetchStats]);
+  // useEffect(() => {
+  //   fetchStats();
+  // }, [fetchStats]);
 
   return (
     <PageContent
@@ -92,7 +89,7 @@ const ProductList = () => {
         ),
       }}
     >
-      <section
+      {/* <section
         className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:gap-5 lg:grid-cols-4"
         aria-label="Product Statistics"
       >
@@ -104,7 +101,7 @@ const ProductList = () => {
             barColor={item.barColor}
           />
         ))}
-      </section>
+      </section> */}
 
       <DataTable
         columns={columns}

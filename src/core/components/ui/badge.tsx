@@ -86,8 +86,6 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
         </div>
       );
 
-    
-
     case "label":
       return (
         <span
