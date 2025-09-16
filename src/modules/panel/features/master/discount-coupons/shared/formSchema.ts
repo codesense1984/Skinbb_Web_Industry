@@ -46,7 +46,7 @@ export const couponFormInputSchema = z.object({
     ),
   validFrom: z.union([z.string(), z.date()]),
   expiresAt: z.union([z.string(), z.date()]),
-  isActive: z.string().optional(),
+  isActive: z.boolean(),
 });
 
 // Output schema for API (transforms dates to strings)
@@ -138,10 +138,11 @@ export const couponSchema = {
     {
       name: "description",
       label: "Description",
-      type: INPUT_TYPES.TEXTAREA,
+      type: INPUT_TYPES.RICH_TEXT,
       placeholder: "Describe what this coupon offers...",
       description: "Detailed description of the coupon offer",
       required: true,
+      className: "md:col-span-2",
       disabled: mode === MODE.VIEW,
     },
   ],
@@ -207,5 +208,13 @@ export const couponSchema = {
       mode: "single" as const,
     },
   ],
-
+  status: ({ mode }: ModeProps): FormFieldConfig<CouponFormData>[] => [
+    {
+      name: "isActive",
+      label: "Status of the coupon",
+      type: INPUT_TYPES.CHECKBOX,
+      description: "",
+      disabled: mode === MODE.VIEW,
+    },
+  ],
 };

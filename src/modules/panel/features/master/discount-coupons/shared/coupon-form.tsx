@@ -1,11 +1,12 @@
-import { useForm, FormProvider } from "react-hook-form";
+import { useForm, FormProvider, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { Button } from "@/core/components/ui/button";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/core/components/ui/card";
@@ -25,6 +26,8 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { MODE } from "@/core/types";
+import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
+import { Badge } from "@/core/components/ui/badge";
 
 // Default values function with parameters
 const getDefaultValues = (couponData?: Coupon | null): CouponFormData => {
@@ -38,15 +41,17 @@ const getDefaultValues = (couponData?: Coupon | null): CouponFormData => {
       ? String(couponData.discountValue)
       : "0",
     usageLimit: couponData?.usageLimit ? String(couponData.usageLimit) : "1",
-    validFrom: couponData?.validFrom
-      ? new Date(couponData.validFrom).toISOString().split("T")[0]
-      : new Date().toISOString().split("T")[0],
-    expiresAt: couponData?.expiresAt
-      ? new Date(couponData.expiresAt).toISOString().split("T")[0]
-      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-          .toISOString()
-          .split("T")[0],
-    isActive: couponData?.isActive ? "true" : "false",
+    validFrom: new Date(couponData?.validFrom ?? ""),
+    // validFrom: couponData?.validFrom
+    //   ? new Date(couponData.validFrom).toISOString().split("T")[0]
+    //   : new Date().toISOString().split("T")[0],
+    expiresAt: new Date(couponData?.expiresAt ?? ""),
+    // expiresAt: couponData?.expiresAt
+    //   ? new Date(couponData.expiresAt).toISOString().split("T")[0]
+    //   : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+    //       .toISOString()
+    //       .split("T")[0],
+    isActive: couponData?.isActive ?? false,
   };
 };
 
@@ -62,6 +67,7 @@ export function CouponForm({
   isView = false,
 }: CouponFormProps) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const mode = isView ? MODE.VIEW : isEdit ? MODE.EDIT : MODE.ADD;
 
   // Function to handle API errors and set form field errors
@@ -136,6 +142,7 @@ export function CouponForm({
     defaultValues: getDefaultValues(initialData),
   });
 
+  console.log(form.watch(), "watch");
   // Clear server errors when user changes form values
   useEffect(() => {
     const subscription = form.watch((_, { name }) => {
@@ -156,13 +163,14 @@ export function CouponForm({
         ...validatedData,
         discountValue: Number(validatedData.discountValue),
         usageLimit: Number(validatedData.usageLimit),
-        isActive: validatedData.isActive === "true",
+        isActive: validatedData.isActive,
       };
       console.log("Creating coupon with data:", requestData);
       return apiCreateCoupon(requestData);
     },
     onSuccess: () => {
       toast.success("Coupon created successfully");
+      queryClient.invalidateQueries({ queryKey: [ENDPOINTS.COUPON.LIST] });
       navigate(PANEL_ROUTES.MASTER.DISCOUNT_COUPON);
     },
     onError: (error: unknown) => {
@@ -179,11 +187,12 @@ export function CouponForm({
         ...validatedData,
         discountValue: Number(validatedData.discountValue),
         usageLimit: Number(validatedData.usageLimit),
-        isActive: validatedData.isActive === "true",
+        isActive: validatedData.isActive,
       });
     },
     onSuccess: () => {
       toast.success("Coupon updated successfully");
+      queryClient.invalidateQueries({ queryKey: [ENDPOINTS.COUPON.LIST] });
       navigate(PANEL_ROUTES.MASTER.DISCOUNT_COUPON);
     },
     onError: (error: unknown) => {
@@ -203,58 +212,85 @@ export function CouponForm({
       createMutation.mutate(data);
     }
   };
+  const onError = (err: FieldErrors<CouponFormData>) => {
+    console.log("🚀 ~ onError ~ err:", err);
+  };
 
   const isLoading = createMutation.isPending || updateMutation.isPending;
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form
+        onSubmit={form.handleSubmit(onSubmit, onError)}
+        className="space-y-6"
+      >
         {/* Basic Information */}
         <Card>
-          <CardHeader>
-            <CardTitle>Basic Information</CardTitle>
+          <CardHeader className="flex flex-wrap justify-between gap-2 border-b">
+            <CardTitle>Basic Information </CardTitle>
+            <Badge variant={"outline"} className="bg-muted/50 capitalize">
+              {initialData?.status}
+            </Badge>
           </CardHeader>
-          <CardContent className="pt-6">
+          <CardContent className="pt-2">
             <FormFieldsRenderer<CouponFormData>
               control={form.control}
               fieldConfigs={couponSchema.basic_information({ mode })}
-              className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3"
-            />
-          </CardContent>
-        </Card>
-
-        {/* Coupon Details */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Coupon Details</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <FormFieldsRenderer<CouponFormData>
-              control={form.control}
-              fieldConfigs={couponSchema.coupon_details({ mode })}
-              className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3"
+              className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2"
             />
           </CardContent>
         </Card>
 
         {/* Validity Period */}
+        <div className="grid gap-4 md:grid-cols-10 md:gap-6">
+          <Card className="md:col-span-6">
+            <CardHeader className="border-b">
+              <CardTitle>Validity Period</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-2">
+              <FormFieldsRenderer<CouponFormData>
+                control={form.control}
+                fieldConfigs={couponSchema.validity_period({ mode })}
+                className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2"
+              />
+            </CardContent>
+          </Card>
+          <Card className="md:col-span-4">
+            <CardHeader className="flex flex-wrap justify-between gap-2 border-b">
+              <CardTitle className="flex items-center gap-2">Status</CardTitle>
+              <CardDescription className="font-normal">
+                ⚠️ Turning this off will remove this Coupon to every section.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-2">
+              <p></p>
+              <br />
+              <FormFieldsRenderer<CouponFormData>
+                control={form.control}
+                fieldConfigs={couponSchema.status({ mode })}
+                className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1"
+              />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Coupon Details */}
         <Card>
-          <CardHeader>
-            <CardTitle>Validity Period</CardTitle>
+          <CardHeader className="border-b">
+            <CardTitle>Coupon Details</CardTitle>
           </CardHeader>
-          <CardContent className="pt-6">
+          <CardContent className="pt-2">
             <FormFieldsRenderer<CouponFormData>
               control={form.control}
-              fieldConfigs={couponSchema.validity_period({ mode })}
-              className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3"
+              fieldConfigs={couponSchema.coupon_details({ mode })}
+              className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-2"
             />
           </CardContent>
         </Card>
 
-
         {/* Form Actions */}
         {!isView && (
-          <div className="flex justify-end space-x-4 border-t pt-6">
+          <div className="flex justify-end space-x-4">
             <Button
               type="button"
               variant="outlined"
@@ -268,11 +304,7 @@ export function CouponForm({
               variant="contained"
               color="secondary"
             >
-              {isLoading
-                ? "Saving..."
-                : isEdit
-                  ? "Update Coupon"
-                  : "Create Coupon"}
+              {isLoading ? "Saving..." : "Save"}
             </Button>
           </div>
         )}
