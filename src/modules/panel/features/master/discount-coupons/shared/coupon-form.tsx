@@ -251,19 +251,6 @@ export function CouponForm({
           </CardContent>
         </Card>
 
-        {/* Status */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Status</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <FormFieldsRenderer<CouponFormData>
-              control={form.control}
-              fieldConfigs={couponSchema.status({ mode })}
-              className="flex"
-            />
-          </CardContent>
-        </Card>
 
         {/* Form Actions */}
         {!isView && (

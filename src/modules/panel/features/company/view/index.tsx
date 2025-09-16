@@ -17,7 +17,7 @@ import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
 import { apiGetCompanyDetailById } from "@/modules/panel/services/http/company.service";
 import { apiGetCompanyLocationById } from "@/modules/panel/services/http/company-location.service";
 import { useQuery } from "@tanstack/react-query";
-import { useParams, Link } from "react-router";
+import { useParams, Link, useNavigate } from "react-router";
 import { formatDate } from "@/core/utils";
 import {
   BuildingOfficeIcon,
@@ -30,7 +30,11 @@ import {
   CheckCircleIcon,
   XCircleIcon,
   ExclamationTriangleIcon,
+  UserGroupIcon,
+  TagIcon,
 } from "@heroicons/react/24/outline";
+import { Button } from "@/core/components/ui/button";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { LocationService } from "@/core/services/location.service";
 
 // Reusable InfoItem component for displaying information with icons
@@ -84,6 +88,7 @@ interface LocationAccordionItemProps {
   companyId: string;
   index: number;
   isExpanded: boolean;
+  onViewBrands: (companyId: string, locationId: string) => void;
 }
 
 const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
@@ -91,6 +96,7 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
   companyId,
   index,
   isExpanded,
+  onViewBrands,
 }) => {
   const locationId = address.addressId || address._id;
 
@@ -139,6 +145,20 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                 <p className="text-xs text-gray-500">Near {address.landmark}</p>
               )}
             </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={(e) => {
+                e.stopPropagation();
+                onViewBrands(companyId, locationId || "");
+              }}
+              variant="outlined"
+              size="sm"
+              className="bg-white/80 hover:bg-white border-gray-200 text-gray-700 hover:text-gray-800"
+            >
+              <TagIcon className="mr-1 h-3 w-3" />
+              View Brands
+            </Button>
           </div>
         </div>
       </AccordionTrigger>
@@ -326,6 +346,7 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
 
 const CompanyView = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [expandedAddress, setExpandedAddress] = useState<string | null>(null);
 
   const {
@@ -340,6 +361,10 @@ const CompanyView = () => {
 
   const company = companyData?.data;
 
+  const handleViewBrands = (companyId: string, locationId: string) => {
+    navigate(PANEL_ROUTES.COMPANY_LOCATION.BRANDS(companyId, locationId));
+  };
+
   return (
     <PageContent
       header={{
@@ -352,51 +377,85 @@ const CompanyView = () => {
       {company && (
         <div className="space-y-6">
           {/* Company Header Summary */}
-          <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+          <Card className="border-gray-200 bg-white shadow-sm">
             <CardContent className="pt-6">
               <div className="flex items-start justify-between">
-                <div className="flex items-start gap-6">
+                <div className="flex items-start gap-6 flex-1">
                   {/* Company Logo Placeholder */}
-                  <div className="flex-shrink-0">
-                    <div className="flex h-20 w-20 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-2xl font-bold text-white">
+                <div className="flex-shrink-0">
+                    <div className="flex h-20 w-20 items-center justify-center rounded-xl bg-gradient-to-br from-gray-600 to-gray-800 text-2xl font-bold text-white">
                       {company.companyName?.charAt(0) || "C"}
                     </div>
                   </div>
 
                   {/* Company Basic Info */}
                   <div className="min-w-0 flex-1">
-                    <div className="mb-2 flex items-center gap-3">
+                    <div className="mb-4 flex items-center gap-3">
                       <h1 className="truncate text-3xl font-bold text-gray-900">
                         {company.companyName}
                       </h1>
                     </div>
-
-                    <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-3">
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <CalendarIcon className="h-4 w-4" />
-                        <span>Est. {company.establishedIn}</span>
+                    
+                    <div className="grid grid-cols-1 gap-6 text-sm md:grid-cols-2 lg:grid-cols-4">
+                      <div className="flex items-start gap-3">
+                        <div className="bg-gray-100 border border-gray-200 rounded-lg p-2">
+                          <CalendarIcon className="h-4 w-4 text-gray-600" />
+                        </div>
+                        <div>
+                          <p className="text-gray-500 text-xs font-medium">Established</p>
+                          <p className="text-gray-900 font-medium">{company.establishedIn}</p>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <BuildingOfficeIcon className="h-4 w-4" />
-                        <span className="capitalize">
-                          {company.businessType} • {company.companyCategory}
-                        </span>
+                      <div className="flex items-start gap-3">
+                        <div className="bg-gray-100 border border-gray-200 rounded-lg p-2">
+                          <BuildingOfficeIcon className="h-4 w-4 text-gray-600" />
+                        </div>
+                        <div>
+                          <p className="text-gray-500 text-xs font-medium">Business Type</p>
+                          <p className="text-gray-900 font-medium capitalize">{company.businessType}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="bg-gray-100 border border-gray-200 rounded-lg p-2">
+                          <BuildingOfficeIcon className="h-4 w-4 text-gray-600" />
+                        </div>
+                        <div>
+                          <p className="text-gray-500 text-xs font-medium">Company Category</p>
+                          <p className="text-gray-900 font-medium capitalize">{company.companyCategory}</p>
+                        </div>
                       </div>
                       {company.website && (
-                        <div className="flex items-center gap-2 text-blue-600">
-                          <LinkIcon className="h-4 w-4" />
+                        <div className="flex items-start gap-3">
+                          <div className="bg-gray-100 border border-gray-200 rounded-lg p-2">
+                            <LinkIcon className="h-4 w-4 text-gray-600" />
+                          </div>
+                          <div>
+                            <p className="text-gray-500 text-xs font-medium">Website</p>
                           <a
                             href={company.website}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="hover:underline"
+                              className="text-blue-600 hover:underline font-medium"
                           >
                             Visit Website
                           </a>
+                          </div>
                         </div>
                       )}
                     </div>
                   </div>
+                </div>
+                
+                {/* Action Buttons */}
+                <div className="flex-shrink-0 ml-6">
+                  <Button
+                    onClick={() => navigate(PANEL_ROUTES.COMPANY.USERS(id!))}
+                    variant="outlined"
+                    className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
+                  >
+                    <UserGroupIcon className="mr-2 h-4 w-4" />
+                    View Users
+                  </Button>
                 </div>
               </div>
             </CardContent>
@@ -430,6 +489,7 @@ const CompanyView = () => {
                         companyId={id!}
                         index={index}
                         isExpanded={expandedAddress === `address-${index}`}
+                        onViewBrands={handleViewBrands}
                       />
                     ))}
                   </Accordion>

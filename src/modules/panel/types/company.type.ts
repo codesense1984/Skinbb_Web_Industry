@@ -354,7 +354,7 @@ export interface CompanyOnboardingBrand {
   instagramUrl: string;
   facebookUrl: string;
   youtubeUrl: string;
-  productCategory: string[];
+  brandType: string[];
   averageSellingPrice: number;
   marketingBudget: number;
   sellingOn: Array<{
@@ -369,7 +369,7 @@ export interface CompanyOnboardingBrand {
   authorizationLetter: string;
   createdBy: string;
   isDeleted: boolean;
-  deletedAt: string;
+  deletedAt: string | null;
   deletedBy: string;
   createdAt: string;
   updatedAt: string;

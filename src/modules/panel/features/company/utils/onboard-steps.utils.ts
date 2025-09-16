@@ -42,7 +42,7 @@ export function isStepCompleted(
       return !!(
         values.brandName?.trim() &&
         values.totalSkus?.trim() &&
-        values.productCategory?.some((cat) => cat?.trim()) &&
+        values.brandType?.some((cat) => cat?.trim()) &&
         values.averageSellingPrice?.trim() &&
         values.marketingBudget?.trim()
       );

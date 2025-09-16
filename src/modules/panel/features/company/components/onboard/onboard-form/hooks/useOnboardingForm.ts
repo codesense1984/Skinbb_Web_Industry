@@ -98,7 +98,10 @@ export const useOnboardingForm = ({
       console.log("🚀 ~ OnBoardForm ~ apiData:", apiData);
       if (mode === MODE.EDIT) {
         const locationId = initialData?.addresses[0]?.addressId;
-        return apiUpdateOnboardById(apiData?.companyId!, locationId!, apiData);
+        if (!apiData?.companyId || !locationId) {
+          throw new Error("Missing required data for update");
+        }
+        return apiUpdateOnboardById(apiData.companyId, locationId, apiData);
       }
       return apiOnboardingSubmit(apiData);
     },
@@ -124,6 +127,12 @@ export const useOnboardingForm = ({
   const onFinish = handleSubmit(
     (data) => {
       console.log("🚀 ~ OnBoardForm ~ data:", data);
+      console.log("🔍 Product Category in form data:", {
+        brandType: data.brandType,
+        type: typeof data.brandType,
+        isArray: Array.isArray(data.brandType),
+        length: data.brandType?.length
+      });
       setConfirmation([true, data]);
     },
     (error) => {

@@ -19,6 +19,7 @@ export interface CompanyLocationBrand {
   facebookUrl: string;
   youtubeUrl: string;
   productCategory: string[];
+  brandType: string[];
   averageSellingPrice: number;
   marketingBudget: number;
   sellingOn: SellingPlatform[];
@@ -37,6 +38,11 @@ export interface CompanyLocationBrand {
   deletedBy: string | null;
   createdAt: string;
   updatedAt: string;
+  // Approval status fields
+  status?: string;
+  brandStatus?: string;
+  statusChangeReason?: string;
+  statusChangedAt?: string;
 }
 
 export interface CompanyLocationBrandsResponse {

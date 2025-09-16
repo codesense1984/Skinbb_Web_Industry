@@ -80,7 +80,7 @@ export const brandSchema: {
       type: INPUT_TYPES.COMBOBOX,
       maxVisibleItems: 2,
       multi: true,
-      placeholder: "https://example.com",
+      placeholder: "Select product category",
       options: Object.values(SURVEY.BRAND_PRODUCT_CATEGORY_OPTIONS),
       disabled: mode === MODE.VIEW,
       className: "md:col-span-2",

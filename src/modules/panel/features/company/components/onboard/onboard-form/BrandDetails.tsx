@@ -36,6 +36,19 @@ const BrandDetails = ({ mode }: BrandDetailsProps) => {
       name: "sellingOn",
     }) || [];
 
+  // Debug: Watch brandType field
+  const brandType = useWatch({
+    control,
+    name: "brandType",
+  });
+  
+  console.log("🔍 BrandDetails - brandType:", {
+    brandType,
+    type: typeof brandType,
+    isArray: Array.isArray(brandType),
+    length: brandType?.length
+  });
+
   // Fetch company details for dropdown
   // const { data: categoriesResponse } = useQuery({
   //   queryKey: ["productCategories"],
@@ -152,7 +165,7 @@ const BrandDetails = ({ mode }: BrandDetailsProps) => {
         fieldConfigs={
           fullCompanyDetailsSchema.brand_information({
             mode,
-            productCategoryOptions: formatted,
+            brandTypeOptions: formatted,
           }) as FormFieldConfig<FullCompanyFormType>[]
         }
         className="gap-6 lg:grid-cols-6"

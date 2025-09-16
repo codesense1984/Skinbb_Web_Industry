@@ -185,6 +185,35 @@ import {
   type BrandFormData,
 } from "./formSchema";
 
+// Interface for brand API response
+interface BrandApiResponse {
+  name?: string;
+  aboutTheBrand?: string;
+  isActive?: boolean;
+  logoImage?: { url?: string };
+  authorizationLetter?: { url?: string };
+  total_skus?: string;
+  skus?: string;
+  marketing_budget?: string;
+  budget?: string;
+  product_category?: string;
+  category?: string;
+  instagram_url?: string;
+  instagram?: string;
+  facebook_url?: string;
+  facebook?: string;
+  youtube_url?: string;
+  youtube?: string;
+  sellingOn?: Array<{ platform: string; url: string }>;
+  platforms?: Array<{ platform: string; url: string }>;
+  brand_logo?: string;
+  logo?: string;
+  brand_name?: string;
+  description?: string;
+  brand_authorization_letter?: string;
+  authorization_letter?: string;
+}
+
 const BrandForm = () => {
   const { id } = useParams();
   const location = useLocation();
@@ -240,7 +269,7 @@ const BrandForm = () => {
     queryKey: ["brand", id],
     queryFn: () => {
       console.log("Fetching brand data for ID:", id);
-      return apiGetBrandById<{ data: any }>(id!);
+      return apiGetBrandById<{ data: BrandApiResponse }>(id!);
     },
     enabled: !!id && (mode === MODE.EDIT || mode === MODE.VIEW),
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -298,10 +327,9 @@ const BrandForm = () => {
         const currentValues = form.getValues();
         console.log("Form values after reset:", currentValues);
         console.log("Description after reset:", currentValues.description);
-        console.log("Status after reset:", currentValues.status);
       }, 100);
     }
-  }, [brandData, mode, reset]);
+  }, [brandData, mode, reset, form]);
 
   const profileData = useWatch({
     control,
@@ -421,6 +449,13 @@ const BrandForm = () => {
     // Handle form submission here
   };
 
+  // Force re-render when pathname changes
+  useEffect(() => {
+    console.log("=== PATHNAME CHANGED ===");
+    console.log("New pathname:", pathname);
+    console.log("New mode:", mode);
+  }, [pathname, mode]);
+
   // Show loading state while fetching brand data
   if (isLoadingBrand && (mode === MODE.EDIT || mode === MODE.VIEW)) {
     return (
@@ -469,13 +504,6 @@ const BrandForm = () => {
       </PageContent>
     );
   }
-
-  // Force re-render when pathname changes
-  useEffect(() => {
-    console.log("=== PATHNAME CHANGED ===");
-    console.log("New pathname:", pathname);
-    console.log("New mode:", mode);
-  }, [pathname, mode]);
 
   // Debug the mode before rendering
   console.log(
@@ -642,11 +670,8 @@ const BrandForm = () => {
                   ))}
 
                   {sellingOn.length === 0 && (
-                    <div className="py-8 text-center text-gray-500">
-                      <p>
-                        No platforms added yet. Click "Add Platform" to get
-                        started.
-                      </p>
+                    <div className="text-center py-8 text-gray-500">
+                      <p>No platforms added yet. Click &quot;Add Platform&quot; to get started.</p>
                     </div>
                   )}
 
