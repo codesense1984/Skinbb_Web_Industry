@@ -16,6 +16,9 @@ import {
   convertApiResponseToCompanyList,
   sampleApiResponse,
 } from "./sample-api-data";
+import { DropdownMenu } from "@/core/components/ui/dropdown-menu";
+import { Button } from "@/core/components/ui/button";
+import { EllipsisVerticalIcon, EyeIcon } from "@heroicons/react/24/outline";
 
 export const statsData = [
   {
@@ -211,54 +214,99 @@ export const columns: ColumnDef<CompanyListItem>[] = [
     },
   },
   {
-    header: "Action",
+    header: "Actions",
     accessorKey: "actions",
-    enableSorting: false,
-    enableHiding: false,
-    size: 250,
+    size: 70,
     cell: ({ row }) => {
       return (
-        <TableAction
-          view={{
-            // onClick: () => console.log("View company:", row.original._id),
-            to: PANEL_ROUTES.COMPANY.VIEW(row.original._id),
-            title: "View company details",
-          }}
-          // edit={{
-          //   loading: false,
-          //   // onClick: () => console.log("Edit company:", row.original._id),
-          //   to: PANEL_ROUTES.COMPANY.EDIT(row.original._id),
-          //   title: "Edit company",
-          // }}
-          // delete={{
-          //   onClick: () => console.log("Delete company:", row.original._id),
-          //   tooltip: "Delete company",
-          // }}
-        >
-          {renderActionButton(
+        <DropdownMenu
+          items={[
             {
-              className: "w-auto px-2 text-muted-foreground",
-              size: "md",
-              variant: "outlined",
-              to: `/company/${row.original._id}/users`,
-              children: "Users",
-              title: "View Users",
+              type: "link",
+              to: PANEL_ROUTES.COMPANY.VIEW(row.original._id),
+              children: (
+                <>
+                  <EyeIcon className="size-4" /> View
+                </>
+              ),
             },
-            <UserIcon className="size-4" />,
-          )}
-          {renderActionButton(
             {
-              className: "w-auto px-2 text-muted-foreground",
-              size: "md",
-              variant: "outlined",
+              type: "link",
+              to: PANEL_ROUTES.COMPANY.USERS(row.original._id),
+              children: (
+                <>
+                  <UserIcon className="size-4" /> Users
+                </>
+              ),
+            },
+            {
+              type: "link",
               to: PANEL_ROUTES.COMPANY_LOCATION.LIST(row.original._id),
-              children: "Locations",
-              title: "Locations",
+              children: (
+                <>
+                  <MapPinIcon className="size-4" />
+                  Locations
+                </>
+              ),
             },
-            <MapPinIcon className="size-4" />,
-          )}
-        </TableAction>
+          ]}
+        >
+          <Button variant="outlined" size="icon">
+            <EllipsisVerticalIcon className="size-4" />
+          </Button>
+        </DropdownMenu>
       );
     },
   },
+  // {
+  //   header: "Action",
+  //   accessorKey: "actions",
+  //   enableSorting: false,
+  //   enableHiding: false,
+  //   size: 250,
+  //   cell: ({ row }) => {
+  //     return (
+  //       <TableAction
+  //         view={{
+  //           // onClick: () => console.log("View company:", row.original._id),
+  //           to: PANEL_ROUTES.COMPANY.VIEW(row.original._id),
+  //           title: "View company details",
+  //         }}
+  //         // edit={{
+  //         //   loading: false,
+  //         //   // onClick: () => console.log("Edit company:", row.original._id),
+  //         //   to: PANEL_ROUTES.COMPANY.EDIT(row.original._id),
+  //         //   title: "Edit company",
+  //         // }}
+  //         // delete={{
+  //         //   onClick: () => console.log("Delete company:", row.original._id),
+  //         //   tooltip: "Delete company",
+  //         // }}
+  //       >
+  //         {renderActionButton(
+  //           {
+  //             className: "w-auto px-2 text-muted-foreground",
+  //             size: "md",
+  //             variant: "outlined",
+  //             to: `/company/${row.original._id}/users`,
+  //             children: "Users",
+  //             title: "View Users",
+  //           },
+  //           <UserIcon className="size-4" />,
+  //         )}
+  //         {renderActionButton(
+  //           {
+  //             className: "w-auto px-2 text-muted-foreground",
+  //             size: "md",
+  //             variant: "outlined",
+  //             to: PANEL_ROUTES.COMPANY_LOCATION.LIST(row.original._id),
+  //             children: "Locations",
+  //             title: "Locations",
+  //           },
+  //           <MapPinIcon className="size-4" />,
+  //         )}
+  //       </TableAction>
+  //     );
+  //   },
+  // },
 ];

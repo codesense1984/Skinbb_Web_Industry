@@ -7,6 +7,8 @@ import { columns } from "./data";
 import { Button } from "@/core/components/ui/button";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { Link } from "react-router";
+import { WithAccess } from "@/modules/auth/components/guard";
+import { PAGE, PERMISSION } from "@/modules/auth/types/permission.type.";
 
 // const CompanyForm = lazy(() => import("../components/AddCompanyForm"));
 
@@ -26,15 +28,17 @@ const CompanyList = () => {
         title: "Company",
         description: "Discover top brands from around the world.",
         actions: (
-          <Button
-            variant="contained"
-            color={"secondary"}
-            startIcon={<PlusIcon />}
-            aria-label="Add Company"
-            asChild
-          >
-            <Link to={PANEL_ROUTES.ONBOARD.COMPANY_CREATE}>Add Company</Link>
-          </Button>
+          <WithAccess page={PAGE.COMPANIES} actions={PERMISSION.CREATE}>
+            <Button
+              variant="contained"
+              color={"secondary"}
+              startIcon={<PlusIcon />}
+              aria-label="Add Company"
+              asChild
+            >
+              <Link to={PANEL_ROUTES.ONBOARD.COMPANY_CREATE}>Add Company</Link>
+            </Button>
+          </WithAccess>
         ),
       }}
     >

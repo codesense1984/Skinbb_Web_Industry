@@ -86,7 +86,11 @@ export const rawItems: Readonly<Record<string, SidebarItem>> = {
   company: {
     name: "company",
     href: PANEL_ROUTES.COMPANY.LIST,
-    requiredRoles: [ROLE.ADMIN],
+    // requiredRoles: [ROLE.ADMIN],
+    requiredPermission: {
+      page: PAGE.COMPANIES,
+      action: [PERMISSION.VIEW],
+    },
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"

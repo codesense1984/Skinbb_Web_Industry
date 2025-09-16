@@ -10,10 +10,12 @@ export const ROLE = {
   GENERAL: "general",
   DOCTOR: "doctor",
   SELLER: "seller",
+  SELLER_MEMBER: "seller-member",
 } as const;
 
 export const PAGE = {
   POSTS: "posts",
+  COMPANIES: "companies",
   CATEGORIES: "categories",
   USERS: "users",
   TAGS: "tags",

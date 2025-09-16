@@ -3,6 +3,7 @@ import { CheckIcon, ChevronRightIcon, CircleIcon } from "lucide-react";
 import * as React from "react";
 
 import { cn } from "@/core/utils/index";
+import { Link } from "react-router";
 
 function DropdownMenuRoot({
   ...props
@@ -247,6 +248,7 @@ function DropdownMenuSubContent({
 
 export type DropdownMenuItemType = { shortcut?: string } & (
   | ({ type: "item" } & DropdownMenuItemProps)
+  | ({ type: "link"; to: string } & DropdownMenuItemProps)
   | ({ type: "checkbox" } & React.ComponentProps<
       typeof DropdownMenuPrimitive.CheckboxItem
     >)
@@ -279,6 +281,22 @@ function renderMenuItems(items: DropdownMenuItemType[]): React.ReactNode {
             {item.shortcut && (
               <DropdownMenuShortcut>{item.shortcut}</DropdownMenuShortcut>
             )}
+          </DropdownMenuItem>
+        );
+      case "link":
+        return (
+          <DropdownMenuItem
+            key={idx}
+            className="cursor-pointer"
+            asChild
+            {...item}
+          >
+            <Link to={item.to}>
+              {item.children}
+              {item.shortcut && (
+                <DropdownMenuShortcut>{item.shortcut}</DropdownMenuShortcut>
+              )}
+            </Link>
           </DropdownMenuItem>
         );
       case "checkbox":
