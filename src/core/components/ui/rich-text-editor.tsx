@@ -32,6 +32,20 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     }
   }, [onChange]);
 
+  // Initialize editor content
+  React.useEffect(() => {
+    if (editorRef.current && !editorRef.current.innerHTML && value) {
+      editorRef.current.innerHTML = value;
+    }
+  }, [value]);
+
+  // Update editor content when value prop changes
+  React.useEffect(() => {
+    if (editorRef.current && editorRef.current.innerHTML !== value) {
+      editorRef.current.innerHTML = value;
+    }
+  }, [value]);
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       // Handle keyboard shortcuts
@@ -173,6 +187,8 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       <div
         ref={editorRef}
         contentEditable={!disabled && !readOnly}
+        role="textbox"
+        tabIndex={disabled || readOnly ? -1 : 0}
         onInput={handleInput}
         onKeyDown={handleKeyDown}
         onFocus={() => setIsFocused(true)}
@@ -185,7 +201,6 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         style={{
           whiteSpace: "pre-wrap",
         }}
-        dangerouslySetInnerHTML={{ __html: value }}
         data-placeholder={placeholder}
       />
 

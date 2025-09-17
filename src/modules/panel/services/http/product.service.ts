@@ -136,3 +136,14 @@ export async function apiGetProductById(id: string) {
 export async function apiGetProducts(params?: ApiParams) {
   return api.get(ENDPOINTS.PRODUCT.MAIN, { params });
 }
+
+// Get products for dropdown selection
+export async function apiGetProductsForDropdown(params?: ApiParams) {
+  return api.get(ENDPOINTS.PRODUCT.MAIN, { 
+    params: { 
+      ...params, 
+      limit: 10 // Limit to 100 products for dropdown
+      // status: "active" // Only active products
+    } 
+  });
+}
