@@ -29,6 +29,7 @@ import { Card, CardContent, CardHeader } from "@/core/components/ui/card";
 import { CompanyApprovalDialog } from "../approval/CompanyApprovalDialog";
 import type { AxiosError } from "axios";
 import { StatusBadge } from "@/core/components/ui/badge";
+import type { CompanyOnboading } from "@/modules/panel/types";
 
 interface CompanyFormProps {
   mode: MODE;
@@ -68,7 +69,7 @@ const CompanyForm: React.FC<CompanyFormProps> = ({
   useEffect(() => {
     if (companyData?.data && companyData.success) {
       const formData = transformApiResponseToCompanyEditFormData(
-        companyData.data,
+        companyData?.data,
       );
       reset(formData);
     }
@@ -80,6 +81,7 @@ const CompanyForm: React.FC<CompanyFormProps> = ({
       const apiData = transformCompanyEditFormDataToApiRequest(data);
       return apiUpdateOnboardById<{ success: boolean; message: string }, any>(
         id!,
+        companyData?.data?.addresses[0]?.addressId ?? "",
         apiData,
       );
     },

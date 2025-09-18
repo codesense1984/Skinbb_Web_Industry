@@ -6,6 +6,7 @@ import type {
 } from "@/modules/panel/types/company.type";
 import type { FullCompanyFormType } from "../schema/fullCompany.schema";
 import { createCompanySchema } from "../schema/fullCompany.schema";
+import { LocationService } from "@/core/services/location.service";
 
 // Constants
 const DEFAULT_ROLE_ID = "6875fc068683bb026013181b";
@@ -212,6 +213,7 @@ export function transformFormDataToApiRequest(
     subsidiaryOfGlobalBusiness: safeBoolean(formData.isSubsidiary),
     companyCategory: safeString(formData.category),
     website: safeString(formData.website),
+    websiteUrl: safeString(formData.websiteUrl),
     instagramUrl: safeString(formData.instagramUrl),
     facebookUrl: safeString(formData.facebookUrl),
     youtubeUrl: safeString(formData.youtubeUrl),
@@ -225,12 +227,6 @@ export function transformFormDataToApiRequest(
     marketingBudget: safeString(formData.marketingBudget),
     brandType: (() => {
       const categoryArray = safeArray(formData.brandType);
-      console.log("🔍 Product Category Debug:", {
-        original: formData.brandType,
-        processed: categoryArray,
-        type: typeof formData.brandType,
-        isArray: Array.isArray(formData.brandType)
-      });
       return categoryArray;
     })(),
     addresses: primaryAddress
@@ -246,9 +242,15 @@ export function transformFormDataToApiRequest(
             addressLine2: "",
             landmark: safeString(primaryAddress.landmark),
             city: safeString(primaryAddress.city),
-            state: safeString(primaryAddress.state),
+            state: LocationService.getStateName(
+              safeString(primaryAddress.country),
+              safeString(primaryAddress.state),
+            ),
+
             postalCode: safeString(primaryAddress.postalCode),
-            country: safeString(primaryAddress.country),
+            country: LocationService.getCountryName(
+              safeString(primaryAddress.country),
+            ),
             isPrimary: formData.isCreatingNewCompany,
             // brandIds: [],
           },
@@ -372,7 +374,7 @@ export function transformApiResponseToFormData(
         address: "",
         landmark: "",
         phoneNumber: "",
-        country: "",
+        country: "IN",
         state: "",
         city: "",
         postalCode: "",
@@ -456,8 +458,12 @@ export function transformApiResponseToFormData(
               address: safeString(address?.addressLine1),
               landmark: safeString(address?.landmark),
               phoneNumber: safeString(address?.landlineNumber),
-              country: safeString(address?.country),
-              state: safeString(address?.state),
+              country: LocationService.getCountryIsoCodeByName(
+                safeString(address?.country),
+              ),
+              state: LocationService.getStateIsoCodeByName(
+                safeString(address?.state),
+              ),
               city: safeString(address?.city),
               postalCode: safeString(address?.postalCode),
               addressId: safeString(address?.addressId),
@@ -470,7 +476,7 @@ export function transformApiResponseToFormData(
                     address: "",
                     landmark: "",
                     phoneNumber: "",
-                    country: "",
+                    country: "IN",
                     state: "",
                     city: "",
                     postalCode: "",
@@ -480,10 +486,44 @@ export function transformApiResponseToFormData(
           ]
         : defaultValues.address,
   };
+  const address = apiData.addresses[0];
+
+  if (address) {
+    mergedData.documents = [
+      {
+        type: DOCUMENT_TYPES.COI,
+        number: address.cinNumber,
+        url: address.coiCertificate,
+        verified: true,
+      },
+      {
+        type: DOCUMENT_TYPES.PAN,
+        number: address.panNumber,
+        url: address.panDocument,
+        verified: true,
+      },
+      {
+        type: DOCUMENT_TYPES.GST_LICENSE,
+        number: address.gstNumber,
+        url: address.gstDocument,
+        verified: true,
+      },
+      {
+        type: DOCUMENT_TYPES.MSME,
+        number: address.msmeNumber,
+        url: address.msmeCertificate,
+        verified: false,
+      },
+      {
+        type: DOCUMENT_TYPES.BRAND_AUTHORIZATION,
+        number: "",
+        url: "",
+        verified: false,
+      },
+    ];
+  }
 
   if (mergedData.mode === MODE.EDIT) {
-    const address = apiData.addresses[0];
-
     mergedData.category =
       safeString(apiData.companyCategory) || defaultValues.category;
     mergedData.agreeTermsConditions = true;
@@ -505,7 +545,7 @@ export function transformApiResponseToFormData(
       mergedData.instagramUrl = brand.instagramUrl;
       mergedData.facebookUrl = brand.facebookUrl;
       mergedData.youtubeUrl = brand.youtubeUrl;
-      mergedData.website = brand.websiteUrl;
+      mergedData.websiteUrl = brand.websiteUrl;
       // mergedData.description = brand.aboutTheBrand;
       mergedData.documents = [
         {
