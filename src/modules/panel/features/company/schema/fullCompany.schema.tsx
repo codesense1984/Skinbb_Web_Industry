@@ -256,7 +256,7 @@ export function createCompanySchema(
 
       // Brand details
       brandName: createRequiredString("Brand name"),
-      totalSkus: createRequiredString("Total number of SKUs"),
+      totalSkus: createOptionalString(),
       brandType: z.array(z.string()).optional(),
       averageSellingPrice: createRequiredString("Average selling price"),
       sellingOn: z.array(sellingPlatformSchema).optional(),
