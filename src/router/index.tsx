@@ -1,11 +1,9 @@
 import NotFound from "@/core/features/not-found";
-import { analyticsRoutes } from "@/modules/analytics/routes";
 import { authRoutes } from "@/modules/auth/routes";
 import PrivateRoute from "@/modules/auth/routes/PrivateRoute";
 import PublicRoute from "@/modules/auth/routes/PublicRoute";
-import { chatRoutes } from "@/modules/chat/routes";
-import { panelOpenRoutes, panelRoutes } from "@/modules/panel/routes";
-import { surveyRoutes } from "@/modules/survey/routes";
+import RoleBasedRouter from "@/modules/auth/routes/RoleBasedRouter";
+import { panelOpenRoutes } from "@/modules/panel/routes";
 import { createBrowserRouter, type RouteObject } from "react-router";
 
 /* ----------------------------- helpers ----------------------------- */
@@ -24,7 +22,8 @@ const protectedRoutes: RouteObject = {
   element: <PrivateRoute />,
   children: [
     {
-      children: [panelRoutes, surveyRoutes, analyticsRoutes, chatRoutes],
+      path: "*",
+      element: <RoleBasedRouter />,
     },
   ],
 };
