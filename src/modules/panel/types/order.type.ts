@@ -19,10 +19,16 @@ export type OrderDetails = {
   totalAmount: number;
   totalCouponDiscount: number;
   customerPayment: number;
-  orderStatus: "placed" | "pending" | "shipped" | "delivered" | "cancelled" | string;
+  orderStatus:
+    | "placed"
+    | "pending"
+    | "shipped"
+    | "delivered"
+    | "cancelled"
+    | string;
   paymentStatus: "paid" | "pending" | "failed" | "refunded" | string;
   payment: string;
-  shipmentStatus: any[];
+  shipmentStatus: unknown[];
   createdAt: string;
   customer: {
     _id: string;
@@ -69,7 +75,7 @@ export type OrderDetails = {
     thumbnail: string[];
     isSimpleProduct: boolean;
   }>;
-  discountDetails: any[];
+  discountDetails: unknown[];
 };
 
 export type OrderFilter = {

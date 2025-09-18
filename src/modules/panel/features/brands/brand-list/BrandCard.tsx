@@ -49,11 +49,11 @@ export const BrandCard: FC<BrandCardProps> = ({ brand }) => {
           />
           <Stat label="Users" value={formatNumber(brand.associatedUsers)} />
         </div>
-        
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
+
+        <div className="text-muted-foreground flex items-center justify-between text-xs">
           <span>Created {formatDate(brand.createdAt)}</span>
-          <StatusBadge 
-            module="brand" 
+          <StatusBadge
+            module="brand"
             status={brand.isActive ? "active" : "inactive"}
             variant="badge"
           />

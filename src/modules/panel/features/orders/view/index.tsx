@@ -1,13 +1,25 @@
 import { useParams, useNavigate } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/core/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/core/components/ui/card";
 import { Badge } from "@/core/components/ui/badge";
 import { PageContent } from "@/core/components/ui/structure";
 import { apiGetOrderDetails } from "@/modules/panel/services/http/order.service";
 import type { OrderDetails } from "@/modules/panel/types/order.type";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
-import { ArrowLeftIcon, PhoneIcon, MapPinIcon, CreditCardIcon, ShoppingBagIcon, CalendarIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowLeftIcon,
+  PhoneIcon,
+  MapPinIcon,
+  CreditCardIcon,
+  ShoppingBagIcon,
+  CalendarIcon,
+} from "@heroicons/react/24/outline";
 import { formatDate, formatTime } from "@/core/utils/date";
 import { formatCurrency } from "@/core/utils/number";
 
@@ -15,7 +27,11 @@ export default function OrderView() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const { data: orderResponse, isLoading, error } = useQuery({
+  const {
+    data: orderResponse,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["order-details", id],
     queryFn: () => apiGetOrderDetails(id!),
     enabled: !!id,
@@ -32,10 +48,10 @@ export default function OrderView() {
         }}
       >
         <div className="w-full">
-          <div className="bg-white rounded-xl border shadow-sm p-8">
+          <div className="rounded-xl border bg-white p-8 shadow-sm">
             <div className="flex items-center justify-center py-12">
               <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
                 <p className="text-gray-600">Loading order details...</p>
               </div>
             </div>
@@ -54,11 +70,11 @@ export default function OrderView() {
         }}
       >
         <div className="w-full">
-          <div className="bg-white rounded-xl border shadow-sm p-8">
+          <div className="rounded-xl border bg-white p-8 shadow-sm">
             <div className="flex items-center justify-center py-12">
               <div className="text-center">
-                <p className="text-red-600 mb-4">Error loading order details</p>
-                <p className="text-gray-600 text-sm">Order ID: {id}</p>
+                <p className="mb-4 text-red-600">Error loading order details</p>
+                <p className="text-sm text-gray-600">Order ID: {id}</p>
               </div>
             </div>
           </div>
@@ -85,59 +101,74 @@ export default function OrderView() {
     >
       <div className="w-full space-y-8">
         {/* Compact Order Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-blue-100">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-blue-600">Order Number</p>
-                  <p className="text-xl font-bold text-blue-900">{order.orderNumber}</p>
+                  <p className="text-sm font-medium text-blue-600">
+                    Order Number
+                  </p>
+                  <p className="text-xl font-bold text-blue-900">
+                    {order.orderNumber}
+                  </p>
                 </div>
-                <div className="h-10 w-10 bg-blue-200 rounded-full flex items-center justify-center">
-                  <span className="text-blue-600 font-bold text-sm">#</span>
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-200">
+                  <span className="text-sm font-bold text-blue-600">#</span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200">
+          <Card className="border-green-200 bg-gradient-to-r from-green-50 to-green-100">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-green-600">Total Amount</p>
-                  <p className="text-xl font-bold text-green-900">{formatCurrency(order.totalAmount)}</p>
+                  <p className="text-sm font-medium text-green-600">
+                    Total Amount
+                  </p>
+                  <p className="text-xl font-bold text-green-900">
+                    {formatCurrency(order.totalAmount)}
+                  </p>
                 </div>
-                <div className="h-10 w-10 bg-green-200 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 font-bold text-sm">₹</span>
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-200">
+                  <span className="text-sm font-bold text-green-600">₹</span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-r from-purple-50 to-purple-100 border-purple-200">
+          <Card className="border-purple-200 bg-gradient-to-r from-purple-50 to-purple-100">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-purple-600">Order Status</p>
-                  <Badge variant="outline" className="capitalize text-sm font-medium">
+                  <p className="text-sm font-medium text-purple-600">
+                    Order Status
+                  </p>
+                  <Badge
+                    variant="outline"
+                    className="text-sm font-medium capitalize"
+                  >
                     {order.orderStatus}
                   </Badge>
                 </div>
-                <div className="h-10 w-10 bg-purple-200 rounded-full flex items-center justify-center">
-                  <span className="text-purple-600 font-bold text-sm">📦</span>
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-200">
+                  <span className="text-sm font-bold text-purple-600">📦</span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200">
+          <Card className="border-orange-200 bg-gradient-to-r from-orange-50 to-orange-100">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-orange-600">Payment</p>
-                  <p className="text-sm font-bold text-orange-900 uppercase">{order.payment}</p>
+                  <p className="text-sm font-bold text-orange-900 uppercase">
+                    {order.payment}
+                  </p>
                 </div>
-                <div className="h-10 w-10 bg-orange-200 rounded-full flex items-center justify-center">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-200">
                   <CreditCardIcon className="h-5 w-5 text-orange-600" />
                 </div>
               </div>
@@ -146,7 +177,7 @@ export default function OrderView() {
         </div>
 
         {/* Order Info & Customer & Payment Summary */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           {/* Order Information */}
           <Card>
             <CardHeader className="pb-3">
@@ -156,66 +187,81 @@ export default function OrderView() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex justify-between items-center py-3 border-b border-gray-100">
-                <span className="text-sm font-medium text-gray-600">Order Date</span>
-                <span className="text-sm text-gray-900">{formatDate(order.createdAt)}</span>
+              <div className="flex items-center justify-between border-b border-gray-100 py-3">
+                <span className="text-sm font-medium text-gray-600">
+                  Order Date
+                </span>
+                <span className="text-sm text-gray-900">
+                  {formatDate(order.createdAt)}
+                </span>
               </div>
-              <div className="flex justify-between items-center py-3 border-b border-gray-100">
-                <span className="text-sm font-medium text-gray-600">Order Time</span>
-                <span className="text-sm text-gray-900">{formatTime(order.createdAt)}</span>
+              <div className="flex items-center justify-between border-b border-gray-100 py-3">
+                <span className="text-sm font-medium text-gray-600">
+                  Order Time
+                </span>
+                <span className="text-sm text-gray-900">
+                  {formatTime(order.createdAt)}
+                </span>
               </div>
-              <div className="flex justify-between items-center py-3 border-b border-gray-100">
-                <span className="text-sm font-medium text-gray-600">Payment Status</span>
+              <div className="flex items-center justify-between border-b border-gray-100 py-3">
+                <span className="text-sm font-medium text-gray-600">
+                  Payment Status
+                </span>
                 <Badge variant="outline" className="capitalize">
                   {order.paymentStatus}
                 </Badge>
               </div>
-              <div className="flex justify-between items-center py-3">
-                <span className="text-sm font-medium text-gray-600">Items Count</span>
-                <span className="text-sm text-gray-900">{order.items?.length || 0} items</span>
+              <div className="flex items-center justify-between py-3">
+                <span className="text-sm font-medium text-gray-600">
+                  Items Count
+                </span>
+                <span className="text-sm text-gray-900">
+                  {order.items?.length || 0} items
+                </span>
               </div>
             </CardContent>
           </Card>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <CreditCardIcon className="h-5 w-5" />
-              Payment Summary
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex justify-between py-3">
-                <span className="text-gray-600">Subtotal:</span>
-                <span className="font-medium">{formatCurrency(order.subtotal)}</span>
-              </div>
-              {order.totalDiscount > 0 && (
-                <div className="flex justify-between py-3 text-green-600">
-                  <span>Discount:</span>
-                  <span>-{formatCurrency(order.totalDiscount)}</span>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <CreditCardIcon className="h-5 w-5" />
+                Payment Summary
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex justify-between py-3">
+                  <span className="text-gray-600">Subtotal:</span>
+                  <span className="font-medium">
+                    {formatCurrency(order.subtotal)}
+                  </span>
                 </div>
-              )}
-              {order.totalCouponDiscount > 0 && (
-                <div className="flex justify-between py-3 text-green-600">
-                  <span>Coupon Discount:</span>
-                  <span>-{formatCurrency(order.totalCouponDiscount)}</span>
+                {order.totalDiscount > 0 && (
+                  <div className="flex justify-between py-3 text-green-600">
+                    <span>Discount:</span>
+                    <span>-{formatCurrency(order.totalDiscount)}</span>
+                  </div>
+                )}
+                {order.totalCouponDiscount > 0 && (
+                  <div className="flex justify-between py-3 text-green-600">
+                    <span>Coupon Discount:</span>
+                    <span>-{formatCurrency(order.totalCouponDiscount)}</span>
+                  </div>
+                )}
+                <div className="border-t pt-4">
+                  <div className="flex justify-between text-lg font-semibold">
+                    <span>Total:</span>
+                    <span>{formatCurrency(order.totalAmount)}</span>
+                  </div>
                 </div>
-              )}
-              <div className="border-t pt-4">
-                <div className="flex justify-between font-semibold text-lg">
-                  <span>Total:</span>
-                  <span>{formatCurrency(order.totalAmount)}</span>
+                <div className="flex justify-between pt-2 text-sm text-gray-500">
+                  <span>Customer Payment:</span>
+                  <span>{formatCurrency(order.customerPayment)}</span>
                 </div>
               </div>
-              <div className="flex justify-between text-sm text-gray-500 pt-2">
-                <span>Customer Payment:</span>
-                <span>{formatCurrency(order.customerPayment)}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
+            </CardContent>
+          </Card>
 
           {/* Customer Information */}
           <Card>
@@ -226,23 +272,27 @@ export default function OrderView() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center space-x-4 mb-6">
+              <div className="mb-6 flex items-center space-x-4">
                 {order.customer?.profilePic?.url ? (
                   <img
                     src={order.customer.profilePic.url}
                     alt={order.customer.name || "Customer"}
-                    className="w-14 h-14 rounded-full object-cover border-2 border-gray-200"
+                    className="h-14 w-14 rounded-full border-2 border-gray-200 object-cover"
                   />
                 ) : (
-                  <div className="w-14 h-14 bg-gray-200 rounded-full flex items-center justify-center border-2 border-gray-300">
-                    <span className="text-gray-500 text-lg font-medium">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-gray-300 bg-gray-200">
+                    <span className="text-lg font-medium text-gray-500">
                       {(order.customer?.name || "C")[0].toUpperCase()}
                     </span>
                   </div>
                 )}
                 <div>
-                  <p className="font-medium text-gray-900 text-lg">{order.customer?.name || "N/A"}</p>
-                  <p className="text-sm text-gray-500 mt-1">{order.customer?.phoneNumber || "N/A"}</p>
+                  <p className="text-lg font-medium text-gray-900">
+                    {order.customer?.name || "N/A"}
+                  </p>
+                  <p className="mt-1 text-sm text-gray-500">
+                    {order.customer?.phoneNumber || "N/A"}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -260,20 +310,23 @@ export default function OrderView() {
           <CardContent>
             <div className="space-y-4">
               {(order.items || []).map((item, index) => (
-                <div key={item?._id || index} className="flex items-center space-x-4 p-4 border rounded-lg bg-gray-50">
-                  <div className="w-18 h-18 bg-white rounded-lg flex items-center justify-center border">
+                <div
+                  key={item?._id || index}
+                  className="flex items-center space-x-4 rounded-lg border bg-gray-50 p-4"
+                >
+                  <div className="flex h-18 w-18 items-center justify-center rounded-lg border bg-white">
                     {item?.thumbnail && item.thumbnail.length > 0 ? (
                       <img
                         src={item.thumbnail[0]}
                         alt={item.productName || "Product"}
-                        className="w-full h-full object-cover rounded-lg"
+                        className="h-full w-full rounded-lg object-cover"
                       />
                     ) : (
-                      <div className="text-gray-400 text-xs">No Image</div>
+                      <div className="text-xs text-gray-400">No Image</div>
                     )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-gray-900 line-clamp-2 text-sm mb-2">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="mb-2 line-clamp-2 text-sm font-medium text-gray-900">
                       {item?.productName || "Unknown Product"}
                     </h4>
                     <div className="flex items-center justify-between">
@@ -282,11 +335,11 @@ export default function OrderView() {
                         {item?.sku && <span>SKU: {item.sku}</span>}
                       </div>
                       <div className="text-right">
-                        <span className="font-medium text-gray-900 text-sm">
+                        <span className="text-sm font-medium text-gray-900">
                           {formatCurrency(item?.price || 0)}
                         </span>
                         {item?.salesPrice && item.salesPrice > 0 && (
-                          <div className="text-xs text-green-600 mt-1">
+                          <div className="mt-1 text-xs text-green-600">
                             Sale: {formatCurrency(item.salesPrice)}
                           </div>
                         )}
@@ -311,7 +364,9 @@ export default function OrderView() {
             <div className="space-y-3">
               <div className="flex justify-between py-3">
                 <span className="text-gray-600">Subtotal:</span>
-                <span className="font-medium">{formatCurrency(order.subtotal)}</span>
+                <span className="font-medium">
+                  {formatCurrency(order.subtotal)}
+                </span>
               </div>
               {order.totalDiscount > 0 && (
                 <div className="flex justify-between py-3 text-green-600">
@@ -326,12 +381,12 @@ export default function OrderView() {
                 </div>
               )}
               <div className="border-t pt-4">
-                <div className="flex justify-between font-semibold text-lg">
+                <div className="flex justify-between text-lg font-semibold">
                   <span>Total:</span>
                   <span>{formatCurrency(order.totalAmount)}</span>
                 </div>
               </div>
-              <div className="flex justify-between text-sm text-gray-500 pt-2">
+              <div className="flex justify-between pt-2 text-sm text-gray-500">
                 <span>Customer Payment:</span>
                 <span>{formatCurrency(order.customerPayment)}</span>
               </div>
@@ -340,7 +395,7 @@ export default function OrderView() {
         </Card>
 
         {/* Addresses */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
           {/* Shipping Address */}
           <Card>
             <CardHeader className="pb-3">
@@ -351,14 +406,25 @@ export default function OrderView() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <p className="font-medium text-gray-900 text-lg">{order.shippingAddress?.fullName || "N/A"}</p>
-                <p className="text-gray-600 text-sm">{order.shippingAddress?.phoneNumber || "N/A"}</p>
-                <p className="text-gray-600 text-sm">{order.shippingAddress?.street || "N/A"}</p>
+                <p className="text-lg font-medium text-gray-900">
+                  {order.shippingAddress?.fullName || "N/A"}
+                </p>
+                <p className="text-sm text-gray-600">
+                  {order.shippingAddress?.phoneNumber || "N/A"}
+                </p>
+                <p className="text-sm text-gray-600">
+                  {order.shippingAddress?.street || "N/A"}
+                </p>
                 {order.shippingAddress?.landmark && (
-                  <p className="text-gray-600 text-sm">Landmark: {order.shippingAddress.landmark}</p>
+                  <p className="text-sm text-gray-600">
+                    Landmark: {order.shippingAddress.landmark}
+                  </p>
                 )}
-                <p className="text-gray-600 text-sm">
-                  {order.shippingAddress?.city || "N/A"}, {order.shippingAddress?.state || "N/A"}, {order.shippingAddress?.country || "N/A"} - {order.shippingAddress?.postalCode || "N/A"}
+                <p className="text-sm text-gray-600">
+                  {order.shippingAddress?.city || "N/A"},{" "}
+                  {order.shippingAddress?.state || "N/A"},{" "}
+                  {order.shippingAddress?.country || "N/A"} -{" "}
+                  {order.shippingAddress?.postalCode || "N/A"}
                 </p>
                 <Badge variant="outline" className="mt-3 text-xs">
                   {order.shippingAddress?.label || "N/A"}
@@ -377,14 +443,25 @@ export default function OrderView() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <p className="font-medium text-gray-900 text-lg">{order.billingAddress?.fullName || "N/A"}</p>
-                <p className="text-gray-600 text-sm">{order.billingAddress?.phoneNumber || "N/A"}</p>
-                <p className="text-gray-600 text-sm">{order.billingAddress?.street || "N/A"}</p>
+                <p className="text-lg font-medium text-gray-900">
+                  {order.billingAddress?.fullName || "N/A"}
+                </p>
+                <p className="text-sm text-gray-600">
+                  {order.billingAddress?.phoneNumber || "N/A"}
+                </p>
+                <p className="text-sm text-gray-600">
+                  {order.billingAddress?.street || "N/A"}
+                </p>
                 {order.billingAddress?.landmark && (
-                  <p className="text-gray-600 text-sm">Landmark: {order.billingAddress.landmark}</p>
+                  <p className="text-sm text-gray-600">
+                    Landmark: {order.billingAddress.landmark}
+                  </p>
                 )}
-                <p className="text-gray-600 text-sm">
-                  {order.billingAddress?.city || "N/A"}, {order.billingAddress?.state || "N/A"}, {order.billingAddress?.country || "N/A"} - {order.billingAddress?.postalCode || "N/A"}
+                <p className="text-sm text-gray-600">
+                  {order.billingAddress?.city || "N/A"},{" "}
+                  {order.billingAddress?.state || "N/A"},{" "}
+                  {order.billingAddress?.country || "N/A"} -{" "}
+                  {order.billingAddress?.postalCode || "N/A"}
                 </p>
                 <Badge variant="outline" className="mt-3 text-xs">
                   {order.billingAddress?.label || "N/A"}

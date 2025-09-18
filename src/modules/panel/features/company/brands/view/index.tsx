@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router';
+import { useParams, useNavigate } from "react-router";
 import { PageContent } from "@/core/components/ui/structure";
 import { Button } from "@/core/components/ui/button";
 import { Badge, StatusBadge } from "@/core/components/ui/badge";
@@ -13,8 +13,29 @@ import { normalizeAxiosError } from "@/core/services/http";
 import { apiGetBrandById, apiUpdateBrandStatus, type BrandStatusUpdateRequest } from "@/modules/panel/services/http/company.service";
 import { BrandApprovalDialog } from "../components/BrandApprovalDialog";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
-import { STATUS_MAP } from "@/core/config/status";
 import type { AxiosError } from "axios";
+import { WithAccess } from "@/modules/auth/components/guard";
+import { ROLE } from "@/modules/auth/types/permission.type.";
+
+interface BrandData {
+  _id?: string;
+  name?: string;
+  aboutTheBrand?: string;
+  websiteUrl?: string;
+  isActive?: boolean;
+  status?: string;
+  brandStatus?: string;
+  logoImage?: string;
+  coverImage?: string;
+  authorizationLetter?: string;
+  locationCity?: string;
+  locationType?: string;
+  locationState?: string;
+  statusChangeReason?: string;
+  statusChangedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
 const CompanyBrandView = () => {
   const { companyId, brandId } = useParams();
@@ -23,26 +44,11 @@ const CompanyBrandView = () => {
   const { user } = useAuth();
   const [isApprovalDialogOpen, setIsApprovalDialogOpen] = useState(false);
 
-  if (!companyId || !brandId) {
-    return (
-      <PageContent
-        header={{
-          title: "Brand Details",
-          description: "Company ID and Brand ID are required to view brand details.",
-        }}
-      >
-        <div className="py-8 text-center">
-          <p className="text-gray-500">Invalid company or brand ID provided.</p>
-        </div>
-      </PageContent>
-    );
-  }
-
   // Fetch brand data
   const { data: brandData, isLoading, error } = useQuery({
     queryKey: ["brand", brandId],
-    queryFn: () => apiGetBrandById<{ data: any }>(brandId!),
-    enabled: !!brandId,
+    queryFn: () => apiGetBrandById<{ data: BrandData }>(brandId!),
+    enabled: !!brandId && !!companyId,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
@@ -72,6 +78,22 @@ const CompanyBrandView = () => {
       );
     },
   });
+
+  if (!companyId || !brandId) {
+    return (
+      <PageContent
+        header={{
+          title: "Brand Details",
+          description:
+            "Company ID and Brand ID are required to view brand details.",
+        }}
+      >
+        <div className="py-8 text-center">
+          <p className="text-gray-500">Invalid company or brand ID provided.</p>
+        </div>
+      </PageContent>
+    );
+  }
 
   const handleApproval = async (data: BrandStatusUpdateRequest) => {
     await updateStatusMutation.mutateAsync(data);
@@ -117,13 +139,9 @@ const CompanyBrandView = () => {
     );
   }
 
-  const brand = brandData?.data || brandData;
+  const brand = (brandData?.data || brandData) as BrandData;
 
-  // Debug logging
-  console.log("Brand data:", brand);
-  console.log("Brand status:", brand?.status);
-  console.log("Brand brandStatus:", brand?.brandStatus);
-  console.log("STATUS_MAP.brand.active.value:", STATUS_MAP.brand?.active?.value);
+ 
 
   if (!brand) {
     return (
@@ -137,10 +155,10 @@ const CompanyBrandView = () => {
           <p className="text-gray-500 mb-4">
             Brand not found or has been deleted.
           </p>
-          <p className="text-sm text-gray-400 mb-4">
+          <p className="mb-4 text-sm text-gray-400">
             Company ID: {companyId} | Brand ID: {brandId}
           </p>
-          <Button 
+          <Button
             onClick={() => navigate(PANEL_ROUTES.COMPANY.LIST)}
             variant="outlined"
           >
@@ -165,13 +183,15 @@ const CompanyBrandView = () => {
               <ArrowLeftIcon className="mr-2 h-4 w-4" />
               Back to Brands
             </Button>
-            <Button
-              onClick={() => setIsApprovalDialogOpen(true)}
-              variant="outlined"
-              color="secondary"
-            >
-              Manage Approval
-            </Button>
+            <WithAccess roles={[ROLE.ADMIN]} >
+              <Button
+                onClick={() => setIsApprovalDialogOpen(true)}
+                variant="outlined"
+                color="secondary"
+              >
+                Manage Approval
+              </Button>
+            </WithAccess>
             <Button
               onClick={() => navigate(PANEL_ROUTES.COMPANY.BRAND_EDIT(companyId, brandId))}
               variant="contained"
@@ -185,41 +205,43 @@ const CompanyBrandView = () => {
     >
       <div className="space-y-6">
         {/* Brand Header */}
-        <div className="flex items-start gap-4 p-6 bg-white rounded-lg border">
+        <div className="flex items-start gap-4 rounded-lg border bg-white p-6">
           {brand.logoImage && (
             <Avatar
               src={brand.logoImage}
-              feedback={brand.name.charAt(0)}
-              className="w-16 h-16"
+              feedback={brand.name?.charAt(0) || "B"}
+              className="h-16 w-16"
             />
           )}
           <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
+            <div className="mb-2 flex items-center gap-3">
               <h2 className="text-2xl font-bold">{brand.name}</h2>
               <StatusBadge
-                status={brand.status || brand.brandStatus}
+                status={brand.status || brand.brandStatus || "unknown"}
                 module="brand"
                 variant="badge"
               >
-                {brand.status || brand.brandStatus}
+                {brand.status || brand.brandStatus || "Unknown"}
               </StatusBadge>
             </div>
-            <p className="text-gray-600 mb-4">{brand.aboutTheBrand}</p>
+            <p className="mb-4 text-gray-600">{brand.aboutTheBrand}</p>
             <div className="flex gap-4 text-sm text-gray-500">
-              <span>Created: {formatDate(brand.createdAt)}</span>
-              <span>Updated: {formatDate(brand.updatedAt)}</span>
+              <span>Created: {brand.createdAt ? formatDate(brand.createdAt) : "N/A"}</span>
+              <span>Updated: {brand.updatedAt ? formatDate(brand.updatedAt) : "N/A"}</span>
             </div>
           </div>
         </div>
 
         {/* Brand Details */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {/* Basic Information */}
-          <div className="p-6 bg-white rounded-lg border">
-            <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
+          <div className="rounded-lg border bg-white p-6">
+            <h3 className="mb-4 text-lg font-semibold">Basic Information</h3>
             <div className="space-y-3">
               <div>
-                <label className="text-sm font-medium text-gray-500">Website</label>
+                <div className="text-sm font-medium text-gray-500">
+                  Website
+                </div>
                 <p className="text-sm">
                   {brand.websiteUrl ? (
                     <a
@@ -236,11 +258,17 @@ const CompanyBrandView = () => {
                 </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-500">Status</label>
-                <p className="text-sm">{brand.isActive ? 'Active' : 'Inactive'}</p>
+                <div className="text-sm font-medium text-gray-500">
+                  Status
+                </div>
+                <p className="text-sm">
+                  {brand.isActive ? "Active" : "Inactive"}
+                </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-500">Location</label>
+                <div className="text-sm font-medium text-gray-500">
+                  Location
+                </div>
                 <div className="flex gap-2">
                   <Badge variant="outline">{brand.locationCity}</Badge>
                   <span className="text-sm text-gray-500">
@@ -252,22 +280,28 @@ const CompanyBrandView = () => {
           </div>
 
           {/* Status Information */}
-          <div className="p-6 bg-white rounded-lg border">
-            <h3 className="text-lg font-semibold mb-4">Status Information</h3>
+          <div className="rounded-lg border bg-white p-6">
+            <h3 className="mb-4 text-lg font-semibold">Status Information</h3>
             <div className="space-y-3">
               <div>
-                <label className="text-sm font-medium text-gray-500">Brand Status</label>
+                <div className="text-sm font-medium text-gray-500">
+                  Brand Status
+                </div>
                 <p className="text-sm">{brand.brandStatus}</p>
               </div>
               {brand.statusChangeReason && (
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Status Reason</label>
+                  <div className="text-sm font-medium text-gray-500">
+                    Status Reason
+                  </div>
                   <p className="text-sm">{brand.statusChangeReason}</p>
                 </div>
               )}
               {brand.statusChangedAt && (
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Status Changed</label>
+                  <div className="text-sm font-medium text-gray-500">
+                    Status Changed
+                  </div>
                   <p className="text-sm">{formatDate(brand.statusChangedAt)}</p>
                 </div>
               )}
@@ -276,12 +310,14 @@ const CompanyBrandView = () => {
         </div>
 
         {/* Documents */}
-        <div className="p-6 bg-white rounded-lg border">
-          <h3 className="text-lg font-semibold mb-4">Documents</h3>
+        <div className="rounded-lg border bg-white p-6">
+          <h3 className="mb-4 text-lg font-semibold">Documents</h3>
           <div className="space-y-3">
             {brand.authorizationLetter && (
               <div>
-                <label className="text-sm font-medium text-gray-500">Authorization Letter</label>
+                <div className="text-sm font-medium text-gray-500">
+                  Authorization Letter
+                </div>
                 <p className="text-sm">
                   <a
                     href={brand.authorizationLetter}
@@ -296,7 +332,9 @@ const CompanyBrandView = () => {
             )}
             {brand.coverImage && (
               <div>
-                <label className="text-sm font-medium text-gray-500">Cover Image</label>
+                <div className="text-sm font-medium text-gray-500">
+                  Cover Image
+                </div>
                 <p className="text-sm">
                   <a
                     href={brand.coverImage}

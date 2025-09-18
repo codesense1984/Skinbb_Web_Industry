@@ -4,6 +4,11 @@ import { PageContent } from "@/core/components/ui/structure";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { apiGetCompanyList } from "@/modules/panel/services/http/company.service";
 import { columns } from "./data";
+import { Button } from "@/core/components/ui/button";
+import { PlusIcon } from "@heroicons/react/24/outline";
+import { Link } from "react-router";
+import { WithAccess } from "@/modules/auth/components/guard";
+import { PAGE, PERMISSION } from "@/modules/auth/types/permission.type.";
 
 // const CompanyForm = lazy(() => import("../components/AddCompanyForm"));
 
@@ -22,17 +27,19 @@ const CompanyList = () => {
       header={{
         title: "Company",
         description: "Discover top brands from around the world.",
-        // actions: (
-        //   <Button variant="contained" color={"secondary"} startIcon={<PlusIcon/>} aria-label="Add Company">
-        //     Add Company
-        //   </Button>
-        //   // <EntityDialog
-        //   //   title="Add Company"
-        //   //   description="Fill in the details below to add a new company."
-        //   //   triggerLabel="Add Company"
-        //   //   FormComponent={CompanyForm}
-        //   // />
-        // ),
+        actions: (
+          <WithAccess page={PAGE.COMPANIES} actions={PERMISSION.CREATE}>
+            <Button
+              variant="contained"
+              color={"secondary"}
+              startIcon={<PlusIcon />}
+              aria-label="Add Company"
+              asChild
+            >
+              <Link to={PANEL_ROUTES.ONBOARD.COMPANY_CREATE}>Add Company</Link>
+            </Button>
+          </WithAccess>
+        ),
       }}
     >
       {/* <section

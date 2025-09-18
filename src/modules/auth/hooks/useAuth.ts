@@ -30,6 +30,7 @@ export const useAuth = () => {
   return {
     me: query.data,
     user: query.data?.user,
+    userId: query.data?.user?._id,
     isLoading: query.isLoading,
     isError: query.isError,
     signOut,

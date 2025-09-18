@@ -3,15 +3,17 @@ import { Badge, StatusBadge } from "@/core/components/ui/badge";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Coupon } from "@/modules/panel/services/http/coupon.service";
+import { formatDate } from "@/core/utils";
 
 export const columns = (): ColumnDef<Coupon>[] => [
   {
     accessorKey: "code",
-    header: "Coupon Code",
+    header: "Code",
+    size: 120,
     cell: ({ row }) => {
       const code = row.getValue("code") as string;
       return (
-        <div className="font-mono font-medium text-sm bg-gray-100 px-2 py-1 rounded">
+        <div className="rounded bg-gray-100 px-2 py-1 font-mono text-sm font-medium">
           {code}
         </div>
       );
@@ -28,6 +30,7 @@ export const columns = (): ColumnDef<Coupon>[] => [
   {
     accessorKey: "type",
     header: "Type",
+    size: 120,
     cell: ({ row }) => {
       const type = row.getValue("type") as string;
       const typeLabels = {
@@ -45,6 +48,7 @@ export const columns = (): ColumnDef<Coupon>[] => [
   {
     accessorKey: "discountType",
     header: "Discount Type",
+    size: 120,
     cell: ({ row }) => {
       const discountType = row.getValue("discountType") as string;
       const discountValue = row.original.discountValue;
@@ -62,13 +66,16 @@ export const columns = (): ColumnDef<Coupon>[] => [
   },
   {
     accessorKey: "usageLimit",
+    size: 120,
     header: "Usage",
     cell: ({ row }) => {
       const usageLimit = row.getValue("usageLimit") as number;
       const usedCount = row.original.usedCount;
       return (
         <div className="text-sm">
-          <div className="font-medium">{usedCount} / {usageLimit}</div>
+          <div className="font-medium">
+            {usedCount} / {usageLimit}
+          </div>
           <div className="text-gray-500">
             {usageLimit - usedCount} remaining
           </div>
@@ -79,17 +86,14 @@ export const columns = (): ColumnDef<Coupon>[] => [
   {
     accessorKey: "validFrom",
     header: "Valid Period",
+    size: 120,
     cell: ({ row }) => {
       const validFrom = new Date(row.getValue("validFrom"));
       const expiresAt = new Date(row.original.expiresAt);
       return (
         <div className="text-sm">
-          <div className="font-medium">
-            {validFrom.toLocaleDateString()}
-          </div>
-          <div className="text-gray-500">
-            to {expiresAt.toLocaleDateString()}
-          </div>
+          <div className="font-medium">{formatDate(validFrom)}</div>
+          <div className="text-gray-500">to {formatDate(expiresAt)}</div>
         </div>
       );
     },
@@ -97,16 +101,17 @@ export const columns = (): ColumnDef<Coupon>[] => [
   {
     accessorKey: "status",
     header: "Status",
+    size: 120,
     cell: ({ row }) => {
       const status = row.getValue("status") as string;
       const isActive = row.original.isActive;
-      
+
       // Determine the actual status based on isActive and status
       let actualStatus = status;
       if (status === "active" && !isActive) {
         actualStatus = "inactive";
       }
-      
+
       return (
         <StatusBadge
           module="discount_coupon"
@@ -118,14 +123,11 @@ export const columns = (): ColumnDef<Coupon>[] => [
   },
   {
     accessorKey: "createdAt",
+    size: 120,
     header: "Created",
     cell: ({ row }) => {
       const date = new Date(row.getValue("createdAt"));
-      return (
-        <div className="text-sm">
-          {date.toLocaleDateString()}
-        </div>
-      );
+      return <div className="text-sm">{formatDate(date)}</div>;
     },
   },
   {
@@ -134,7 +136,7 @@ export const columns = (): ColumnDef<Coupon>[] => [
     cell: ({ row, table }) => {
       const coupon = row.original;
       const meta = table.options.meta as any;
-      
+
       return (
         <TableAction
           view={{
@@ -143,7 +145,10 @@ export const columns = (): ColumnDef<Coupon>[] => [
                 meta.onView(coupon._id);
               } else {
                 // Fallback to navigation
-                window.open(PANEL_ROUTES.MASTER.DISCOUNT_COUPON_VIEW(coupon._id), '_blank');
+                window.open(
+                  PANEL_ROUTES.MASTER.DISCOUNT_COUPON_VIEW(coupon._id),
+                  "_blank",
+                );
               }
             },
             title: "View coupon",
@@ -154,7 +159,10 @@ export const columns = (): ColumnDef<Coupon>[] => [
                 meta.onEdit(coupon._id);
               } else {
                 // Fallback to navigation
-                window.open(PANEL_ROUTES.MASTER.DISCOUNT_COUPON_EDIT(coupon._id), '_blank');
+                window.open(
+                  PANEL_ROUTES.MASTER.DISCOUNT_COUPON_EDIT(coupon._id),
+                  "_blank",
+                );
               }
             },
             title: "Edit coupon",

@@ -30,7 +30,7 @@ export interface SellerMemberListParams {
   page?: number;
   limit?: number;
   brandId?: string;
-  status?: 'active' | 'inactive';
+  status?: "active" | "inactive";
   query?: string;
   sort?: {
     order?: string;
@@ -86,7 +86,6 @@ export interface SellerMemberDeleteResponse {
 }
 
 export type SellerMemberList = SellerMember;
-
 
 // export interface CompanyUser {
 //   _id: string

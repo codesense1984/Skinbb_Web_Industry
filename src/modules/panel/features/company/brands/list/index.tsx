@@ -29,8 +29,10 @@ const CompanyBrandsList = () => {
         title: "Company Brands",
         description: `Manage all brands for Company ${companyId}`,
         actions: (
-          <Button 
-            onClick={() => navigate(PANEL_ROUTES.COMPANY.BRAND_CREATE(companyId))}
+          <Button
+            onClick={() =>
+              navigate(PANEL_ROUTES.COMPANY.BRAND_CREATE(companyId))
+            }
             variant="contained"
             color="secondary"
           >
@@ -42,13 +44,12 @@ const CompanyBrandsList = () => {
     >
       <div className="space-y-4">
         <div className="py-8 text-center">
-          <p className="text-gray-500 mb-4">
-            Company brands listing will be implemented with the proper API endpoints.
+          <p className="mb-4 text-gray-500">
+            Company brands listing will be implemented with the proper API
+            endpoints.
           </p>
-          <p className="text-sm text-gray-400 mb-4">
-            Company ID: {companyId}
-          </p>
-          <Button 
+          <p className="mb-4 text-sm text-gray-400">Company ID: {companyId}</p>
+          <Button
             onClick={() => navigate(PANEL_ROUTES.COMPANY.LIST)}
             variant="outlined"
           >

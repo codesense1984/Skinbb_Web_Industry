@@ -9,7 +9,7 @@ export interface Coupon {
   description: string;
   discountType: "percentage" | "fixed_amount" | "free_product";
   discountValue: number;
-  type: "bogo" | "product" | "cart";
+  type: "product" | "cart" | "bogo";
   isActive: boolean;
   status: "active" | "expired" | "inactive";
   usageLimit: number;
@@ -18,6 +18,16 @@ export interface Coupon {
   expiresAt: string;
   createdAt: string;
   updatedAt: string;
+  // New fields
+  selectedProducts?: string[];
+  freeProducts?: string[];
+  enableUsageLimit?: boolean;
+  enableMinimumSpend?: boolean;
+  enableMinimumQuantity?: boolean;
+  enableMaxDiscountValue?: boolean;
+  minimumSpend?: number;
+  minimumQuantity?: number;
+  maxDiscountValue?: number;
 }
 
 export interface CouponListResponse {
@@ -32,11 +42,31 @@ export interface CreateCouponRequest {
   description: string;
   discountType: "percentage" | "fixed_amount" | "free_product";
   discountValue: number;
-  type: "bogo" | "product" | "cart";
+  type: "product" | "cart" | "bogo";
   isActive: boolean;
   usageLimit: number;
   validFrom: string;
   expiresAt: string;
+  // New fields
+  selectedProducts?: string[];
+  freeProducts?: string[];
+  enableUsageLimit?: boolean;
+  enableMinimumSpend?: boolean;
+  enableMinimumQuantity?: boolean;
+  enableMaxDiscountValue?: boolean;
+  minimumSpend?: number;
+  minimumQuantity?: number;
+  maxDiscountValue?: number;
+  applyTo?: {
+    products: Array<{
+      id: string;
+      variantIds: string[];
+    }>;
+    freeProducts?: Array<{
+      id: string;
+      variantIds: string[];
+    }>;
+  };
 }
 
 export interface UpdateCouponRequest extends Partial<CreateCouponRequest> {
@@ -73,10 +103,15 @@ export async function apiUpdateCoupon(id: string, data: UpdateCouponRequest) {
 
 // Delete coupon
 export async function apiDeleteCoupon(id: string) {
-  return api.delete<ApiResponse<{ message: string }>>(ENDPOINTS.COUPON.DELETE(id));
+  return api.delete<ApiResponse<{ message: string }>>(
+    ENDPOINTS.COUPON.DELETE(id),
+  );
 }
 
 // Toggle coupon status
 export async function apiToggleCouponStatus(id: string) {
-  return api.put<ApiResponse<Coupon>>(`${ENDPOINTS.COUPON.UPDATE(id)}/toggle-status`, { id });
+  return api.put<ApiResponse<Coupon>>(
+    `${ENDPOINTS.COUPON.UPDATE(id)}/toggle-status`,
+    { id },
+  );
 }

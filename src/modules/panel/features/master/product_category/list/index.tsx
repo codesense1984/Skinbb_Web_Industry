@@ -9,16 +9,16 @@ import { PlusIcon } from "@heroicons/react/24/outline";
 
 export default function ProductCategoryList() {
   const navigate = useNavigate();
-  
+
   // Handle form actions
   const handleAddCategory = () => {
     navigate(PANEL_ROUTES.MASTER.PRODUCT_CATEGORY_CREATE);
   };
-  
+
   const handleViewCategory = (id: string) => {
     navigate(PANEL_ROUTES.MASTER.PRODUCT_CATEGORY_VIEW(id));
   };
-  
+
   const handleEditCategory = (id: string) => {
     navigate(PANEL_ROUTES.MASTER.PRODUCT_CATEGORY_EDIT(id));
   };
@@ -55,4 +55,3 @@ export default function ProductCategoryList() {
     </PageContent>
   );
 }
-

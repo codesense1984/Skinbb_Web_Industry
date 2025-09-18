@@ -7,22 +7,23 @@ import { useEffect } from "react";
 import { Button } from "@/core/components/ui/button";
 import { Form } from "@/core/components/ui/form";
 import { PageContent } from "@/core/components/ui/structure";
-import { apiGetProductTags, apiCreateProductTag, apiUpdateProductTag } from "@/modules/panel/services/http/product.service";
+import {
+  apiGetProductTags,
+  apiCreateProductTag,
+  apiUpdateProductTag,
+} from "@/modules/panel/services/http/product.service";
 import { tagFormSchema, type TagFormData } from "./formSchema";
 import { MODE } from "@/core/types/base.type";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-import {
-  FormInput,
-  INPUT_TYPES,
-} from "@/core/components/ui/form-input";
+import { FormInput, INPUT_TYPES } from "@/core/components/ui/form-input";
 
 export default function TagForm() {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEdit = !!id;
-  const isView = window.location.pathname.includes('/view');
-  const mode = isView ? MODE.VIEW : (isEdit ? MODE.EDIT : MODE.ADD);
+  const isView = window.location.pathname.includes("/view");
+  const mode = isView ? MODE.VIEW : isEdit ? MODE.EDIT : MODE.ADD;
 
   const form = useForm<TagFormData>({
     resolver: zodResolver(tagFormSchema),
@@ -107,7 +108,7 @@ export default function TagForm() {
     }
   };
 
-  const pageTitle = isView ? "View Tag" : (isEdit ? "Edit Tag" : "Add Tag");
+  const pageTitle = isView ? "View Tag" : isEdit ? "Edit Tag" : "Add Tag";
   const submitText = isEdit ? "Update Tag" : "Create Tag";
 
   if (isLoading) {
@@ -118,7 +119,7 @@ export default function TagForm() {
           description: "Loading tag details",
         }}
       >
-        <div className="flex items-center justify-center h-64">
+        <div className="flex h-64 items-center justify-center">
           <div className="text-gray-500">Loading...</div>
         </div>
       </PageContent>
@@ -144,11 +145,11 @@ export default function TagForm() {
       <div className="w-full">
         <Form {...form}>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-            <div className="bg-white rounded-xl border shadow-sm p-8 space-y-6">
+            <div className="space-y-6 rounded-xl border bg-white p-8 shadow-sm">
               <h2 className="text-xl font-semibold text-gray-900">
                 Tag Information
               </h2>
-              
+
               <div className="space-y-6">
                 <FormInput
                   name="name"
@@ -221,15 +222,13 @@ export default function TagForm() {
                       value={watch("color")}
                       onChange={(e) => setValue("color", e.target.value)}
                       disabled={mode === MODE.VIEW}
-                      className="w-8 h-8 rounded border"
+                      className="h-8 w-8 rounded border"
                     />
                     <div
-                      className="w-4 h-4 rounded border"
+                      className="h-4 w-4 rounded border"
                       style={{ backgroundColor: watch("color") }}
                     />
-                    <span className="text-sm text-gray-500">
-                      Color preview
-                    </span>
+                    <span className="text-sm text-gray-500">Color preview</span>
                   </div>
                 </div>
 
@@ -249,15 +248,19 @@ export default function TagForm() {
         </Form>
 
         {mode !== MODE.VIEW && (
-          <div className="flex space-x-4 mt-6">
+          <div className="mt-6 flex space-x-4">
             <Button
               onClick={handleSubmit(onSubmit)}
-              disabled={createTagMutation.isPending || updateTagMutation.isPending}
+              disabled={
+                createTagMutation.isPending || updateTagMutation.isPending
+              }
               className="flex-1"
             >
-              {createTagMutation.isPending ? "Creating..." : 
-               updateTagMutation.isPending ? "Updating..." : 
-               submitText}
+              {createTagMutation.isPending
+                ? "Creating..."
+                : updateTagMutation.isPending
+                  ? "Updating..."
+                  : submitText}
             </Button>
             <Button
               type="button"

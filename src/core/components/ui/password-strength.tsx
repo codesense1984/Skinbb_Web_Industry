@@ -34,8 +34,12 @@ const requirements: PasswordRequirement[] = [
   },
 ];
 
-const getPasswordStrength = (password: string): { score: number; label: string; color: string } => {
-  const validRequirements = requirements.filter(req => req.test(password)).length;
+const getPasswordStrength = (
+  password: string,
+): { score: number; label: string; color: string } => {
+  const validRequirements = requirements.filter((req) =>
+    req.test(password),
+  ).length;
   const percentage = (validRequirements / requirements.length) * 100;
 
   if (percentage < 40) {
@@ -49,10 +53,13 @@ const getPasswordStrength = (password: string): { score: number; label: string; 
   }
 };
 
-export function PasswordStrength({ password, className }: PasswordStrengthProps) {
+export function PasswordStrength({
+  password,
+  className,
+}: PasswordStrengthProps) {
   const [showRequirements, setShowRequirements] = useState(false);
   const strength = getPasswordStrength(password);
-  const validRequirements = requirements.filter(req => req.test(password));
+  const validRequirements = requirements.filter((req) => req.test(password));
 
   useEffect(() => {
     if (password.length > 0) {
@@ -70,17 +77,19 @@ export function PasswordStrength({ password, className }: PasswordStrengthProps)
       <div className="space-y-1">
         <div className="flex items-center justify-between text-sm">
           <span className="text-gray-600">Password strength:</span>
-          <span className={cn(
-            "font-medium",
-            strength.score === 1 && "text-red-600",
-            strength.score === 2 && "text-yellow-600",
-            strength.score === 3 && "text-blue-600",
-            strength.score === 4 && "text-green-600"
-          )}>
+          <span
+            className={cn(
+              "font-medium",
+              strength.score === 1 && "text-red-600",
+              strength.score === 2 && "text-yellow-600",
+              strength.score === 3 && "text-blue-600",
+              strength.score === 4 && "text-green-600",
+            )}
+          >
             {strength.label}
           </span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-1.5">
+        <div className="h-1.5 w-full rounded-full bg-gray-200">
           <div
             className={cn(
               "h-1.5 rounded-full transition-all duration-300",
@@ -88,7 +97,7 @@ export function PasswordStrength({ password, className }: PasswordStrengthProps)
               strength.score === 1 && "w-1/4",
               strength.score === 2 && "w-1/2",
               strength.score === 3 && "w-3/4",
-              strength.score === 4 && "w-full"
+              strength.score === 4 && "w-full",
             )}
           />
         </div>
@@ -104,24 +113,44 @@ export function PasswordStrength({ password, className }: PasswordStrengthProps)
             const isValid = requirement.test(password);
             return (
               <div key={index} className="flex items-center space-x-2 text-xs">
-                <div className={cn(
-                  "w-3 h-3 rounded-full flex items-center justify-center flex-shrink-0",
-                  isValid ? "bg-green-100" : "bg-red-100"
-                )}>
+                <div
+                  className={cn(
+                    "flex h-3 w-3 flex-shrink-0 items-center justify-center rounded-full",
+                    isValid ? "bg-green-100" : "bg-red-100",
+                  )}
+                >
                   {isValid ? (
-                    <svg className="w-2.5 h-2.5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    <svg
+                      className="h-2.5 w-2.5 text-green-600"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   ) : (
-                    <svg className="w-2.5 h-2.5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    <svg
+                      className="h-2.5 w-2.5 text-red-600"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   )}
                 </div>
-                <span className={cn(
-                  "text-xs",
-                  isValid ? "text-green-600" : "text-red-600"
-                )}>
+                <span
+                  className={cn(
+                    "text-xs",
+                    isValid ? "text-green-600" : "text-red-600",
+                  )}
+                >
                   {requirement.label}
                 </span>
               </div>

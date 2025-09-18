@@ -1,28 +1,34 @@
-import { useState, useEffect, useRef } from 'react'
-import { useNavigate, useSearchParams } from 'react-router'
-import { Button } from '@/core/components/ui/button'
-import { PageContent } from '@/core/components/ui/structure'
-import { SelectRoot, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/core/components/ui/select'
-import { Input } from '@/core/components/ui/input'
-import { Label } from '@/core/components/ui/label'
-import { RichTextEditor } from '@/core/components/ui/rich-text-editor'
+import { useState, useEffect, useRef } from "react";
+import { useNavigate, useSearchParams } from "react-router";
+import { Button } from "@/core/components/ui/button";
+import { PageContent } from "@/core/components/ui/structure";
+import {
+  SelectRoot,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/core/components/ui/select";
+import { Input } from "@/core/components/ui/input";
+import { Label } from "@/core/components/ui/label";
+import { RichTextEditor } from "@/core/components/ui/rich-text-editor";
 
-import { PANEL_ROUTES } from '@/modules/panel/routes/constant'
-import { api } from '@/core/services/http'
-import { ENDPOINTS } from '@/modules/panel/config/endpoint.config'
-import { 
-    apiGetBrandsForDropdown, 
-    apiGetCategoriesForDropdown, 
-    apiGetTagsForDropdown,
-    apiGetVariationTypes,
-    apiGetMarketedBy,
-    apiGetManufacturedBy,
-    apiGetImportedBy,
-    apiGetIngredients,
-    apiGetBenefits,
-    apiGetProductAttributeValues,
-    apiGetProductById
-} from '@/modules/panel/services/http/product.service'
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
+import { api } from "@/core/services/http";
+import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
+import {
+  apiGetBrandsForDropdown,
+  apiGetCategoriesForDropdown,
+  apiGetTagsForDropdown,
+  apiGetVariationTypes,
+  apiGetMarketedBy,
+  apiGetManufacturedBy,
+  apiGetImportedBy,
+  apiGetIngredients,
+  apiGetBenefits,
+  apiGetProductAttributeValues,
+  apiGetProductById,
+} from "@/modules/panel/services/http/product.service";
 
 interface ProductCreateData {
   productName: string;
@@ -89,108 +95,110 @@ interface DropdownOption {
 }
 
 const ProductCreate = () => {
-    const navigate = useNavigate()
-    const [searchParams] = useSearchParams()
-    const [isSubmitting, setIsSubmitting] = useState(false)
-    const [error, setError] = useState<string | null>(null)
-    
-    // Get mode and id from URL parameters
-    const mode = searchParams.get('mode') // 'view' or 'edit'
-    const productId = searchParams.get('id')
-    const isEditMode = mode === 'edit'
-    const isViewMode = mode === 'view'
-    const [isDragOver, setIsDragOver] = useState(false)
-    const [uploadedImages, setUploadedImages] = useState<File[]>([])
-    const [thumbnailImage, setThumbnailImage] = useState<File | null>(null)
-    const [barcodeImage, setBarcodeImage] = useState<File | null>(null)
-    const fileInputRef = useRef<HTMLInputElement>(null)
-    const thumbnailInputRef = useRef<HTMLInputElement>(null)
-    const barcodeInputRef = useRef<HTMLInputElement>(null)
-    
-    // Dropdown data states
-    const [brands, setBrands] = useState<DropdownOption[]>([])
-    const [categories, setCategories] = useState<DropdownOption[]>([])
-    const [tags, setTags] = useState<DropdownOption[]>([])
-    const [variationTypes, setVariationTypes] = useState<DropdownOption[]>([])
-    const [marketedBy, setMarketedBy] = useState<DropdownOption[]>([])
-    const [manufacturedBy, setManufacturedBy] = useState<DropdownOption[]>([])
-    const [importedBy, setImportedBy] = useState<DropdownOption[]>([])
-    const [ingredients, setIngredients] = useState<DropdownOption[]>([])
-    const [benefitsOptions, setBenefitsOptions] = useState<DropdownOption[]>([])
-    
-    // Product Attribute states
-    const [targetConcerns, setTargetConcerns] = useState<DropdownOption[]>([])
-    const [productFeatures, setProductFeatures] = useState<DropdownOption[]>([])
-    const [countryOfOrigin, setCountryOfOrigin] = useState<DropdownOption[]>([])
-    const [benefitsAttribute, setBenefitsAttribute] = useState<DropdownOption[]>([])
-    const [certifications, setCertifications] = useState<DropdownOption[]>([])
-    const [productForm, setProductForm] = useState<DropdownOption[]>([])
-    const [gender, setGender] = useState<DropdownOption[]>([])
-    const [productType, setProductType] = useState<DropdownOption[]>([])
-    const [targetArea, setTargetArea] = useState<DropdownOption[]>([])
-    // Additional Attribute states
-    const [finish, setFinish] = useState<DropdownOption[]>([])
-    const [fragrance, setFragrance] = useState<DropdownOption[]>([])
-    const [skinConcerns, setSkinConcerns] = useState<DropdownOption[]>([])
-    const [hairType, setHairType] = useState<DropdownOption[]>([])
-    const [skinType, setSkinType] = useState<DropdownOption[]>([])
-    
-    // Form data state
-    const [formData, setFormData] = useState<ProductCreateData>({
-        productName: '',
-        slug: '',
-        description: '',
-        status: 'draft',
-        price: 0,
-        salePrice: 0,
-        quantity: 0,
-        sku: '',
-        brand: '',
-        productVariationType: '',
-        productCategory: [],
-        tags: [],
-        marketedBy: '',
-        marketedByAddress: '',
-        manufacturedBy: '',
-        manufacturedByAddress: '',
-        importedBy: '',
-        importedByAddress: '',
-        // Product Attributes
-        targetConcerns: [],
-        productFeatures: [],
-        countryOfOrigin: '',
-        benefits: [],
-        certifications: [],
-        productForm: '',
-        gender: '',
-        productType: '',
-        targetArea: '',
-        // Additional Attributes
-        finish: '',
-        fragrance: '',
-        skinConcerns: [],
-        hairType: '',
-        skinType: '',
-        // Product Details
-        shelfLife: '',
-        licenseNo: '',
-        manufacturingDate: '',
-        expiryDate: '',
-        length: 0,
-        width: 0,
-        height: 0,
-        safetyPrecaution: '',
-        howToUse: '',
-        customerCareEmail: '',
-        customerCareNumber: '',
-        // Key Information
-        ingredient: '',
-        keyIngredients: '',
-        benefitsSingle: '',
-        // Capture Details
-        captureBy: 'admin',
-        capturedDate: new Date().toISOString(),
-    })
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Get mode and id from URL parameters
+  const mode = searchParams.get("mode"); // 'view' or 'edit'
+  const productId = searchParams.get("id");
+  const isEditMode = mode === "edit";
+  const isViewMode = mode === "view";
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [uploadedImages, setUploadedImages] = useState<File[]>([]);
+  const [thumbnailImage, setThumbnailImage] = useState<File | null>(null);
+  const [barcodeImage, setBarcodeImage] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const thumbnailInputRef = useRef<HTMLInputElement>(null);
+  const barcodeInputRef = useRef<HTMLInputElement>(null);
+
+  // Dropdown data states
+  const [brands, setBrands] = useState<DropdownOption[]>([]);
+  const [categories, setCategories] = useState<DropdownOption[]>([]);
+  const [tags, setTags] = useState<DropdownOption[]>([]);
+  const [variationTypes, setVariationTypes] = useState<DropdownOption[]>([]);
+  const [marketedBy, setMarketedBy] = useState<DropdownOption[]>([]);
+  const [manufacturedBy, setManufacturedBy] = useState<DropdownOption[]>([]);
+  const [importedBy, setImportedBy] = useState<DropdownOption[]>([]);
+  const [ingredients, setIngredients] = useState<DropdownOption[]>([]);
+  const [benefitsOptions, setBenefitsOptions] = useState<DropdownOption[]>([]);
+
+  // Product Attribute states
+  const [targetConcerns, setTargetConcerns] = useState<DropdownOption[]>([]);
+  const [productFeatures, setProductFeatures] = useState<DropdownOption[]>([]);
+  const [countryOfOrigin, setCountryOfOrigin] = useState<DropdownOption[]>([]);
+  const [benefitsAttribute, setBenefitsAttribute] = useState<DropdownOption[]>(
+    [],
+  );
+  const [certifications, setCertifications] = useState<DropdownOption[]>([]);
+  const [productForm, setProductForm] = useState<DropdownOption[]>([]);
+  const [gender, setGender] = useState<DropdownOption[]>([]);
+  const [productType, setProductType] = useState<DropdownOption[]>([]);
+  const [targetArea, setTargetArea] = useState<DropdownOption[]>([]);
+  // Additional Attribute states
+  const [finish, setFinish] = useState<DropdownOption[]>([]);
+  const [fragrance, setFragrance] = useState<DropdownOption[]>([]);
+  const [skinConcerns, setSkinConcerns] = useState<DropdownOption[]>([]);
+  const [hairType, setHairType] = useState<DropdownOption[]>([]);
+  const [skinType, setSkinType] = useState<DropdownOption[]>([]);
+
+  // Form data state
+  const [formData, setFormData] = useState<ProductCreateData>({
+    productName: "",
+    slug: "",
+    description: "",
+    status: "draft",
+    price: 0,
+    salePrice: 0,
+    quantity: 0,
+    sku: "",
+    brand: "",
+    productVariationType: "",
+    productCategory: [],
+    tags: [],
+    marketedBy: "",
+    marketedByAddress: "",
+    manufacturedBy: "",
+    manufacturedByAddress: "",
+    importedBy: "",
+    importedByAddress: "",
+    // Product Attributes
+    targetConcerns: [],
+    productFeatures: [],
+    countryOfOrigin: "",
+    benefits: [],
+    certifications: [],
+    productForm: "",
+    gender: "",
+    productType: "",
+    targetArea: "",
+    // Additional Attributes
+    finish: "",
+    fragrance: "",
+    skinConcerns: [],
+    hairType: "",
+    skinType: "",
+    // Product Details
+    shelfLife: "",
+    licenseNo: "",
+    manufacturingDate: "",
+    expiryDate: "",
+    length: 0,
+    width: 0,
+    height: 0,
+    safetyPrecaution: "",
+    howToUse: "",
+    customerCareEmail: "",
+    customerCareNumber: "",
+    // Key Information
+    ingredient: "",
+    keyIngredients: "",
+    benefitsSingle: "",
+    // Capture Details
+    captureBy: "admin",
+    capturedDate: new Date().toISOString(),
+  });
 
   // Load dropdown data on component mount
   useEffect(() => {
@@ -254,95 +262,115 @@ const ProductCreate = () => {
         if ((brandsRes as any)?.success) {
           setBrands((brandsRes as any).data.brands || []);
         }
-        
+
         if ((categoriesRes as any)?.success) {
           setCategories((categoriesRes as any).data.productCategories || []);
         }
-        
+
         if ((tagsRes as any)?.success) {
           setTags((tagsRes as any).data.tags || []);
         }
-        
+
         if ((variationTypesRes as any)?.success) {
-          setVariationTypes((variationTypesRes as any).data.productVariationTypes || []);
+          setVariationTypes(
+            (variationTypesRes as any).data.productVariationTypes || [],
+          );
         }
-        
+
         if ((marketedByRes as any)?.success) {
           setMarketedBy((marketedByRes as any).data.marketedBy || []);
         }
-        
+
         if ((manufacturedByRes as any)?.success) {
-          setManufacturedBy((manufacturedByRes as any).data.manufacturedBy || []);
+          setManufacturedBy(
+            (manufacturedByRes as any).data.manufacturedBy || [],
+          );
         }
-        
+
         if ((importedByRes as any)?.success) {
           setImportedBy((importedByRes as any).data.importedBys || []);
         }
-        
+
         if ((ingredientsRes as any)?.success) {
           setIngredients((ingredientsRes as any).data.ingredientLists || []);
         }
-        
+
         if ((benefitsRes as any)?.success) {
           setBenefitsOptions((benefitsRes as any).data.benefits || []);
         }
 
         // Product Attributes
         if ((targetConcernsRes as any)?.success) {
-          setTargetConcerns((targetConcernsRes as any).data.productAttributeValues || []);
+          setTargetConcerns(
+            (targetConcernsRes as any).data.productAttributeValues || [],
+          );
         }
-        
+
         if ((productFeaturesRes as any)?.success) {
-          setProductFeatures((productFeaturesRes as any).data.productAttributeValues || []);
+          setProductFeatures(
+            (productFeaturesRes as any).data.productAttributeValues || [],
+          );
         }
-        
+
         if ((countryOfOriginRes as any)?.success) {
-          setCountryOfOrigin((countryOfOriginRes as any).data.productAttributeValues || []);
+          setCountryOfOrigin(
+            (countryOfOriginRes as any).data.productAttributeValues || [],
+          );
         }
-        
+
         if ((benefitsAttributeRes as any)?.success) {
           setBenefitsAttribute(
             (benefitsAttributeRes as any).data.productAttributeValues || [],
           );
         }
-        
+
         if ((certificationsRes as any)?.success) {
-          setCertifications((certificationsRes as any).data.productAttributeValues || []);
+          setCertifications(
+            (certificationsRes as any).data.productAttributeValues || [],
+          );
         }
-        
+
         if ((productFormRes as any)?.success) {
-          setProductForm((productFormRes as any).data.productAttributeValues || []);
+          setProductForm(
+            (productFormRes as any).data.productAttributeValues || [],
+          );
         }
-        
+
         if ((genderRes as any)?.success) {
           setGender((genderRes as any).data.productAttributeValues || []);
         }
-        
+
         if ((productTypeRes as any)?.success) {
-          setProductType((productTypeRes as any).data.productAttributeValues || []);
+          setProductType(
+            (productTypeRes as any).data.productAttributeValues || [],
+          );
         }
-        
+
         if ((targetAreaRes as any)?.success) {
-          setTargetArea((targetAreaRes as any).data.productAttributeValues || []);
+          setTargetArea(
+            (targetAreaRes as any).data.productAttributeValues || [],
+          );
         }
-        
+
         // Additional Attributes
         if ((finishRes as any)?.success) {
           setFinish((finishRes as any).data.productAttributeValues || []);
         }
-        
+
         if ((fragranceRes as any)?.success) {
           setFragrance((fragranceRes as any).data.productAttributeValues || []);
         }
-        
+
         if ((skinConcernsRes as any)?.success) {
-          setSkinConcerns((skinConcernsRes as any).data.productAttributeValues || []);
+          setSkinConcerns(
+            (skinConcernsRes as any).data.productAttributeValues || [],
+          );
         }
-        
+
         if ((hairTypeRes as any)?.success) {
           setHairType((hairTypeRes as any).data.productAttributeValues || []);
         }
-        
+
         if ((skinTypeRes as any)?.success) {
           setSkinType((skinTypeRes as any).data.productAttributeValues || []);
         }
@@ -351,78 +379,89 @@ const ProductCreate = () => {
       }
     };
 
-        loadDropdownData()
-    }, [])
+    loadDropdownData();
+  }, []);
 
-    // Fetch product data for edit/view mode
-    useEffect(() => {
-        const fetchProductData = async () => {
-            if (productId && (isEditMode || isViewMode)) {
-                try {
-                    const response = await apiGetProductById(productId) as { success: boolean; data: any }
-                    if (response.success && response.data) {
-                        const product = response.data
-                        
-                        // Populate form data with existing product data
-                        setFormData({
-                            productName: product.productName || '',
-                            slug: product.slug || '',
-                            description: product.description || '',
-                            status: product.status || 'draft',
-                            price: product.price || 0,
-                            salePrice: product.salePrice || 0,
-                            quantity: product.quantity || 0,
-                            sku: product.sku || '',
-                            brand: product.brand?._id || '',
-                            productVariationType: product.productVariationType?._id || '',
-                            productCategory: product.productCategory?.map((cat: any) => cat._id) || [],
-                            tags: product.tags?.map((tag: any) => tag._id) || [],
-                            marketedBy: product.marketedBy?._id || '',
-                            marketedByAddress: product.marketedByAddress || '',
-                            manufacturedBy: product.manufacturedBy?._id || '',
-                            manufacturedByAddress: product.manufacturedByAddress || '',
-                            importedBy: product.importedBy?._id || '',
-                            importedByAddress: product.importedByAddress || '',
-                            targetConcerns: product.targetConcerns?.map((concern: any) => concern._id) || [],
-                            productFeatures: product.productFeatures?.map((feature: any) => feature._id) || [],
-                            countryOfOrigin: product.countryOfOrigin?._id || '',
-                            benefits: product.benefits?.map((benefit: any) => benefit._id) || [],
-                            certifications: product.certifications?.map((cert: any) => cert._id) || [],
-                            productForm: product.productForm?._id || '',
-                            gender: product.gender?._id || '',
-                            productType: product.productType?._id || '',
-                            targetArea: product.targetArea?._id || '',
-                            finish: product.finish?._id || '',
-                            fragrance: product.fragrance?._id || '',
-                            skinConcerns: product.skinConcerns?.map((concern: any) => concern._id) || [],
-                            hairType: product.hairType?._id || '',
-                            skinType: product.skinType?._id || '',
-                            shelfLife: product.shelfLife || '',
-                            licenseNo: product.licenseNo || '',
-                            manufacturingDate: product.manufacturingDate || '',
-                            expiryDate: product.expiryDate || '',
-                            length: product.length || 0,
-                            width: product.width || 0,
-                            height: product.height || 0,
-                            safetyPrecaution: product.safetyPrecaution || '',
-                            howToUse: product.howToUse || '',
-                            customerCareEmail: product.customerCareEmail || '',
-                            customerCareNumber: product.customerCareNumber || '',
-                            ingredient: product.ingredient || '',
-                            keyIngredients: product.keyIngredients || '',
-                            benefitsSingle: product.benefitsSingle || '',
-                            captureBy: product.captureBy || 'admin',
-                            capturedDate: product.capturedDate || new Date().toISOString(),
-                        })
-                    }
-                } catch (error) {
-                    setError('Failed to load product data')
-                }
-            }
+  // Fetch product data for edit/view mode
+  useEffect(() => {
+    const fetchProductData = async () => {
+      if (productId && (isEditMode || isViewMode)) {
+        try {
+          const response = (await apiGetProductById(productId)) as {
+            success: boolean;
+            data: any;
+          };
+          if (response.success && response.data) {
+            const product = response.data;
+
+            // Populate form data with existing product data
+            setFormData({
+              productName: product.productName || "",
+              slug: product.slug || "",
+              description: product.description || "",
+              status: product.status || "draft",
+              price: product.price || 0,
+              salePrice: product.salePrice || 0,
+              quantity: product.quantity || 0,
+              sku: product.sku || "",
+              brand: product.brand?._id || "",
+              productVariationType: product.productVariationType?._id || "",
+              productCategory:
+                product.productCategory?.map((cat: any) => cat._id) || [],
+              tags: product.tags?.map((tag: any) => tag._id) || [],
+              marketedBy: product.marketedBy?._id || "",
+              marketedByAddress: product.marketedByAddress || "",
+              manufacturedBy: product.manufacturedBy?._id || "",
+              manufacturedByAddress: product.manufacturedByAddress || "",
+              importedBy: product.importedBy?._id || "",
+              importedByAddress: product.importedByAddress || "",
+              targetConcerns:
+                product.targetConcerns?.map((concern: any) => concern._id) ||
+                [],
+              productFeatures:
+                product.productFeatures?.map((feature: any) => feature._id) ||
+                [],
+              countryOfOrigin: product.countryOfOrigin?._id || "",
+              benefits:
+                product.benefits?.map((benefit: any) => benefit._id) || [],
+              certifications:
+                product.certifications?.map((cert: any) => cert._id) || [],
+              productForm: product.productForm?._id || "",
+              gender: product.gender?._id || "",
+              productType: product.productType?._id || "",
+              targetArea: product.targetArea?._id || "",
+              finish: product.finish?._id || "",
+              fragrance: product.fragrance?._id || "",
+              skinConcerns:
+                product.skinConcerns?.map((concern: any) => concern._id) || [],
+              hairType: product.hairType?._id || "",
+              skinType: product.skinType?._id || "",
+              shelfLife: product.shelfLife || "",
+              licenseNo: product.licenseNo || "",
+              manufacturingDate: product.manufacturingDate || "",
+              expiryDate: product.expiryDate || "",
+              length: product.length || 0,
+              width: product.width || 0,
+              height: product.height || 0,
+              safetyPrecaution: product.safetyPrecaution || "",
+              howToUse: product.howToUse || "",
+              customerCareEmail: product.customerCareEmail || "",
+              customerCareNumber: product.customerCareNumber || "",
+              ingredient: product.ingredient || "",
+              keyIngredients: product.keyIngredients || "",
+              benefitsSingle: product.benefitsSingle || "",
+              captureBy: product.captureBy || "admin",
+              capturedDate: product.capturedDate || new Date().toISOString(),
+            });
+          }
+        } catch (error) {
+          setError("Failed to load product data");
         }
+      }
+    };
 
-        fetchProductData()
-    }, [productId, isEditMode, isViewMode])
+    fetchProductData();
+  }, [productId, isEditMode, isViewMode]);
 
   const handleInputChange = (field: keyof ProductCreateData, value: any) => {
     setFormData((prev) => ({
@@ -436,102 +475,110 @@ const ProductCreate = () => {
     setIsSubmitting(true);
     setError(null);
 
-        try {
-            // Create FormData to handle file uploads
-            const submitData = new FormData()
-            
-            // Add form data
-            Object.entries(formData).forEach(([key, value]) => {
-                if (Array.isArray(value)) {
-                    value.forEach(item => submitData.append(`${key}[]`, item))
-                } else if (value !== null && value !== undefined) {
-                    submitData.append(key, value.toString())
-                }
-            })
-            
-            // Add uploaded images
-            uploadedImages.forEach((file) => {
-                submitData.append('images', file)
-            })
-            
-            // Add thumbnail image
-            if (thumbnailImage) {
-                submitData.append('thumbnail', thumbnailImage)
-            }
-            
-            // Add barcode image
-            if (barcodeImage) {
-                submitData.append('barcodeImage', barcodeImage)
-            }
-            
-            let result: { success: boolean; message?: string }
-            
-            if (isEditMode && productId) {
-                // Update existing product
-                
-                // For updates, try sending JSON data instead of FormData
-                const updateData = {
-                    ...formData,
-                    // Convert arrays to proper format if needed
-                    productCategory: formData.productCategory,
-                    tags: formData.tags,
-                    targetConcerns: formData.targetConcerns,
-                    productFeatures: formData.productFeatures,
-                    benefits: formData.benefits,
-                    certifications: formData.certifications,
-                    skinConcerns: formData.skinConcerns,
-                }
-                
-                try {
-                    // Try PATCH with JSON data first
-                    result = await api.patch(`${ENDPOINTS.PRODUCT.MAIN}/${productId}`, updateData) as { success: boolean; message?: string }
-                } catch (patchError) {
-                    // Fallback to PUT with FormData
-                    result = await api.put(`${ENDPOINTS.PRODUCT.MAIN}/${productId}`, submitData, {
-                        headers: {
-                            'Content-Type': 'multipart/form-data',
-                        },
-                    }) as { success: boolean; message?: string }
-                }
-                
-                if (result.success) {
-                    // Product updated successfully
-                }
-            } else {
-                // Create new product
-                result = await api.post(ENDPOINTS.PRODUCT.MAIN, submitData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    },
-                }) as { success: boolean; message?: string }
-                
-                if (result.success) {
-                    // Product created successfully
-                }
-            }
-            
-            if (result.success) {
-                // Navigate back to product list
-                navigate(PANEL_ROUTES.LISTING.LIST)
-            }
-        } catch (error: any) {
-            // Handle error silently
-            
-            const errorMessage = isEditMode 
-                ? 'Failed to update product. Please check your input and try again.'
-                : 'Failed to create product. Please check your input and try again.'
-            
-            // Get more detailed error message
-            const detailedError = error?.response?.data?.message || 
-                                error?.response?.data?.error || 
-                                error?.message || 
-                                errorMessage
-                                
-            setError(detailedError)
-        } finally {
-            setIsSubmitting(false)
+    try {
+      // Create FormData to handle file uploads
+      const submitData = new FormData();
+
+      // Add form data
+      Object.entries(formData).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          value.forEach((item) => submitData.append(`${key}[]`, item));
+        } else if (value !== null && value !== undefined) {
+          submitData.append(key, value.toString());
         }
+      });
+
+      // Add uploaded images
+      uploadedImages.forEach((file) => {
+        submitData.append("images", file);
+      });
+
+      // Add thumbnail image
+      if (thumbnailImage) {
+        submitData.append("thumbnail", thumbnailImage);
+      }
+
+      // Add barcode image
+      if (barcodeImage) {
+        submitData.append("barcodeImage", barcodeImage);
+      }
+
+      let result: { success: boolean; message?: string };
+
+      if (isEditMode && productId) {
+        // Update existing product
+
+        // For updates, try sending JSON data instead of FormData
+        const updateData = {
+          ...formData,
+          // Convert arrays to proper format if needed
+          productCategory: formData.productCategory,
+          tags: formData.tags,
+          targetConcerns: formData.targetConcerns,
+          productFeatures: formData.productFeatures,
+          benefits: formData.benefits,
+          certifications: formData.certifications,
+          skinConcerns: formData.skinConcerns,
+        };
+
+        try {
+          // Try PATCH with JSON data first
+          result = (await api.patch(
+            `${ENDPOINTS.PRODUCT.MAIN}/${productId}`,
+            updateData,
+          )) as { success: boolean; message?: string };
+        } catch (patchError) {
+          // Fallback to PUT with FormData
+          result = (await api.put(
+            `${ENDPOINTS.PRODUCT.MAIN}/${productId}`,
+            submitData,
+            {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            },
+          )) as { success: boolean; message?: string };
+        }
+
+        if (result.success) {
+          // Product updated successfully
+        }
+      } else {
+        // Create new product
+        result = (await api.post(ENDPOINTS.PRODUCT.MAIN, submitData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        })) as { success: boolean; message?: string };
+
+        if (result.success) {
+          // Product created successfully
+        }
+      }
+
+      if (result.success) {
+        // Navigate back to product list
+        navigate(PANEL_ROUTES.LISTING.LIST);
+      }
+    } catch (error: any) {
+      // Handle error silently
+
+      const errorMessage = isEditMode
+        ? "Failed to update product. Please check your input and try again."
+        : "Failed to create product. Please check your input and try again.";
+
+      // Get more detailed error message
+      const detailedError =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message ||
+        errorMessage;
+
+      setError(detailedError);
+    } finally {
+      setIsSubmitting(false);
     }
+  };
 
   const handleCancel = () => {
     navigate(PANEL_ROUTES.LISTING.LIST);
@@ -655,1098 +702,1611 @@ const ProductCreate = () => {
     }
   };
 
-    const generateSlug = () => {
-        const slug = formData.productName
-            .toLowerCase()
-            .replace(/[^a-z0-9\s-]/g, '')
-            .replace(/\s+/g, '-')
-            .replace(/-+/g, '-')
-            .trim()
-        setFormData(prev => ({ ...prev, slug }))
-    }
+  const generateSlug = () => {
+    const slug = formData.productName
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .trim();
+    setFormData((prev) => ({ ...prev, slug }));
+  };
 
-    // Dynamic title and description based on mode
-    const getPageTitle = () => {
-        if (isViewMode) return "View Product"
-        if (isEditMode) return "Edit Product"
-        return "Create Product"
-    }
+  // Dynamic title and description based on mode
+  const getPageTitle = () => {
+    if (isViewMode) return "View Product";
+    if (isEditMode) return "Edit Product";
+    return "Create Product";
+  };
 
-    const getPageDescription = () => {
-        if (isViewMode) return "View product details and information."
-        if (isEditMode) return "Edit product information and details."
-        return "Add a new product to your catalog."
-    }
+  const getPageDescription = () => {
+    if (isViewMode) return "View product details and information.";
+    if (isEditMode) return "Edit product information and details.";
+    return "Add a new product to your catalog.";
+  };
 
-    return (
-        <PageContent
-            header={{
-                title: getPageTitle(),
-                description: getPageDescription(),
-            }}
-        >
-            <div className="w-full">
-                <div className="bg-background rounded-xl border shadow-sm p-8">
-                    <form onSubmit={handleFormSubmit}>
-                        <div className="space-y-8">
-                            {error && (
-                                <div className="bg-red-50 border border-red-200 rounded-md p-4">
-                                    <div className="text-sm text-red-800">
-                                        <strong>Error:</strong> {error}
-                                    </div>
-                                </div>
-                            )}
-                            
-                            {/* Basic Information */}
-                            <div className="space-y-4">
-                                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Basic Information</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <Label htmlFor="productName" className="text-sm font-medium text-gray-700">Product Name *</Label>
-                                    <Input
-                                        id="productName"
-                                        value={formData.productName}
-                                        onChange={(e) => handleInputChange('productName', e.target.value)}
-                                        placeholder="Enter product name"
-                                        required
-                                        className="h-10"
-                                        disabled={isViewMode}
-                                    />
-                                </div>
-                                
-                                <div className="space-y-2">
-                                    <Label htmlFor="slug" className="text-sm font-medium text-gray-700">Product Slug *</Label>
-                                    <div className="flex gap-2">
-                                        <Input
-                                            id="slug"
-                                            value={formData.slug}
-                                            onChange={(e) => handleInputChange('slug', e.target.value)}
-                                            placeholder="product-slug"
-                                            required
-                                            className="h-10 flex-1"
-                                            disabled={isViewMode}
-                                        />
-                                        <Button
-                                            type="button"
-                                            variant="outlined"
-                                            onClick={generateSlug}
-                                            className="h-10 px-4"
-                                            disabled={isViewMode}
-                                        >
-                                            Create Slug
-                                        </Button>
-                                    </div>
-                                </div>
-                                </div>
-                                
-                                <div className="space-y-2">
-                                    <Label htmlFor="description" className="text-sm font-medium text-gray-700">Description</Label>
-                                    <RichTextEditor
-                                        value={formData.description}
-                                        onChange={(value) => handleInputChange('description', value)}
-                                        placeholder="Enter product description"
-                                        disabled={isViewMode}
-                                    />
-                                </div>
-                                
-                                <div className="space-y-2">
-                                    <Label htmlFor="sku" className="text-sm font-medium text-gray-700">SKU</Label>
-                                    <Input
-                                        id="sku"
-                                        value={formData.sku}
-                                        onChange={(e) => handleInputChange('sku', e.target.value)}
-                                        placeholder="Enter SKU"
-                                        className="h-10"
-                                        disabled={isViewMode}
-                                    />
-                                </div>
-                            </div>
+  return (
+    <PageContent
+      header={{
+        title: getPageTitle(),
+        description: getPageDescription(),
+      }}
+    >
+      <div className="w-full">
+        <div className="bg-background rounded-xl border p-8 shadow-sm">
+          <form onSubmit={handleFormSubmit}>
+            <div className="space-y-8">
+              {error && (
+                <div className="rounded-md border border-red-200 bg-red-50 p-4">
+                  <div className="text-sm text-red-800">
+                    <strong>Error:</strong> {error}
+                  </div>
+                </div>
+              )}
 
-                            {/* Pricing */}
-                            <div className="space-y-4">
-                                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Pricing & Inventory</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div className="space-y-2">
-                                    <Label htmlFor="price" className="text-sm font-medium text-gray-700">Price *</Label>
-                                    <Input
-                                        id="price"
-                                        type="number"
-                                        step="0.01"
-                                        value={formData.price}
-                                        onChange={(e) => handleInputChange('price', parseFloat(e.target.value) || 0)}
-                                        placeholder="0.00"
-                                        required
-                                        className="h-10"
-                                        disabled={isViewMode}
-                                    />
-                                </div>
+              {/* Basic Information */}
+              <div className="space-y-4">
+                <h3 className="border-b border-gray-200 pb-2 text-lg font-semibold text-gray-900">
+                  Basic Information
+                </h3>
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="productName"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Product Name *
+                    </Label>
+                    <Input
+                      id="productName"
+                      value={formData.productName}
+                      onChange={(e) =>
+                        handleInputChange("productName", e.target.value)
+                      }
+                      placeholder="Enter product name"
+                      required
+                      className="h-10"
+                      disabled={isViewMode}
+                    />
+                  </div>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="salePrice" className="text-sm font-medium text-gray-700">Sale Price</Label>
-                                    <Input
-                                        id="salePrice"
-                                        type="number"
-                                        step="0.01"
-                                        value={formData.salePrice}
-                                        onChange={(e) => handleInputChange('salePrice', parseFloat(e.target.value) || 0)}
-                                        placeholder="0.00"
-                                        className="h-10"
-                                        disabled={isViewMode}
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="quantity" className="text-sm font-medium text-gray-700">Quantity *</Label>
-                                    <Input
-                                        id="quantity"
-                                        type="number"
-                                        value={formData.quantity}
-                                        onChange={(e) => handleInputChange('quantity', parseInt(e.target.value) || 0)}
-                                        placeholder="0"
-                                        required
-                                        className="h-10"
-                                        disabled={isViewMode}
-                                    />
-                                </div>
-                                </div>
-                            </div>
-
-                            {/* Product Details */}
-                            <div className="space-y-4">
-                                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Product Details</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <Label htmlFor="brand" className="text-sm font-medium text-gray-700">Brand *</Label>
-                                    <SelectRoot value={formData.brand} onValueChange={(value) => handleInputChange('brand', value)} disabled={isViewMode}>
-                                        <SelectTrigger className="h-10">
-                                            <SelectValue placeholder="Select a brand" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {brands.map((brand) => (
-                                                <SelectItem key={brand._id} value={brand._id}>
-                                                    {brand.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </SelectRoot>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="productVariationType" className="text-sm font-medium text-gray-700">Variation Type *</Label>
-                                    <SelectRoot value={formData.productVariationType} onValueChange={(value) => handleInputChange('productVariationType', value)} disabled={isViewMode}>
-                                        <SelectTrigger className="h-10">
-                                            <SelectValue placeholder="Select variation type" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {variationTypes.map((type) => (
-                                                <SelectItem key={type._id} value={type._id}>
-                                                    {type.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </SelectRoot>
-                                </div>
-                                </div>
-
-                                {/* Category */}
-                                <div className="space-y-2">
-                                    <Label htmlFor="productCategory" className="text-sm font-medium text-gray-700">Category *</Label>
-                                    <SelectRoot value={formData.productCategory[0] || ''} onValueChange={(value) => handleInputChange('productCategory', [value])} disabled={isViewMode}>
-                                        <SelectTrigger className="h-10">
-                                            <SelectValue placeholder="Select a category" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {categories.map((category) => (
-                                                <SelectItem key={category._id} value={category._id}>
-                                                    {category.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </SelectRoot>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="tags" className="text-sm font-medium text-gray-700">Tags</Label>
-                                    <SelectRoot value={formData.tags?.[0] || ''} onValueChange={(value) => handleInputChange('tags', [value])} disabled={isViewMode}>
-                                        <SelectTrigger className="h-10">
-                                            <SelectValue placeholder="Select or create tags" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {tags.map((tag) => (
-                                                <SelectItem key={tag._id} value={tag._id}>
-                                                    {tag.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </SelectRoot>
-                                </div>
-
-                                {/* Status */}
-                                <div className="space-y-2">
-                                    <Label htmlFor="status" className="text-sm font-medium text-gray-700">Status *</Label>
-                                    <SelectRoot value={formData.status} onValueChange={(value) => handleInputChange('status', value)} disabled={isViewMode}>
-                                        <SelectTrigger className="h-10">
-                                            <SelectValue placeholder="Select status" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="draft">Draft</SelectItem>
-                                            <SelectItem value="publish">Publish</SelectItem>
-                                        </SelectContent>
-                                    </SelectRoot>
-                                </div>
-                            </div>
-
-                            {/* Company Information */}
-                            <div className="space-y-4">
-                                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Company Information</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <Label htmlFor="marketedBy" className="text-sm font-medium text-gray-700">Marketed By</Label>
-                                    <SelectRoot value={formData.marketedBy || ''} onValueChange={(value) => handleInputChange('marketedBy', value)} disabled={isViewMode}>
-                                        <SelectTrigger className="h-10">
-                                            <SelectValue placeholder="Select Market By" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {marketedBy.map((item) => (
-                                                <SelectItem key={item._id} value={item._id}>
-                                                    {item.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </SelectRoot>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="manufacturedBy" className="text-sm font-medium text-gray-700">Manufacture By</Label>
-                                    <SelectRoot value={formData.manufacturedBy || ''} onValueChange={(value) => handleInputChange('manufacturedBy', value)} disabled={isViewMode}>
-                                        <SelectTrigger className="h-10">
-                                            <SelectValue placeholder="Select Manufacture By" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {manufacturedBy.map((item) => (
-                                                <SelectItem key={item._id} value={item._id}>
-                                                    {item.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </SelectRoot>
-                                </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="importedBy" className="text-sm font-medium text-gray-700">Import By</Label>
-                                    <SelectRoot value={formData.importedBy || ''} onValueChange={(value) => handleInputChange('importedBy', value)} disabled={isViewMode}>
-                                        <SelectTrigger className="h-10">
-                                            <SelectValue placeholder="Select Import By" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {importedBy.map((item) => (
-                                                <SelectItem key={item._id} value={item._id}>
-                                                    {item.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </SelectRoot>
-                                </div>
-
-                                {/* Address Fields */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <Label htmlFor="marketedByAddress" className="text-sm font-medium text-gray-700">Market By Address</Label>
-                                    <Input
-                                        id="marketedByAddress"
-                                        value={formData.marketedByAddress || ''}
-                                        onChange={(e) => handleInputChange('marketedByAddress', e.target.value)}
-                                        placeholder="Enter Marketed By Address"
-                                        className="h-10"
-                                        disabled={isViewMode}
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="manufacturedByAddress" className="text-sm font-medium text-gray-700">Manufacture By Address</Label>
-                                    <Input
-                                        id="manufacturedByAddress"
-                                        value={formData.manufacturedByAddress || ''}
-                                        onChange={(e) => handleInputChange('manufacturedByAddress', e.target.value)}
-                                        placeholder="Enter Manufacture By Address"
-                                        className="h-10"
-                                        disabled={isViewMode}
-                                    />
-                                </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="importedByAddress" className="text-sm font-medium text-gray-700">Import By Address</Label>
-                                    <Input
-                                        id="importedByAddress"
-                                        value={formData.importedByAddress || ''}
-                                        onChange={(e) => handleInputChange('importedByAddress', e.target.value)}
-                                        placeholder="Enter Import By Address"
-                                        className="h-10"
-                                        disabled={isViewMode}
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Product Details */}
-                            <div className="space-y-4">
-                                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Product Details</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <Label htmlFor="shelfLife" className="text-sm font-medium text-gray-700">Shelf Life</Label>
-                                    <Input
-                                        id="shelfLife"
-                                        value={formData.shelfLife || ''}
-                                        onChange={(e) => handleInputChange('shelfLife', e.target.value)}
-                                        placeholder="Enter Shelf Life"
-                                        className="h-10"
-                                        disabled={isViewMode}
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="licenseNo" className="text-sm font-medium text-gray-700">License No</Label>
-                                    <Input
-                                        id="licenseNo"
-                                        value={formData.licenseNo || ''}
-                                        onChange={(e) => handleInputChange('licenseNo', e.target.value)}
-                                        placeholder="Enter License No"
-                                        className="h-10"
-                                        disabled={isViewMode}
-                                    />
-                                </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <Label htmlFor="manufacturingDate" className="text-sm font-medium text-gray-700">Manufacturing Date</Label>
-                                    <Input
-                                        id="manufacturingDate"
-                                        type="date"
-                                        value={formData.manufacturingDate || ''}
-                                        onChange={(e) => handleInputChange('manufacturingDate', e.target.value)}
-                                        className="h-10"
-                                        disabled={isViewMode}
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="expiryDate" className="text-sm font-medium text-gray-700">Expiry Date</Label>
-                                    <Input
-                                        id="expiryDate"
-                                        type="date"
-                                        value={formData.expiryDate || ''}
-                                        onChange={(e) => handleInputChange('expiryDate', e.target.value)}
-                                        className="h-10"
-                                        disabled={isViewMode}
-                                    />
-                                </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div className="space-y-2">
-                                    <Label htmlFor="length" className="text-sm font-medium text-gray-700">Length (cm)</Label>
-                                    <Input
-                                        id="length"
-                                        type="number"
-                                        step="0.1"
-                                        value={formData.length || ''}
-                                        onChange={(e) => handleInputChange('length', parseFloat(e.target.value) || 0)}
-                                        placeholder="Length"
-                                        className="h-10"
-                                        disabled={isViewMode}
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="width" className="text-sm font-medium text-gray-700">Width (cm)</Label>
-                                    <Input
-                                        id="width"
-                                        type="number"
-                                        step="0.1"
-                                        value={formData.width || ''}
-                                        onChange={(e) => handleInputChange('width', parseFloat(e.target.value) || 0)}
-                                        placeholder="Width"
-                                        className="h-10"
-                                        disabled={isViewMode}
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="height" className="text-sm font-medium text-gray-700">Height (cm)</Label>
-                                    <Input
-                                        id="height"
-                                        type="number"
-                                        step="0.1"
-                                        value={formData.height || ''}
-                                        onChange={(e) => handleInputChange('height', parseFloat(e.target.value) || 0)}
-                                        placeholder="Height"
-                                        className="h-10"
-                                        disabled={isViewMode}
-                                    />
-                                </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="safetyPrecaution" className="text-sm font-medium text-gray-700">Safety Precaution</Label>
-                                    <RichTextEditor
-                                        value={formData.safetyPrecaution || ''}
-                                        onChange={(value) => handleInputChange('safetyPrecaution', value)}
-                                        placeholder="Enter safety precaution"
-                                        disabled={isViewMode}
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="howToUse" className="text-sm font-medium text-gray-700">How To Use</Label>
-                                    <RichTextEditor
-                                        value={formData.howToUse || ''}
-                                        onChange={(value) => handleInputChange('howToUse', value)}
-                                        placeholder="Enter how to use instructions"
-                                        disabled={isViewMode}
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <Label htmlFor="customerCareEmail" className="text-sm font-medium text-gray-700">Customer Care Email</Label>
-                                    <Input
-                                        id="customerCareEmail"
-                                        type="email"
-                                        value={formData.customerCareEmail || ''}
-                                        onChange={(e) => handleInputChange('customerCareEmail', e.target.value)}
-                                        placeholder="Enter customer care email"
-                                        className="h-10"
-                                        disabled={isViewMode}
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="customerCareNumber" className="text-sm font-medium text-gray-700">Customer Care Number</Label>
-                                    <Input
-                                        id="customerCareNumber"
-                                        value={formData.customerCareNumber || ''}
-                                        onChange={(e) => handleInputChange('customerCareNumber', e.target.value)}
-                                        placeholder="Enter customer care number"
-                                        className="h-10"
-                                        disabled={isViewMode}
-                                    />
-                                </div>
-                                </div>
-                            </div>
-
-                            {/* Key Information */}
-                            <div className="space-y-4">
-                                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Key Information</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <Label htmlFor="ingredient" className="text-sm font-medium text-gray-700">Ingredient</Label>
-                                    <SelectRoot value={formData.ingredient || ''} onValueChange={(value) => handleInputChange('ingredient', value)} disabled={isViewMode}>
-                                        <SelectTrigger className="h-10">
-                                            <SelectValue placeholder="Select an Ingredient" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {ingredients.map((ingredient) => (
-                                                <SelectItem key={ingredient._id} value={ingredient._id}>
-                                                    {ingredient.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </SelectRoot>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="keyIngredients" className="text-sm font-medium text-gray-700">Key Ingredients</Label>
-                                    <SelectRoot value={formData.keyIngredients || ''} onValueChange={(value) => handleInputChange('keyIngredients', value)} disabled={isViewMode}>
-                                        <SelectTrigger className="h-10">
-                                            <SelectValue placeholder="Select a Key Ingredient" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {ingredients.map((ingredient) => (
-                                                <SelectItem key={ingredient._id} value={ingredient._id}>
-                                                    {ingredient.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </SelectRoot>
-                                </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="benefitsSingle" className="text-sm font-medium text-gray-700">Benefits</Label>
-                                    <SelectRoot value={formData.benefitsSingle || ''} onValueChange={(value) => handleInputChange('benefitsSingle', value)} disabled={isViewMode}>
-                                        <SelectTrigger className="h-10">
-                                            <SelectValue placeholder="Select a benefit" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {benefitsOptions.map((benefit) => (
-                                                <SelectItem key={benefit._id} value={benefit._id}>
-                                                    {benefit.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </SelectRoot>
-                                </div>
-                            </div>
-
-                            {/* Capture Details */}
-                            <div className="space-y-4">
-                                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Capture Details</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <Label htmlFor="captureBy" className="text-sm font-medium text-gray-700">Capture By</Label>
-                                    <SelectRoot value={formData.captureBy || 'admin'} onValueChange={(value) => handleInputChange('captureBy', value)} disabled={isViewMode}>
-                                        <SelectTrigger className="h-10">
-                                            <SelectValue placeholder="Select capture by" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="admin">Admin</SelectItem>
-                                            <SelectItem value="user">User</SelectItem>
-                                        </SelectContent>
-                                    </SelectRoot>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="capturedDate" className="text-sm font-medium text-gray-700">Captured Date</Label>
-                                    <Input
-                                        id="capturedDate"
-                                        type="date"
-                                        value={formData.capturedDate ? formData.capturedDate.split('T')[0] : ''}
-                                        onChange={(e) => handleInputChange('capturedDate', new Date(e.target.value).toISOString())}
-                                        className="h-10"
-                                        disabled={isViewMode}
-                                    />
-                                </div>
-                                </div>
-                            </div>
-
-                            {/* Product Attributes Section */}
-                            <div className="space-y-4">
-                                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Product Attributes</h3>
-                                
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <Label htmlFor="countryOfOrigin">Country of Origin</Label>
-                                        <SelectRoot value={formData.countryOfOrigin || ''} onValueChange={(value) => handleInputChange('countryOfOrigin', value)} disabled={isViewMode}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select country of origin" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {countryOfOrigin.map((item) => (
-                                                    <SelectItem key={item._id} value={item._id}>
-                                                        {item.label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </SelectRoot>
-                                    </div>
-
-                                    <div>
-                                        <Label htmlFor="productForm">Product Form</Label>
-                                        <SelectRoot value={formData.productForm || ''} onValueChange={(value) => handleInputChange('productForm', value)} disabled={isViewMode}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select product form" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {productForm.map((item) => (
-                                                    <SelectItem key={item._id} value={item._id}>
-                                                        {item.label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </SelectRoot>
-                                    </div>
-
-                                    <div>
-                                        <Label htmlFor="gender">Gender</Label>
-                                        <SelectRoot value={formData.gender || ''} onValueChange={(value) => handleInputChange('gender', value)} disabled={isViewMode}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select gender" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {gender.map((item) => (
-                                                    <SelectItem key={item._id} value={item._id}>
-                                                        {item.label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </SelectRoot>
-                                    </div>
-
-                                    <div>
-                                        <Label htmlFor="productType">Product Type</Label>
-                                        <SelectRoot value={formData.productType || ''} onValueChange={(value) => handleInputChange('productType', value)} disabled={isViewMode}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select product type" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {productType.map((item) => (
-                                                    <SelectItem key={item._id} value={item._id}>
-                                                        {item.label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </SelectRoot>
-                                    </div>
-
-                                    <div>
-                                        <Label htmlFor="targetArea">Target Area</Label>
-                                        <SelectRoot value={formData.targetArea || ''} onValueChange={(value) => handleInputChange('targetArea', value)} disabled={isViewMode}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select target area" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {targetArea.map((item) => (
-                                                    <SelectItem key={item._id} value={item._id}>
-                                                        {item.label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </SelectRoot>
-                                    </div>
-
-                                    <div>
-                                        <Label htmlFor="finish">Finish</Label>
-                                        <SelectRoot value={formData.finish || ''} onValueChange={(value) => handleInputChange('finish', value)} disabled={isViewMode}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select finish" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {finish.map((item) => (
-                                                    <SelectItem key={item._id} value={item._id}>
-                                                        {item.label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </SelectRoot>
-                                    </div>
-
-                                    <div>
-                                        <Label htmlFor="fragrance">Fragrance</Label>
-                                        <SelectRoot value={formData.fragrance || ''} onValueChange={(value) => handleInputChange('fragrance', value)} disabled={isViewMode}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select fragrance" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {fragrance.map((item) => (
-                                                    <SelectItem key={item._id} value={item._id}>
-                                                        {item.label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </SelectRoot>
-                                    </div>
-
-                                    <div>
-                                        <Label htmlFor="hairType">Hair Type</Label>
-                                        <SelectRoot value={formData.hairType || ''} onValueChange={(value) => handleInputChange('hairType', value)} disabled={isViewMode}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select hair type" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {hairType.map((item) => (
-                                                    <SelectItem key={item._id} value={item._id}>
-                                                        {item.label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </SelectRoot>
-                                    </div>
-
-                                    <div>
-                                        <Label htmlFor="skinType">Skin Type</Label>
-                                        <SelectRoot value={formData.skinType || ''} onValueChange={(value) => handleInputChange('skinType', value)} disabled={isViewMode}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select skin type" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {skinType.map((item) => (
-                                                    <SelectItem key={item._id} value={item._id}>
-                                                        {item.label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </SelectRoot>
-                                    </div>
-                                </div>
-
-                                {/* Multi-select attributes */}
-                                <div className="mt-6 space-y-4">
-                                    <div>
-                                        <Label>Target Concerns</Label>
-                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
-                                            {targetConcerns.map((concern) => (
-                                                <label key={concern._id} className="flex items-center space-x-2">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={formData.targetConcerns?.includes(concern._id) || false}
-                                                        onChange={(e) => {
-                                                            const current = formData.targetConcerns || [];
-                                                            if (e.target.checked) {
-                                                                handleInputChange('targetConcerns', [...current, concern._id]);
-                                                            } else {
-                                                                handleInputChange('targetConcerns', current.filter(id => id !== concern._id));
-                                                            }
-                                                        }}
-                                                        className="rounded"
-                                                        disabled={isViewMode}
-                                                    />
-                                                    <span className="text-sm">{concern.label}</span>
-                                                </label>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <Label>Product Features</Label>
-                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
-                                            {productFeatures.map((feature) => (
-                                                <label key={feature._id} className="flex items-center space-x-2">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={formData.productFeatures?.includes(feature._id) || false}
-                                                        onChange={(e) => {
-                                                            const current = formData.productFeatures || [];
-                                                            if (e.target.checked) {
-                                                                handleInputChange('productFeatures', [...current, feature._id]);
-                                                            } else {
-                                                                handleInputChange('productFeatures', current.filter(id => id !== feature._id));
-                                                            }
-                                                        }}
-                                                        className="rounded"
-                                                        disabled={isViewMode}
-                                                    />
-                                                    <span className="text-sm">{feature.label}</span>
-                                                </label>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <Label>Benefits</Label>
-                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
-                                            {benefitsAttribute.map((benefit) => (
-                                                <label key={benefit._id} className="flex items-center space-x-2">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={formData.benefits?.includes(benefit._id) || false}
-                                                        onChange={(e) => {
-                                                            const current = formData.benefits || [];
-                                                            if (e.target.checked) {
-                                                                handleInputChange('benefits', [...current, benefit._id]);
-                                                            } else {
-                                                                handleInputChange('benefits', current.filter(id => id !== benefit._id));
-                                                            }
-                                                        }}
-                                                        className="rounded"
-                                                        disabled={isViewMode}
-                                                    />
-                                                    <span className="text-sm">{benefit.label}</span>
-                                                </label>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <Label>Certifications</Label>
-                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
-                                            {certifications.map((cert) => (
-                                                <label key={cert._id} className="flex items-center space-x-2">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={formData.certifications?.includes(cert._id) || false}
-                                                        onChange={(e) => {
-                                                            const current = formData.certifications || [];
-                                                            if (e.target.checked) {
-                                                                handleInputChange('certifications', [...current, cert._id]);
-                                                            } else {
-                                                                handleInputChange('certifications', current.filter(id => id !== cert._id));
-                                                            }
-                                                        }}
-                                                        className="rounded"
-                                                        disabled={isViewMode}
-                                                    />
-                                                    <span className="text-sm">{cert.label}</span>
-                                                </label>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <Label>Skin Concerns</Label>
-                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
-                                            {skinConcerns.map((concern) => (
-                                                <label key={concern._id} className="flex items-center space-x-2">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={formData.skinConcerns?.includes(concern._id) || false}
-                                                        onChange={(e) => {
-                                                            const current = formData.skinConcerns || [];
-                                                            if (e.target.checked) {
-                                                                handleInputChange('skinConcerns', [...current, concern._id]);
-                                                            } else {
-                                                                handleInputChange('skinConcerns', current.filter(id => id !== concern._id));
-                                                            }
-                                                        }}
-                                                        className="rounded"
-                                                        disabled={isViewMode}
-                                                    />
-                                                    <span className="text-sm">{concern.label}</span>
-                                                </label>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Thumbnail Upload Section */}
-                            <div className="space-y-4">
-                                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Thumbnail</h3>
-                                {!isViewMode && (
-                                    <p className="text-sm text-gray-600">Max 1 image(s), up to 10MB each. Allowed: image/jpeg, image/png</p>
-                                )}
-                                
-                                <div
-                                    className={`border-2 border-dashed border-gray-300 rounded-lg p-8 text-center transition-colors ${
-                                        isViewMode ? 'cursor-default' : 'hover:border-gray-400 cursor-pointer'
-                                    }`}
-                                    onClick={isViewMode ? undefined : openThumbnailDialog}
-                                >
-                                    {thumbnailImage ? (
-                                        <div className="space-y-4">
-                                            <div className="aspect-square w-32 mx-auto rounded-lg overflow-hidden bg-gray-100">
-                                                <img
-                                                    src={URL.createObjectURL(thumbnailImage)}
-                                                    alt="Thumbnail preview"
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <p className="text-sm text-gray-600">{thumbnailImage.name}</p>
-                                                <Button
-                                                    type="button"
-                                                    variant="outlined"
-                                                    size="sm"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation()
-                                                        if (!isViewMode) removeThumbnail()
-                                                    }}
-                                                    disabled={isViewMode}
-                                                >
-                                                    Remove
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-4">
-                                            <div className="mx-auto w-16 h-16 text-gray-400">
-                                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                </svg>
-                                            </div>
-                                            <div>
-                                                <p className="text-gray-600">
-                                                    {isViewMode ? 'No thumbnail uploaded' : 'Drop image here or '}
-                                                    {!isViewMode && <span className="text-blue-600">Click to browse</span>}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                                
-                                <input
-                                    ref={thumbnailInputRef}
-                                    type="file"
-                                    accept="image/jpeg,image/png"
-                                    onChange={handleThumbnailSelect}
-                                    className="hidden"
-                                />
-                            </div>
-
-                            {/* Barcode Image Upload Section */}
-                            <div className="space-y-4">
-                                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Barcode Image</h3>
-                                {!isViewMode && (
-                                    <p className="text-sm text-gray-600">Max 1 image(s), up to 10MB each. Allowed: image/jpeg, image/png</p>
-                                )}
-                                
-                                <div
-                                    className={`border-2 border-dashed border-gray-300 rounded-lg p-8 text-center transition-colors ${
-                                        isViewMode ? 'cursor-default' : 'hover:border-gray-400 cursor-pointer'
-                                    }`}
-                                    onClick={isViewMode ? undefined : openBarcodeDialog}
-                                >
-                                    {barcodeImage ? (
-                                        <div className="space-y-4">
-                                            <div className="aspect-square w-32 mx-auto rounded-lg overflow-hidden bg-gray-100">
-                                                <img
-                                                    src={URL.createObjectURL(barcodeImage)}
-                                                    alt="Barcode preview"
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <p className="text-sm text-gray-600">{barcodeImage.name}</p>
-                                                <Button
-                                                    type="button"
-                                                    variant="outlined"
-                                                    size="sm"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation()
-                                                        if (!isViewMode) removeBarcode()
-                                                    }}
-                                                    disabled={isViewMode}
-                                                >
-                                                    Remove
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-4">
-                                            <div className="mx-auto w-16 h-16 text-gray-400">
-                                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                </svg>
-                                            </div>
-                                            <div>
-                                                <p className="text-gray-600">
-                                                    {isViewMode ? 'No barcode uploaded' : 'Drop image here or '}
-                                                    {!isViewMode && <span className="text-blue-600">Click to browse</span>}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                                
-                                <input
-                                    ref={barcodeInputRef}
-                                    type="file"
-                                    accept="image/jpeg,image/png"
-                                    onChange={handleBarcodeSelect}
-                                    className="hidden"
-                                />
-                            </div>
-
-                            {/* Image Upload Section */}
-                            <div className="space-y-4">
-                                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Images</h3>
-                                
-                                {/* Upload Area */}
-                                <div
-                                    className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                                        isDragOver 
-                                            ? 'border-blue-400 bg-blue-50' 
-                                            : isViewMode 
-                                                ? 'border-gray-300 cursor-default' 
-                                                : 'border-gray-300 hover:border-gray-400 cursor-pointer'
-                                    }`}
-                                    onDragOver={isViewMode ? undefined : handleDragOver}
-                                    onDragLeave={isViewMode ? undefined : handleDragLeave}
-                                    onDrop={isViewMode ? undefined : handleDrop}
-                                >
-                                    <div className="flex flex-col items-center space-y-4">
-                                        {/* Upload Icon */}
-                                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-                                            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                            </svg>
-                                        </div>
-                                        
-                                        {/* Upload Text */}
-                                        <div className="space-y-2">
-                                            <p className="text-gray-600">
-                                                {isViewMode ? 'No images uploaded' : 'Drop image here or '}
-                                                {!isViewMode && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={openFileDialog}
-                                                        className="text-blue-600 hover:text-blue-700 underline"
-                                                    >
-                                                        Click to browse
-                                                    </button>
-                                                )}
-                                            </p>
-                                            {!isViewMode && (
-                                                <p className="text-sm text-gray-500">
-                                                    Max 10 image(s) • up to 10MB each • Allowed: image/jpeg, image/png
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
-                                    
-                                    {/* Hidden File Input */}
-                                    <input
-                                        ref={fileInputRef}
-                                        type="file"
-                                        multiple
-                                        accept="image/jpeg,image/png"
-                                        onChange={handleFileSelect}
-                                        className="hidden"
-                                    />
-                                </div>
-
-                                {/* Uploaded Images Preview */}
-                                {uploadedImages.length > 0 && (
-                                    <div className="space-y-4">
-                                        <h4 className="text-sm font-medium text-gray-700">Uploaded Images ({uploadedImages.length}/10)</h4>
-                                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                                            {uploadedImages.map((file, index) => (
-                                                <div key={index} className="relative group">
-                                                    <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
-                                                        <img
-                                                            src={URL.createObjectURL(file)}
-                                                            alt={`Upload ${index + 1}`}
-                                                            className="w-full h-full object-cover"
-                                                        />
-                                                    </div>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => !isViewMode && removeImage(index)}
-                                                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
-                                                        disabled={isViewMode}
-                                                    >
-                                                        ×
-                                                    </button>
-                                                    <div className="mt-1 text-xs text-gray-500 truncate">
-                                                        {file.name}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Action Buttons */}
-                            <div className="flex justify-end space-x-4 pt-8 mt-8 border-t border-gray-200">
-                            <Button
-                                type="button"
-                                    variant="outlined"
-                                    onClick={handleCancel}
-                                    className="px-6 py-2"
-                                >
-                                    Cancel
-                            </Button>
-                            {!isViewMode && (
-                                <Button
-                                    type="submit"
-                                    disabled={isSubmitting}
-                                    className="px-6 py-2"
-                                >
-                                    {isSubmitting 
-                                        ? (isEditMode ? 'Updating...' : 'Creating...') 
-                                        : (isEditMode ? 'Update Product' : 'Create Product')
-                                    }
-                                </Button>
-                            )}
-                            </div>
-                        </div>
-                    </form>
-                        </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="slug"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Product Slug *
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="slug"
+                        value={formData.slug}
+                        onChange={(e) =>
+                          handleInputChange("slug", e.target.value)
+                        }
+                        placeholder="product-slug"
+                        required
+                        className="h-10 flex-1"
+                        disabled={isViewMode}
+                      />
+                      <Button
+                        type="button"
+                        variant="outlined"
+                        onClick={generateSlug}
+                        className="h-10 px-4"
+                        disabled={isViewMode}
+                      >
+                        Create Slug
+                      </Button>
                     </div>
-        </PageContent>
-    )
-}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="description"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Description
+                  </Label>
+                  <RichTextEditor
+                    value={formData.description}
+                    onChange={(value) =>
+                      handleInputChange("description", value)
+                    }
+                    placeholder="Enter product description"
+                    disabled={isViewMode}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="sku"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    SKU
+                  </Label>
+                  <Input
+                    id="sku"
+                    value={formData.sku}
+                    onChange={(e) => handleInputChange("sku", e.target.value)}
+                    placeholder="Enter SKU"
+                    className="h-10"
+                    disabled={isViewMode}
+                  />
+                </div>
+              </div>
+
+              {/* Pricing */}
+              <div className="space-y-4">
+                <h3 className="border-b border-gray-200 pb-2 text-lg font-semibold text-gray-900">
+                  Pricing & Inventory
+                </h3>
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="price"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Price *
+                    </Label>
+                    <Input
+                      id="price"
+                      type="number"
+                      step="0.01"
+                      value={formData.price}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "price",
+                          parseFloat(e.target.value) || 0,
+                        )
+                      }
+                      placeholder="0.00"
+                      required
+                      className="h-10"
+                      disabled={isViewMode}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="salePrice"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Sale Price
+                    </Label>
+                    <Input
+                      id="salePrice"
+                      type="number"
+                      step="0.01"
+                      value={formData.salePrice}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "salePrice",
+                          parseFloat(e.target.value) || 0,
+                        )
+                      }
+                      placeholder="0.00"
+                      className="h-10"
+                      disabled={isViewMode}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="quantity"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Quantity *
+                    </Label>
+                    <Input
+                      id="quantity"
+                      type="number"
+                      value={formData.quantity}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "quantity",
+                          parseInt(e.target.value) || 0,
+                        )
+                      }
+                      placeholder="0"
+                      required
+                      className="h-10"
+                      disabled={isViewMode}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Product Details */}
+              <div className="space-y-4">
+                <h3 className="border-b border-gray-200 pb-2 text-lg font-semibold text-gray-900">
+                  Product Details
+                </h3>
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="brand"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Brand *
+                    </Label>
+                    <SelectRoot
+                      value={formData.brand}
+                      onValueChange={(value) =>
+                        handleInputChange("brand", value)
+                      }
+                      disabled={isViewMode}
+                    >
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Select a brand" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {brands.map((brand) => (
+                          <SelectItem key={brand._id} value={brand._id}>
+                            {brand.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </SelectRoot>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="productVariationType"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Variation Type *
+                    </Label>
+                    <SelectRoot
+                      value={formData.productVariationType}
+                      onValueChange={(value) =>
+                        handleInputChange("productVariationType", value)
+                      }
+                      disabled={isViewMode}
+                    >
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Select variation type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {variationTypes.map((type) => (
+                          <SelectItem key={type._id} value={type._id}>
+                            {type.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </SelectRoot>
+                  </div>
+                </div>
+
+                {/* Category */}
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="productCategory"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Category *
+                  </Label>
+                  <SelectRoot
+                    value={formData.productCategory[0] || ""}
+                    onValueChange={(value) =>
+                      handleInputChange("productCategory", [value])
+                    }
+                    disabled={isViewMode}
+                  >
+                    <SelectTrigger className="h-10">
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category._id} value={category._id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </SelectRoot>
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="tags"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Tags
+                  </Label>
+                  <SelectRoot
+                    value={formData.tags?.[0] || ""}
+                    onValueChange={(value) =>
+                      handleInputChange("tags", [value])
+                    }
+                    disabled={isViewMode}
+                  >
+                    <SelectTrigger className="h-10">
+                      <SelectValue placeholder="Select or create tags" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tags.map((tag) => (
+                        <SelectItem key={tag._id} value={tag._id}>
+                          {tag.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </SelectRoot>
+                </div>
+
+                {/* Status */}
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="status"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Status *
+                  </Label>
+                  <SelectRoot
+                    value={formData.status}
+                    onValueChange={(value) =>
+                      handleInputChange("status", value)
+                    }
+                    disabled={isViewMode}
+                  >
+                    <SelectTrigger className="h-10">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="publish">Publish</SelectItem>
+                    </SelectContent>
+                  </SelectRoot>
+                </div>
+              </div>
+
+              {/* Company Information */}
+              <div className="space-y-4">
+                <h3 className="border-b border-gray-200 pb-2 text-lg font-semibold text-gray-900">
+                  Company Information
+                </h3>
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="marketedBy"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Marketed By
+                    </Label>
+                    <SelectRoot
+                      value={formData.marketedBy || ""}
+                      onValueChange={(value) =>
+                        handleInputChange("marketedBy", value)
+                      }
+                      disabled={isViewMode}
+                    >
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Select Market By" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {marketedBy.map((item) => (
+                          <SelectItem key={item._id} value={item._id}>
+                            {item.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </SelectRoot>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="manufacturedBy"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Manufacture By
+                    </Label>
+                    <SelectRoot
+                      value={formData.manufacturedBy || ""}
+                      onValueChange={(value) =>
+                        handleInputChange("manufacturedBy", value)
+                      }
+                      disabled={isViewMode}
+                    >
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Select Manufacture By" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {manufacturedBy.map((item) => (
+                          <SelectItem key={item._id} value={item._id}>
+                            {item.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </SelectRoot>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="importedBy"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Import By
+                  </Label>
+                  <SelectRoot
+                    value={formData.importedBy || ""}
+                    onValueChange={(value) =>
+                      handleInputChange("importedBy", value)
+                    }
+                    disabled={isViewMode}
+                  >
+                    <SelectTrigger className="h-10">
+                      <SelectValue placeholder="Select Import By" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {importedBy.map((item) => (
+                        <SelectItem key={item._id} value={item._id}>
+                          {item.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </SelectRoot>
+                </div>
+
+                {/* Address Fields */}
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="marketedByAddress"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Market By Address
+                    </Label>
+                    <Input
+                      id="marketedByAddress"
+                      value={formData.marketedByAddress || ""}
+                      onChange={(e) =>
+                        handleInputChange("marketedByAddress", e.target.value)
+                      }
+                      placeholder="Enter Marketed By Address"
+                      className="h-10"
+                      disabled={isViewMode}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="manufacturedByAddress"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Manufacture By Address
+                    </Label>
+                    <Input
+                      id="manufacturedByAddress"
+                      value={formData.manufacturedByAddress || ""}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "manufacturedByAddress",
+                          e.target.value,
+                        )
+                      }
+                      placeholder="Enter Manufacture By Address"
+                      className="h-10"
+                      disabled={isViewMode}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="importedByAddress"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Import By Address
+                  </Label>
+                  <Input
+                    id="importedByAddress"
+                    value={formData.importedByAddress || ""}
+                    onChange={(e) =>
+                      handleInputChange("importedByAddress", e.target.value)
+                    }
+                    placeholder="Enter Import By Address"
+                    className="h-10"
+                    disabled={isViewMode}
+                  />
+                </div>
+              </div>
+
+              {/* Product Details */}
+              <div className="space-y-4">
+                <h3 className="border-b border-gray-200 pb-2 text-lg font-semibold text-gray-900">
+                  Product Details
+                </h3>
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="shelfLife"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Shelf Life
+                    </Label>
+                    <Input
+                      id="shelfLife"
+                      value={formData.shelfLife || ""}
+                      onChange={(e) =>
+                        handleInputChange("shelfLife", e.target.value)
+                      }
+                      placeholder="Enter Shelf Life"
+                      className="h-10"
+                      disabled={isViewMode}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="licenseNo"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      License No
+                    </Label>
+                    <Input
+                      id="licenseNo"
+                      value={formData.licenseNo || ""}
+                      onChange={(e) =>
+                        handleInputChange("licenseNo", e.target.value)
+                      }
+                      placeholder="Enter License No"
+                      className="h-10"
+                      disabled={isViewMode}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="manufacturingDate"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Manufacturing Date
+                    </Label>
+                    <Input
+                      id="manufacturingDate"
+                      type="date"
+                      value={formData.manufacturingDate || ""}
+                      onChange={(e) =>
+                        handleInputChange("manufacturingDate", e.target.value)
+                      }
+                      className="h-10"
+                      disabled={isViewMode}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="expiryDate"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Expiry Date
+                    </Label>
+                    <Input
+                      id="expiryDate"
+                      type="date"
+                      value={formData.expiryDate || ""}
+                      onChange={(e) =>
+                        handleInputChange("expiryDate", e.target.value)
+                      }
+                      className="h-10"
+                      disabled={isViewMode}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="length"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Length (cm)
+                    </Label>
+                    <Input
+                      id="length"
+                      type="number"
+                      step="0.1"
+                      value={formData.length || ""}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "length",
+                          parseFloat(e.target.value) || 0,
+                        )
+                      }
+                      placeholder="Length"
+                      className="h-10"
+                      disabled={isViewMode}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="width"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Width (cm)
+                    </Label>
+                    <Input
+                      id="width"
+                      type="number"
+                      step="0.1"
+                      value={formData.width || ""}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "width",
+                          parseFloat(e.target.value) || 0,
+                        )
+                      }
+                      placeholder="Width"
+                      className="h-10"
+                      disabled={isViewMode}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="height"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Height (cm)
+                    </Label>
+                    <Input
+                      id="height"
+                      type="number"
+                      step="0.1"
+                      value={formData.height || ""}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "height",
+                          parseFloat(e.target.value) || 0,
+                        )
+                      }
+                      placeholder="Height"
+                      className="h-10"
+                      disabled={isViewMode}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="safetyPrecaution"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Safety Precaution
+                  </Label>
+                  <RichTextEditor
+                    value={formData.safetyPrecaution || ""}
+                    onChange={(value) =>
+                      handleInputChange("safetyPrecaution", value)
+                    }
+                    placeholder="Enter safety precaution"
+                    disabled={isViewMode}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="howToUse"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    How To Use
+                  </Label>
+                  <RichTextEditor
+                    value={formData.howToUse || ""}
+                    onChange={(value) => handleInputChange("howToUse", value)}
+                    placeholder="Enter how to use instructions"
+                    disabled={isViewMode}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="customerCareEmail"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Customer Care Email
+                    </Label>
+                    <Input
+                      id="customerCareEmail"
+                      type="email"
+                      value={formData.customerCareEmail || ""}
+                      onChange={(e) =>
+                        handleInputChange("customerCareEmail", e.target.value)
+                      }
+                      placeholder="Enter customer care email"
+                      className="h-10"
+                      disabled={isViewMode}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="customerCareNumber"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Customer Care Number
+                    </Label>
+                    <Input
+                      id="customerCareNumber"
+                      value={formData.customerCareNumber || ""}
+                      onChange={(e) =>
+                        handleInputChange("customerCareNumber", e.target.value)
+                      }
+                      placeholder="Enter customer care number"
+                      className="h-10"
+                      disabled={isViewMode}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Key Information */}
+              <div className="space-y-4">
+                <h3 className="border-b border-gray-200 pb-2 text-lg font-semibold text-gray-900">
+                  Key Information
+                </h3>
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="ingredient"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Ingredient
+                    </Label>
+                    <SelectRoot
+                      value={formData.ingredient || ""}
+                      onValueChange={(value) =>
+                        handleInputChange("ingredient", value)
+                      }
+                      disabled={isViewMode}
+                    >
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Select an Ingredient" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ingredients.map((ingredient) => (
+                          <SelectItem
+                            key={ingredient._id}
+                            value={ingredient._id}
+                          >
+                            {ingredient.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </SelectRoot>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="keyIngredients"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Key Ingredients
+                    </Label>
+                    <SelectRoot
+                      value={formData.keyIngredients || ""}
+                      onValueChange={(value) =>
+                        handleInputChange("keyIngredients", value)
+                      }
+                      disabled={isViewMode}
+                    >
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Select a Key Ingredient" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ingredients.map((ingredient) => (
+                          <SelectItem
+                            key={ingredient._id}
+                            value={ingredient._id}
+                          >
+                            {ingredient.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </SelectRoot>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="benefitsSingle"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Benefits
+                  </Label>
+                  <SelectRoot
+                    value={formData.benefitsSingle || ""}
+                    onValueChange={(value) =>
+                      handleInputChange("benefitsSingle", value)
+                    }
+                    disabled={isViewMode}
+                  >
+                    <SelectTrigger className="h-10">
+                      <SelectValue placeholder="Select a benefit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {benefitsOptions.map((benefit) => (
+                        <SelectItem key={benefit._id} value={benefit._id}>
+                          {benefit.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </SelectRoot>
+                </div>
+              </div>
+
+              {/* Capture Details */}
+              <div className="space-y-4">
+                <h3 className="border-b border-gray-200 pb-2 text-lg font-semibold text-gray-900">
+                  Capture Details
+                </h3>
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="captureBy"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Capture By
+                    </Label>
+                    <SelectRoot
+                      value={formData.captureBy || "admin"}
+                      onValueChange={(value) =>
+                        handleInputChange("captureBy", value)
+                      }
+                      disabled={isViewMode}
+                    >
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Select capture by" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="user">User</SelectItem>
+                      </SelectContent>
+                    </SelectRoot>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="capturedDate"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Captured Date
+                    </Label>
+                    <Input
+                      id="capturedDate"
+                      type="date"
+                      value={
+                        formData.capturedDate
+                          ? formData.capturedDate.split("T")[0]
+                          : ""
+                      }
+                      onChange={(e) =>
+                        handleInputChange(
+                          "capturedDate",
+                          new Date(e.target.value).toISOString(),
+                        )
+                      }
+                      className="h-10"
+                      disabled={isViewMode}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Product Attributes Section */}
+              <div className="space-y-4">
+                <h3 className="border-b border-gray-200 pb-2 text-lg font-semibold text-gray-900">
+                  Product Attributes
+                </h3>
+
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <div>
+                    <Label htmlFor="countryOfOrigin">Country of Origin</Label>
+                    <SelectRoot
+                      value={formData.countryOfOrigin || ""}
+                      onValueChange={(value) =>
+                        handleInputChange("countryOfOrigin", value)
+                      }
+                      disabled={isViewMode}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select country of origin" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {countryOfOrigin.map((item) => (
+                          <SelectItem key={item._id} value={item._id}>
+                            {item.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </SelectRoot>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="productForm">Product Form</Label>
+                    <SelectRoot
+                      value={formData.productForm || ""}
+                      onValueChange={(value) =>
+                        handleInputChange("productForm", value)
+                      }
+                      disabled={isViewMode}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select product form" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {productForm.map((item) => (
+                          <SelectItem key={item._id} value={item._id}>
+                            {item.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </SelectRoot>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="gender">Gender</Label>
+                    <SelectRoot
+                      value={formData.gender || ""}
+                      onValueChange={(value) =>
+                        handleInputChange("gender", value)
+                      }
+                      disabled={isViewMode}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {gender.map((item) => (
+                          <SelectItem key={item._id} value={item._id}>
+                            {item.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </SelectRoot>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="productType">Product Type</Label>
+                    <SelectRoot
+                      value={formData.productType || ""}
+                      onValueChange={(value) =>
+                        handleInputChange("productType", value)
+                      }
+                      disabled={isViewMode}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select product type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {productType.map((item) => (
+                          <SelectItem key={item._id} value={item._id}>
+                            {item.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </SelectRoot>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="targetArea">Target Area</Label>
+                    <SelectRoot
+                      value={formData.targetArea || ""}
+                      onValueChange={(value) =>
+                        handleInputChange("targetArea", value)
+                      }
+                      disabled={isViewMode}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select target area" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {targetArea.map((item) => (
+                          <SelectItem key={item._id} value={item._id}>
+                            {item.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </SelectRoot>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="finish">Finish</Label>
+                    <SelectRoot
+                      value={formData.finish || ""}
+                      onValueChange={(value) =>
+                        handleInputChange("finish", value)
+                      }
+                      disabled={isViewMode}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select finish" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {finish.map((item) => (
+                          <SelectItem key={item._id} value={item._id}>
+                            {item.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </SelectRoot>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="fragrance">Fragrance</Label>
+                    <SelectRoot
+                      value={formData.fragrance || ""}
+                      onValueChange={(value) =>
+                        handleInputChange("fragrance", value)
+                      }
+                      disabled={isViewMode}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select fragrance" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {fragrance.map((item) => (
+                          <SelectItem key={item._id} value={item._id}>
+                            {item.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </SelectRoot>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="hairType">Hair Type</Label>
+                    <SelectRoot
+                      value={formData.hairType || ""}
+                      onValueChange={(value) =>
+                        handleInputChange("hairType", value)
+                      }
+                      disabled={isViewMode}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select hair type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {hairType.map((item) => (
+                          <SelectItem key={item._id} value={item._id}>
+                            {item.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </SelectRoot>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="skinType">Skin Type</Label>
+                    <SelectRoot
+                      value={formData.skinType || ""}
+                      onValueChange={(value) =>
+                        handleInputChange("skinType", value)
+                      }
+                      disabled={isViewMode}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select skin type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {skinType.map((item) => (
+                          <SelectItem key={item._id} value={item._id}>
+                            {item.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </SelectRoot>
+                  </div>
+                </div>
+
+                {/* Multi-select attributes */}
+                <div className="mt-6 space-y-4">
+                  <div>
+                    <Label>Target Concerns</Label>
+                    <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-3">
+                      {targetConcerns.map((concern) => (
+                        <label
+                          key={concern._id}
+                          className="flex items-center space-x-2"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={
+                              formData.targetConcerns?.includes(concern._id) ||
+                              false
+                            }
+                            onChange={(e) => {
+                              const current = formData.targetConcerns || [];
+                              if (e.target.checked) {
+                                handleInputChange("targetConcerns", [
+                                  ...current,
+                                  concern._id,
+                                ]);
+                              } else {
+                                handleInputChange(
+                                  "targetConcerns",
+                                  current.filter((id) => id !== concern._id),
+                                );
+                              }
+                            }}
+                            className="rounded"
+                            disabled={isViewMode}
+                          />
+                          <span className="text-sm">{concern.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label>Product Features</Label>
+                    <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-3">
+                      {productFeatures.map((feature) => (
+                        <label
+                          key={feature._id}
+                          className="flex items-center space-x-2"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={
+                              formData.productFeatures?.includes(feature._id) ||
+                              false
+                            }
+                            onChange={(e) => {
+                              const current = formData.productFeatures || [];
+                              if (e.target.checked) {
+                                handleInputChange("productFeatures", [
+                                  ...current,
+                                  feature._id,
+                                ]);
+                              } else {
+                                handleInputChange(
+                                  "productFeatures",
+                                  current.filter((id) => id !== feature._id),
+                                );
+                              }
+                            }}
+                            className="rounded"
+                            disabled={isViewMode}
+                          />
+                          <span className="text-sm">{feature.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label>Benefits</Label>
+                    <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-3">
+                      {benefitsAttribute.map((benefit) => (
+                        <label
+                          key={benefit._id}
+                          className="flex items-center space-x-2"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={
+                              formData.benefits?.includes(benefit._id) || false
+                            }
+                            onChange={(e) => {
+                              const current = formData.benefits || [];
+                              if (e.target.checked) {
+                                handleInputChange("benefits", [
+                                  ...current,
+                                  benefit._id,
+                                ]);
+                              } else {
+                                handleInputChange(
+                                  "benefits",
+                                  current.filter((id) => id !== benefit._id),
+                                );
+                              }
+                            }}
+                            className="rounded"
+                            disabled={isViewMode}
+                          />
+                          <span className="text-sm">{benefit.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label>Certifications</Label>
+                    <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-3">
+                      {certifications.map((cert) => (
+                        <label
+                          key={cert._id}
+                          className="flex items-center space-x-2"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={
+                              formData.certifications?.includes(cert._id) ||
+                              false
+                            }
+                            onChange={(e) => {
+                              const current = formData.certifications || [];
+                              if (e.target.checked) {
+                                handleInputChange("certifications", [
+                                  ...current,
+                                  cert._id,
+                                ]);
+                              } else {
+                                handleInputChange(
+                                  "certifications",
+                                  current.filter((id) => id !== cert._id),
+                                );
+                              }
+                            }}
+                            className="rounded"
+                            disabled={isViewMode}
+                          />
+                          <span className="text-sm">{cert.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label>Skin Concerns</Label>
+                    <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-3">
+                      {skinConcerns.map((concern) => (
+                        <label
+                          key={concern._id}
+                          className="flex items-center space-x-2"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={
+                              formData.skinConcerns?.includes(concern._id) ||
+                              false
+                            }
+                            onChange={(e) => {
+                              const current = formData.skinConcerns || [];
+                              if (e.target.checked) {
+                                handleInputChange("skinConcerns", [
+                                  ...current,
+                                  concern._id,
+                                ]);
+                              } else {
+                                handleInputChange(
+                                  "skinConcerns",
+                                  current.filter((id) => id !== concern._id),
+                                );
+                              }
+                            }}
+                            className="rounded"
+                            disabled={isViewMode}
+                          />
+                          <span className="text-sm">{concern.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Thumbnail Upload Section */}
+              <div className="space-y-4">
+                <h3 className="border-b border-gray-200 pb-2 text-lg font-semibold text-gray-900">
+                  Thumbnail
+                </h3>
+                {!isViewMode && (
+                  <p className="text-sm text-gray-600">
+                    Max 1 image(s), up to 10MB each. Allowed: image/jpeg,
+                    image/png
+                  </p>
+                )}
+
+                <div
+                  className={`rounded-lg border-2 border-dashed border-gray-300 p-8 text-center transition-colors ${
+                    isViewMode
+                      ? "cursor-default"
+                      : "cursor-pointer hover:border-gray-400"
+                  }`}
+                  onClick={isViewMode ? undefined : openThumbnailDialog}
+                >
+                  {thumbnailImage ? (
+                    <div className="space-y-4">
+                      <div className="mx-auto aspect-square w-32 overflow-hidden rounded-lg bg-gray-100">
+                        <img
+                          src={URL.createObjectURL(thumbnailImage)}
+                          alt="Thumbnail preview"
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-600">
+                          {thumbnailImage.name}
+                        </p>
+                        <Button
+                          type="button"
+                          variant="outlined"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!isViewMode) removeThumbnail();
+                          }}
+                          disabled={isViewMode}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="mx-auto h-16 w-16 text-gray-400">
+                        <svg
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-gray-600">
+                          {isViewMode
+                            ? "No thumbnail uploaded"
+                            : "Drop image here or "}
+                          {!isViewMode && (
+                            <span className="text-blue-600">
+                              Click to browse
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <input
+                  ref={thumbnailInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png"
+                  onChange={handleThumbnailSelect}
+                  className="hidden"
+                />
+              </div>
+
+              {/* Barcode Image Upload Section */}
+              <div className="space-y-4">
+                <h3 className="border-b border-gray-200 pb-2 text-lg font-semibold text-gray-900">
+                  Barcode Image
+                </h3>
+                {!isViewMode && (
+                  <p className="text-sm text-gray-600">
+                    Max 1 image(s), up to 10MB each. Allowed: image/jpeg,
+                    image/png
+                  </p>
+                )}
+
+                <div
+                  className={`rounded-lg border-2 border-dashed border-gray-300 p-8 text-center transition-colors ${
+                    isViewMode
+                      ? "cursor-default"
+                      : "cursor-pointer hover:border-gray-400"
+                  }`}
+                  onClick={isViewMode ? undefined : openBarcodeDialog}
+                >
+                  {barcodeImage ? (
+                    <div className="space-y-4">
+                      <div className="mx-auto aspect-square w-32 overflow-hidden rounded-lg bg-gray-100">
+                        <img
+                          src={URL.createObjectURL(barcodeImage)}
+                          alt="Barcode preview"
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-600">
+                          {barcodeImage.name}
+                        </p>
+                        <Button
+                          type="button"
+                          variant="outlined"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!isViewMode) removeBarcode();
+                          }}
+                          disabled={isViewMode}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="mx-auto h-16 w-16 text-gray-400">
+                        <svg
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-gray-600">
+                          {isViewMode
+                            ? "No barcode uploaded"
+                            : "Drop image here or "}
+                          {!isViewMode && (
+                            <span className="text-blue-600">
+                              Click to browse
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <input
+                  ref={barcodeInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png"
+                  onChange={handleBarcodeSelect}
+                  className="hidden"
+                />
+              </div>
+
+              {/* Image Upload Section */}
+              <div className="space-y-4">
+                <h3 className="border-b border-gray-200 pb-2 text-lg font-semibold text-gray-900">
+                  Images
+                </h3>
+
+                {/* Upload Area */}
+                <div
+                  className={`rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
+                    isDragOver
+                      ? "border-blue-400 bg-blue-50"
+                      : isViewMode
+                        ? "cursor-default border-gray-300"
+                        : "cursor-pointer border-gray-300 hover:border-gray-400"
+                  }`}
+                  onDragOver={isViewMode ? undefined : handleDragOver}
+                  onDragLeave={isViewMode ? undefined : handleDragLeave}
+                  onDrop={isViewMode ? undefined : handleDrop}
+                >
+                  <div className="flex flex-col items-center space-y-4">
+                    {/* Upload Icon */}
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+                      <svg
+                        className="h-8 w-8 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                      </svg>
+                    </div>
+
+                    {/* Upload Text */}
+                    <div className="space-y-2">
+                      <p className="text-gray-600">
+                        {isViewMode
+                          ? "No images uploaded"
+                          : "Drop image here or "}
+                        {!isViewMode && (
+                          <button
+                            type="button"
+                            onClick={openFileDialog}
+                            className="text-blue-600 underline hover:text-blue-700"
+                          >
+                            Click to browse
+                          </button>
+                        )}
+                      </p>
+                      {!isViewMode && (
+                        <p className="text-sm text-gray-500">
+                          Max 10 image(s) • up to 10MB each • Allowed:
+                          image/jpeg, image/png
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Hidden File Input */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    accept="image/jpeg,image/png"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                </div>
+
+                {/* Uploaded Images Preview */}
+                {uploadedImages.length > 0 && (
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-medium text-gray-700">
+                      Uploaded Images ({uploadedImages.length}/10)
+                    </h4>
+                    <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
+                      {uploadedImages.map((file, index) => (
+                        <div key={index} className="group relative">
+                          <div className="aspect-square overflow-hidden rounded-lg bg-gray-100">
+                            <img
+                              src={URL.createObjectURL(file)}
+                              alt={`Upload ${index + 1}`}
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => !isViewMode && removeImage(index)}
+                            className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs text-white transition-colors hover:bg-red-600"
+                            disabled={isViewMode}
+                          >
+                            ×
+                          </button>
+                          <div className="mt-1 truncate text-xs text-gray-500">
+                            {file.name}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="mt-8 flex justify-end space-x-4 border-t border-gray-200 pt-8">
+                <Button
+                  type="button"
+                  variant="outlined"
+                  onClick={handleCancel}
+                  className="px-6 py-2"
+                >
+                  Cancel
+                </Button>
+                {!isViewMode && (
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="px-6 py-2"
+                  >
+                    {isSubmitting
+                      ? isEditMode
+                        ? "Updating..."
+                        : "Creating..."
+                      : isEditMode
+                        ? "Update Product"
+                        : "Create Product"}
+                  </Button>
+                )}
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </PageContent>
+  );
+};
 
 export default ProductCreate;
