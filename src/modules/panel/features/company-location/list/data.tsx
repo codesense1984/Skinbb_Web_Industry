@@ -1,13 +1,17 @@
 import {
-  TableAction,
-  renderActionButton,
+  // renderActionButton,
 } from "@/core/components/data-table/components/table-action";
 import { Badge, StatusBadge } from "@/core/components/ui/badge";
+import { Button } from "@/core/components/ui/button";
 import { formatDate } from "@/core/utils";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import type { CompanyLocation } from "@/modules/panel/types/company-location.type";
 import { BuildingOfficeIcon } from "@heroicons/react/24/solid";
 import type { ColumnDef } from "@tanstack/react-table";
+import { DropdownMenu } from "@/core/components/ui/dropdown-menu";
+import { EyeIcon, PencilIcon, EllipsisVerticalIcon } from "@heroicons/react/24/solid";
+import { WithAccess } from "@/modules/auth/components/guard";
+import { PAGE } from "@/modules/auth/types/permission.type.";
 
 export const createColumns = (
   companyId: string,
@@ -125,31 +129,49 @@ export const createColumns = (
     size: 200,
     cell: ({ row }) => {
       return (
-        <TableAction
-          view={{
-            to: PANEL_ROUTES.COMPANY_LOCATION.VIEW(companyId, row.original._id),
-            title: "View location details",
-          }}
-          edit={{
-            to: PANEL_ROUTES.ONBOARD.COMPANY_EDIT(companyId, row.original._id),
-            title: "Edit location",
-          }}
-        >
-          {renderActionButton(
-            {
-              className: "w-auto px-2 text-muted-foreground",
-              size: "md",
-              variant: "outlined",
-              to: PANEL_ROUTES.COMPANY_LOCATION.BRANDS(
-                companyId,
-                row.original._id,
-              ),
-              children: "Brands",
-              title: "View Brands",
-            },
-            <BuildingOfficeIcon className="size-4" />,
-          )}
-        </TableAction>
+        <div className="flex items-center gap-2">
+          <DropdownMenu
+            items={[
+              {
+                type: "link",
+                to: PANEL_ROUTES.COMPANY_LOCATION.VIEW(companyId, row.original._id),
+                title: "View location details",
+                children: (
+                  <WithAccess page={PAGE.COMPANY_LOCATIONS} actions="view">
+                    <EyeIcon className="size-4" /> View
+                  </WithAccess>
+                ),
+              },
+              {
+                type: "link",
+                to: PANEL_ROUTES.ONBOARD.COMPANY_EDIT(companyId, row.original._id),
+                title: "Edit location",
+                children: (
+                  <WithAccess page={PAGE.COMPANY_LOCATIONS} actions="update">
+                    <PencilIcon className="size-4" /> Edit
+                  </WithAccess>
+                ),
+              },
+              {
+                type: "link",
+                to: PANEL_ROUTES.COMPANY_LOCATION.BRANDS(
+                  companyId,
+                  row.original._id,
+                ),
+                title: "View Brands",
+                children: (
+                  <WithAccess page={PAGE.COMPANY_LOCATIONS} actions="view">
+                    <BuildingOfficeIcon className="size-4" /> Brands
+                  </WithAccess>
+                ),
+              },
+            ]}
+          >
+            <Button variant="outlined" size="icon">
+              <EllipsisVerticalIcon className="size-4" />
+            </Button>
+          </DropdownMenu>
+        </div>
       );
     },
   },

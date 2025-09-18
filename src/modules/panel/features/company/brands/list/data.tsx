@@ -1,12 +1,8 @@
-import {
-  renderActionButton,
-  TableAction,
-} from "@/core/components/data-table/components/table-action";
+import { TableAction } from "@/core/components/data-table/components/table-action";
 import { Avatar } from "@/core/components/ui/avatar";
 import { Badge, StatusBadge } from "@/core/components/ui/badge";
-import { formatDate, formatCurrency } from "@/core/utils";
+import { formatDate } from "@/core/utils";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
-import { EyeIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
 import type { ColumnDef } from "@tanstack/react-table";
 
 // Extended brand type that includes location information
@@ -89,14 +85,22 @@ export const columns = (
   {
     header: "Status",
     accessorKey: "brandStatus",
+    size: 200,
     cell: ({ row }) => (
-      <StatusBadge
-        status={row.original.brandStatus}
-        module="brand"
-        variant="badge"
-      >
-        {row.original.brandStatus}
-      </StatusBadge>
+      <div className="space-y-1">
+        <StatusBadge
+          status={row.original.brandStatus}
+          module="brand"
+          variant="badge"
+        >
+          {row.original.brandStatus}
+        </StatusBadge>
+        {row.original.brandStatus === "rejected" && row.original.statusChangeReason && (
+          <div className="text-xs text-red-600 max-w-[180px] truncate" title={row.original.statusChangeReason}>
+            Reason: {row.original.statusChangeReason}
+          </div>
+        )}
+      </div>
     ),
     filterFn: (row, id, value) => {
       return value.includes(row.getValue(id));
@@ -131,7 +135,6 @@ export const columns = (
           }}
           delete={{
             onClick: () => console.log("Delete brand:", row.original._id),
-            tooltip: "Delete brand",
           }}
         />
       );
