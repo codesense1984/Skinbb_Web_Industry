@@ -1,7 +1,3 @@
-import {
-  renderActionButton,
-  TableAction,
-} from "@/core/components/data-table/components/table-action";
 import { Avatar } from "@/core/components/ui/avatar";
 import { Badge, StatusBadge } from "@/core/components/ui/badge";
 import { capitalize, formatDate } from "@/core/utils";
@@ -16,6 +12,9 @@ import {
   convertApiResponseToCompanyList,
   sampleApiResponse,
 } from "./sample-api-data";
+import { DropdownMenu } from "@/core/components/ui/dropdown-menu";
+import { Button } from "@/core/components/ui/button";
+import { EllipsisVerticalIcon, EyeIcon } from "@heroicons/react/24/outline";
 
 export const statsData = [
   {
@@ -173,8 +172,8 @@ export const columns: ColumnDef<CompanyListItem>[] = [
     size: 130,
     cell: ({ row }) => (
       <div className="flex flex-wrap gap-2">
-        {row.original?.address.slice(0, 1).map((address) => (
-          <Badge className="whitespace-normal" variant={"outline"}>
+        {row.original?.address.slice(0, 1).map((address, index) => (
+          <Badge key={index} className="whitespace-normal" variant={"outline"}>
             {address.city}
           </Badge>
         ))}
@@ -187,15 +186,22 @@ export const columns: ColumnDef<CompanyListItem>[] = [
   {
     header: "Status",
     accessorKey: "companyStatus",
-    size: 120,
+    size: 200,
     cell: ({ row }) => (
-      <StatusBadge
-        status={row.original.companyStatus}
-        module="company"
-        variant="badge"
-      >
-        {row.original.companyStatus}
-      </StatusBadge>
+      <div className="space-y-1">
+        <StatusBadge
+          status={row.original.companyStatus}
+          module="company"
+          variant="badge"
+        >
+          {row.original.companyStatus}
+        </StatusBadge>
+        {row.original.companyStatus === "rejected" && row.original.statusChangeReason && (
+          <div className="text-xs text-red-600 max-w-[180px] truncate" title={row.original.statusChangeReason}>
+            Reason: {row.original.statusChangeReason}
+          </div>
+        )}
+      </div>
     ),
     filterFn: (row, id, value) => {
       return value.includes(row.getValue(id));
@@ -211,54 +217,99 @@ export const columns: ColumnDef<CompanyListItem>[] = [
     },
   },
   {
-    header: "Action",
+    header: "Actions",
     accessorKey: "actions",
-    enableSorting: false,
-    enableHiding: false,
-    size: 250,
+    size: 70,
     cell: ({ row }) => {
       return (
-        <TableAction
-          view={{
-            // onClick: () => console.log("View company:", row.original._id),
-            to: PANEL_ROUTES.COMPANY.VIEW(row.original._id),
-            title: "View company details",
-          }}
-          // edit={{
-          //   loading: false,
-          //   // onClick: () => console.log("Edit company:", row.original._id),
-          //   to: PANEL_ROUTES.COMPANY.EDIT(row.original._id),
-          //   title: "Edit company",
-          // }}
-          // delete={{
-          //   onClick: () => console.log("Delete company:", row.original._id),
-          //   tooltip: "Delete company",
-          // }}
-        >
-          {renderActionButton(
+        <DropdownMenu
+          items={[
             {
-              className: "w-auto px-2 text-muted-foreground",
-              size: "md",
-              variant: "outlined",
-              to: `/company/${row.original._id}/users`,
-              children: "Users",
-              title: "View Users",
+              type: "link",
+              to: PANEL_ROUTES.COMPANY.VIEW(row.original._id),
+              children: (
+                <>
+                  <EyeIcon className="size-4" /> View
+                </>
+              ),
             },
-            <UserIcon className="size-4" />,
-          )}
-          {renderActionButton(
             {
-              className: "w-auto px-2 text-muted-foreground",
-              size: "md",
-              variant: "outlined",
+              type: "link",
+              to: PANEL_ROUTES.COMPANY.USERS(row.original._id),
+              children: (
+                <>
+                  <UserIcon className="size-4" /> Users
+                </>
+              ),
+            },
+            {
+              type: "link",
               to: PANEL_ROUTES.COMPANY_LOCATION.LIST(row.original._id),
-              children: "Locations",
-              title: "Locations",
+              children: (
+                <>
+                  <MapPinIcon className="size-4" />
+                  Locations
+                </>
+              ),
             },
-            <MapPinIcon className="size-4" />,
-          )}
-        </TableAction>
+          ]}
+        >
+          <Button variant="outlined" size="icon">
+            <EllipsisVerticalIcon className="size-4" />
+          </Button>
+        </DropdownMenu>
       );
     },
   },
+  // {
+  //   header: "Action",
+  //   accessorKey: "actions",
+  //   enableSorting: false,
+  //   enableHiding: false,
+  //   size: 250,
+  //   cell: ({ row }) => {
+  //     return (
+  //       <TableAction
+  //         view={{
+  //           // onClick: () => console.log("View company:", row.original._id),
+  //           to: PANEL_ROUTES.COMPANY.VIEW(row.original._id),
+  //           title: "View company details",
+  //         }}
+  //         // edit={{
+  //         //   loading: false,
+  //         //   // onClick: () => console.log("Edit company:", row.original._id),
+  //         //   to: PANEL_ROUTES.COMPANY.EDIT(row.original._id),
+  //         //   title: "Edit company",
+  //         // }}
+  //         // delete={{
+  //         //   onClick: () => console.log("Delete company:", row.original._id),
+  //         //   tooltip: "Delete company",
+  //         // }}
+  //       >
+  //         {renderActionButton(
+  //           {
+  //             className: "w-auto px-2 text-muted-foreground",
+  //             size: "md",
+  //             variant: "outlined",
+  //             to: `/company/${row.original._id}/users`,
+  //             children: "Users",
+  //             title: "View Users",
+  //           },
+  //           <UserIcon className="size-4" />,
+  //         )}
+  //         {renderActionButton(
+  //           {
+  //             className: "w-auto px-2 text-muted-foreground",
+  //             size: "md",
+  //             variant: "outlined",
+  //             to: PANEL_ROUTES.COMPANY_LOCATION.LIST(row.original._id),
+  //             children: "Locations",
+  //             title: "Locations",
+  //           },
+  //           <MapPinIcon className="size-4" />,
+  //         )}
+  //       </TableAction>
+  //     );
+  //   },
+  // },
 ];

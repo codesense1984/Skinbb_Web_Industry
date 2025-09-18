@@ -395,8 +395,8 @@ export interface CompanyOnboardingAddressDetail {
   cinNumber: string;
   msmeNumber: string;
   coiCertificate: string;
-  panDocument: string;
-  gstDocument: string;
+  panCertificate: string;
+  gstCertificate: string;
   msmeCertificate: string;
   status: string;
   statusChangeReason: string;

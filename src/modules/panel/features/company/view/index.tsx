@@ -6,7 +6,7 @@ import {
   CardTitle,
 } from "@/core/components/ui/card";
 import { PageContent } from "@/core/components/ui/structure";
-import { Badge } from "@/core/components/ui/badge";
+import { Badge, StatusBadge } from "@/core/components/ui/badge";
 import {
   Accordion,
   AccordionContent,
@@ -32,6 +32,7 @@ import {
   ExclamationTriangleIcon,
   UserGroupIcon,
   TagIcon,
+  PencilIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@/core/components/ui/button";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
@@ -84,11 +85,14 @@ interface LocationAccordionItemProps {
     postalCode: string;
     landmark?: string;
     isPrimary: boolean;
+    status?: string;
   };
   companyId: string;
   index: number;
   isExpanded: boolean;
   onViewBrands: (companyId: string, locationId: string) => void;
+  onEditLocation?: (companyId: string, locationId: string) => void;
+  onViewLocation?: (companyId: string, locationId: string) => void;
 }
 
 const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
@@ -97,6 +101,8 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
   index,
   isExpanded,
   onViewBrands,
+  onEditLocation,
+  onViewLocation,
 }) => {
   const locationId = address.addressId || address._id;
 
@@ -119,10 +125,15 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
   return (
     <AccordionItem value={`address-${index}`}>
       <AccordionTrigger className="hover:no-underline">
-        <div className="flex w-full items-center justify-between pr-4">
-          <div className="flex items-start gap-3">
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="capitalize">
+        <div className="flex w-full flex-col gap-3 pr-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-3 flex-1">
+            <div className="min-w-0 flex-1">
+              <p className="mb-1 font-medium text-gray-900 break-words">
+                {address.addressLine1}
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="outline" className="capitalize text-xs">
                 {address.addressType}
               </Badge>
               {address.isPrimary && (
@@ -131,22 +142,45 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                   Primary
                 </Badge>
               )}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="mb-1 font-medium text-gray-900">
-                {address.addressLine1}
-              </p>
-              <p className="text-sm text-gray-600">
-                {address.city},{" "}
-                {LocationService.getStateName(address.country, address.state)} -{" "}
-                {address.postalCode}
-              </p>
-              {address.landmark && (
-                <p className="text-xs text-gray-500">Near {address.landmark}</p>
+              {address.status && (
+                <StatusBadge
+                  module="brand"
+                  status={address.status}
+                  variant="badge"
+                  showDot={true}
+                />
               )}
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {onViewLocation && address.status === "pending" && (
+              <Button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onViewLocation(companyId, locationId || "");
+                }}
+                variant="outlined"
+                size="sm"
+                className="bg-white/80 hover:bg-white border-gray-200 text-gray-700 hover:text-gray-800 text-xs"
+              >
+                <MapPinIcon className="mr-1 h-3 w-3" />
+                <span className="hidden sm:inline">View</span>
+              </Button>
+            )}
+            {onEditLocation && (
+              <Button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEditLocation(companyId, locationId || "");
+                }}
+                variant="outlined"
+                size="sm"
+                className="bg-white/80 hover:bg-white border-gray-200 text-gray-700 hover:text-gray-800 text-xs"
+              >
+                <PencilIcon className="mr-1 h-3 w-3" />
+                <span className="hidden sm:inline">Edit</span>
+              </Button>
+            )}
             <Button
               onClick={(e) => {
                 e.stopPropagation();
@@ -154,10 +188,10 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
               }}
               variant="outlined"
               size="sm"
-              className="bg-white/80 hover:bg-white border-gray-200 text-gray-700 hover:text-gray-800"
+              className="bg-white/80 hover:bg-white border-gray-200 text-gray-700 hover:text-gray-800 text-xs"
             >
               <TagIcon className="mr-1 h-3 w-3" />
-              View Brands
+              <span className="hidden sm:inline">View Brands</span>
             </Button>
           </div>
         </div>
@@ -184,7 +218,7 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
             </div>
           ) : location ? (
             <>
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <InfoItem
                   icon={<MapPinIcon className="h-5 w-5" />}
                   label="Address Type"
@@ -255,7 +289,7 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                   <CardHeader className="border-b">
                     <CardTitle>Documents</CardTitle>
                   </CardHeader>
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     {location.coiCertificate && (
                       <InfoItem
                         icon={<DocumentTextIcon className="h-5 w-5" />}
@@ -365,6 +399,14 @@ const CompanyView = () => {
     navigate(PANEL_ROUTES.COMPANY_LOCATION.BRANDS(companyId, locationId));
   };
 
+  const handleEditLocation = (companyId: string, locationId: string) => {
+    navigate(PANEL_ROUTES.ONBOARD.COMPANY_EDIT(companyId, locationId));
+  };
+
+  const handleViewLocation = (companyId: string, locationId: string) => {
+    navigate(PANEL_ROUTES.COMPANY_LOCATION.VIEW(companyId, locationId));
+  };
+
   return (
     <PageContent
       header={{
@@ -375,15 +417,15 @@ const CompanyView = () => {
       loading={companyLoading}
     >
       {company && (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Company Header Summary */}
           <Card className="border-gray-200 bg-white shadow-sm">
-            <CardContent className="pt-6">
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-6 flex-1">
+            <CardContent className="pt-4 sm:pt-6">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6 flex-1">
                   {/* Company Logo Placeholder */}
-                <div className="flex-shrink-0">
-                    <div className="flex h-20 w-20 items-center justify-center rounded-xl bg-gradient-to-br from-gray-600 to-gray-800 text-2xl font-bold text-white">
+                  <div className="flex-shrink-0 self-center sm:self-start">
+                    <div className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-xl bg-gradient-to-br from-gray-600 to-gray-800 text-xl sm:text-2xl font-bold text-white">
                       {company.companyName?.charAt(0) || "C"}
                     </div>
                   </div>
@@ -391,12 +433,12 @@ const CompanyView = () => {
                   {/* Company Basic Info */}
                   <div className="min-w-0 flex-1">
                     <div className="mb-4 flex items-center gap-3">
-                      <h1 className="truncate text-3xl font-bold text-gray-900">
+                      <h1 className="truncate text-2xl sm:text-3xl font-bold text-gray-900">
                         {company.companyName}
                       </h1>
                     </div>
                     
-                    <div className="grid grid-cols-1 gap-6 text-sm md:grid-cols-2 lg:grid-cols-4">
+                    <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
                       <div className="flex items-start gap-3">
                         <div className="bg-gray-100 border border-gray-200 rounded-lg p-2">
                           <CalendarIcon className="h-4 w-4 text-gray-600" />
@@ -431,14 +473,14 @@ const CompanyView = () => {
                           </div>
                           <div>
                             <p className="text-gray-500 text-xs font-medium">Website</p>
-                          <a
-                            href={company.website}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                              className="text-blue-600 hover:underline font-medium"
-                          >
-                            Visit Website
-                          </a>
+                            <a
+                              href={company.website}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:underline font-medium break-all"
+                            >
+                              Visit Website
+                            </a>
                           </div>
                         </div>
                       )}
@@ -447,11 +489,11 @@ const CompanyView = () => {
                 </div>
                 
                 {/* Action Buttons */}
-                <div className="flex-shrink-0 ml-6">
+                <div className="flex-shrink-0 self-center lg:self-start">
                   <Button
                     onClick={() => navigate(PANEL_ROUTES.COMPANY.USERS(id!))}
                     variant="outlined"
-                    className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
+                    className="w-full sm:w-auto border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
                   >
                     <UserGroupIcon className="mr-2 h-4 w-4" />
                     View Users
@@ -461,20 +503,12 @@ const CompanyView = () => {
             </CardContent>
           </Card>
 
-          <div className="space-y-6">
+          <h3 className="text-lg font-bold text-gray-900">Company Locations</h3>
+          <div className="space-y-4 sm:space-y-6">
             {/* Company Addresses Accordion */}
             {company.addresses && company.addresses.length > 0 && (
-              <Card>
-                <CardHeader className="border-b">
-                  <CardTitle className="flex items-center gap-2">
-                    <MapPinIcon className="h-5 w-5" />
-                    Company Locations
-                    <Badge variant="outline" className="ml-auto">
-                      {company.addresses.length}
-                    </Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-6">
+              <Card className="py-0">
+                <CardContent className="py-0">
                   <Accordion
                     type="single"
                     collapsible
@@ -485,11 +519,16 @@ const CompanyView = () => {
                     {company.addresses.map((address, index) => (
                       <LocationAccordionItem
                         key={index}
-                        address={address}
+                        address={{
+                          ...address,
+                          status: (address as { status?: string }).status
+                        }}
                         companyId={id!}
                         index={index}
                         isExpanded={expandedAddress === `address-${index}`}
                         onViewBrands={handleViewBrands}
+                        onEditLocation={handleEditLocation}
+                        onViewLocation={handleViewLocation}
                       />
                     ))}
                   </Accordion>

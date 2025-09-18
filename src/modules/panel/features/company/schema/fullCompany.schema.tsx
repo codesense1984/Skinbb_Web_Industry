@@ -25,91 +25,112 @@ export type CompanyFormValues = Omit<
 
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/jpg"];
 const ACCEPTED_FILE_TYPES = ["application/pdf"];
-const DocumentSchema = z
-  .object({
+
+// Document type configuration
+const DOCUMENT_CONFIG = {
+  coi: {
+    numberLabel: "CIN number",
+    uploadLabel: "CIN document upload",
+    requiresNumber: true,
+    requiresUpload: true,
+  },
+  pan: {
+    numberLabel: "PAN number",
+    uploadLabel: "PAN document upload",
+    requiresNumber: true,
+    requiresUpload: true,
+  },
+  gstLicense: {
+    numberLabel: "GST number",
+    uploadLabel: "GST document upload",
+    requiresNumber: true,
+    requiresUpload: true,
+  },
+  msme: {
+    numberLabel: "MSME number",
+    uploadLabel: "MSME document upload",
+    requiresNumber: false,
+    requiresUpload: false,
+  },
+  brandAuthorisation: {
+    numberLabel: "Brand authorisation number",
+    uploadLabel: "Brand authorisation document upload",
+    requiresNumber: false,
+    requiresUpload: true,
+  },
+} as const;
+
+// Helper function to validate file uploads
+const validateFileUpload = (
+  file: File,
+  ctx: z.RefinementCtx,
+  path: string[],
+) => {
+  if (!ACCEPTED_FILE_TYPES.includes(file.type)) {
+    ctx.addIssue({
+      path,
+      code: z.ZodIssueCode.custom,
+      message: "Only .pdf files are accepted.",
+    });
+  }
+  if (file.size > MAX_FILE_SIZE) {
+    ctx.addIssue({
+      path,
+      code: z.ZodIssueCode.custom,
+      message: `Max file size is ${MAX_FILE_SIZE}MB.`,
+    });
+  }
+};
+
+// Helper function to validate document requirements
+const validateDocumentRequirements = (
+  doc: any,
+  ctx: z.RefinementCtx,
+  businessType?: string,
+  basePath: string[] = [],
+) => {
+  const config = DOCUMENT_CONFIG[doc.type as keyof typeof DOCUMENT_CONFIG];
+  if (!config) return;
+
+  // Skip CIN validation for proprietor business type
+  if (doc.type === "coi" && businessType === "proprietor") {
+    return;
+  }
+
+  // Validate number requirement
+  if (config.requiresNumber && !doc.number?.trim()) {
+    ctx.addIssue({
+      path: [...basePath, "number"],
+      code: z.ZodIssueCode.custom,
+      message: `${config.numberLabel} is required`,
+    });
+  }
+
+  // Validate file upload requirements
+  if (config.requiresUpload) {
+    if (!doc.url?.trim()) {
+      ctx.addIssue({
+        path: [...basePath, "url"],
+        code: z.ZodIssueCode.custom,
+        message: `${config.uploadLabel} is required`,
+      });
+    }
+
+    // Validate file type and size if files are uploaded
+    if (doc?.url_files && doc?.url_files.length) {
+      const file = doc.url_files[0];
+      validateFileUpload(file, ctx, [...basePath, "url"]);
+    }
+  }
+};
+
+const createDocumentSchema = () =>
+  z.object({
     type: z.enum(["coi", "pan", "gstLicense", "msme", "brandAuthorisation"]),
     number: z.string().optional(),
     url: z.string().optional(),
     url_files: z.any().optional(),
     verified: z.boolean(),
-  })
-  .superRefine((doc, ctx) => {
-    if (doc.type === "coi") {
-      if (!doc.number?.trim()) {
-        ctx.addIssue({
-          path: ["number"],
-          code: z.ZodIssueCode.custom,
-          message: "CIN number is required",
-        });
-      }
-      if (doc?.url_files && doc?.url_files.length) {
-        const file = doc?.url_files[0];
-        if (!ACCEPTED_FILE_TYPES.includes(file.type)) {
-          ctx.addIssue({
-            path: ["url"],
-            code: z.ZodIssueCode.custom,
-            message: "Only .pdf files are accepted.",
-          });
-        }
-        if (file.size > MAX_FILE_SIZE) {
-          ctx.addIssue({
-            path: ["url"],
-            code: z.ZodIssueCode.custom,
-            message: `Max file size is ${MAX_FILE_SIZE}MB.`,
-          });
-        }
-      }
-      if (!doc.url?.trim()) {
-        ctx.addIssue({
-          path: ["url"],
-          code: z.ZodIssueCode.custom,
-          message: "CIN document upload is required",
-        });
-      }
-    }
-    if (doc.type === "pan") {
-      if (!doc.number?.trim()) {
-        ctx.addIssue({
-          path: ["number"],
-          code: z.ZodIssueCode.custom,
-          message: "PAN number is required",
-        });
-      }
-
-      if (!doc.url?.trim()) {
-        ctx.addIssue({
-          path: ["url"],
-          code: z.ZodIssueCode.custom,
-          message: "PAN document upload is required",
-        });
-      }
-    }
-    if (doc.type === "gstLicense") {
-      if (!doc.number?.trim()) {
-        ctx.addIssue({
-          path: ["number"],
-          code: z.ZodIssueCode.custom,
-          message: "PAN number is required",
-        });
-      }
-
-      if (!doc.url?.trim()) {
-        ctx.addIssue({
-          path: ["url"],
-          code: z.ZodIssueCode.custom,
-          message: "PAN document upload is required",
-        });
-      }
-    }
-    if (doc.type === "brandAuthorisation") {
-      if (!doc.url?.trim()) {
-        ctx.addIssue({
-          path: ["url"],
-          code: z.ZodIssueCode.custom,
-          message: "Brand authorisation document upload is required",
-        });
-      }
-    }
   });
 
 import {
@@ -244,6 +265,7 @@ export function createCompanySchema(
       instagramUrl: createUrlValidator("Instagram"),
       facebookUrl: createUrlValidator("Facebook"),
       youtubeUrl: createUrlValidator("YouTube"),
+      websiteUrl: createUrlValidator("Website"),
 
       marketingBudget: createRequiredString("Marketing budget"),
       brand_logo: z.any().optional().or(z.literal("")),
@@ -268,7 +290,7 @@ export function createCompanySchema(
         }),
 
       // Documents and terms
-      documents: z.array(DocumentSchema),
+      documents: z.array(createDocumentSchema()),
       agreeTermsConditions: z.boolean().refine((val) => val === true, {
         message: "You must agree to the Terms & Conditions",
       }),
@@ -355,6 +377,15 @@ export function createCompanySchema(
             });
           }
         }
+      }
+
+      // Document validation with business type context
+      if (data?.documents) {
+        data.documents.forEach((doc, index) => {
+          validateDocumentRequirements(doc, ctx, data?.businessType, [
+            `documents.${index}`,
+          ]);
+        });
       }
     });
   return baseSchema;
@@ -524,7 +555,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
     {
       name: "website",
       label: "Website (optional)",
-      type: INPUT_TYPES.TEXT,
+      type: INPUT_TYPES.URL,
       placeholder: "Enter website URL",
       disabled: disabled || mode === MODE.VIEW,
       // inputProps: {
@@ -721,22 +752,38 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
     },
     {
       name: "brandType",
-      label: "Product Category",
+      label: "Brand category",
       type: INPUT_TYPES.COMBOBOX,
       options: brandTypeOptions,
-      placeholder: "Select product category",
+      placeholder: "Select brand category",
       disabled: mode === MODE.VIEW,
       className: "hide-scrollbars lg:col-span-3",
       multi: true,
     },
     {
-      name: "totalSkus",
-      label: "Total No of SKUs",
-      type: INPUT_TYPES.NUMBER,
-      placeholder: "Enter number of SKUs",
+      name: "websiteUrl",
+      label: "Website URL (Optional)",
+      type: INPUT_TYPES.URL,
+      placeholder: "https://example.com",
       disabled: mode === MODE.VIEW,
       className: "lg:col-span-3",
     },
+    // {
+    //   name: "totalSkus",
+    //   label: "Total No of SKUs",
+    //   type: INPUT_TYPES.NUMBER,
+    //   placeholder: "Enter number of SKUs",
+    //   disabled: mode === MODE.VIEW,
+    //   className: "lg:col-span-3",
+    // },
+    // {
+    //   name: "totalSkus",
+    //   label: "Total No of SKUs",
+    //   type: INPUT_TYPES.NUMBER,
+    //   placeholder: "Enter number of SKUs",
+    //   disabled: mode === MODE.VIEW,
+    //   className: "lg:col-span-3",
+    // },
     // {
     //   name: "averageSellingPrice",
     //   label: "Average Selling Price (ASP)",
@@ -761,10 +808,11 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
     //   disabled: mode === MODE.VIEW,
     //   render: "platformSelector",
     // },
+
     {
       name: "instagramUrl",
       label: "Instagram URL (Optional)",
-      type: INPUT_TYPES.TEXT,
+      type: INPUT_TYPES.URL,
       placeholder: "https://instagram.com/yourbrand",
       disabled: mode === MODE.VIEW,
       className: "lg:col-span-3",
@@ -772,7 +820,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
     {
       name: "facebookUrl",
       label: "Facebook URL (Optional)",
-      type: INPUT_TYPES.TEXT,
+      type: INPUT_TYPES.URL,
       placeholder: "https://facebook.com/yourbrand",
       disabled: mode === MODE.VIEW,
       className: "lg:col-span-3",
@@ -780,7 +828,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
     {
       name: "youtubeUrl",
       label: "YouTube URL (Optional)",
-      type: INPUT_TYPES.TEXT,
+      type: INPUT_TYPES.URL,
       placeholder: "https://youtube.com/yourchannel",
       disabled: mode === MODE.VIEW,
       className: "lg:col-span-3",
@@ -816,7 +864,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       {
         name: makeName("url"),
         label: "Platform URL",
-        type: INPUT_TYPES.TEXT,
+        type: INPUT_TYPES.URL,
         placeholder: "e.g., https://amazon.in, https://flipkart.com",
         disabled: mode === MODE.VIEW,
         className: "lg:col-span-4",

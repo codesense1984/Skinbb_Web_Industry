@@ -20,6 +20,8 @@ import { useAuth } from "@/modules/auth/hooks/useAuth";
 import { Button } from "@/core/components/ui/button";
 import { BrandApprovalDialog } from "../company/brands/components/BrandApprovalDialog";
 import { ENDPOINTS } from "../../config/endpoint.config";
+import { WithAccess } from "@/modules/auth/components/guard";
+import { ROLE } from "@/modules/auth/types/permission.type.";
 
 interface BrandPageWrapperProps {
   mode: MODE;
@@ -107,12 +109,14 @@ export const BrandPageWrapper = ({
         title,
         description,
         actions: mode === MODE.VIEW && (
+          <WithAccess roles={[ROLE.ADMIN]}>
           <Button
             onClick={() => setIsApprovalDialogOpen(true)}
             variant="outlined"
           >
             Manage Approval
           </Button>
+          </WithAccess>
         ),
       }}
     >

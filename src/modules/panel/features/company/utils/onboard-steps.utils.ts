@@ -49,15 +49,20 @@ export function isStepCompleted(
 
     case StepKey.DOCUMENTS_DETAILS:
       return (
-        values.documents?.every((doc) =>
-          doc.type === "coi"
+        values.documents?.every((doc) => {
+          // Skip CIN validation for proprietor business type
+          if (doc.type === "coi" && values.businessType === "proprietor") {
+            return true;
+          }
+
+          return doc.type === "coi"
             ? doc.number?.trim() && doc.url?.trim()
             : doc.type === "pan"
               ? doc.number?.trim() && doc.url?.trim()
               : doc.type === "brandAuthorisation"
                 ? doc.url?.trim()
-                : true,
-        ) || false
+                : true;
+        }) || false
       );
 
     case StepKey.PERSONAL_INFORMATION:

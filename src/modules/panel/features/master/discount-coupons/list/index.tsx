@@ -1,11 +1,23 @@
-import { useNavigate } from "react-router";
+import { createSimpleFetcher, DataTable } from "@/core/components/data-table";
 import { Button } from "@/core/components/ui/button";
 import { PageContent } from "@/core/components/ui/structure";
-import { DataTable } from "@/core/components/data-table";
-import { columns } from "../data";
-import { fetcher } from "../fetcher";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { PlusIcon } from "@heroicons/react/24/outline";
+import { useNavigate } from "react-router";
+import { columns } from "./data";
+import { apiGetCoupons } from "@/modules/panel/services/http/coupon.service";
+import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
+
+const fetcher = () =>
+  createSimpleFetcher(apiGetCoupons, {
+    dataPath: "data.coupons",
+    totalPath: "data.totalRecords",
+    filterMapping: {
+      search: "search",
+      sortBy: "sortBy",
+      order: "order",
+    },
+  });
 
 export default function DiscountCouponList() {
   const navigate = useNavigate();
@@ -50,7 +62,7 @@ export default function DiscountCouponList() {
           columns={columns()}
           isServerSide
           fetcher={fetcher()}
-          queryKeyPrefix={PANEL_ROUTES.MASTER.DISCOUNT_COUPON}
+          queryKeyPrefix={ENDPOINTS.COUPON.LIST}
           meta={{
             onView: handleViewCoupon,
             onEdit: handleEditCoupon,

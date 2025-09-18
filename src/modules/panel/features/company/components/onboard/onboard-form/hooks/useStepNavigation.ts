@@ -28,7 +28,11 @@ interface UseStepNavigationProps {
 // Helper function to validate documents in parallel
 const validateDocuments = async (
   documents: any[],
-  { name, establishedIn }: { name: string; establishedIn: string | Date },
+  {
+    name,
+    establishedIn,
+    businessType,
+  }: { name: string; establishedIn: string | Date; businessType?: string },
   setError: UseFormReturn<FullCompanyFormType>["setError"],
   setValue: UseFormReturn<FullCompanyFormType>["setValue"],
 ): Promise<{ isValid: boolean }> => {
@@ -36,6 +40,11 @@ const validateDocuments = async (
     const validationPromises = documents
       // .filter((doc) => doc.number?.trim() && !doc.verified) // Only validate documents with numbers that aren't already verified
       .map(async (doc, index) => {
+        // Skip CIN verification for proprietor business type
+        if (doc.type === "coi" && businessType === "proprietor") {
+          return true;
+        }
+
         const fieldName = `documents.${index}.number` as const;
 
         if (doc.number?.trim() && doc.verified) {
@@ -202,7 +211,11 @@ export const useStepNavigation = ({
         try {
           const validationResult = await validateDocuments(
             values.documents,
-            { name: values.companyName, establishedIn: values.establishedIn },
+            {
+              name: values.companyName,
+              establishedIn: values.establishedIn,
+              businessType: values.businessType,
+            },
             setError,
             setValue,
           );
