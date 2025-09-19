@@ -32,10 +32,12 @@ import {
   ExclamationTriangleIcon,
   UserGroupIcon,
   TagIcon,
+  PencilIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@/core/components/ui/button";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { LocationService } from "@/core/services/location.service";
+import { StatusBadge } from "@/core/components/ui/badge";
 
 // Reusable InfoItem component for displaying information with icons
 interface InfoItemProps {
@@ -84,11 +86,14 @@ interface LocationAccordionItemProps {
     postalCode: string;
     landmark?: string;
     isPrimary: boolean;
+    status?: string;
   };
   companyId: string;
   index: number;
   isExpanded: boolean;
   onViewBrands: (companyId: string, locationId: string) => void;
+  onViewLocation?: (companyId: string, locationId: string) => void;
+  onEditLocation?: (companyId: string, locationId: string) => void;
 }
 
 const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
@@ -97,6 +102,8 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
   index,
   isExpanded,
   onViewBrands,
+  onViewLocation,
+  onEditLocation,
 }) => {
   const locationId = address.addressId || address._id;
 
@@ -119,10 +126,15 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
   return (
     <AccordionItem value={`address-${index}`}>
       <AccordionTrigger className="hover:no-underline">
-        <div className="flex w-full items-center justify-between pr-4">
-          <div className="flex items-start gap-3">
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="capitalize">
+        <div className="flex w-full flex-col gap-3 pr-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-3 flex-1">
+            <div className="min-w-0 flex-1">
+              <p className="mb-1 font-medium text-gray-900 break-words">
+                {address.addressLine1}
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="outline" className="capitalize text-xs">
                 {address.addressType}
               </Badge>
               {address.isPrimary && (
@@ -131,22 +143,45 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                   Primary
                 </Badge>
               )}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="mb-1 font-medium text-gray-900">
-                {address.addressLine1}
-              </p>
-              <p className="text-sm text-gray-600">
-                {address.city},{" "}
-                {LocationService.getStateName(address.country, address.state)} -{" "}
-                {address.postalCode}
-              </p>
-              {address.landmark && (
-                <p className="text-xs text-gray-500">Near {address.landmark}</p>
+              {address.status && (
+                <StatusBadge
+                  module="brand"
+                  status={address.status}
+                  variant="badge"
+                  showDot={true}
+                />
               )}
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {onViewLocation && address.status === "pending" && (
+              <Button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onViewLocation(companyId, locationId || "");
+                }}
+                variant="outlined"
+                size="sm"
+                className="bg-white/80 hover:bg-white border-gray-200 text-gray-700 hover:text-gray-800 text-xs"
+              >
+                <MapPinIcon className="mr-1 h-3 w-3" />
+                <span className="hidden sm:inline">View</span>
+              </Button>
+            )}
+            {onEditLocation && (
+              <Button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEditLocation(companyId, locationId || "");
+                }}
+                variant="outlined"
+                size="sm"
+                className="bg-white/80 hover:bg-white border-gray-200 text-gray-700 hover:text-gray-800 text-xs"
+              >
+                <PencilIcon className="mr-1 h-3 w-3" />
+                <span className="hidden sm:inline">Edit</span>
+              </Button>
+            )}
             <Button
               onClick={(e) => {
                 e.stopPropagation();
@@ -154,10 +189,10 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
               }}
               variant="outlined"
               size="sm"
-              className="bg-white/80 hover:bg-white border-gray-200 text-gray-700 hover:text-gray-800"
+              className="bg-white/80 hover:bg-white border-gray-200 text-gray-700 hover:text-gray-800 text-xs"
             >
               <TagIcon className="mr-1 h-3 w-3" />
-              View Brands
+              <span className="hidden sm:inline">View Brands</span>
             </Button>
           </div>
         </div>
@@ -184,7 +219,7 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
             </div>
           ) : location ? (
             <>
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <InfoItem
                   icon={<MapPinIcon className="h-5 w-5" />}
                   label="Address Type"
@@ -255,7 +290,7 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                   <CardHeader className="border-b">
                     <CardTitle>Documents</CardTitle>
                   </CardHeader>
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     {location.coiCertificate && (
                       <InfoItem
                         icon={<DocumentTextIcon className="h-5 w-5" />}
@@ -354,6 +389,8 @@ interface CompanyViewCoreProps {
   };
   onViewBrands?: (companyId: string, locationId: string) => void;
   onViewUsers?: (companyId: string) => void;
+  onViewLocation?: (companyId: string, locationId: string) => void;
+  onEditLocation?: (companyId: string, locationId: string) => void;
 }
 
 export const CompanyViewCore: React.FC<CompanyViewCoreProps> = ({
@@ -362,6 +399,8 @@ export const CompanyViewCore: React.FC<CompanyViewCoreProps> = ({
   customHeader,
   onViewBrands,
   onViewUsers,
+  onViewLocation,
+  onEditLocation,
 }) => {
   const navigate = useNavigate();
   const [expandedAddress, setExpandedAddress] = useState<string | null>(null);
@@ -536,6 +575,8 @@ export const CompanyViewCore: React.FC<CompanyViewCoreProps> = ({
                         index={index}
                         isExpanded={expandedAddress === `address-${index}`}
                         onViewBrands={handleViewBrands}
+                        onViewLocation={onViewLocation}
+                        onEditLocation={onEditLocation}
                       />
                     ))}
                   </Accordion>

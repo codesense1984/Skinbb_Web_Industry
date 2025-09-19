@@ -368,8 +368,8 @@ export const CompanyLocationViewCore: React.FC<CompanyLocationViewCoreProps> = (
           {/* Documents Section */}
           {(currentLocation.coiCertificate ||
             currentLocation.msmeCertificate ||
-            currentLocation.panDocument ||
-            currentLocation.gstDocument) && (
+            currentLocation.panCertificate ||
+            currentLocation.gstCertificate) && (
             <Card className="mt-6 shadow-none">
               <CardHeader className="border-b">
                 <CardTitle>Documents</CardTitle>
@@ -411,7 +411,7 @@ export const CompanyLocationViewCore: React.FC<CompanyLocationViewCoreProps> = (
                   </InfoItem>
                 )}
 
-                {currentLocation.panDocument && (
+                {currentLocation.panCertificate && (
                   <InfoItem
                     icon={<DocumentTextIcon className="h-5 w-5" />}
                     label="PAN Document"
@@ -419,7 +419,7 @@ export const CompanyLocationViewCore: React.FC<CompanyLocationViewCoreProps> = (
                     className="rounded-lg border p-3"
                   >
                     <Link
-                      to={currentLocation.panDocument}
+                      to={currentLocation.panCertificate}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-xs break-all text-blue-500"
@@ -429,7 +429,7 @@ export const CompanyLocationViewCore: React.FC<CompanyLocationViewCoreProps> = (
                   </InfoItem>
                 )}
 
-                {currentLocation.gstDocument && (
+                {currentLocation.gstCertificate && (
                   <InfoItem
                     icon={<DocumentTextIcon className="h-5 w-5" />}
                     label="GST Document"
@@ -437,7 +437,7 @@ export const CompanyLocationViewCore: React.FC<CompanyLocationViewCoreProps> = (
                     className="rounded-lg border p-3"
                   >
                     <Link
-                      to={currentLocation.gstDocument}
+                      to={currentLocation.gstCertificate}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-xs break-all text-blue-500"
