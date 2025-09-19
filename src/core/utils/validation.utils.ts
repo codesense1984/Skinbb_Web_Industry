@@ -5,7 +5,7 @@ export const VALIDATION_CONSTANTS = {
   PASSWORD: {
     MIN_LENGTH: 8,
     MAX_LENGTH: 20,
-    REGEX: /^(?![0-9])(?=.*[0-9])(?=.*[@#$%!*&])([^\s])+$/,
+    REGEX: /^(?![0-9])(?=.*[0-9])(?=.*[@#$%!*&])([^\s])+$/,      
   },
   PHONE: {
     MIN_LENGTH: 10,
@@ -14,8 +14,9 @@ export const VALIDATION_CONSTANTS = {
     REGEX: /^\d{6}$/,
   },
   URL: {
-    REGEX:
-      /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&//=]*)$/,
+    // REGEX:
+    //   /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&//=]*)$/,
+    REGEX:/^(?:https?:\/\/)?(?:www\.)?(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,}(?::\d{1,5})?(?:[?#]\S*)?$/,
   },
   EMAIL: {
     REGEX: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
