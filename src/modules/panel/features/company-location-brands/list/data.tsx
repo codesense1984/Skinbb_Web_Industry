@@ -78,39 +78,45 @@ export const columns = (
     enableHiding: false,
     size: 80,
     cell: ({ row }) => {
+      const brandStatus = row.original.status;
+      const items = [];
+
+      // Only show View action if status is pending
+      if (brandStatus === "pending") {
+        items.push({
+          type: "link",
+          to: PANEL_ROUTES.COMPANY_LOCATION.BRAND_VIEW(
+            companyId,
+            locationId,
+            row.original._id,
+          ),
+          title: "View brand details",
+          children: (
+            <>
+              <EyeIcon className="size-4" /> View
+            </>
+          ),
+        });
+      }
+
+      // Always show Edit action (redirects to onboarding for non-pending statuses)
+      items.push({
+        type: "link",
+        to: PANEL_ROUTES.COMPANY_LOCATION.BRAND_EDIT(
+          companyId,
+          locationId,
+          row.original._id,
+        ),
+        title: "Edit brand",
+        children: (
+          <>
+            <PencilIcon className="size-4" /> Edit
+          </>
+        ),
+      });
+
       return (
-        <DropdownMenu
-          items={[
-            {
-              type: "link",
-              to: PANEL_ROUTES.COMPANY_LOCATION.BRAND_VIEW(
-                companyId,
-                locationId,
-                row.original._id,
-              ),
-              title: "View brand details",
-              children: (
-                <>
-                  <EyeIcon className="size-4" /> View
-                </>
-              ),
-            },
-            {
-              type: "link",
-              to: PANEL_ROUTES.COMPANY_LOCATION.BRAND_EDIT(
-                companyId,
-                locationId,
-                row.original._id,
-              ),
-              title: "Edit brand",
-              children: (
-                <>
-                  <PencilIcon className="size-4" /> Edit
-                </>
-              ),
-            }
-          ]}
-        >
+        <DropdownMenu items={items}>
           <Button variant="outlined" size="icon">
             <EllipsisVerticalIcon className="size-4" />
           </Button>

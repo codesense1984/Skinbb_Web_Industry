@@ -19,6 +19,42 @@ export const sellerRoutes: RouteObject = {
       ),
     },
 
+    // brands - using existing panel components
+    {
+      path: "/company/:companyId/locations/:locationId/brands",
+      Component: lazy(() => import("@/modules/panel/features/company-location-brands/list")),
+    },
+    {
+      path: "/company/:companyId/locations/:locationId/brands/:brandId/view",
+      Component: lazy(() => import("@/modules/panel/features/company-location-brands/view")),
+    },
+    {
+      path: "/company/:companyId/locations/:locationId/brands/create",
+      Component: lazy(() => import("@/modules/panel/features/company-location-brands/create")),
+    },
+    {
+      path: "/company/:companyId/locations/:locationId/brands/:brandId/edit",
+      Component: lazy(() => import("@/modules/panel/features/company-location-brands/edit")),
+    },
+
+    // users - using existing panel components
+    {
+      path: "/company/:id/users",
+      Component: lazy(() => import("@/modules/panel/features/company/users/list")),
+    },
+    {
+      path: "/company/:id/users/:userId/view",
+      Component: lazy(() => import("@/modules/panel/features/company/users/user-form")),
+    },
+    {
+      path: "/company/:id/users/create",
+      Component: lazy(() => import("@/modules/panel/features/company/users/user-form")),
+    },
+    {
+      path: "/company/:id/users/:userId/edit",
+      Component: lazy(() => import("@/modules/panel/features/company/users/user-form")),
+    },
+
     // Products routes
     // {
     //   path: SELLER_ROUTES.PRODUCTS.LIST,

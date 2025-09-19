@@ -1,6 +1,8 @@
 import React from "react";
 import { CompanyLocationViewCore } from "@/modules/panel/features/company-location/components/CompanyLocationViewCore";
 import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth";
+import { useNavigate } from "react-router";
+import { SELLER_ROUTES } from "../routes/constant";
 
 interface SellerCompanyLocationViewProps {
   locationId?: string;
@@ -17,6 +19,7 @@ interface SellerCompanyLocationViewProps {
   showApprovalActions = false,
   customHeader,
 }) => {
+  const navigate = useNavigate();
   const { sellerInfo, isLoading, isError, getCompanyId, getPrimaryAddress } = useSellerAuth();
 
   if (isLoading) {
@@ -86,12 +89,18 @@ interface SellerCompanyLocationViewProps {
     );
   }
 
+  const handleViewBrands = (companyId: string, locationId: string) => {
+    // Navigate to brands list for this specific location
+    navigate(SELLER_ROUTES.BRANDS.LIST(companyId, locationId));
+  };
+
   return (
     <CompanyLocationViewCore
       companyId={companyId}
       locationId={targetLocationId}
       showApprovalActions={showApprovalActions}
       customHeader={customHeader}
+      onViewBrands={handleViewBrands}
     />
   );
 };

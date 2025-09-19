@@ -512,3 +512,36 @@ export async function apiDeleteCompanyLocationBrand<T = ApiResponse<unknown>>(
     ENDPOINTS.COMPANY_LOCATION_BRANDS.DELETE(companyId, locationId, brandId),
   );
 }
+
+// ---- Company Location Products ----
+// Get products for a specific company location
+export async function apiGetCompanyLocationProducts<
+  T = ApiResponse<{
+    items: Array<any>; // Product type will be defined later
+    page: number;
+    limit: number;
+    total: number;
+  }>,
+>(
+  companyId: string,
+  locationId: string,
+  params?: PaginationParams,
+  signal?: AbortSignal,
+) {
+  return api.get<T>(
+    ENDPOINTS.COMPANY_LOCATION_PRODUCTS.LIST(companyId, locationId),
+    {
+      params,
+      signal,
+    },
+  );
+}
+
+// Get product details for a specific company location
+export async function apiGetCompanyLocationProductById<
+  T = ApiResponse<any>, // Product type will be defined later
+>(companyId: string, locationId: string, productId: string) {
+  return api.get<T>(
+    ENDPOINTS.COMPANY_LOCATION_PRODUCTS.GET_BY_ID(companyId, locationId, productId),
+  );
+}

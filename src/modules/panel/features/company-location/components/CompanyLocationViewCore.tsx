@@ -116,6 +116,7 @@ interface CompanyLocationViewCoreProps {
     description?: string;
     actions?: React.ReactNode;
   };
+  onViewBrands?: (companyId: string, locationId: string) => void;
 }
 
 export const CompanyLocationViewCore: React.FC<CompanyLocationViewCoreProps> = ({
@@ -123,6 +124,7 @@ export const CompanyLocationViewCore: React.FC<CompanyLocationViewCoreProps> = (
   locationId,
   showApprovalActions = true,
   customHeader,
+  onViewBrands,
 }) => {
   const queryClient = useQueryClient();
   const [isApprovalDialogOpen, setIsApprovalDialogOpen] = useState(false);
@@ -456,9 +458,21 @@ export const CompanyLocationViewCore: React.FC<CompanyLocationViewCoreProps> = (
       {currentLocation.brands && Array.isArray(currentLocation.brands) && currentLocation.brands.length > 0 && (
         <Card>
           <CardHeader className="border-b">
-            <CardTitle className="flex items-center gap-2">
-              <TagIcon className="h-5 w-5" />
-              Brand Details
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <TagIcon className="h-5 w-5" />
+                Brand Details
+              </div>
+              {onViewBrands && (
+                <Button
+                  onClick={() => onViewBrands(companyId, locationId)}
+                  variant="outlined"
+                  size="sm"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
+                >
+                  View All Brands
+                </Button>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>

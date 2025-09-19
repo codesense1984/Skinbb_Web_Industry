@@ -4,6 +4,7 @@ import { MODE } from "@/core/types";
 import { createUrlValidator } from "@/core/utils";
 import { SURVEY } from "@/core/config/constants";
 import type { FormFieldConfig } from "@/core/components/ui/form-input";
+import { DocumentTextIcon } from "@heroicons/react/24/outline";
 
 export const brandFormSchema = z.object({
   _id: z.string().optional(),
@@ -141,7 +142,7 @@ export const brandSchema: {
     {
       name: "authorizationLetter",
       label: "Authorization Letter",
-      type: INPUT_TYPES.FILE,
+      type: mode === MODE.VIEW ? INPUT_TYPES.CUSTOM : INPUT_TYPES.FILE,
       placeholder: "Upload letter",
       disabled: mode === MODE.VIEW,
       required: mode === MODE.ADD,
@@ -149,6 +150,26 @@ export const brandSchema: {
         accept: ".pdf,.doc,.docx,.jpg,.jpeg,.png",
       },
       className: "md:col-span-2",
+      ...(mode === MODE.VIEW && {
+        render: ({ field }) => {
+          const value = field.value as string;
+          return value ? (
+            <div className="flex items-center gap-2">
+              <DocumentTextIcon className="h-5 w-5 text-gray-500" />
+              <a
+                href={value}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-500 hover:text-blue-700 underline text-sm"
+              >
+                View Document
+              </a>
+            </div>
+          ) : (
+            <span className="text-gray-500 text-sm">No document uploaded</span>
+          );
+        },
+      }),
     },
     {
       name: "aboutTheBrand",

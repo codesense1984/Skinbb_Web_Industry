@@ -1,6 +1,9 @@
 import React from "react";
 import { CompanyViewCore } from "@/modules/panel/features/company/components/CompanyViewCore";
 import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth";
+import { useNavigate } from "react-router";
+import { SELLER_ROUTES } from "../routes/constant";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 
 interface SellerCompanyViewProps {
   showViewUsersAction?: boolean;
@@ -10,16 +13,21 @@ interface SellerCompanyViewProps {
     actions?: React.ReactNode;
   };
   onViewBrands?: (companyId: string, locationId: string) => void;
+  onViewProducts?: (companyId: string, locationId: string) => void;
   onViewUsers?: (companyId: string) => void;
 }
 
 const SellerCompanyView: React.FC<SellerCompanyViewProps> = ({
-  showViewUsersAction = false,
+  showViewUsersAction = true,
   customHeader,
   onViewBrands,
+  onViewProducts,
   onViewUsers,
 }) => {
+  const navigate = useNavigate();
   const { sellerInfo, isLoading, isError, getCompanyId } = useSellerAuth();
+
+  console.log(sellerInfo);
 
   if (isLoading) {
     return (
@@ -74,13 +82,53 @@ const SellerCompanyView: React.FC<SellerCompanyViewProps> = ({
     );
   }
 
+  const handleViewBrands = (companyId: string, locationId: string) => {
+    if (onViewBrands) {
+      onViewBrands(companyId, locationId);
+    } else {
+      // Navigate to brands list for this specific location
+      navigate(SELLER_ROUTES.BRANDS.LIST(companyId, locationId));
+    }
+  };
+
+  const handleViewProducts = (companyId: string, locationId: string) => {
+    if (onViewProducts) {
+      onViewProducts(companyId, locationId);
+    } else {
+      // Navigate to products list for this specific location
+      navigate(SELLER_ROUTES.COMPANY_LOCATION_PRODUCTS.LIST(companyId, locationId));
+    }
+  };
+
+  const handleViewUsers = (companyId: string) => {
+    if (onViewUsers) {
+      onViewUsers(companyId);
+    } else {
+      // Navigate to company users list
+      navigate(SELLER_ROUTES.USERS.LIST(companyId));
+    }
+  };
+
+  const handleViewLocation = (_companyId: string, locationId: string) => {
+    // Navigate to specific location view
+    navigate(SELLER_ROUTES.COMPANY_LOCATION.VIEW(locationId));
+  };
+
+  const handleEditLocation = (companyId: string, locationId: string) => {
+    // Navigate to panel onboarding edit page for company location
+    navigate(PANEL_ROUTES.ONBOARD.COMPANY_EDIT(companyId, locationId));
+  };
+
   return (
     <CompanyViewCore
       companyId={companyId}
       showViewUsersAction={showViewUsersAction}
       customHeader={customHeader}
-      onViewBrands={onViewBrands}
-      onViewUsers={onViewUsers}
+      onViewBrands={handleViewBrands}
+      onViewProducts={handleViewProducts}
+      onViewUsers={handleViewUsers}
+      onViewLocation={handleViewLocation}
+      onEditLocation={handleEditLocation}
     />
   );
 };

@@ -92,6 +92,7 @@ interface LocationAccordionItemProps {
   index: number;
   isExpanded: boolean;
   onViewBrands: (companyId: string, locationId: string) => void;
+  onViewProducts: (companyId: string, locationId: string) => void;
   onViewLocation?: (companyId: string, locationId: string) => void;
   onEditLocation?: (companyId: string, locationId: string) => void;
 }
@@ -102,6 +103,7 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
   index,
   isExpanded,
   onViewBrands,
+  onViewProducts,
   onViewLocation,
   onEditLocation,
 }) => {
@@ -193,6 +195,18 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
             >
               <TagIcon className="mr-1 h-3 w-3" />
               <span className="hidden sm:inline">View Brands</span>
+            </Button>
+            <Button
+              onClick={(e) => {
+                e.stopPropagation();
+                onViewProducts(companyId, locationId || "");
+              }}
+              variant="outlined"
+              size="sm"
+              className="bg-white/80 hover:bg-white border-gray-200 text-gray-700 hover:text-gray-800 text-xs"
+            >
+              <DocumentTextIcon className="mr-1 h-3 w-3" />
+              <span className="hidden sm:inline">View Products</span>
             </Button>
           </div>
         </div>
@@ -388,6 +402,7 @@ interface CompanyViewCoreProps {
     actions?: React.ReactNode;
   };
   onViewBrands?: (companyId: string, locationId: string) => void;
+  onViewProducts?: (companyId: string, locationId: string) => void;
   onViewUsers?: (companyId: string) => void;
   onViewLocation?: (companyId: string, locationId: string) => void;
   onEditLocation?: (companyId: string, locationId: string) => void;
@@ -398,6 +413,7 @@ export const CompanyViewCore: React.FC<CompanyViewCoreProps> = ({
   showViewUsersAction = true,
   customHeader,
   onViewBrands,
+  onViewProducts,
   onViewUsers,
   onViewLocation,
   onEditLocation,
@@ -425,6 +441,14 @@ export const CompanyViewCore: React.FC<CompanyViewCoreProps> = ({
     }
   };
 
+  const handleViewProducts = (companyId: string, locationId: string) => {
+    if (onViewProducts) {
+      onViewProducts(companyId, locationId);
+    } else {
+      navigate(PANEL_ROUTES.COMPANY_LOCATION.PRODUCTS(companyId, locationId));
+    }
+  };
+
   const handleViewUsers = (companyId: string) => {
     if (onViewUsers) {
       onViewUsers(companyId);
@@ -437,16 +461,6 @@ export const CompanyViewCore: React.FC<CompanyViewCoreProps> = ({
   const defaultHeader = {
     title: "Company Details",
     description: "View comprehensive company information and addresses",
-    actions: showViewUsersAction ? (
-      <Button
-        onClick={() => handleViewUsers(companyId)}
-        variant="outlined"
-        className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
-      >
-        <UserGroupIcon className="mr-2 h-4 w-4" />
-        View Users
-      </Button>
-    ) : undefined,
   };
 
   const headerConfig = customHeader ? { ...defaultHeader, ...customHeader } : defaultHeader;
@@ -546,20 +560,12 @@ export const CompanyViewCore: React.FC<CompanyViewCoreProps> = ({
             </CardContent>
           </Card>
 
-          <div className="space-y-6">
+          <h2 className="text-lg font-bold text-gray-900">Company Locations</h2>
+          <div className="space-y-4 sm:space-y-6">
             {/* Company Addresses Accordion */}
             {company.addresses && company.addresses.length > 0 && (
-              <Card>
-                <CardHeader className="border-b">
-                  <CardTitle className="flex items-center gap-2">
-                    <MapPinIcon className="h-5 w-5" />
-                    Company Locations
-                    <Badge variant="outline" className="ml-auto">
-                      {company.addresses.length}
-                    </Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-6">
+              <Card className="py-0">
+                <CardContent className="py-0">
                   <Accordion
                     type="single"
                     collapsible
@@ -575,6 +581,7 @@ export const CompanyViewCore: React.FC<CompanyViewCoreProps> = ({
                         index={index}
                         isExpanded={expandedAddress === `address-${index}`}
                         onViewBrands={handleViewBrands}
+                        onViewProducts={handleViewProducts}
                         onViewLocation={onViewLocation}
                         onEditLocation={onEditLocation}
                       />

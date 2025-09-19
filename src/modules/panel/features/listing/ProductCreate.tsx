@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { Button } from "@/core/components/ui/button";
 import { PageContent } from "@/core/components/ui/structure";
@@ -92,6 +92,52 @@ interface DropdownOption {
   label?: string;
   slug?: string;
   address?: string;
+}
+
+interface ApiResponse<T = unknown> {
+  success: boolean;
+  data: T;
+  message?: string;
+}
+
+interface BrandsResponse {
+  brands: DropdownOption[];
+}
+
+interface CategoriesResponse {
+  productCategories: DropdownOption[];
+}
+
+interface TagsResponse {
+  tags: DropdownOption[];
+}
+
+interface VariationTypesResponse {
+  productVariationTypes: DropdownOption[];
+}
+
+interface MarketedByResponse {
+  marketedBy: DropdownOption[];
+}
+
+interface ManufacturedByResponse {
+  manufacturedBy: DropdownOption[];
+}
+
+interface ImportedByResponse {
+  importedBys: DropdownOption[];
+}
+
+interface IngredientsResponse {
+  ingredientLists: DropdownOption[];
+}
+
+interface BenefitsResponse {
+  benefits: DropdownOption[];
+}
+
+interface ProductAttributeValuesResponse {
+  productAttributeValues: DropdownOption[];
 }
 
 const ProductCreate = () => {
@@ -259,122 +305,145 @@ const ProductCreate = () => {
         ]);
 
         // Basic dropdowns
-        if ((brandsRes as any)?.success) {
-          setBrands((brandsRes as any).data.brands || []);
+        const brandsResponse = brandsRes as ApiResponse<BrandsResponse>;
+        if (brandsResponse?.success) {
+          setBrands(brandsResponse.data.brands || []);
         }
 
-        if ((categoriesRes as any)?.success) {
-          setCategories((categoriesRes as any).data.productCategories || []);
+        const categoriesResponse = categoriesRes as ApiResponse<CategoriesResponse>;
+        if (categoriesResponse?.success) {
+          setCategories(categoriesResponse.data.productCategories || []);
         }
 
-        if ((tagsRes as any)?.success) {
-          setTags((tagsRes as any).data.tags || []);
+        const tagsResponse = tagsRes as ApiResponse<TagsResponse>;
+        if (tagsResponse?.success) {
+          setTags(tagsResponse.data.tags || []);
         }
 
-        if ((variationTypesRes as any)?.success) {
+        const variationTypesResponse = variationTypesRes as ApiResponse<VariationTypesResponse>;
+        if (variationTypesResponse?.success) {
           setVariationTypes(
-            (variationTypesRes as any).data.productVariationTypes || [],
+            variationTypesResponse.data.productVariationTypes || [],
           );
         }
 
-        if ((marketedByRes as any)?.success) {
-          setMarketedBy((marketedByRes as any).data.marketedBy || []);
+        const marketedByResponse = marketedByRes as ApiResponse<MarketedByResponse>;
+        if (marketedByResponse?.success) {
+          setMarketedBy(marketedByResponse.data.marketedBy || []);
         }
 
-        if ((manufacturedByRes as any)?.success) {
+        const manufacturedByResponse = manufacturedByRes as ApiResponse<ManufacturedByResponse>;
+        if (manufacturedByResponse?.success) {
           setManufacturedBy(
-            (manufacturedByRes as any).data.manufacturedBy || [],
+            manufacturedByResponse.data.manufacturedBy || [],
           );
         }
 
-        if ((importedByRes as any)?.success) {
-          setImportedBy((importedByRes as any).data.importedBys || []);
+        const importedByResponse = importedByRes as ApiResponse<ImportedByResponse>;
+        if (importedByResponse?.success) {
+          setImportedBy(importedByResponse.data.importedBys || []);
         }
 
-        if ((ingredientsRes as any)?.success) {
-          setIngredients((ingredientsRes as any).data.ingredientLists || []);
+        const ingredientsResponse = ingredientsRes as ApiResponse<IngredientsResponse>;
+        if (ingredientsResponse?.success) {
+          setIngredients(ingredientsResponse.data.ingredientLists || []);
         }
 
-        if ((benefitsRes as any)?.success) {
-          setBenefitsOptions((benefitsRes as any).data.benefits || []);
+        const benefitsResponse = benefitsRes as ApiResponse<BenefitsResponse>;
+        if (benefitsResponse?.success) {
+          setBenefitsOptions(benefitsResponse.data.benefits || []);
         }
 
         // Product Attributes
-        if ((targetConcernsRes as any)?.success) {
+        const targetConcernsResponse = targetConcernsRes as ApiResponse<ProductAttributeValuesResponse>;
+        if (targetConcernsResponse?.success) {
           setTargetConcerns(
-            (targetConcernsRes as any).data.productAttributeValues || [],
+            targetConcernsResponse.data.productAttributeValues || [],
           );
         }
 
-        if ((productFeaturesRes as any)?.success) {
+        const productFeaturesResponse = productFeaturesRes as ApiResponse<ProductAttributeValuesResponse>;
+        if (productFeaturesResponse?.success) {
           setProductFeatures(
-            (productFeaturesRes as any).data.productAttributeValues || [],
+            productFeaturesResponse.data.productAttributeValues || [],
           );
         }
 
-        if ((countryOfOriginRes as any)?.success) {
+        const countryOfOriginResponse = countryOfOriginRes as ApiResponse<ProductAttributeValuesResponse>;
+        if (countryOfOriginResponse?.success) {
           setCountryOfOrigin(
-            (countryOfOriginRes as any).data.productAttributeValues || [],
+            countryOfOriginResponse.data.productAttributeValues || [],
           );
         }
 
-        if ((benefitsAttributeRes as any)?.success) {
+        const benefitsAttributeResponse = benefitsAttributeRes as ApiResponse<ProductAttributeValuesResponse>;
+        if (benefitsAttributeResponse?.success) {
           setBenefitsAttribute(
-            (benefitsAttributeRes as any).data.productAttributeValues || [],
+            benefitsAttributeResponse.data.productAttributeValues || [],
           );
         }
 
-        if ((certificationsRes as any)?.success) {
+        const certificationsResponse = certificationsRes as ApiResponse<ProductAttributeValuesResponse>;
+        if (certificationsResponse?.success) {
           setCertifications(
-            (certificationsRes as any).data.productAttributeValues || [],
+            certificationsResponse.data.productAttributeValues || [],
           );
         }
 
-        if ((productFormRes as any)?.success) {
+        const productFormResponse = productFormRes as ApiResponse<ProductAttributeValuesResponse>;
+        if (productFormResponse?.success) {
           setProductForm(
-            (productFormRes as any).data.productAttributeValues || [],
+            productFormResponse.data.productAttributeValues || [],
           );
         }
 
-        if ((genderRes as any)?.success) {
-          setGender((genderRes as any).data.productAttributeValues || []);
+        const genderResponse = genderRes as ApiResponse<ProductAttributeValuesResponse>;
+        if (genderResponse?.success) {
+          setGender(genderResponse.data.productAttributeValues || []);
         }
 
-        if ((productTypeRes as any)?.success) {
+        const productTypeResponse = productTypeRes as ApiResponse<ProductAttributeValuesResponse>;
+        if (productTypeResponse?.success) {
           setProductType(
-            (productTypeRes as any).data.productAttributeValues || [],
+            productTypeResponse.data.productAttributeValues || [],
           );
         }
 
-        if ((targetAreaRes as any)?.success) {
+        const targetAreaResponse = targetAreaRes as ApiResponse<ProductAttributeValuesResponse>;
+        if (targetAreaResponse?.success) {
           setTargetArea(
-            (targetAreaRes as any).data.productAttributeValues || [],
+            targetAreaResponse.data.productAttributeValues || [],
           );
         }
 
         // Additional Attributes
-        if ((finishRes as any)?.success) {
-          setFinish((finishRes as any).data.productAttributeValues || []);
+        const finishResponse = finishRes as ApiResponse<ProductAttributeValuesResponse>;
+        if (finishResponse?.success) {
+          setFinish(finishResponse.data.productAttributeValues || []);
         }
 
-        if ((fragranceRes as any)?.success) {
-          setFragrance((fragranceRes as any).data.productAttributeValues || []);
+        const fragranceResponse = fragranceRes as ApiResponse<ProductAttributeValuesResponse>;
+        if (fragranceResponse?.success) {
+          setFragrance(fragranceResponse.data.productAttributeValues || []);
         }
 
-        if ((skinConcernsRes as any)?.success) {
+        const skinConcernsResponse = skinConcernsRes as ApiResponse<ProductAttributeValuesResponse>;
+        if (skinConcernsResponse?.success) {
           setSkinConcerns(
-            (skinConcernsRes as any).data.productAttributeValues || [],
+            skinConcernsResponse.data.productAttributeValues || [],
           );
         }
 
-        if ((hairTypeRes as any)?.success) {
-          setHairType((hairTypeRes as any).data.productAttributeValues || []);
+        const hairTypeResponse = hairTypeRes as ApiResponse<ProductAttributeValuesResponse>;
+        if (hairTypeResponse?.success) {
+          setHairType(hairTypeResponse.data.productAttributeValues || []);
         }
 
-        if ((skinTypeRes as any)?.success) {
-          setSkinType((skinTypeRes as any).data.productAttributeValues || []);
+        const skinTypeResponse = skinTypeRes as ApiResponse<ProductAttributeValuesResponse>;
+        if (skinTypeResponse?.success) {
+          setSkinType(skinTypeResponse.data.productAttributeValues || []);
         }
-      } catch (error) {
+      } catch {
         // Handle error silently
       }
     };
@@ -387,9 +456,58 @@ const ProductCreate = () => {
     const fetchProductData = async () => {
       if (productId && (isEditMode || isViewMode)) {
         try {
-          const response = (await apiGetProductById(productId)) as {
+          const response = await apiGetProductById(productId) as {
             success: boolean;
-            data: any;
+            data: {
+              productName?: string;
+              slug?: string;
+              description?: string;
+              status?: string;
+              price?: number;
+              salePrice?: number;
+              quantity?: number;
+              sku?: string;
+              brand?: { _id: string };
+              productVariationType?: { _id: string };
+              productCategory?: Array<{ _id: string }>;
+              tags?: Array<{ _id: string }>;
+              marketedBy?: { _id: string };
+              marketedByAddress?: string;
+              manufacturedBy?: { _id: string };
+              manufacturedByAddress?: string;
+              importedBy?: { _id: string };
+              importedByAddress?: string;
+              targetConcerns?: Array<{ _id: string }>;
+              productFeatures?: Array<{ _id: string }>;
+              countryOfOrigin?: { _id: string };
+              benefits?: Array<{ _id: string }>;
+              certifications?: Array<{ _id: string }>;
+              productForm?: { _id: string };
+              gender?: { _id: string };
+              productType?: { _id: string };
+              targetArea?: { _id: string };
+              finish?: { _id: string };
+              fragrance?: { _id: string };
+              skinConcerns?: Array<{ _id: string }>;
+              hairType?: { _id: string };
+              skinType?: { _id: string };
+              shelfLife?: string;
+              licenseNo?: string;
+              manufacturingDate?: string;
+              expiryDate?: string;
+              length?: number;
+              width?: number;
+              height?: number;
+              safetyPrecaution?: string;
+              howToUse?: string;
+              customerCareEmail?: string;
+              customerCareNumber?: string;
+              ingredient?: string;
+              keyIngredients?: string;
+              benefitsSingle?: string;
+              captureBy?: string;
+              capturedDate?: string;
+            };
           };
           if (response.success && response.data) {
             const product = response.data;
@@ -399,7 +517,7 @@ const ProductCreate = () => {
               productName: product.productName || "",
               slug: product.slug || "",
               description: product.description || "",
-              status: product.status || "draft",
+              status: (product.status as "draft" | "publish") || "draft",
               price: product.price || 0,
               salePrice: product.salePrice || 0,
               quantity: product.quantity || 0,
@@ -407,8 +525,8 @@ const ProductCreate = () => {
               brand: product.brand?._id || "",
               productVariationType: product.productVariationType?._id || "",
               productCategory:
-                product.productCategory?.map((cat: any) => cat._id) || [],
-              tags: product.tags?.map((tag: any) => tag._id) || [],
+                product.productCategory?.map((cat) => cat._id) || [],
+              tags: product.tags?.map((tag) => tag._id) || [],
               marketedBy: product.marketedBy?._id || "",
               marketedByAddress: product.marketedByAddress || "",
               manufacturedBy: product.manufacturedBy?._id || "",
@@ -416,16 +534,16 @@ const ProductCreate = () => {
               importedBy: product.importedBy?._id || "",
               importedByAddress: product.importedByAddress || "",
               targetConcerns:
-                product.targetConcerns?.map((concern: any) => concern._id) ||
+                product.targetConcerns?.map((concern) => concern._id) ||
                 [],
               productFeatures:
-                product.productFeatures?.map((feature: any) => feature._id) ||
+                product.productFeatures?.map((feature) => feature._id) ||
                 [],
               countryOfOrigin: product.countryOfOrigin?._id || "",
               benefits:
-                product.benefits?.map((benefit: any) => benefit._id) || [],
+                product.benefits?.map((benefit) => benefit._id) || [],
               certifications:
-                product.certifications?.map((cert: any) => cert._id) || [],
+                product.certifications?.map((cert) => cert._id) || [],
               productForm: product.productForm?._id || "",
               gender: product.gender?._id || "",
               productType: product.productType?._id || "",
@@ -433,7 +551,7 @@ const ProductCreate = () => {
               finish: product.finish?._id || "",
               fragrance: product.fragrance?._id || "",
               skinConcerns:
-                product.skinConcerns?.map((concern: any) => concern._id) || [],
+                product.skinConcerns?.map((concern) => concern._id) || [],
               hairType: product.hairType?._id || "",
               skinType: product.skinType?._id || "",
               shelfLife: product.shelfLife || "",
@@ -454,7 +572,7 @@ const ProductCreate = () => {
               capturedDate: product.capturedDate || new Date().toISOString(),
             });
           }
-        } catch (error) {
+        } catch {
           setError("Failed to load product data");
         }
       }
@@ -463,7 +581,7 @@ const ProductCreate = () => {
     fetchProductData();
   }, [productId, isEditMode, isViewMode]);
 
-  const handleInputChange = (field: keyof ProductCreateData, value: any) => {
+  const handleInputChange = (field: keyof ProductCreateData, value: string | number | string[] | boolean) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -503,6 +621,9 @@ const ProductCreate = () => {
         submitData.append("barcodeImage", barcodeImage);
       }
 
+      submitData.append("brand", "68cbeaf259dbe37bcfef4dfc");
+      submitData.append("productCategory", "[68652da5d559321c67d22f44]");
+
       let result: { success: boolean; message?: string };
 
       if (isEditMode && productId) {
@@ -527,7 +648,7 @@ const ProductCreate = () => {
             `${ENDPOINTS.PRODUCT.MAIN}/${productId}`,
             updateData,
           )) as { success: boolean; message?: string };
-        } catch (patchError) {
+        } catch {
           // Fallback to PUT with FormData
           result = (await api.put(
             `${ENDPOINTS.PRODUCT.MAIN}/${productId}`,
@@ -560,7 +681,7 @@ const ProductCreate = () => {
         // Navigate back to product list
         navigate(PANEL_ROUTES.LISTING.LIST);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Handle error silently
 
       const errorMessage = isEditMode
@@ -569,9 +690,9 @@ const ProductCreate = () => {
 
       // Get more detailed error message
       const detailedError =
-        error?.response?.data?.message ||
-        error?.response?.data?.error ||
-        error?.message ||
+        (error as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.message ||
+        (error as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.error ||
+        (error as { message?: string })?.message ||
         errorMessage;
 
       setError(detailedError);
@@ -2011,6 +2132,14 @@ const ProductCreate = () => {
                       : "cursor-pointer hover:border-gray-400"
                   }`}
                   onClick={isViewMode ? undefined : openThumbnailDialog}
+                  onKeyDown={isViewMode ? undefined : (e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      openThumbnailDialog();
+                    }
+                  }}
+                  tabIndex={isViewMode ? -1 : 0}
+                  role={isViewMode ? undefined : "button"}
                 >
                   {thumbnailImage ? (
                     <div className="space-y-4">
@@ -2099,6 +2228,14 @@ const ProductCreate = () => {
                       : "cursor-pointer hover:border-gray-400"
                   }`}
                   onClick={isViewMode ? undefined : openBarcodeDialog}
+                  onKeyDown={isViewMode ? undefined : (e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      openBarcodeDialog();
+                    }
+                  }}
+                  tabIndex={isViewMode ? -1 : 0}
+                  role={isViewMode ? undefined : "button"}
                 >
                   {barcodeImage ? (
                     <div className="space-y-4">

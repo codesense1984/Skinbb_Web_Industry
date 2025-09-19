@@ -128,6 +128,20 @@ export const ENDPOINTS = {
       `${API_PREFIX}/sellers/${companyId}/locations/${locationId}/brands/${brandId}`,
   },
 
+  // Company Location Products
+  COMPANY_LOCATION_PRODUCTS: {
+    LIST: (companyId: string, locationId: string) =>
+      `${API_PREFIX}/sellers/${companyId}/locations/${locationId}/products`,
+    CREATE: (companyId: string, locationId: string) =>
+      `${API_PREFIX}/sellers/${companyId}/locations/${locationId}/products`,
+    GET_BY_ID: (companyId: string, locationId: string, productId: string) =>
+      `${API_PREFIX}/sellers/${companyId}/locations/${locationId}/products/${productId}`,
+    UPDATE: (companyId: string, locationId: string, productId: string) =>
+      `${API_PREFIX}/sellers/${companyId}/locations/${locationId}/products/${productId}`,
+    DELETE: (companyId: string, locationId: string, productId: string) =>
+      `${API_PREFIX}/sellers/${companyId}/locations/${locationId}/products/${productId}`,
+  },
+
   DISCOUNT: {
     LIST: `${API_PREFIX}/discount/admin/list`,
   },

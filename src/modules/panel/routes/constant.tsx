@@ -171,6 +171,51 @@ export const PANEL_ROUTES = {
         brandId,
         ROUTE.seg.view,
       ), // /company/:companyId/locations/:locationId/brands/:brandId/view
+    PRODUCTS: (
+      companyId: string = ":companyId",
+      locationId: string = ":locationId",
+    ) =>
+      ROUTE.build(COMPANY_BASE, companyId, "locations", locationId, "products"), // /company/:companyId/locations/:locationId/products
+    PRODUCT_CREATE: (
+      companyId: string = ":companyId",
+      locationId: string = ":locationId",
+    ) =>
+      ROUTE.build(
+        COMPANY_BASE,
+        companyId,
+        "locations",
+        locationId,
+        "products",
+        ROUTE.seg.create,
+      ), // /company/:companyId/locations/:locationId/products/create
+    PRODUCT_EDIT: (
+      companyId: string = ":companyId",
+      locationId: string = ":locationId",
+      productId: string = ":productId",
+    ) =>
+      ROUTE.build(
+        COMPANY_BASE,
+        companyId,
+        "locations",
+        locationId,
+        "products",
+        productId,
+        ROUTE.seg.edit,
+      ), // /company/:companyId/locations/:locationId/products/:productId/edit
+    PRODUCT_VIEW: (
+      companyId: string = ":companyId",
+      locationId: string = ":locationId",
+      productId: string = ":productId",
+    ) =>
+      ROUTE.build(
+        COMPANY_BASE,
+        companyId,
+        "locations",
+        locationId,
+        "products",
+        productId,
+        ROUTE.seg.view,
+      ), // /company/:companyId/locations/:locationId/products/:productId/view
   },
 
   // ---- Customer ----
