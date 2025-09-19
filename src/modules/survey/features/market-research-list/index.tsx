@@ -165,14 +165,17 @@ const columns: ColumnDef<Survey>[] = [
   {
     accessorKey: "title",
     header: "Title",
+    size: 250,
   },
   {
     accessorKey: "category",
     header: "Category",
+    size: 200,
   },
   {
     accessorKey: "status",
     header: "Status",
+    size: 100,
     cell: ({ row }) => {
       return <StatusBadge module="survey" status={row.original.status} />;
     },
@@ -180,6 +183,7 @@ const columns: ColumnDef<Survey>[] = [
   {
     accessorKey: "respondents",
     header: "Respondents",
+    size: 100,
     cell: ({ row }) => {
       return row.original.audience.respondents;
     },
@@ -187,6 +191,7 @@ const columns: ColumnDef<Survey>[] = [
   {
     accessorKey: "cost",
     header: "Cost",
+    size: 100,
     cell: ({ row }) => {
       const cost = row.getValue("cost") as string;
       // Optional formatting for ₹ values
@@ -197,6 +202,7 @@ const columns: ColumnDef<Survey>[] = [
   {
     accessorKey: "startDate",
     header: "Start Date",
+    size: 100,
     cell: ({ row }) => {
       const startDate = row.getValue("startDate") as string;
       return formatDate(startDate);
@@ -206,6 +212,7 @@ const columns: ColumnDef<Survey>[] = [
     header: "Action",
     id: "actions",
     enableHiding: false,
+    size: 100,
     cell: ({ row }) => {
       const isEdit = row.original.status === "draft";
       return (

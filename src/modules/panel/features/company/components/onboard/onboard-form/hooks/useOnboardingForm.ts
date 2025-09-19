@@ -131,7 +131,7 @@ export const useOnboardingForm = ({
         brandType: data.brandType,
         type: typeof data.brandType,
         isArray: Array.isArray(data.brandType),
-        length: data.brandType?.length
+        length: data.brandType?.length,
       });
       setConfirmation([true, data]);
     },
