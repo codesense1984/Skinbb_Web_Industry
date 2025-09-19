@@ -4,6 +4,7 @@ import { ROUTE } from "@/core/routes/constant";
 const DASHBOARD_BASE = "/dashboard";
 const PRODUCTS_BASE = "/products";
 const ORDERS_BASE = "/orders";
+const COMPANY_LOCATION_BASE = "/company-location";
 
 export const SELLER_ROUTES = {
   // ---- Dashboard ----
@@ -31,5 +32,12 @@ export const SELLER_ROUTES = {
     VIEW: (id: string = ROUTE.seg.id) =>
       ROUTE.build(ORDERS_BASE, id, ROUTE.seg.view), // /orders/view/:id
     DETAIL: (id: string = ROUTE.seg.id) => ROUTE.build(ORDERS_BASE, id), // /orders/:id
+  },
+
+  // ---- Company Location ----
+  COMPANY_LOCATION: {
+    BASE: COMPANY_LOCATION_BASE, // /company-location
+    VIEW: (locationId: string = ROUTE.seg.id) =>
+      ROUTE.build(COMPANY_LOCATION_BASE, locationId, ROUTE.seg.view), // /company-location/:locationId
   },
 } as const;

@@ -8,17 +8,25 @@ export const sellerRoutes: RouteObject = {
   children: [
     {
       index: true,
-      Component: lazy(
-        () => import("@/modules/seller/features/dashboard/SellerDashboard"),
-      ),
+      Component: lazy(() => import("@/modules/seller/features/CompanyView")),
     },
-    // Products routes
+
+    // company location
     {
-      path: SELLER_ROUTES.PRODUCTS.LIST,
+      path: SELLER_ROUTES.COMPANY_LOCATION.VIEW(),
       Component: lazy(
-        () => import("@/modules/seller/features/products/SellerProducts"),
+        () => import("@/modules/seller/features/CompanyLocationView"),
       ),
     },
+
+    // Products routes
+    // {
+    //   path: SELLER_ROUTES.PRODUCTS.LIST,
+    //   Component: lazy(
+    //     () => import("@/modules/seller/features/products/SellerProducts"),
+    //   ),
+    // },
+
     // {
     //   path: SELLER_ROUTES.PRODUCTS.CREATE,
     //   Component: lazy(
@@ -38,17 +46,22 @@ export const sellerRoutes: RouteObject = {
     //   ),
     // },
     // Orders routes
+    // {
+    //   path: SELLER_ROUTES.ORDERS.LIST,
+    //   Component: lazy(
+    //     () => import("@/modules/seller/features/orders/SellerOrders"),
+    //   ),
+    // },
+    // {
+    //   path: SELLER_ROUTES.ORDERS.VIEW(),
+    //   Component: lazy(
+    //     () => import("@/modules/seller/features/orders/OrderView"),
+    //   ),
+    // },
+
     {
-      path: SELLER_ROUTES.ORDERS.LIST,
-      Component: lazy(
-        () => import("@/modules/seller/features/orders/SellerOrders"),
-      ),
-    },
-    {
-      path: SELLER_ROUTES.ORDERS.VIEW(),
-      Component: lazy(
-        () => import("@/modules/seller/features/orders/OrderView"),
-      ),
+      path: "*",
+      element: <div></div>,
     },
   ],
 };
