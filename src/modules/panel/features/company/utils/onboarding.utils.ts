@@ -242,15 +242,17 @@ export function transformFormDataToApiRequest(
             addressLine2: "",
             landmark: safeString(primaryAddress.landmark),
             city: safeString(primaryAddress.city),
-            state: LocationService.getStateName(
-              safeString(primaryAddress.country),
-              safeString(primaryAddress.state),
-            ),
+            state:
+              LocationService.getStateName(
+                safeString(primaryAddress.country),
+                safeString(primaryAddress.state),
+              ) ?? "",
 
             postalCode: safeString(primaryAddress.postalCode),
-            country: LocationService.getCountryName(
-              safeString(primaryAddress.country),
-            ),
+            country:
+              LocationService.getCountryName(
+                safeString(primaryAddress.country),
+              ) ?? "",
             isPrimary: formData.isCreatingNewCompany,
             // brandIds: [],
           },
@@ -492,26 +494,26 @@ export function transformApiResponseToFormData(
     mergedData.documents = [
       {
         type: DOCUMENT_TYPES.COI,
-        number: address.cinNumber,
-        url: address.coiCertificate,
+        number: "",
+        url: "",
         verified: true,
       },
       {
         type: DOCUMENT_TYPES.PAN,
-        number: address.panNumber,
-        url: address.panDocument,
-        verified: true,
+        number: "",
+        url: "",
+        verified: false,
       },
       {
         type: DOCUMENT_TYPES.GST_LICENSE,
-        number: address.gstNumber,
-        url: address.gstDocument,
-        verified: true,
+        number: "",
+        url: "",
+        verified: false,
       },
       {
         type: DOCUMENT_TYPES.MSME,
-        number: address.msmeNumber,
-        url: address.msmeCertificate,
+        number: "",
+        url: "",
         verified: false,
       },
       {

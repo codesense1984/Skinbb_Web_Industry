@@ -32,7 +32,13 @@ const validateDocuments = async (
     name,
     establishedIn,
     businessType,
-  }: { name: string; establishedIn: string | Date; businessType?: string },
+    isCreatingNewCompany,
+  }: {
+    name: string;
+    establishedIn: string | Date;
+    businessType?: string;
+    isCreatingNewCompany?: boolean;
+  },
   setError: UseFormReturn<FullCompanyFormType>["setError"],
   setValue: UseFormReturn<FullCompanyFormType>["setValue"],
 ): Promise<{ isValid: boolean }> => {
@@ -42,6 +48,16 @@ const validateDocuments = async (
       .map(async (doc, index) => {
         // Skip CIN verification for proprietor business type
         if (doc.type === "coi" && businessType === "proprietor") {
+          return true;
+        }
+
+        // Skip COI validation when not creating new company
+        if (doc.type === "coi" && !isCreatingNewCompany) {
+          return true;
+        }
+
+        // Skip PAN validation when not creating new company
+        if (doc.type === "pan" && !isCreatingNewCompany) {
           return true;
         }
 
@@ -215,6 +231,7 @@ export const useStepNavigation = ({
               name: values.companyName,
               establishedIn: values.establishedIn,
               businessType: values.businessType,
+              isCreatingNewCompany: values.isCreatingNewCompany,
             },
             setError,
             setValue,
