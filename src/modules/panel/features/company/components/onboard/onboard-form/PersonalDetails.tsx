@@ -140,16 +140,16 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
           }
         />
 
-        <FormInput
-          className="col-span-2"
-          type="password"
-          control={control}
-          name="password"
-          label="Password"
-          placeholder="Enter phone number"
-          disabled={mode === MODE.EDIT}
-        />
-
+        {mode === MODE.ADD && (
+          <FormInput
+            className="col-span-2"
+            type="password"
+            control={control}
+            name="password"
+            label="Password"
+            placeholder="Enter phone number"
+          />
+        )}
         <FormFieldsRenderer<FullCompanyFormType>
           control={control}
           fieldConfigs={fullCompanyDetailsSchema.terms({

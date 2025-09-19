@@ -16,6 +16,7 @@ export const ROLE = {
 export const PAGE = {
   POSTS: "posts",
   COMPANIES: "companies",
+  COMPANY_LOCATIONS: "company-locations",
   CATEGORIES: "categories",
   USERS: "users",
   TAGS: "tags",

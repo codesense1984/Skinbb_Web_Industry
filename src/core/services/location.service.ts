@@ -16,6 +16,17 @@ export class LocationService {
     }));
   }
 
+  static getCountryIsoCodeByName(countryName: string): string {
+    if (!countryName) return "";
+    return (
+      Country.getAllCountries().find(
+        (country) =>
+          country.name.toLowerCase() ===
+          String(countryName ?? "").toLowerCase(),
+      )?.isoCode ?? ""
+    );
+  }
+
   /**
    * Get all states for a specific country
    */
@@ -26,6 +37,16 @@ export class LocationService {
       label: state.name,
       value: state.isoCode,
     }));
+  }
+
+  static getStateIsoCodeByName(stateName: string): string {
+    if (!stateName) return "";
+    return (
+      State.getAllStates().find(
+        (country) =>
+          country.name.toLowerCase() === String(stateName ?? "").toLowerCase(),
+      )?.isoCode ?? ""
+    );
   }
 
   /**

@@ -1,7 +1,3 @@
-import {
-  renderActionButton,
-  TableAction,
-} from "@/core/components/data-table/components/table-action";
 import { Avatar } from "@/core/components/ui/avatar";
 import { Badge, StatusBadge } from "@/core/components/ui/badge";
 import { capitalize, formatDate } from "@/core/utils";
@@ -176,8 +172,8 @@ export const columns: ColumnDef<CompanyListItem>[] = [
     size: 130,
     cell: ({ row }) => (
       <div className="flex flex-wrap gap-2">
-        {row.original?.address.slice(0, 1).map((address) => (
-          <Badge className="whitespace-normal" variant={"outline"}>
+        {row.original?.address.slice(0, 1).map((address, index) => (
+          <Badge key={index} className="whitespace-normal" variant={"outline"}>
             {address.city}
           </Badge>
         ))}
@@ -190,15 +186,22 @@ export const columns: ColumnDef<CompanyListItem>[] = [
   {
     header: "Status",
     accessorKey: "companyStatus",
-    size: 120,
+    size: 200,
     cell: ({ row }) => (
-      <StatusBadge
-        status={row.original.companyStatus}
-        module="company"
-        variant="badge"
-      >
-        {row.original.companyStatus}
-      </StatusBadge>
+      <div className="space-y-1">
+        <StatusBadge
+          status={row.original.companyStatus}
+          module="company"
+          variant="badge"
+        >
+          {row.original.companyStatus}
+        </StatusBadge>
+        {row.original.companyStatus === "rejected" && row.original.statusChangeReason && (
+          <div className="text-xs text-red-600 max-w-[180px] truncate" title={row.original.statusChangeReason}>
+            Reason: {row.original.statusChangeReason}
+          </div>
+        )}
+      </div>
     ),
     filterFn: (row, id, value) => {
       return value.includes(row.getValue(id));

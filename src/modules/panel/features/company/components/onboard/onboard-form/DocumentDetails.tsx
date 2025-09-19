@@ -96,9 +96,23 @@ export const DocumentDetails: React.FC<DocumentDetailsProps> = ({ mode }) => {
     name: "documents",
   });
 
+  // Watch businessType to conditionally show/hide CIN field
+  const businessType = useWatch({
+    control,
+    name: "businessType",
+  });
+
+  // Filter out CIN document for proprietor business type
+  const filteredDocConfigs = DOC_CONFIGS.filter((document) => {
+    if (document.key === "coi" && businessType === "proprietor") {
+      return false;
+    }
+    return true;
+  });
+
   return (
     <div className="space-y-6">
-      {DOC_CONFIGS.map((document) => (
+      {filteredDocConfigs.map((document) => (
         <DocumentItem
           key={document.key}
           document={document}

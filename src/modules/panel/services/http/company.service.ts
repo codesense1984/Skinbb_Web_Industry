@@ -180,10 +180,7 @@ export async function apiUpdateBrandStatus(
   );
 }
 
-export async function apiGetBrandStatus(
-  adminId: string,
-  brandId: string,
-) {
+export async function apiGetBrandStatus(adminId: string, brandId: string) {
   return api.get<ApiResponse<BrandStatusUpdateResponse>>(
     ENDPOINTS.BRAND.GET_STATUS(adminId, brandId),
   );

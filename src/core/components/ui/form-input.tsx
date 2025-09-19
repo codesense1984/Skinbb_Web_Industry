@@ -439,37 +439,40 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
     case INPUT_TYPES.FILE:
       return (
         <FormControl {...formControlProps}>
-          <label
-            className="form-control items-center gap-1"
-            title={value?.split("\\").pop()}
-            htmlFor={inputId}
-            data-disabled={disabled}
-            data-readOnly={readOnly}
-          >
-            <ArrowUpTrayIcon className="block w-4 min-w-4" />
-            <input
-              {...field}
-              type="file"
-              hidden
-              id={inputId}
-              value={undefined}
-              onChange={(e) => {
-                field.onChange(transform ? transform.output(e) : e);
-                if (type === INPUT_TYPES.FILE) {
-                  setValue(`${String(name)}_files`, e.target?.files);
-                  trigger(name);
-                }
-              }}
-              readOnly={readOnly}
-              disabled={disabled}
-              {...(inputProps?.accept && { accept: inputProps.accept })}
-            />
-            <p className="text-nowrap">{placeholder ?? "Choose File"}</p>
-            {value && <span className="text-muted-foreground mx-1">|</span>}
-            <p className="text-foreground truncate">
-              {value?.split("\\").pop()}
-            </p>
-          </label>
+          <div>
+            <label
+              className="form-control items-center gap-1"
+              title={value?.split("\\").pop()}
+              htmlFor={inputId}
+              data-disabled={disabled}
+              data-readOnly={readOnly}
+            >
+              <ArrowUpTrayIcon className="block w-4 min-w-4" />
+              <input
+                {...field}
+                type="file"
+                hidden
+                id={inputId}
+                value={undefined}
+                onChange={(e) => {
+                  field.onChange(transform ? transform.output(e) : e);
+                  if (type === INPUT_TYPES.FILE) {
+                    setValue(`${String(name)}_files`, e.target?.files);
+                    trigger(name);
+                  }
+                }}
+                readOnly={readOnly}
+                disabled={disabled}
+                {...(inputProps?.accept && { accept: inputProps.accept })}
+              />
+              <p className="text-nowrap">{placeholder ?? "Choose File"}</p>
+              {value && <span className="text-muted-foreground mx-1">|</span>}
+              <p className="text-foreground truncate">
+                {value?.split("\\").pop()}
+              </p>
+            </label>
+            <p className="text-foreground truncate">{value?.split("\\").pop()}</p>
+          </div>
         </FormControl>
       );
 

@@ -4,10 +4,11 @@ import { apiGetCompanyLocationList } from "@/modules/panel/services/http/company
 import { useParams } from "react-router";
 import { createColumns } from "./data";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
+import type { PaginationParams } from "@/core/types";
 
 const fetcher = (companyId: string) =>
   createSimpleFetcher(
-    (params: any, signal?: AbortSignal) =>
+    (params: PaginationParams, signal?: AbortSignal) =>
       apiGetCompanyLocationList(companyId, params, signal),
     {
       dataPath: "data.items",
