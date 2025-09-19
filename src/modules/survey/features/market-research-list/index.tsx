@@ -13,13 +13,13 @@ import { SURVEY_ROUTES } from "../../routes/constant";
 
 const statsData = [
   {
-    title: "Total Survey",
+    title: "Total Brand Survey",
     value: 38,
     barColor: "bg-primary",
     icon: true,
   },
   {
-    title: "Active Survey",
+    title: "Active Brand Survey",
     value: 35,
     barColor: "bg-blue-300",
     icon: false,
@@ -238,7 +238,7 @@ const MarketResearchList = () => {
   return (
     <PageContent
       header={{
-        title: "Survey",
+        title: "Brand Surveys",
         description: "View and manage your surveys.",
         actions: (
           <div className="flex gap-2 md:gap-5">
@@ -248,7 +248,7 @@ const MarketResearchList = () => {
               mode="range"
             />
             <Button color={"primary"} asChild>
-              <NavLink to={SURVEY_ROUTES.CREATE}>Add Survey</NavLink>
+              <NavLink to={SURVEY_ROUTES.CREATE}>Add Brand Survey</NavLink>
             </Button>
           </div>
         ),
