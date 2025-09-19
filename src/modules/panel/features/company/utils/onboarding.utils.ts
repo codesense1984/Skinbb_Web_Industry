@@ -490,40 +490,40 @@ export function transformApiResponseToFormData(
   };
   const address = apiData.addresses[0];
 
-  if (address) {
-    mergedData.documents = [
-      {
-        type: DOCUMENT_TYPES.COI,
-        number: "",
-        url: "",
-        verified: true,
-      },
-      {
-        type: DOCUMENT_TYPES.PAN,
-        number: "",
-        url: "",
-        verified: false,
-      },
-      {
-        type: DOCUMENT_TYPES.GST_LICENSE,
-        number: "",
-        url: "",
-        verified: false,
-      },
-      {
-        type: DOCUMENT_TYPES.MSME,
-        number: "",
-        url: "",
-        verified: false,
-      },
-      {
-        type: DOCUMENT_TYPES.BRAND_AUTHORIZATION,
-        number: "",
-        url: "",
-        verified: false,
-      },
-    ];
-  }
+  // if (address) {
+  //   mergedData.documents = [
+  //     {
+  //       type: DOCUMENT_TYPES.COI,
+  //       number: "",
+  //       url: "",
+  //       verified: false,
+  //     },
+  //     {
+  //       type: DOCUMENT_TYPES.PAN,
+  //       number: "",
+  //       url: "",
+  //       verified: false,
+  //     },
+  //     {
+  //       type: DOCUMENT_TYPES.GST_LICENSE,
+  //       number: "",
+  //       url: "",
+  //       verified: false,
+  //     },
+  //     {
+  //       type: DOCUMENT_TYPES.MSME,
+  //       number: "",
+  //       url: "",
+  //       verified: false,
+  //     },
+  //     {
+  //       type: DOCUMENT_TYPES.BRAND_AUTHORIZATION,
+  //       number: "",
+  //       url: "",
+  //       verified: false,
+  //     },
+  //   ];
+  // }
 
   if (mergedData.mode === MODE.EDIT) {
     mergedData.category =
