@@ -254,6 +254,28 @@ export const panelRoutes: RouteObject = {
         () => import("@/modules/panel/features/listing/ProductCreate"),
       ),
     },
+
+    // products
+    {
+      path: PANEL_ROUTES.PRODUCT.LIST,
+      Component: lazy(() => import("@/modules/panel/features/products/list")),
+    },
+    {
+      path: PANEL_ROUTES.PRODUCT.CREATE,
+      Component: lazy(() => import("@/modules/panel/features/products/create")),
+    },
+    {
+      path: PANEL_ROUTES.PRODUCT.EDIT(),
+      Component: lazy(() => import("@/modules/panel/features/products/edit")),
+    },
+    {
+      path: PANEL_ROUTES.PRODUCT.VIEW(),
+      Component: lazy(() => import("@/modules/panel/features/products/view")),
+    },
+    {
+      path: "/test-products",
+      Component: lazy(() => import("@/modules/panel/features/products/test-routes")),
+    },
     // {
     //   path: PANEL_ROUTES.COMPANY.EDIT(),
     //   Component: lazy(() => import("@/modules/panel/features/company/edit")),

@@ -22,6 +22,9 @@ const USERS = "/users";
 
 const LISTING_BASE = "/listing";
 
+const PRODUCT_BASE = "/product";
+const PRODUCTS = "/products";
+
 const MASTER_BASE = "/master";
 const PRODUCT_CATEGORY_BASE = "/product-category";
 const PRODUCT_TAG_BASE = "/product-tag";
@@ -250,6 +253,18 @@ export const PANEL_ROUTES = {
     EDIT: (id: string = ROUTE.seg.id) =>
       ROUTE.build(LISTING_BASE, id, ROUTE.seg.edit), // /listing/edit/:id
     DETAIL: (id: string = ROUTE.seg.id) => ROUTE.build(LISTING_BASE, id), // /listing/:id
+  },
+
+  // ---- Products ----
+  PRODUCT: {
+    BASE: PRODUCT_BASE, // /product
+    LIST: PRODUCTS, // /products
+    CREATE: ROUTE.build(PRODUCT_BASE, ROUTE.seg.create), // /product/create
+    EDIT: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(PRODUCT_BASE, id, ROUTE.seg.edit), // /product/edit/:id
+    VIEW: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(PRODUCT_BASE, id, ROUTE.seg.view), // /product/view/:id
+    DETAIL: (id: string = ROUTE.seg.id) => ROUTE.build(PRODUCT_BASE, id), // /product/:id
   },
 
   // ---- Master Data ----

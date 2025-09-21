@@ -104,9 +104,14 @@ interface BrandsResponse {
   brands: DropdownOption[];
 }
 
-interface CategoriesResponse {
-  productCategories: DropdownOption[];
-}
+type CategoriesResponse = Array<{
+  level: number;
+  name: string;
+  parentId: string | null;
+  parentName: string | null;
+  slug: string;
+  _id: string;
+}>;
 
 interface TagsResponse {
   tags: DropdownOption[];
@@ -310,9 +315,14 @@ const ProductCreate = () => {
           setBrands(brandsResponse.data.brands || []);
         }
 
-        const categoriesResponse = categoriesRes as ApiResponse<CategoriesResponse>;
+        const categoriesResponse =
+          categoriesRes as ApiResponse<CategoriesResponse>;
+        console.log(
+          "🚀 ~ loadDropdownData ~ categoriesResponse:",
+          categoriesResponse,
+        );
         if (categoriesResponse?.success) {
-          setCategories(categoriesResponse.data.productCategories || []);
+          setCategories(categoriesResponse.data);
         }
 
         const tagsResponse = tagsRes as ApiResponse<TagsResponse>;
@@ -320,31 +330,34 @@ const ProductCreate = () => {
           setTags(tagsResponse.data.tags || []);
         }
 
-        const variationTypesResponse = variationTypesRes as ApiResponse<VariationTypesResponse>;
+        const variationTypesResponse =
+          variationTypesRes as ApiResponse<VariationTypesResponse>;
         if (variationTypesResponse?.success) {
           setVariationTypes(
             variationTypesResponse.data.productVariationTypes || [],
           );
         }
 
-        const marketedByResponse = marketedByRes as ApiResponse<MarketedByResponse>;
+        const marketedByResponse =
+          marketedByRes as ApiResponse<MarketedByResponse>;
         if (marketedByResponse?.success) {
           setMarketedBy(marketedByResponse.data.marketedBy || []);
         }
 
-        const manufacturedByResponse = manufacturedByRes as ApiResponse<ManufacturedByResponse>;
+        const manufacturedByResponse =
+          manufacturedByRes as ApiResponse<ManufacturedByResponse>;
         if (manufacturedByResponse?.success) {
-          setManufacturedBy(
-            manufacturedByResponse.data.manufacturedBy || [],
-          );
+          setManufacturedBy(manufacturedByResponse.data.manufacturedBy || []);
         }
 
-        const importedByResponse = importedByRes as ApiResponse<ImportedByResponse>;
+        const importedByResponse =
+          importedByRes as ApiResponse<ImportedByResponse>;
         if (importedByResponse?.success) {
           setImportedBy(importedByResponse.data.importedBys || []);
         }
 
-        const ingredientsResponse = ingredientsRes as ApiResponse<IngredientsResponse>;
+        const ingredientsResponse =
+          ingredientsRes as ApiResponse<IngredientsResponse>;
         if (ingredientsResponse?.success) {
           setIngredients(ingredientsResponse.data.ingredientLists || []);
         }
@@ -355,91 +368,99 @@ const ProductCreate = () => {
         }
 
         // Product Attributes
-        const targetConcernsResponse = targetConcernsRes as ApiResponse<ProductAttributeValuesResponse>;
+        const targetConcernsResponse =
+          targetConcernsRes as ApiResponse<ProductAttributeValuesResponse>;
         if (targetConcernsResponse?.success) {
           setTargetConcerns(
             targetConcernsResponse.data.productAttributeValues || [],
           );
         }
 
-        const productFeaturesResponse = productFeaturesRes as ApiResponse<ProductAttributeValuesResponse>;
+        const productFeaturesResponse =
+          productFeaturesRes as ApiResponse<ProductAttributeValuesResponse>;
         if (productFeaturesResponse?.success) {
           setProductFeatures(
             productFeaturesResponse.data.productAttributeValues || [],
           );
         }
 
-        const countryOfOriginResponse = countryOfOriginRes as ApiResponse<ProductAttributeValuesResponse>;
+        const countryOfOriginResponse =
+          countryOfOriginRes as ApiResponse<ProductAttributeValuesResponse>;
         if (countryOfOriginResponse?.success) {
           setCountryOfOrigin(
             countryOfOriginResponse.data.productAttributeValues || [],
           );
         }
 
-        const benefitsAttributeResponse = benefitsAttributeRes as ApiResponse<ProductAttributeValuesResponse>;
+        const benefitsAttributeResponse =
+          benefitsAttributeRes as ApiResponse<ProductAttributeValuesResponse>;
         if (benefitsAttributeResponse?.success) {
           setBenefitsAttribute(
             benefitsAttributeResponse.data.productAttributeValues || [],
           );
         }
 
-        const certificationsResponse = certificationsRes as ApiResponse<ProductAttributeValuesResponse>;
+        const certificationsResponse =
+          certificationsRes as ApiResponse<ProductAttributeValuesResponse>;
         if (certificationsResponse?.success) {
           setCertifications(
             certificationsResponse.data.productAttributeValues || [],
           );
         }
 
-        const productFormResponse = productFormRes as ApiResponse<ProductAttributeValuesResponse>;
+        const productFormResponse =
+          productFormRes as ApiResponse<ProductAttributeValuesResponse>;
         if (productFormResponse?.success) {
-          setProductForm(
-            productFormResponse.data.productAttributeValues || [],
-          );
+          setProductForm(productFormResponse.data.productAttributeValues || []);
         }
 
-        const genderResponse = genderRes as ApiResponse<ProductAttributeValuesResponse>;
+        const genderResponse =
+          genderRes as ApiResponse<ProductAttributeValuesResponse>;
         if (genderResponse?.success) {
           setGender(genderResponse.data.productAttributeValues || []);
         }
 
-        const productTypeResponse = productTypeRes as ApiResponse<ProductAttributeValuesResponse>;
+        const productTypeResponse =
+          productTypeRes as ApiResponse<ProductAttributeValuesResponse>;
         if (productTypeResponse?.success) {
-          setProductType(
-            productTypeResponse.data.productAttributeValues || [],
-          );
+          setProductType(productTypeResponse.data.productAttributeValues || []);
         }
 
-        const targetAreaResponse = targetAreaRes as ApiResponse<ProductAttributeValuesResponse>;
+        const targetAreaResponse =
+          targetAreaRes as ApiResponse<ProductAttributeValuesResponse>;
         if (targetAreaResponse?.success) {
-          setTargetArea(
-            targetAreaResponse.data.productAttributeValues || [],
-          );
+          setTargetArea(targetAreaResponse.data.productAttributeValues || []);
         }
 
         // Additional Attributes
-        const finishResponse = finishRes as ApiResponse<ProductAttributeValuesResponse>;
+        const finishResponse =
+          finishRes as ApiResponse<ProductAttributeValuesResponse>;
         if (finishResponse?.success) {
           setFinish(finishResponse.data.productAttributeValues || []);
         }
 
-        const fragranceResponse = fragranceRes as ApiResponse<ProductAttributeValuesResponse>;
+        const fragranceResponse =
+          fragranceRes as ApiResponse<ProductAttributeValuesResponse>;
         if (fragranceResponse?.success) {
           setFragrance(fragranceResponse.data.productAttributeValues || []);
         }
 
-        const skinConcernsResponse = skinConcernsRes as ApiResponse<ProductAttributeValuesResponse>;
+        const skinConcernsResponse =
+          skinConcernsRes as ApiResponse<ProductAttributeValuesResponse>;
         if (skinConcernsResponse?.success) {
           setSkinConcerns(
             skinConcernsResponse.data.productAttributeValues || [],
           );
         }
 
-        const hairTypeResponse = hairTypeRes as ApiResponse<ProductAttributeValuesResponse>;
+        const hairTypeResponse =
+          hairTypeRes as ApiResponse<ProductAttributeValuesResponse>;
         if (hairTypeResponse?.success) {
           setHairType(hairTypeResponse.data.productAttributeValues || []);
         }
 
-        const skinTypeResponse = skinTypeRes as ApiResponse<ProductAttributeValuesResponse>;
+        const skinTypeResponse =
+          skinTypeRes as ApiResponse<ProductAttributeValuesResponse>;
         if (skinTypeResponse?.success) {
           setSkinType(skinTypeResponse.data.productAttributeValues || []);
         }
@@ -456,7 +477,7 @@ const ProductCreate = () => {
     const fetchProductData = async () => {
       if (productId && (isEditMode || isViewMode)) {
         try {
-          const response = await apiGetProductById(productId) as {
+          const response = (await apiGetProductById(productId)) as {
             success: boolean;
             data: {
               productName?: string;
@@ -534,14 +555,11 @@ const ProductCreate = () => {
               importedBy: product.importedBy?._id || "",
               importedByAddress: product.importedByAddress || "",
               targetConcerns:
-                product.targetConcerns?.map((concern) => concern._id) ||
-                [],
+                product.targetConcerns?.map((concern) => concern._id) || [],
               productFeatures:
-                product.productFeatures?.map((feature) => feature._id) ||
-                [],
+                product.productFeatures?.map((feature) => feature._id) || [],
               countryOfOrigin: product.countryOfOrigin?._id || "",
-              benefits:
-                product.benefits?.map((benefit) => benefit._id) || [],
+              benefits: product.benefits?.map((benefit) => benefit._id) || [],
               certifications:
                 product.certifications?.map((cert) => cert._id) || [],
               productForm: product.productForm?._id || "",
@@ -581,7 +599,10 @@ const ProductCreate = () => {
     fetchProductData();
   }, [productId, isEditMode, isViewMode]);
 
-  const handleInputChange = (field: keyof ProductCreateData, value: string | number | string[] | boolean) => {
+  const handleInputChange = (
+    field: keyof ProductCreateData,
+    value: string | number | string[] | boolean,
+  ) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -690,8 +711,16 @@ const ProductCreate = () => {
 
       // Get more detailed error message
       const detailedError =
-        (error as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.message ||
-        (error as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.error ||
+        (
+          error as {
+            response?: { data?: { message?: string; error?: string } };
+          }
+        )?.response?.data?.message ||
+        (
+          error as {
+            response?: { data?: { message?: string; error?: string } };
+          }
+        )?.response?.data?.error ||
         (error as { message?: string })?.message ||
         errorMessage;
 
@@ -2132,12 +2161,16 @@ const ProductCreate = () => {
                       : "cursor-pointer hover:border-gray-400"
                   }`}
                   onClick={isViewMode ? undefined : openThumbnailDialog}
-                  onKeyDown={isViewMode ? undefined : (e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      openThumbnailDialog();
-                    }
-                  }}
+                  onKeyDown={
+                    isViewMode
+                      ? undefined
+                      : (e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            openThumbnailDialog();
+                          }
+                        }
+                  }
                   tabIndex={isViewMode ? -1 : 0}
                   role={isViewMode ? undefined : "button"}
                 >
@@ -2228,12 +2261,16 @@ const ProductCreate = () => {
                       : "cursor-pointer hover:border-gray-400"
                   }`}
                   onClick={isViewMode ? undefined : openBarcodeDialog}
-                  onKeyDown={isViewMode ? undefined : (e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      openBarcodeDialog();
-                    }
-                  }}
+                  onKeyDown={
+                    isViewMode
+                      ? undefined
+                      : (e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            openBarcodeDialog();
+                          }
+                        }
+                  }
                   tabIndex={isViewMode ? -1 : 0}
                   role={isViewMode ? undefined : "button"}
                 >

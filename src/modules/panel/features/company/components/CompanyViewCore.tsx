@@ -33,11 +33,13 @@ import {
   UserGroupIcon,
   TagIcon,
   PencilIcon,
+  EllipsisVerticalIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@/core/components/ui/button";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { LocationService } from "@/core/services/location.service";
 import { StatusBadge } from "@/core/components/ui/badge";
+import { DropdownMenu } from "@/core/components/ui/dropdown-menu";
 
 // Reusable InfoItem component for displaying information with icons
 interface InfoItemProps {
@@ -110,11 +112,11 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
   const locationId = address.addressId || address._id;
 
   const {
-    data: locationData,
+    data: companyLocationData,
     isLoading,
     error,
   } = useQuery({
-    queryKey: [ENDPOINTS.COMPANY.LOCATION_DETAILS(companyId, locationId || "")],
+    queryKey: [ENDPOINTS.COMPANY.LOCATION_DETAILS(companyId, locationId!)],
     queryFn: () => {
       if (!locationId) throw new Error("Location ID is required");
       return apiGetCompanyLocationById(companyId, locationId);
@@ -123,20 +125,20 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  const location = locationData?.data;
+  const location = companyLocationData?.data;
 
   return (
     <AccordionItem value={`address-${index}`}>
       <AccordionTrigger className="hover:no-underline">
-        <div className="flex w-full flex-col gap-3 pr-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-3 flex-1">
+        <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-start sm:gap-3">
             <div className="min-w-0 flex-1">
-              <p className="mb-1 font-medium text-gray-900 break-words">
+              <p className="text-foreground mb-1 text-lg font-medium break-words">
                 {address.addressLine1}
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="outline" className="capitalize text-xs">
+              <Badge variant="outline" className="text-xs capitalize">
                 {address.addressType}
               </Badge>
               {address.isPrimary && (
@@ -156,7 +158,79 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            {onViewLocation && address.status === "pending" && (
+            <DropdownMenu
+              items={[
+                ...(onViewLocation && address.status === "pending"
+                  ? [
+                      {
+                        type: "item" as const,
+                        onClick: () => {
+                          onViewLocation?.(companyId, locationId || "");
+                        },
+                        children: (
+                          <>
+                            <MapPinIcon />
+                            View
+                          </>
+                        ),
+                      },
+                    ]
+                  : []),
+                ...(onEditLocation
+                  ? [
+                      {
+                        type: "item" as const,
+                        onClick: () => {
+                          onEditLocation(companyId, locationId || "");
+                        },
+                        children: (
+                          <>
+                            <PencilIcon />
+                            Edit
+                          </>
+                        ),
+                      },
+                    ]
+                  : []),
+                ...(onViewBrands
+                  ? [
+                      {
+                        type: "item" as const,
+                        onClick: () => {
+                          onViewBrands(companyId, locationId || "");
+                        },
+                        children: (
+                          <>
+                            <TagIcon />
+                            View Brands
+                          </>
+                        ),
+                      },
+                    ]
+                  : []),
+                ...(onViewProducts
+                  ? [
+                      {
+                        type: "item" as const,
+                        onClick: () => {
+                          onViewProducts(companyId, locationId || "");
+                        },
+                        children: (
+                          <>
+                            <DocumentTextIcon />
+                            View Products
+                          </>
+                        ),
+                      },
+                    ]
+                  : []),
+              ]}
+            >
+              <Button variant="ghost" size="icon">
+                <EllipsisVerticalIcon />
+              </Button>
+            </DropdownMenu>
+            {/* {onViewLocation && address.status === "pending" && (
               <Button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -164,7 +238,7 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                 }}
                 variant="outlined"
                 size="sm"
-                className="bg-white/80 hover:bg-white border-gray-200 text-gray-700 hover:text-gray-800 text-xs"
+                className="border-gray-200 bg-white/80 text-xs text-gray-700 hover:bg-white hover:text-gray-800"
               >
                 <MapPinIcon className="mr-1 h-3 w-3" />
                 <span className="hidden sm:inline">View</span>
@@ -178,7 +252,7 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                 }}
                 variant="outlined"
                 size="sm"
-                className="bg-white/80 hover:bg-white border-gray-200 text-gray-700 hover:text-gray-800 text-xs"
+                className="border-gray-200 bg-white/80 text-xs text-gray-700 hover:bg-white hover:text-gray-800"
               >
                 <PencilIcon className="mr-1 h-3 w-3" />
                 <span className="hidden sm:inline">Edit</span>
@@ -191,7 +265,7 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
               }}
               variant="outlined"
               size="sm"
-              className="bg-white/80 hover:bg-white border-gray-200 text-gray-700 hover:text-gray-800 text-xs"
+              className="border-gray-200 bg-white/80 text-xs text-gray-700 hover:bg-white hover:text-gray-800"
             >
               <TagIcon className="mr-1 h-3 w-3" />
               <span className="hidden sm:inline">View Brands</span>
@@ -203,11 +277,11 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
               }}
               variant="outlined"
               size="sm"
-              className="bg-white/80 hover:bg-white border-gray-200 text-gray-700 hover:text-gray-800 text-xs"
+              className="border-gray-200 bg-white/80 text-xs text-gray-700 hover:bg-white hover:text-gray-800"
             >
               <DocumentTextIcon className="mr-1 h-3 w-3" />
               <span className="hidden sm:inline">View Products</span>
-            </Button>
+            </Button> */}
           </div>
         </div>
       </AccordionTrigger>
@@ -461,9 +535,23 @@ export const CompanyViewCore: React.FC<CompanyViewCoreProps> = ({
   const defaultHeader = {
     title: "Company Details",
     description: "View comprehensive company information and addresses",
+    actions: showViewUsersAction && (
+      <div className="ml-6 flex-shrink-0">
+        <Button
+          onClick={() => handleViewUsers(companyId)}
+          variant="outlined"
+          className="border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50"
+        >
+          <UserGroupIcon className="mr-2 h-4 w-4" />
+          View Users
+        </Button>
+      </div>
+    ),
   };
 
-  const headerConfig = customHeader ? { ...defaultHeader, ...customHeader } : defaultHeader;
+  const headerConfig = customHeader
+    ? { ...defaultHeader, ...customHeader }
+    : defaultHeader;
 
   return (
     <PageContent
@@ -475,9 +563,9 @@ export const CompanyViewCore: React.FC<CompanyViewCoreProps> = ({
         <div className="space-y-6">
           {/* Company Header Summary */}
           <Card className="border-gray-200 bg-white shadow-sm">
-            <CardContent className="pt-6">
+            <CardContent className="">
               <div className="flex items-start justify-between">
-                <div className="flex items-start gap-6 flex-1">
+                <div className="flex flex-1 items-start gap-6">
                   {/* Company Logo Placeholder */}
                   <div className="flex-shrink-0">
                     <div className="flex h-20 w-20 items-center justify-center rounded-xl bg-gradient-to-br from-gray-600 to-gray-800 text-2xl font-bold text-white">
@@ -488,51 +576,64 @@ export const CompanyViewCore: React.FC<CompanyViewCoreProps> = ({
                   {/* Company Basic Info */}
                   <div className="min-w-0 flex-1">
                     <div className="mb-4 flex items-center gap-3">
-                      <h1 className="truncate text-3xl font-bold text-gray-900">
+                      <h1 className="text-foreground text-3xl font-bold">
                         {company.companyName}
                       </h1>
                     </div>
-                    
                     <div className="grid grid-cols-1 gap-6 text-sm md:grid-cols-2 lg:grid-cols-4">
                       <div className="flex items-start gap-3">
-                        <div className="bg-gray-100 border border-gray-200 rounded-lg p-2">
+                        <div className="rounded-lg border border-gray-200 bg-gray-100 p-2">
                           <CalendarIcon className="h-4 w-4 text-gray-600" />
                         </div>
                         <div>
-                          <p className="text-gray-500 text-xs font-medium">Established</p>
-                          <p className="text-gray-900 font-medium">{company.establishedIn}</p>
+                          <p className="text-xs font-medium text-gray-500">
+                            Established
+                          </p>
+                          <p className="text-foreground font-medium">
+                            {company.establishedIn}
+                          </p>
                         </div>
                       </div>
                       <div className="flex items-start gap-3">
-                        <div className="bg-gray-100 border border-gray-200 rounded-lg p-2">
+                        <div className="rounded-lg border border-gray-200 bg-gray-100 p-2">
                           <BuildingOfficeIcon className="h-4 w-4 text-gray-600" />
                         </div>
                         <div>
-                          <p className="text-gray-500 text-xs font-medium">Business Type</p>
-                          <p className="text-gray-900 font-medium capitalize">{company.businessType}</p>
+                          <p className="text-xs font-medium text-gray-500">
+                            Business Type
+                          </p>
+                          <p className="text-foreground font-medium capitalize">
+                            {company.businessType}
+                          </p>
                         </div>
                       </div>
                       <div className="flex items-start gap-3">
-                        <div className="bg-gray-100 border border-gray-200 rounded-lg p-2">
+                        <div className="rounded-lg border border-gray-200 bg-gray-100 p-2">
                           <BuildingOfficeIcon className="h-4 w-4 text-gray-600" />
                         </div>
                         <div>
-                          <p className="text-gray-500 text-xs font-medium">Company Category</p>
-                          <p className="text-gray-900 font-medium capitalize">{company.companyCategory}</p>
+                          <p className="text-xs font-medium text-gray-500">
+                            Company Category
+                          </p>
+                          <p className="text-foreground font-medium capitalize">
+                            {company.companyCategory}
+                          </p>
                         </div>
                       </div>
                       {company.website && (
                         <div className="flex items-start gap-3">
-                          <div className="bg-gray-100 border border-gray-200 rounded-lg p-2">
+                          <div className="rounded-lg border border-gray-200 bg-gray-100 p-2">
                             <LinkIcon className="h-4 w-4 text-gray-600" />
                           </div>
                           <div>
-                            <p className="text-gray-500 text-xs font-medium">Website</p>
+                            <p className="text-xs font-medium text-gray-500">
+                              Website
+                            </p>
                             <a
                               href={company.website}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-blue-600 hover:underline font-medium"
+                              className="font-medium text-blue-600 hover:underline"
                             >
                               Visit Website
                             </a>
@@ -542,25 +643,13 @@ export const CompanyViewCore: React.FC<CompanyViewCoreProps> = ({
                     </div>
                   </div>
                 </div>
-                
-                {/* Action Buttons */}
-                {showViewUsersAction && (
-                  <div className="flex-shrink-0 ml-6">
-                    <Button
-                      onClick={() => handleViewUsers(companyId)}
-                      variant="outlined"
-                      className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
-                    >
-                      <UserGroupIcon className="mr-2 h-4 w-4" />
-                      View Users
-                    </Button>
-                  </div>
-                )}
               </div>
             </CardContent>
           </Card>
 
-          <h2 className="text-lg font-bold text-gray-900">Company Locations</h2>
+          <h2 className="text-foreground text-lg font-bold">
+            Company Locations
+          </h2>
           <div className="space-y-4 sm:space-y-6">
             {/* Company Addresses Accordion */}
             {company.addresses && company.addresses.length > 0 && (
