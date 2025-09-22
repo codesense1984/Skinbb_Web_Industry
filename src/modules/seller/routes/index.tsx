@@ -36,6 +36,32 @@ export const sellerRoutes: RouteObject = {
       path: "/company/:companyId/locations/:locationId/brands/:brandId/edit",
       Component: lazy(() => import("@/modules/panel/features/company-location-brands/edit")),
     },
+    {
+      path: "/company/:companyId/locations/:locationId/brands/:brandId/products",
+      Component: lazy(() => import("@/modules/panel/features/company-location-brands/products/list")),
+    },
+    {
+      path: "/company/:companyId/locations/:locationId/brands/:brandId/products/create",
+      Component: lazy(() => import("@/modules/panel/features/company-location-brands/products/create")),
+    },
+
+    // products - using existing panel components
+    {
+      path: "/company/:companyId/locations/:locationId/products",
+      Component: lazy(() => import("@/modules/panel/features/company-location-products/list")),
+    },
+    {
+      path: "/company/:companyId/locations/:locationId/products/:productId/view",
+      Component: lazy(() => import("@/modules/panel/features/company-location-products/view")),
+    },
+    {
+      path: "/company/:companyId/locations/:locationId/products/create",
+      Component: lazy(() => import("@/modules/panel/features/company-location-products/create")),
+    },
+    {
+      path: "/company/:companyId/locations/:locationId/products/:productId/edit",
+      Component: lazy(() => import("@/modules/panel/features/company-location-products/edit")),
+    },
 
     // users - using existing panel components
     {

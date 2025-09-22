@@ -90,6 +90,44 @@ export const panelRoutes: RouteObject = {
         () => import("@/modules/panel/features/company-location-brands/view"),
       ),
     },
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_PRODUCTS(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company-location-brands/products/list"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_PRODUCT_CREATE(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company-location-brands/products/create"),
+      ),
+    },
+
+    // company-location-products
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.PRODUCTS(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company-location-products/list"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_CREATE(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company-location-products/create"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_EDIT(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company-location-products/edit"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_VIEW(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company-location-products/view"),
+      ),
+    },
 
     // company-users
     {

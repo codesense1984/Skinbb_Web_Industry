@@ -40,6 +40,9 @@ import { CompanyApprovalDialog } from "../../company/components/approval/Company
 import type { CompanyOnboardingAddressDetail } from "@/modules/panel/types";
 import { formatCurrency, formatDate } from "@/core/utils";
 import { LocationService } from "@/core/services/location.service";
+import { useAuth } from "@/modules/auth/hooks/useAuth";
+import { BrandDropdown } from "./BrandDropdown";
+import { ProductDropdown } from "./ProductDropdown";
 
 // Type definitions for brand data
 interface BrandOwner {
@@ -119,7 +122,9 @@ interface CompanyLocationViewCoreProps {
   onViewBrands?: (companyId: string, locationId: string) => void;
 }
 
-export const CompanyLocationViewCore: React.FC<CompanyLocationViewCoreProps> = ({
+export const CompanyLocationViewCore: React.FC<
+  CompanyLocationViewCoreProps
+> = ({
   companyId,
   locationId,
   showApprovalActions = true,
@@ -127,7 +132,9 @@ export const CompanyLocationViewCore: React.FC<CompanyLocationViewCoreProps> = (
   onViewBrands,
 }) => {
   const queryClient = useQueryClient();
+  const { userId, isLoading: isAuthLoading } = useAuth();
   const [isApprovalDialogOpen, setIsApprovalDialogOpen] = useState(false);
+  const [selectedBrandId, setSelectedBrandId] = useState<string | undefined>();
 
   // Fetch company location detail data
   const {
@@ -136,8 +143,8 @@ export const CompanyLocationViewCore: React.FC<CompanyLocationViewCoreProps> = (
     error,
   } = useQuery({
     queryKey: [PANEL_ROUTES.COMPANY_LOCATION.VIEW(companyId, locationId)],
-    queryFn: () => apiGetCompanyLocationDetail(companyId, locationId),
-    enabled: !!companyId && !!locationId,
+    queryFn: () => apiGetCompanyLocationDetail(companyId, locationId, userId!),
+    enabled: !!companyId && !!locationId && !!userId && !isAuthLoading,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
@@ -158,9 +165,7 @@ export const CompanyLocationViewCore: React.FC<CompanyLocationViewCoreProps> = (
       setIsApprovalDialogOpen(false);
     },
     onError: (error: AxiosError<{ message?: string }>) => {
-      toast.error(
-        normalizeAxiosError(error)?.message,
-      );
+      toast.error(normalizeAxiosError(error)?.message);
     },
   });
 
@@ -168,12 +173,42 @@ export const CompanyLocationViewCore: React.FC<CompanyLocationViewCoreProps> = (
     await updateStatusMutation.mutateAsync(data);
   };
 
-  if (isLoading) {
+  if (isLoading || isAuthLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
           <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
-          <p className="text-gray-600">Loading location details...</p>
+          <p className="text-gray-600">
+            {isAuthLoading ? "Loading user data..." : "Loading location details..."}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!userId) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-center">
+          <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-red-100 p-3">
+            <svg
+              className="h-6 w-6 text-red-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+              />
+            </svg>
+          </div>
+          <p className="font-medium text-red-600">User not authenticated</p>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Please log in to view location details
+          </p>
         </div>
       </div>
     );
@@ -239,26 +274,27 @@ export const CompanyLocationViewCore: React.FC<CompanyLocationViewCoreProps> = (
   const defaultHeader = {
     title: "View Location",
     description: `Review location details for ${company.companyName}`,
-    actions: showApprovalActions && currentLocation?.status !== STATUS_MAP.company.approved.value ? (
-      <div className="flex gap-3">
-        <Button
-          onClick={() => setIsApprovalDialogOpen(true)}
-          variant="outlined"
-          color="secondary"
-        >
-          Manage Approval
-        </Button>
-      </div>
-    ) : undefined,
+    actions:
+      showApprovalActions &&
+      currentLocation?.status !== STATUS_MAP.company.approved.value ? (
+        <div className="flex gap-3">
+          <Button
+            onClick={() => setIsApprovalDialogOpen(true)}
+            variant="outlined"
+            color="secondary"
+          >
+            Manage Approval
+          </Button>
+        </div>
+      ) : undefined,
   };
 
-  const headerConfig = customHeader ? { ...defaultHeader, ...customHeader } : defaultHeader;
+  const headerConfig = customHeader
+    ? { ...defaultHeader, ...customHeader }
+    : defaultHeader;
 
   return (
-    <PageContent
-      header={headerConfig}
-      className="space-y-6"
-    >
+    <PageContent header={headerConfig} className="space-y-6">
       {/* Location Header */}
       <Card>
         <CardContent>
@@ -455,213 +491,240 @@ export const CompanyLocationViewCore: React.FC<CompanyLocationViewCoreProps> = (
       </Card>
 
       {/* Brand Details */}
-      {currentLocation.brands && Array.isArray(currentLocation.brands) && currentLocation.brands.length > 0 && (
-        <Card>
-          <CardHeader className="border-b">
-            <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <TagIcon className="h-5 w-5" />
-                Brand Details
-              </div>
-              {onViewBrands && (
-                <Button
-                  onClick={() => onViewBrands(companyId, locationId)}
-                  variant="outlined"
-                  size="sm"
-                  className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
-                >
-                  View All Brands
-                </Button>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              {currentLocation.brands
-                .filter((brand: Brand | null) => brand != null)
-                .map((brand: Brand) => (
-                <div key={brand._id} className="rounded-lg border p-4">
-                  <div className="mb-4 flex items-start gap-4">
-                    {brand.logoImage && (
-                      <div className="flex-shrink-0">
-                        <img
-                          src={brand.logoImage}
-                          alt={`${brand.name} logo`}
-                          className="h-16 w-16 rounded-lg border object-cover"
+      {currentLocation.brands &&
+        Array.isArray(currentLocation.brands) &&
+        currentLocation.brands.length > 0 && (
+          <Card>
+            <CardHeader className="border-b">
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <TagIcon className="h-5 w-5" />
+                  Brand Details
+                </div>
+                {onViewBrands && (
+                  <Button
+                    onClick={() => onViewBrands(companyId, locationId)}
+                    variant="outlined"
+                    size="sm"
+                    className="border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50"
+                  >
+                    View All Brands
+                  </Button>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                {currentLocation.brands
+                  .filter((brand: Brand | null) => brand != null)
+                  .map((brand: Brand) => (
+                    <div key={brand._id} className="rounded-lg border p-4">
+                      <div className="mb-4 flex items-start gap-4">
+                        {brand.logoImage && (
+                          <div className="flex-shrink-0">
+                            <img
+                              src={brand.logoImage}
+                              alt={`${brand.name} logo`}
+                              className="h-16 w-16 rounded-lg border object-cover"
+                            />
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3">
+                            <h3 className="text-foreground text-lg font-semibold">
+                              {brand.name}
+                            </h3>
+                            {brand?.status && (
+                              <Badge variant="outline" className="text-xs">
+                                {brand?.status}
+                              </Badge>
+                            )}
+                          </div>
+                          {brand.aboutTheBrand && (
+                            <p className="mb-1 text-sm text-gray-600">
+                              {brand.aboutTheBrand}
+                            </p>
+                          )}
+                          {brand.websiteUrl && (
+                            <a
+                              href={brand.websiteUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm text-blue-600 hover:text-blue-800"
+                            >
+                              {brand.websiteUrl}
+                            </a>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Brand Metrics */}
+                      <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+                        <InfoItem
+                          icon={<ShoppingBagIcon className="h-5 w-5" />}
+                          label="Total SKU"
+                          value={
+                            <span className="text-lg font-bold">
+                              {brand.totalSKU
+                                ? brand.totalSKU.toLocaleString()
+                                : "-"}
+                            </span>
+                          }
+                          className="rounded-lg border p-3"
+                        />
+                        <InfoItem
+                          icon={<CurrencyDollarIcon className="h-5 w-5" />}
+                          label="Avg Selling Price"
+                          value={
+                            <span className="text-lg font-bold">
+                              {formatCurrency(brand.averageSellingPrice || 0)}
+                            </span>
+                          }
+                          className="rounded-lg border p-3"
+                        />
+                        <InfoItem
+                          icon={<TagIcon className="h-5 w-5" />}
+                          label="Product Categories"
+                          value={
+                            <span className="text-lg font-bold">
+                              {brand.brandType ? brand.brandType.length : 0}
+                            </span>
+                          }
+                          className="rounded-lg border p-3"
+                        />
+                        <InfoItem
+                          icon={<CurrencyDollarIcon className="h-5 w-5" />}
+                          label="Marketing Budget"
+                          value={
+                            <span className="text-lg font-bold">
+                              {formatCurrency(brand.marketingBudget || 0)}
+                            </span>
+                          }
+                          className="rounded-lg border p-3"
                         />
                       </div>
-                    )}
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3">
-                        <h3 className="text-foreground text-lg font-semibold">
-                          {brand.name}
-                        </h3>
-                        {brand?.status && (
-                          <Badge variant="outline" className="text-xs">
-                            {brand?.status}
-                          </Badge>
+
+                      {/* Selling Platforms */}
+                      {brand.sellingOn &&
+                        Array.isArray(brand.sellingOn) &&
+                        brand.sellingOn.length > 0 && (
+                          <Card className="shadow-none">
+                            <CardHeader className="border-b">
+                              <CardTitle className="flex items-center gap-2">
+                                <LinkIcon className="h-5 w-5" />
+                                Selling Platforms
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+                              {brand.sellingOn
+                                .filter(
+                                  (platform: SellingPlatform | null) =>
+                                    platform != null,
+                                )
+                                .map(
+                                  (
+                                    platform: SellingPlatform,
+                                    platformIndex: number,
+                                  ) => (
+                                    <div
+                                      key={platformIndex}
+                                      className="flex items-center gap-3"
+                                    >
+                                      <div className="rounded-lg bg-gray-100 p-2">
+                                        <GlobeAltIcon className="h-4 w-4 text-gray-600" />
+                                      </div>
+                                      <div className="flex-1">
+                                        <p className="text-sm font-medium capitalize">
+                                          {platform?.platform ||
+                                            "Unknown Platform"}
+                                        </p>
+                                        <a
+                                          href={platform?.url || "#"}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-xs break-all text-blue-600 hover:text-blue-800"
+                                        >
+                                          {platform?.url || "No URL"}
+                                        </a>
+                                      </div>
+                                    </div>
+                                  ),
+                                )}
+                            </CardContent>
+                          </Card>
                         )}
-                      </div>
-                      {brand.aboutTheBrand && (
-                        <p className="mb-1 text-sm text-gray-600">
-                          {brand.aboutTheBrand}
-                        </p>
-                      )}
-                      {brand.websiteUrl && (
-                        <a
-                          href={brand.websiteUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-blue-600 hover:text-blue-800"
-                        >
-                          {brand.websiteUrl}
-                        </a>
-                      )}
-                    </div>
-                  </div>
 
-                  {/* Brand Metrics */}
-                  <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    <InfoItem
-                      icon={<ShoppingBagIcon className="h-5 w-5" />}
-                      label="Total SKU"
-                      value={
-                        <span className="text-lg font-bold">
-                          {brand.totalSKU
-                            ? brand.totalSKU.toLocaleString()
-                            : "-"}
-                        </span>
-                      }
-                      className="rounded-lg border p-3"
-                    />
-                    <InfoItem
-                      icon={<CurrencyDollarIcon className="h-5 w-5" />}
-                      label="Avg Selling Price"
-                      value={
-                        <span className="text-lg font-bold">
-                          {formatCurrency(brand.averageSellingPrice || 0)}
-                        </span>
-                      }
-                      className="rounded-lg border p-3"
-                    />
-                    <InfoItem
-                      icon={<TagIcon className="h-5 w-5" />}
-                      label="Product Categories"
-                      value={
-                        <span className="text-lg font-bold">
-                          {brand.brandType ? brand.brandType.length : 0}
-                        </span>
-                      }
-                      className="rounded-lg border p-3"
-                    />
-                    <InfoItem
-                      icon={<CurrencyDollarIcon className="h-5 w-5" />}
-                      label="Marketing Budget"
-                      value={
-                        <span className="text-lg font-bold">
-                          {formatCurrency(brand.marketingBudget || 0)}
-                        </span>
-                      }
-                      className="rounded-lg border p-3"
-                    />
-                  </div>
-
-                  {/* Selling Platforms */}
-                  {brand.sellingOn && Array.isArray(brand.sellingOn) && brand.sellingOn.length > 0 && (
-                    <Card className="shadow-none">
-                      <CardHeader className="border-b">
-                        <CardTitle className="flex items-center gap-2">
-                          <LinkIcon className="h-5 w-5" />
-                          Selling Platforms
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-                        {brand.sellingOn
-                          .filter((platform: SellingPlatform | null) => platform != null)
-                          .map(
-                            (platform: SellingPlatform, platformIndex: number) => (
-                              <div
-                                key={platformIndex}
-                                className="flex items-center gap-3"
+                      <Card className="shadow-none">
+                        <CardHeader className="border-b">
+                          <CardTitle className="flex items-center gap-2">
+                            <UserIcon className="h-5 w-5" />
+                            Brand Owner
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                          <InfoItem
+                            icon={<UserIcon className="h-5 w-5" />}
+                            label="Owner Name"
+                            value={brand.owner?.ownerUser || "-"}
+                          />
+                          <InfoItem
+                            icon={<PhoneIcon className="h-5 w-5" />}
+                            label="Phone Number"
+                            value={brand.owner?.ownerPhone || "-"}
+                          />
+                          <InfoItem
+                            icon={
+                              <svg
+                                className="h-5 w-5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
                               >
-                                <div className="rounded-lg bg-gray-100 p-2">
-                                  <GlobeAltIcon className="h-4 w-4 text-gray-600" />
-                                </div>
-                                <div className="flex-1">
-                                  <p className="text-sm font-medium capitalize">
-                                    {platform?.platform || "Unknown Platform"}
-                                  </p>
-                                  <a
-                                    href={platform?.url || "#"}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-xs break-all text-blue-600 hover:text-blue-800"
-                                  >
-                                    {platform?.url || "No URL"}
-                                  </a>
-                                </div>
-                              </div>
-                            ),
-                          )}
-                      </CardContent>
-                    </Card>
-                  )}
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                                />
+                              </svg>
+                            }
+                            label="Email"
+                            value={brand.owner?.ownerEmail || "-"}
+                          />
+                          <InfoItem
+                            icon={<PhoneIcon className="h-5 w-5" />}
+                            label="Fixed landline Number"
+                            value={brand.owner?.landlineNo || "-"}
+                          />
+                          <InfoItem
+                            icon={<DocumentTextIcon className="h-5 w-5" />}
+                            label="Designation"
+                            value={brand.owner?.ownerDesignation || "-"}
+                          />
+                        </CardContent>
+                      </Card>
+                    </div>
+                  ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-                  <Card className="shadow-none">
-                    <CardHeader className="border-b">
-                      <CardTitle className="flex items-center gap-2">
-                        <UserIcon className="h-5 w-5" />
-                        Brand Owner
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                      <InfoItem
-                        icon={<UserIcon className="h-5 w-5" />}
-                        label="Owner Name"
-                        value={brand.owner?.ownerUser || "-"}
-                      />
-                      <InfoItem
-                        icon={<PhoneIcon className="h-5 w-5" />}
-                        label="Phone Number"
-                        value={brand.owner?.ownerPhone || "-"}
-                      />
-                      <InfoItem
-                        icon={
-                          <svg
-                            className="h-5 w-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                            />
-                          </svg>
-                        }
-                        label="Email"
-                        value={brand.owner?.ownerEmail || "-"}
-                      />
-                      <InfoItem
-                        icon={<PhoneIcon className="h-5 w-5" />}
-                        label="Fixed landline Number"
-                        value={brand.owner?.landlineNo || "-"}
-                      />
-                      <InfoItem
-                        icon={<DocumentTextIcon className="h-5 w-5" />}
-                        label="Designation"
-                        value={brand.owner?.ownerDesignation || "-"}
-                      />
-                    </CardContent>
-                  </Card>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Brand and Product Management */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <BrandDropdown
+          brands={currentLocation.brands?.filter((brand: Brand | null) => brand != null) || []}
+          selectedBrandId={selectedBrandId}
+          onBrandSelect={(brand) => setSelectedBrandId(brand?._id)}
+          companyId={companyId}
+          locationId={locationId}
+        />
+        <ProductDropdown
+          companyId={companyId}
+          locationId={locationId}
+          maxProducts={5}
+        />
+      </div>
 
       {/* Company Information */}
       <Card>
@@ -802,7 +865,7 @@ export const CompanyLocationViewCore: React.FC<CompanyLocationViewCoreProps> = (
           </div>
         </CardContent>
       </Card>
-      
+
       {showApprovalActions && (
         <CompanyApprovalDialog
           isOpen={isApprovalDialogOpen}

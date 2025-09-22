@@ -1,4 +1,4 @@
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/core/components/ui/badge";
 import { StatusBadge } from "@/core/components/ui/badge";
 import { AvatarRoot, AvatarImage, AvatarFallback } from "@/core/components/ui/avatar";

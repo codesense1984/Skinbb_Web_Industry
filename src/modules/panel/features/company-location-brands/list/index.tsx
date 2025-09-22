@@ -8,11 +8,17 @@ import { PlusIcon } from "@heroicons/react/24/solid";
 import { useNavigate, useParams } from "react-router";
 import { columns } from "./data";
 import type { PaginationParams } from "@/core/types";
+import { useAuth } from "@/modules/auth/hooks/useAuth";
 
-const fetcher = (companyId: string, locationId: string) =>
+const fetcher = (companyId: string, locationId: string, userId: string) =>
   createSimpleFetcher(
     (params: PaginationParams, signal?: AbortSignal) =>
-      apiGetCompanyLocationBrands(companyId, locationId, params, signal),
+      apiGetCompanyLocationBrands(
+        companyId,
+        locationId,
+        { ...params, userId: userId },
+        signal,
+      ),
     {
       dataPath: "data",
     },
@@ -20,20 +26,21 @@ const fetcher = (companyId: string, locationId: string) =>
 
 const CompanyLocationBrandsList = () => {
   const { companyId, locationId } = useParams();
+  const { userId } = useAuth();
   const navigate = useNavigate();
 
-  if (!companyId || !locationId) {
+  if (!companyId || !locationId || !userId) {
     return (
       <PageContent
         header={{
           title: "Brands",
           description:
-            "Company ID and Location ID are required to view brands.",
+            "Company ID, Location ID, and User ID are required to view brands.",
         }}
       >
         <div className="py-8 text-center">
           <p className="text-gray-500">
-            Invalid company or location ID provided.
+            Invalid company, location, or user ID provided.
           </p>
         </div>
       </PageContent>
@@ -67,7 +74,7 @@ const CompanyLocationBrandsList = () => {
       <DataTable
         columns={columns(companyId, locationId)}
         isServerSide={false}
-        fetcher={fetcher(companyId, locationId)}
+        fetcher={fetcher(companyId, locationId, userId)}
         queryKeyPrefix={ENDPOINTS.COMPANY_LOCATION_BRANDS.LIST(
           companyId,
           locationId,

@@ -531,7 +531,7 @@ export async function apiGetCompanyLocationProducts<
   return api.get<T>(
     ENDPOINTS.COMPANY_LOCATION_PRODUCTS.LIST(companyId, locationId),
     {
-      params,
+      ...(params && { params }),
       signal,
     },
   );

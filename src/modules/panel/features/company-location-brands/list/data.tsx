@@ -6,7 +6,7 @@ import { DropdownMenu } from "@/core/components/ui/dropdown-menu";
 import { formatDate, formatCurrency, capitalize } from "@/core/utils";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import type { CompanyLocationBrand } from "@/modules/panel/types/brand.type";
-import { EllipsisVerticalIcon, EyeIcon, PencilIcon } from "@heroicons/react/24/solid";
+import { EllipsisVerticalIcon, EyeIcon, PencilIcon, ShoppingBagIcon } from "@heroicons/react/24/solid";
 import type { ColumnDef } from "@tanstack/react-table";
 
 export const columns = (
@@ -98,6 +98,22 @@ export const columns = (
           ),
         });
       }
+
+      // Always show View Products action
+      items.push({
+        type: "link",
+        to: PANEL_ROUTES.COMPANY_LOCATION.BRAND_PRODUCTS(
+          companyId,
+          locationId,
+          row.original._id,
+        ),
+        title: "View products for this brand",
+        children: (
+          <>
+            <ShoppingBagIcon className="size-4" /> View Products
+          </>
+        ),
+      });
 
       // Always show Edit action (redirects to onboarding for non-pending statuses)
       items.push({

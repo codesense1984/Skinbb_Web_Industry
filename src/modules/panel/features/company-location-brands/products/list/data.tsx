@@ -2,7 +2,11 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/core/components/ui/badge";
 import { StatusBadge } from "@/core/components/ui/badge";
 import { AvatarRoot, AvatarImage, AvatarFallback } from "@/core/components/ui/avatar";
+import { Button } from "@/core/components/ui/button";
+import { DropdownMenu } from "@/core/components/ui/dropdown-menu";
 import { formatCurrency } from "@/core/utils";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
+import { EyeIcon, PencilIcon, EllipsisVerticalIcon } from "@heroicons/react/24/solid";
 
 // Product type - this should match the actual product type from your API
 interface Product {
@@ -29,7 +33,11 @@ interface Product {
   updatedAt: string;
 }
 
-export const columns: ColumnDef<Product>[] = [
+export const columns = (
+  companyId: string,
+  locationId: string,
+  brandId: string,
+): ColumnDef<Product>[] => [
   {
     accessorKey: "productName",
     header: "Product",
@@ -49,14 +57,6 @@ export const columns: ColumnDef<Product>[] = [
         <div className="font-medium">{getValue() as string}</div>
       </ul>
     ),
-  },
-  {
-    accessorKey: "brand",
-    header: "Brand",
-    cell: ({ getValue }) => {
-      const brand = (getValue() as { name: string }) || { name: "Unknown" };
-      return <div className="">{brand.name}</div>;
-    },
   },
   {
     accessorKey: "productCategory",
@@ -129,6 +129,53 @@ export const columns: ColumnDef<Product>[] = [
         <div className="text-sm text-muted-foreground">
           {new Date(date).toLocaleDateString()}
         </div>
+      );
+    },
+  },
+  {
+    header: "Action",
+    accessorKey: "actions",
+    enableSorting: false,
+    enableHiding: false,
+    size: 80,
+    cell: ({ row }) => {
+      const items = [
+        {
+          type: "link" as const,
+          to: PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_VIEW(
+            companyId,
+            locationId,
+            row.original._id,
+          ),
+          title: "View product details",
+          children: (
+            <>
+              <EyeIcon className="size-4" /> View
+            </>
+          ),
+        },
+        {
+          type: "link" as const,
+          to: PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_EDIT(
+            companyId,
+            locationId,
+            row.original._id,
+          ),
+          title: "Edit product",
+          children: (
+            <>
+              <PencilIcon className="size-4" /> Edit
+            </>
+          ),
+        },
+      ];
+
+      return (
+        <DropdownMenu items={items}>
+          <Button variant="outlined" size="icon">
+            <EllipsisVerticalIcon className="size-4" />
+          </Button>
+        </DropdownMenu>
       );
     },
   },

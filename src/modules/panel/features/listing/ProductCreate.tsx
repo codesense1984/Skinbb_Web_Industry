@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { useNavigate, useSearchParams, useParams } from "react-router";
 import { Button } from "@/core/components/ui/button";
 import { PageContent } from "@/core/components/ui/structure";
 import {
@@ -167,9 +167,11 @@ interface ProductAttributeValuesResponse {
 
 const ProductCreate = () => {
   const navigate = useNavigate();
+  const { brandId } = useParams<{ brandId: string }>();
   const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  console.log("🚀 ~ ProductCreate ~ brandId:", brandId);
 
   const { userId, role } = useAuth();
 
@@ -884,7 +886,7 @@ const ProductCreate = () => {
         status: formData.status,
         sku: formData.sku,
         productVariationType: formData.productVariationType,
-        brand: formData.brand || "68cbeaf259dbe37bcfef4dfc",
+        brand: formData.brand || brandId,
         aboutTheBrand: "", // Add if needed
         productCategory:
           formData.productCategory.length > 0
@@ -903,7 +905,7 @@ const ProductCreate = () => {
         importedBy: formData.importedBy,
         importedByAddress: formData.importedByAddress,
         // capturedBy: formData.captureBy,
-        capturedBy: "68a862ba96534be7c7c4821d",
+        capturedBy: userId,
         capturedDate: formData.capturedDate.split("T")[0] ?? new Date().toISOString(), // Convert to date string
         thumbnail: formData.thumbnail || "", // Include thumbnail ID
         barcodeImage: formData.barcodeImage || "", // Include barcode ID

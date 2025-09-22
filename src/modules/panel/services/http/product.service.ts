@@ -87,46 +87,101 @@ export async function apiBulkCreateProductTags(data: BulkTagCreateData) {
 
 // Additional Product APIs (placeholder functions)
 export async function apiGetBrandsForDropdown() {
-  return api.get(ENDPOINTS.BRAND.MAIN_ALL);
+  return api.get(ENDPOINTS.BRAND.MAIN_ALL, {
+    params: {
+      limit: 1000,
+      page: 1,
+    },
+  });
 }
 
 export async function apiGetCategoriesForDropdown() {
-  return api.get(ENDPOINTS.PRODUCT.CATEGORY_HIERARCHY);
+  return api.get(ENDPOINTS.PRODUCT.CATEGORY_HIERARCHY, {
+    params: {
+      limit: 1000,
+      page: 1,
+    },
+  });
 }
 
 export async function apiGetTagsForDropdown() {
-  return api.get(ENDPOINTS.PRODUCT.TAG_LIST);
+  return api.get(ENDPOINTS.PRODUCT.TAG_LIST, {
+    params: {
+      limit: 1000,
+      page: 1,
+    },
+  });
 }
 
 export async function apiGetVariationTypes() {
-  return api.get(ENDPOINTS.PRODUCT.VARIATION_TYPE);
+  return api.get(ENDPOINTS.PRODUCT.VARIATION_TYPE, {
+    params: {
+      limit: 1000,
+      page: 1,
+    },
+  });
 }
 
 export async function apiGetMarketedBy() {
-  return api.get(ENDPOINTS.INFO.MARKETED_BY);
+  return api.get(ENDPOINTS.INFO.MARKETED_BY, {
+    params: {
+      limit: 1000,
+      page: 1,
+    },
+  });
 }
 
 export async function apiGetManufacturedBy() {
-  return api.get(ENDPOINTS.INFO.MANUFACTURED_BY);
+  return api.get(ENDPOINTS.INFO.MANUFACTURED_BY, {
+    params: {
+      limit: 1000,
+      page: 1,
+    },
+  });
 }
 
 export async function apiGetImportedBy() {
-  return api.get(ENDPOINTS.INFO.IMPORTED_BY);
+  return api.get(ENDPOINTS.INFO.IMPORTED_BY, {
+    params: {
+      limit: 1000,
+      page: 1,
+    },
+  });
 }
 
 export async function apiGetIngredients() {
-  return api.get(ENDPOINTS.INFO.INGREDIENT_LIST);
+    return api.get(ENDPOINTS.INFO.INGREDIENT_LIST, {
+    params: {
+      limit: 1000,
+      page: 1,
+    },
+  });
 }
 
 export async function apiGetBenefits() {
-  return api.get(ENDPOINTS.INFO.BENEFITS_LIST);
+  return api.get(ENDPOINTS.INFO.BENEFITS_LIST, {
+    params: {
+      limit: 1000,
+      page: 1,
+    },
+  });
 }
 
 export async function apiGetProductAttributeValues(attributeId?: string) {
   if (attributeId) {
-    return api.get(ENDPOINTS.PRODUCT.ATTRIBUTE_VALUE_BY_ATTRIBUTE(attributeId));
+    return api.get(ENDPOINTS.PRODUCT.ATTRIBUTE_VALUE_BY_ATTRIBUTE(attributeId), {
+      params: {
+        limit: 1000,
+        page: 1,
+      },
+    });
   }
-  return api.get(ENDPOINTS.PRODUCT.ATTRIBUTE_VALUE_LIST);
+  return api.get(ENDPOINTS.PRODUCT.ATTRIBUTE_VALUE_LIST, {
+    params: {
+      limit: 1000,
+      page: 1,
+    },
+  });
 }
 
 export async function apiGetProductById(id: string) {
