@@ -29,6 +29,7 @@ import {
   apiGetProductAttributeValues,
   apiGetProductById,
 } from "@/modules/panel/services/http/product.service";
+import { useAuth } from "@/modules/auth/hooks/useAuth";
 
 interface ProductCreateData {
   productName: string;
@@ -84,6 +85,10 @@ interface ProductCreateData {
   // Capture Details
   captureBy?: string;
   capturedDate: string;
+  // Media
+  thumbnail?: string;
+  barcodeImage?: string;
+  images?: string[];
 }
 
 interface DropdownOption {
@@ -151,6 +156,8 @@ const ProductCreate = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const { userId, role } = useAuth();
+
   // Get mode and id from URL parameters
   const mode = searchParams.get("mode"); // 'view' or 'edit'
   const productId = searchParams.get("id");
@@ -160,6 +167,18 @@ const ProductCreate = () => {
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const [thumbnailImage, setThumbnailImage] = useState<File | null>(null);
   const [barcodeImage, setBarcodeImage] = useState<File | null>(null);
+  const [isThumbnailUploading, setIsThumbnailUploading] = useState(false);
+  const [isBarcodeUploading, setIsBarcodeUploading] = useState(false);
+  const [isImagesUploading, setIsImagesUploading] = useState(false);
+  // Existing media URLs for display
+  const [existingThumbnailUrl, setExistingThumbnailUrl] = useState<string>("");
+  const [existingBarcodeUrl, setExistingBarcodeUrl] = useState<string>("");
+  const [existingImagesUrls, setExistingImagesUrls] = useState<string[]>([]);
+  console.log("🚀 ~ ProductCreate ~ uploadedImages:", {
+    uploadedImages,
+    thumbnailImage,
+    barcodeImage,
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const barcodeInputRef = useRef<HTMLInputElement>(null);
@@ -247,9 +266,14 @@ const ProductCreate = () => {
     keyIngredients: "",
     benefitsSingle: "",
     // Capture Details
-    captureBy: "admin",
+    captureBy: role,
     capturedDate: new Date().toISOString(),
+    // Media
+    thumbnail: "",
+    barcodeImage: "",
+    images: [],
   });
+  console.log("🚀 ~ ProductCreate ~ formData:", formData);
 
   // Load dropdown data on component mount
   useEffect(() => {
@@ -478,8 +502,10 @@ const ProductCreate = () => {
       if (productId && (isEditMode || isViewMode)) {
         try {
           const response = (await apiGetProductById(productId)) as {
+            statusCode: number;
             success: boolean;
             data: {
+              _id: string;
               productName?: string;
               slug?: string;
               description?: string;
@@ -488,50 +514,59 @@ const ProductCreate = () => {
               salePrice?: number;
               quantity?: number;
               sku?: string;
-              brand?: { _id: string };
-              productVariationType?: { _id: string };
-              productCategory?: Array<{ _id: string }>;
-              tags?: Array<{ _id: string }>;
-              marketedBy?: { _id: string };
+              brand?: { _id: string; name: string; aboutTheBrand?: string };
+              productVariationType?: {
+                _id: string;
+                name: string;
+                slug: string;
+              };
+              productCategory?: Array<{ _id: string; name: string }>;
+              tags?: Array<{ _id: string; name: string }>;
+              marketedBy?: { _id: string; name: string; address: string };
               marketedByAddress?: string;
-              manufacturedBy?: { _id: string };
+              manufacturedBy?: { _id: string; name: string; address: string };
               manufacturedByAddress?: string;
-              importedBy?: { _id: string };
+              importedBy?: { _id: string; name: string; address: string };
               importedByAddress?: string;
-              targetConcerns?: Array<{ _id: string }>;
-              productFeatures?: Array<{ _id: string }>;
-              countryOfOrigin?: { _id: string };
-              benefits?: Array<{ _id: string }>;
-              certifications?: Array<{ _id: string }>;
-              productForm?: { _id: string };
-              gender?: { _id: string };
-              productType?: { _id: string };
-              targetArea?: { _id: string };
-              finish?: { _id: string };
-              fragrance?: { _id: string };
-              skinConcerns?: Array<{ _id: string }>;
-              hairType?: { _id: string };
-              skinType?: { _id: string };
-              shelfLife?: string;
-              licenseNo?: string;
-              manufacturingDate?: string;
-              expiryDate?: string;
-              length?: number;
-              width?: number;
-              height?: number;
-              safetyPrecaution?: string;
-              howToUse?: string;
-              customerCareEmail?: string;
-              customerCareNumber?: string;
-              ingredient?: string;
-              keyIngredients?: string;
-              benefitsSingle?: string;
-              captureBy?: string;
+              ingredients?: Array<{ _id: string; name: string }>;
+              keyIngredients?: Array<{ _id: string; name: string }>;
+              benefit?: Array<{ _id: string; name: string }>;
+              capturedBy?: { _id: string; firstName: string; lastName: string };
               capturedDate?: string;
+              thumbnail?: { _id: string; url: string };
+              images?: Array<{ _id: string; url: string; tag?: string }>;
+              barcodeImage?: { _id: string; url: string };
+              dimensions?: {
+                length: number;
+                width: number;
+                height: number;
+              };
+              weight?: number;
+              productType?: { _id: string; label: string } | null;
+              skinTypes?: Array<{ _id: string; label: string }>;
+              hairTypes?: Array<{ _id: string; label: string }>;
+              skinConcerns?: Array<{ _id: string; label: string }>;
+              hairConcerns?: Array<{ _id: string; label: string }>;
+              hairGoals?: Array<{ _id: string; label: string }>;
+              metaData?: Array<{
+                key: string;
+                value: any;
+              }>;
+              aboutTheBrand?: string;
+              manufacturingDate?: string | null;
+              expiryDate?: string | null;
             };
+            message: string;
           };
           if (response.success && response.data) {
             const product = response.data;
+
+            // Extract meta data values
+            const metaData = product.metaData || [];
+            const getMetaValue = (key: string) => {
+              const item = metaData.find((item) => item.key === key);
+              return item?.value;
+            };
 
             // Populate form data with existing product data
             setFormData({
@@ -554,41 +589,51 @@ const ProductCreate = () => {
               manufacturedByAddress: product.manufacturedByAddress || "",
               importedBy: product.importedBy?._id || "",
               importedByAddress: product.importedByAddress || "",
+              // Extract from metaData
               targetConcerns:
-                product.targetConcerns?.map((concern) => concern._id) || [],
+                getMetaValue("concern")?.map((item: any) => item._id) || [],
               productFeatures:
-                product.productFeatures?.map((feature) => feature._id) || [],
-              countryOfOrigin: product.countryOfOrigin?._id || "",
-              benefits: product.benefits?.map((benefit) => benefit._id) || [],
-              certifications:
-                product.certifications?.map((cert) => cert._id) || [],
-              productForm: product.productForm?._id || "",
-              gender: product.gender?._id || "",
+                getMetaValue("special-feature")?.map((item: any) => item._id) ||
+                [],
+              countryOfOrigin: "", // Not in the response structure
+              benefits: product.benefit?.map((benefit) => benefit._id) || [],
+              certifications: [], // Not in the response structure
+              productForm: getMetaValue("formulation")?.[0]?._id || "",
+              gender: getMetaValue("gender")?._id || "",
               productType: product.productType?._id || "",
-              targetArea: product.targetArea?._id || "",
-              finish: product.finish?._id || "",
-              fragrance: product.fragrance?._id || "",
+              targetArea: getMetaValue("body-part")?.[0]?._id || "",
+              finish: getMetaValue("makeup-finish")?.[0]?._id || "",
+              fragrance: getMetaValue("fragrance-family")?.[0]?._id || "",
               skinConcerns:
                 product.skinConcerns?.map((concern) => concern._id) || [],
-              hairType: product.hairType?._id || "",
-              skinType: product.skinType?._id || "",
-              shelfLife: product.shelfLife || "",
-              licenseNo: product.licenseNo || "",
+              hairType: product.hairTypes?.[0]?._id || "",
+              skinType: product.skinTypes?.[0]?._id || "",
+              shelfLife: getMetaValue("shelf-life") || "",
+              licenseNo: getMetaValue("license-no") || "",
               manufacturingDate: product.manufacturingDate || "",
               expiryDate: product.expiryDate || "",
-              length: product.length || 0,
-              width: product.width || 0,
-              height: product.height || 0,
-              safetyPrecaution: product.safetyPrecaution || "",
-              howToUse: product.howToUse || "",
-              customerCareEmail: product.customerCareEmail || "",
-              customerCareNumber: product.customerCareNumber || "",
-              ingredient: product.ingredient || "",
-              keyIngredients: product.keyIngredients || "",
-              benefitsSingle: product.benefitsSingle || "",
-              captureBy: product.captureBy || "admin",
+              length: product.dimensions?.length || 0,
+              width: product.dimensions?.width || 0,
+              height: product.dimensions?.height || 0,
+              safetyPrecaution: "", // Not in the response structure
+              howToUse: "", // Not in the response structure
+              customerCareEmail: "", // Not in the response structure
+              customerCareNumber: "", // Not in the response structure
+              ingredient: product.ingredients?.[0]?.name || "",
+              keyIngredients: product.keyIngredients?.[0]?.name || "",
+              benefitsSingle: product.benefit?.[0]?.name || "",
+              captureBy: product.capturedBy?._id || userId,
               capturedDate: product.capturedDate || new Date().toISOString(),
+              // Media
+              thumbnail: product.thumbnail?._id || "",
+              barcodeImage: product.barcodeImage?._id || "",
+              images: product.images?.map((img) => img._id) || [],
             });
+
+            // Set existing media URLs for display
+            setExistingThumbnailUrl(product.thumbnail?.url || "");
+            setExistingBarcodeUrl(product.barcodeImage?.url || "");
+            setExistingImagesUrls(product.images?.map((img) => img.url) || []);
           }
         } catch {
           setError("Failed to load product data");
@@ -615,87 +660,283 @@ const ProductCreate = () => {
     setError(null);
 
     try {
-      // Create FormData to handle file uploads
-      const submitData = new FormData();
+      // Prepare JSON data for API (files are uploaded separately)
+      const jsonData = {
+        productName: formData.productName,
+        slug: formData.slug,
+        description: formData.description,
+        status: formData.status,
+        sku: formData.sku,
+        productVariationType: formData.productVariationType,
+        brand: formData.brand || "68cbeaf259dbe37bcfef4dfc",
+        aboutTheBrand: "", // Add if needed
+        productCategory:
+          formData.productCategory.length > 0
+            ? formData.productCategory
+            : ["68652da5d559321c67d22f44"],
+        tags: formData.tags || [],
+        ingredients: formData.ingredient ? [formData.ingredient] : [],
+        keyIngredients: formData.keyIngredients
+          ? [formData.keyIngredients]
+          : [],
+        benefit: formData.benefitsSingle ? [formData.benefitsSingle] : [],
+        marketedBy: formData.marketedBy,
+        marketedByAddress: formData.marketedByAddress,
+        manufacturedBy: formData.manufacturedBy,
+        manufacturedByAddress: formData.manufacturedByAddress,
+        importedBy: formData.importedBy,
+        importedByAddress: formData.importedByAddress,
+        // capturedBy: formData.captureBy,
+        capturedBy: "68a862ba96534be7c7c4821d",
+        capturedDate: formData.capturedDate.split("T")[0], // Convert to date string
+        thumbnail: formData.thumbnail || "", // Include thumbnail ID
+        barcodeImage: formData.barcodeImage || "", // Include barcode ID
+        images: formData.images || [], // Include image IDs
+        dimensions: {
+          length: formData.length || 0,
+          width: formData.width || 0,
+          height: formData.height || 0,
+        },
+        price: formData.price,
+        salePrice: formData.salePrice,
+        quantity: formData.quantity,
+        manufacturingDate: formData.manufacturingDate,
+        expiryDate: formData.expiryDate,
+        metaData: [
+          // Safety precaution
+          ...(formData.safetyPrecaution
+            ? [
+                {
+                  key: "safety-precaution",
+                  value: formData.safetyPrecaution,
+                  type: "rich-text-box",
+                  ref: false,
+                },
+              ]
+            : []),
+          // How to use
+          ...(formData.howToUse
+            ? [
+                {
+                  key: "how-to-use",
+                  value: formData.howToUse,
+                  type: "rich-text-box",
+                  ref: false,
+                },
+              ]
+            : []),
+          // Shelf life
+          ...(formData.shelfLife
+            ? [
+                {
+                  key: "shelf-life",
+                  value: formData.shelfLife,
+                  type: "string",
+                  ref: false,
+                },
+              ]
+            : []),
+          // License no
+          ...(formData.licenseNo
+            ? [
+                {
+                  key: "license-no",
+                  value: formData.licenseNo,
+                  type: "string",
+                  ref: false,
+                },
+              ]
+            : []),
+          // Product classification (using productType)
+          ...(formData.productType
+            ? [
+                {
+                  key: "product-classification",
+                  value: formData.productType,
+                  type: "objectId",
+                  ref: true,
+                },
+              ]
+            : []),
+          // Body part (using targetArea)
+          ...(formData.targetArea
+            ? [
+                {
+                  key: "body-part",
+                  value: [formData.targetArea],
+                  type: "array",
+                  ref: true,
+                },
+              ]
+            : []),
+          // Makeup finish (using finish)
+          ...(formData.finish
+            ? [
+                {
+                  key: "makeup-finish",
+                  value: [formData.finish],
+                  type: "array",
+                  ref: true,
+                },
+              ]
+            : []),
+          // Fragrance family (using fragrance)
+          ...(formData.fragrance
+            ? [
+                {
+                  key: "fragrance-family",
+                  value: [formData.fragrance],
+                  type: "array",
+                  ref: true,
+                },
+              ]
+            : []),
+          // Special feature (using productFeatures)
+          ...(formData.productFeatures && formData.productFeatures.length > 0
+            ? [
+                {
+                  key: "special-feature",
+                  value: formData.productFeatures,
+                  type: "array",
+                  ref: true,
+                },
+              ]
+            : []),
+          // Hair type
+          ...(formData.hairType
+            ? [
+                {
+                  key: "hair-type",
+                  value: formData.hairType,
+                  type: "objectId",
+                  ref: true,
+                },
+              ]
+            : []),
+          // Skin type
+          ...(formData.skinType
+            ? [
+                {
+                  key: "skin-type",
+                  value: formData.skinType,
+                  type: "objectId",
+                  ref: true,
+                },
+              ]
+            : []),
+          // Certification applicable (using certifications)
+          ...(formData.certifications && formData.certifications.length > 0
+            ? [
+                {
+                  key: "certification-applicable",
+                  value: formData.certifications[0], // Take first certification
+                  type: "objectId",
+                  ref: true,
+                },
+              ]
+            : []),
+          // Formulation (using productForm)
+          ...(formData.productForm
+            ? [
+                {
+                  key: "formulation",
+                  value: [formData.productForm],
+                  type: "array",
+                  ref: true,
+                },
+              ]
+            : []),
+          // Gender
+          ...(formData.gender
+            ? [
+                {
+                  key: "gender",
+                  value: formData.gender,
+                  type: "objectId",
+                  ref: true,
+                },
+              ]
+            : []),
+          // Concern (using targetConcerns)
+          ...(formData.targetConcerns && formData.targetConcerns.length > 0
+            ? [
+                {
+                  key: "concern",
+                  value: formData.targetConcerns,
+                  type: "array",
+                  ref: true,
+                },
+              ]
+            : []),
+          // Conscious (using benefits)
+          ...(formData.benefits && formData.benefits.length > 0
+            ? [
+                {
+                  key: "conscious",
+                  value: formData.benefits,
+                  type: "array",
+                  ref: true,
+                },
+              ]
+            : []),
+          // Claims (using skinConcerns)
+          ...(formData.skinConcerns && formData.skinConcerns.length > 0
+            ? [
+                {
+                  key: "claims",
+                  value: formData.skinConcerns,
+                  type: "array",
+                  ref: true,
+                },
+              ]
+            : []),
+        ],
+      };
 
-      // Add form data
-      Object.entries(formData).forEach(([key, value]) => {
-        if (Array.isArray(value)) {
-          value.forEach((item) => submitData.append(`${key}[]`, item));
-        } else if (value !== null && value !== undefined) {
-          submitData.append(key, value.toString());
-        }
-      });
+      console.log(
+        "🚀 ~ ProductCreate ~ jsonData:",
+        JSON.stringify(jsonData, null, 2),
+      );
 
-      // Add uploaded images
-      uploadedImages.forEach((file) => {
-        submitData.append("images", file);
-      });
-
-      // Add thumbnail image
-      if (thumbnailImage) {
-        submitData.append("thumbnail", thumbnailImage);
-      }
-
-      // Add barcode image
-      if (barcodeImage) {
-        submitData.append("barcodeImage", barcodeImage);
-      }
-
-      submitData.append("brand", "68cbeaf259dbe37bcfef4dfc");
-      submitData.append("productCategory", "[68652da5d559321c67d22f44]");
-
-      let result: { success: boolean; message?: string };
+      let result: {
+        success: boolean;
+        message?: string;
+        data?: { _id: string };
+      };
 
       if (isEditMode && productId) {
         // Update existing product
-
-        // For updates, try sending JSON data instead of FormData
-        const updateData = {
-          ...formData,
-          // Convert arrays to proper format if needed
-          productCategory: formData.productCategory,
-          tags: formData.tags,
-          targetConcerns: formData.targetConcerns,
-          productFeatures: formData.productFeatures,
-          benefits: formData.benefits,
-          certifications: formData.certifications,
-          skinConcerns: formData.skinConcerns,
-        };
-
-        try {
-          // Try PATCH with JSON data first
-          result = (await api.patch(
-            `${ENDPOINTS.PRODUCT.MAIN}/${productId}`,
-            updateData,
-          )) as { success: boolean; message?: string };
-        } catch {
-          // Fallback to PUT with FormData
-          result = (await api.put(
-            `${ENDPOINTS.PRODUCT.MAIN}/${productId}`,
-            submitData,
-            {
-              headers: {
-                "Content-Type": "multipart/form-data",
-              },
-            },
-          )) as { success: boolean; message?: string };
-        }
+        result = (await api.patch(
+          `${ENDPOINTS.PRODUCT.MAIN}/${productId}`,
+          jsonData,
+        )) as { success: boolean; message?: string; data?: { _id: string } };
 
         if (result.success) {
-          // Product updated successfully
+          // Upload files after successful update
+          try {
+            await uploadFiles(productId);
+          } catch (fileError) {
+            console.warn("File upload failed:", fileError);
+            // Continue even if file upload fails
+          }
         }
       } else {
         // Create new product
-        result = (await api.post(ENDPOINTS.PRODUCT.MAIN, submitData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        })) as { success: boolean; message?: string };
+        result = (await api.post(ENDPOINTS.PRODUCT.MAIN, jsonData)) as {
+          success: boolean;
+          message?: string;
+          data?: { _id: string };
+        };
 
-        if (result.success) {
-          // Product created successfully
-        }
+        // if (result.success && result.data?._id) {
+        //   // Upload files after successful creation
+        //   try {
+        //     await uploadFiles(result.data._id);
+        //   } catch (fileError) {
+        //     console.warn("File upload failed:", fileError);
+        //     // Continue even if file upload fails
+        //   }
+        // }
       }
 
       if (result.success) {
@@ -745,7 +986,7 @@ const ProductCreate = () => {
     setIsDragOver(false);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
 
@@ -766,11 +1007,127 @@ const ProductCreate = () => {
       return;
     }
 
-    setUploadedImages((prev) => [...prev, ...imageFiles]);
-    setError(null);
+    setIsImagesUploading(true);
+    setError("");
+
+    try {
+      const imageIds = await uploadImages(imageFiles);
+      setUploadedImages((prev) => [...prev, ...imageFiles]);
+      setFormData((prev) => ({
+        ...prev,
+        images: [...(prev.images || []), ...imageIds],
+      }));
+    } catch (error) {
+      console.error("Images upload failed:", error);
+      setError("Failed to upload images. Please try again.");
+    } finally {
+      setIsImagesUploading(false);
+    }
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleThumbnailDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleThumbnailDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleThumbnailDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
+
+    if (imageFiles.length === 0) {
+      setError("Please drop an image file");
+      return;
+    }
+
+    if (imageFiles.length > 1) {
+      setError("Only one thumbnail image allowed");
+      return;
+    }
+
+    const file = imageFiles[0];
+    if (file.size > 10 * 1024 * 1024) {
+      setError("Thumbnail image size must be less than 10MB");
+      return;
+    }
+
+    setIsThumbnailUploading(true);
+    setError("");
+
+    try {
+      const thumbnailId = await uploadThumbnail(file);
+      setThumbnailImage(file);
+      setFormData((prev) => ({
+        ...prev,
+        thumbnail: thumbnailId,
+      }));
+    } catch (error) {
+      console.error("Thumbnail upload failed:", error);
+      setError("Failed to upload thumbnail. Please try again.");
+    } finally {
+      setIsThumbnailUploading(false);
+    }
+  };
+
+  const handleBarcodeDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleBarcodeDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleBarcodeDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
+
+    if (imageFiles.length === 0) {
+      setError("Please drop an image file");
+      return;
+    }
+
+    if (imageFiles.length > 1) {
+      setError("Only one barcode image allowed");
+      return;
+    }
+
+    const file = imageFiles[0];
+    if (file.size > 10 * 1024 * 1024) {
+      setError("Barcode image size must be less than 10MB");
+      return;
+    }
+
+    setIsBarcodeUploading(true);
+    setError("");
+
+    try {
+      const barcodeId = await uploadBarcode(file);
+      setBarcodeImage(file);
+      setFormData((prev) => ({
+        ...prev,
+        barcodeImage: barcodeId,
+      }));
+    } catch (error) {
+      console.error("Barcode upload failed:", error);
+      setError("Failed to upload barcode. Please try again.");
+    } finally {
+      setIsBarcodeUploading(false);
+    }
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     const imageFiles = files.filter((file) => file.type.startsWith("image/"));
 
@@ -788,12 +1145,34 @@ const ProductCreate = () => {
       return;
     }
 
-    setUploadedImages((prev) => [...prev, ...imageFiles]);
-    setError(null);
+    setIsImagesUploading(true);
+    setError("");
+
+    try {
+      const imageIds = await uploadImages(imageFiles);
+      setUploadedImages((prev) => [...prev, ...imageFiles]);
+      setFormData((prev) => ({
+        ...prev,
+        images: [...(prev.images || []), ...imageIds],
+      }));
+    } catch (error) {
+      console.error("Images upload failed:", error);
+      setError("Failed to upload images. Please try again.");
+    } finally {
+      setIsImagesUploading(false);
+    }
   };
 
   const removeImage = (index: number) => {
-    setUploadedImages((prev) => prev.filter((_, i) => i !== index));
+    setUploadedImages((prev) => {
+      const newImages = prev.filter((_, i) => i !== index);
+      // Also remove the corresponding image ID from formData
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        images: prevFormData.images?.filter((_, i) => i !== index) || [],
+      }));
+      return newImages;
+    });
   };
 
   const openFileDialog = () => {
@@ -808,7 +1187,80 @@ const ProductCreate = () => {
     barcodeInputRef.current?.click();
   };
 
-  const handleThumbnailSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const uploadThumbnail = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("type", "product-images");
+    formData.append("files", file);
+
+    const response = (await api.post(ENDPOINTS.MEDIA.UPLOAD, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    })) as {
+      success: boolean;
+      data: {
+        media: Array<{ _id: string; url: string }>;
+      };
+      message: string;
+    };
+
+    if (response.success && response.data.media.length > 0) {
+      return response.data.media[0]._id;
+    }
+    throw new Error("Failed to upload thumbnail");
+  };
+
+  const uploadBarcode = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("type", "product-images");
+    formData.append("files", file);
+
+    const response = (await api.post(ENDPOINTS.MEDIA.UPLOAD, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    })) as {
+      success: boolean;
+      data: {
+        media: Array<{ _id: string; url: string }>;
+      };
+      message: string;
+    };
+
+    if (response.success && response.data.media.length > 0) {
+      return response.data.media[0]._id;
+    }
+    throw new Error("Failed to upload barcode");
+  };
+
+  const uploadImages = async (files: File[]): Promise<string[]> => {
+    const formData = new FormData();
+    formData.append("type", "product-images");
+    files.forEach((file) => {
+      formData.append("files", file);
+    });
+
+    const response = (await api.post(ENDPOINTS.MEDIA.UPLOAD, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    })) as {
+      success: boolean;
+      data: {
+        media: Array<{ _id: string; url: string }>;
+      };
+      message: string;
+    };
+
+    if (response.success && response.data.media.length > 0) {
+      return response.data.media.map((media) => media._id);
+    }
+    throw new Error("Failed to upload images");
+  };
+
+  const handleThumbnailSelect = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
@@ -819,11 +1271,29 @@ const ProductCreate = () => {
         setError("Thumbnail must be an image file");
         return;
       }
-      setThumbnailImage(file);
+
+      setIsThumbnailUploading(true);
+      setError("");
+
+      try {
+        const thumbnailId = await uploadThumbnail(file);
+        setThumbnailImage(file);
+        setFormData((prev) => ({
+          ...prev,
+          thumbnail: thumbnailId,
+        }));
+      } catch (error) {
+        console.error("Thumbnail upload failed:", error);
+        setError("Failed to upload thumbnail. Please try again.");
+      } finally {
+        setIsThumbnailUploading(false);
+      }
     }
   };
 
-  const handleBarcodeSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBarcodeSelect = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
@@ -834,12 +1304,33 @@ const ProductCreate = () => {
         setError("Barcode must be an image file");
         return;
       }
-      setBarcodeImage(file);
+
+      setIsBarcodeUploading(true);
+      setError("");
+
+      try {
+        const barcodeId = await uploadBarcode(file);
+        setBarcodeImage(file);
+        setFormData((prev) => ({
+          ...prev,
+          barcodeImage: barcodeId,
+        }));
+      } catch (error) {
+        console.error("Barcode upload failed:", error);
+        setError("Failed to upload barcode. Please try again.");
+      } finally {
+        setIsBarcodeUploading(false);
+      }
     }
   };
 
   const removeThumbnail = () => {
     setThumbnailImage(null);
+    setExistingThumbnailUrl("");
+    setFormData((prev) => ({
+      ...prev,
+      thumbnail: "",
+    }));
     if (thumbnailInputRef.current) {
       thumbnailInputRef.current.value = "";
     }
@@ -847,6 +1338,11 @@ const ProductCreate = () => {
 
   const removeBarcode = () => {
     setBarcodeImage(null);
+    setExistingBarcodeUrl("");
+    setFormData((prev) => ({
+      ...prev,
+      barcodeImage: "",
+    }));
     if (barcodeInputRef.current) {
       barcodeInputRef.current.value = "";
     }
@@ -860,6 +1356,72 @@ const ProductCreate = () => {
       .replace(/-+/g, "-")
       .trim();
     setFormData((prev) => ({ ...prev, slug }));
+  };
+
+  // Function to upload files separately
+  const uploadFiles = async (productId: string) => {
+    const fileUploadPromises = [];
+
+    // Upload main images
+    if (uploadedImages.length > 0) {
+      const imageFormData = new FormData();
+      uploadedImages.forEach((file) => {
+        imageFormData.append("images", file);
+      });
+
+      fileUploadPromises.push(
+        api.post(
+          `${ENDPOINTS.PRODUCT.MAIN}/${productId}/images`,
+          imageFormData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          },
+        ),
+      );
+    }
+
+    // Upload thumbnail
+    if (thumbnailImage) {
+      const thumbnailFormData = new FormData();
+      thumbnailFormData.append("thumbnail", thumbnailImage);
+
+      fileUploadPromises.push(
+        api.post(
+          `${ENDPOINTS.PRODUCT.MAIN}/${productId}/thumbnail`,
+          thumbnailFormData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          },
+        ),
+      );
+    }
+
+    // Upload barcode image
+    if (barcodeImage) {
+      const barcodeFormData = new FormData();
+      barcodeFormData.append("barcodeImage", barcodeImage);
+
+      fileUploadPromises.push(
+        api.post(
+          `${ENDPOINTS.PRODUCT.MAIN}/${productId}/barcode`,
+          barcodeFormData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          },
+        ),
+      );
+    }
+
+    // Execute all file uploads in parallel
+    if (fileUploadPromises.length > 0) {
+      await Promise.all(fileUploadPromises);
+    }
   };
 
   // Dynamic title and description based on mode
@@ -1203,7 +1765,7 @@ const ProductCreate = () => {
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="pending">Draft</SelectItem>
                       <SelectItem value="publish">Publish</SelectItem>
                     </SelectContent>
                   </SelectRoot>
@@ -1703,7 +2265,17 @@ const ProductCreate = () => {
                     >
                       Capture By
                     </Label>
-                    <SelectRoot
+                    <Input
+                      id="customerCareNumber"
+                      value={formData.captureBy || "admin"}
+                      onChange={(e) =>
+                        handleInputChange("captureBy", e.target.value)
+                      }
+                      placeholder="Select capture by"
+                      className="h-10"
+                      disabled={true}
+                    />
+                    {/* <SelectRoot
                       value={formData.captureBy || "admin"}
                       onValueChange={(value) =>
                         handleInputChange("captureBy", value)
@@ -1717,7 +2289,7 @@ const ProductCreate = () => {
                         <SelectItem value="admin">Admin</SelectItem>
                         <SelectItem value="user">User</SelectItem>
                       </SelectContent>
-                    </SelectRoot>
+                    </SelectRoot> */}
                   </div>
 
                   <div className="space-y-2">
@@ -2158,11 +2730,19 @@ const ProductCreate = () => {
                   className={`rounded-lg border-2 border-dashed border-gray-300 p-8 text-center transition-colors ${
                     isViewMode
                       ? "cursor-default"
-                      : "cursor-pointer hover:border-gray-400"
+                      : isThumbnailUploading
+                        ? "cursor-not-allowed opacity-50"
+                        : isDragOver
+                          ? "border-blue-400 bg-blue-50"
+                          : "cursor-pointer hover:border-gray-400"
                   }`}
-                  onClick={isViewMode ? undefined : openThumbnailDialog}
+                  onClick={
+                    isViewMode || isThumbnailUploading
+                      ? undefined
+                      : openThumbnailDialog
+                  }
                   onKeyDown={
-                    isViewMode
+                    isViewMode || isThumbnailUploading
                       ? undefined
                       : (e) => {
                           if (e.key === "Enter" || e.key === " ") {
@@ -2171,10 +2751,54 @@ const ProductCreate = () => {
                           }
                         }
                   }
-                  tabIndex={isViewMode ? -1 : 0}
-                  role={isViewMode ? undefined : "button"}
+                  onDragOver={
+                    isViewMode || isThumbnailUploading
+                      ? undefined
+                      : handleThumbnailDragOver
+                  }
+                  onDragLeave={
+                    isViewMode || isThumbnailUploading
+                      ? undefined
+                      : handleThumbnailDragLeave
+                  }
+                  onDrop={
+                    isViewMode || isThumbnailUploading
+                      ? undefined
+                      : handleThumbnailDrop
+                  }
+                  tabIndex={isViewMode || isThumbnailUploading ? -1 : 0}
+                  role={
+                    isViewMode || isThumbnailUploading ? undefined : "button"
+                  }
                 >
-                  {thumbnailImage ? (
+                  {isThumbnailUploading ? (
+                    <div className="space-y-4">
+                      <div className="mx-auto h-16 w-16 text-blue-500">
+                        <svg
+                          className="animate-spin"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-blue-600">Uploading thumbnail...</p>
+                      </div>
+                    </div>
+                  ) : thumbnailImage ? (
                     <div className="space-y-4">
                       <div className="mx-auto aspect-square w-32 overflow-hidden rounded-lg bg-gray-100">
                         <img
@@ -2199,6 +2823,34 @@ const ProductCreate = () => {
                         >
                           Remove
                         </Button>
+                      </div>
+                    </div>
+                  ) : existingThumbnailUrl ? (
+                    <div className="space-y-4">
+                      <div className="mx-auto aspect-square w-32 overflow-hidden rounded-lg bg-gray-100">
+                        <img
+                          src={existingThumbnailUrl}
+                          alt="Existing thumbnail"
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-600">
+                          Existing thumbnail
+                        </p>
+                        {!isViewMode && (
+                          <Button
+                            type="button"
+                            variant="outlined"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeThumbnail();
+                            }}
+                          >
+                            Remove
+                          </Button>
+                        )}
                       </div>
                     </div>
                   ) : (
@@ -2258,11 +2910,19 @@ const ProductCreate = () => {
                   className={`rounded-lg border-2 border-dashed border-gray-300 p-8 text-center transition-colors ${
                     isViewMode
                       ? "cursor-default"
-                      : "cursor-pointer hover:border-gray-400"
+                      : isBarcodeUploading
+                        ? "cursor-not-allowed opacity-50"
+                        : isDragOver
+                          ? "border-blue-400 bg-blue-50"
+                          : "cursor-pointer hover:border-gray-400"
                   }`}
-                  onClick={isViewMode ? undefined : openBarcodeDialog}
+                  onClick={
+                    isViewMode || isBarcodeUploading
+                      ? undefined
+                      : openBarcodeDialog
+                  }
                   onKeyDown={
-                    isViewMode
+                    isViewMode || isBarcodeUploading
                       ? undefined
                       : (e) => {
                           if (e.key === "Enter" || e.key === " ") {
@@ -2271,10 +2931,52 @@ const ProductCreate = () => {
                           }
                         }
                   }
-                  tabIndex={isViewMode ? -1 : 0}
-                  role={isViewMode ? undefined : "button"}
+                  onDragOver={
+                    isViewMode || isBarcodeUploading
+                      ? undefined
+                      : handleBarcodeDragOver
+                  }
+                  onDragLeave={
+                    isViewMode || isBarcodeUploading
+                      ? undefined
+                      : handleBarcodeDragLeave
+                  }
+                  onDrop={
+                    isViewMode || isBarcodeUploading
+                      ? undefined
+                      : handleBarcodeDrop
+                  }
+                  tabIndex={isViewMode || isBarcodeUploading ? -1 : 0}
+                  role={isViewMode || isBarcodeUploading ? undefined : "button"}
                 >
-                  {barcodeImage ? (
+                  {isBarcodeUploading ? (
+                    <div className="space-y-4">
+                      <div className="mx-auto h-16 w-16 text-blue-500">
+                        <svg
+                          className="animate-spin"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-blue-600">Uploading barcode...</p>
+                      </div>
+                    </div>
+                  ) : barcodeImage ? (
                     <div className="space-y-4">
                       <div className="mx-auto aspect-square w-32 overflow-hidden rounded-lg bg-gray-100">
                         <img
@@ -2299,6 +3001,34 @@ const ProductCreate = () => {
                         >
                           Remove
                         </Button>
+                      </div>
+                    </div>
+                  ) : existingBarcodeUrl ? (
+                    <div className="space-y-4">
+                      <div className="mx-auto aspect-square w-32 overflow-hidden rounded-lg bg-gray-100">
+                        <img
+                          src={existingBarcodeUrl}
+                          alt="Existing barcode"
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-600">
+                          Existing barcode
+                        </p>
+                        {!isViewMode && (
+                          <Button
+                            type="button"
+                            variant="outlined"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeBarcode();
+                            }}
+                          >
+                            Remove
+                          </Button>
+                        )}
                       </div>
                     </div>
                   ) : (
@@ -2351,58 +3081,97 @@ const ProductCreate = () => {
                 {/* Upload Area */}
                 <div
                   className={`rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
-                    isDragOver
-                      ? "border-blue-400 bg-blue-50"
-                      : isViewMode
-                        ? "cursor-default border-gray-300"
-                        : "cursor-pointer border-gray-300 hover:border-gray-400"
+                    isImagesUploading
+                      ? "cursor-not-allowed opacity-50"
+                      : isDragOver
+                        ? "border-blue-400 bg-blue-50"
+                        : isViewMode
+                          ? "cursor-default border-gray-300"
+                          : "cursor-pointer border-gray-300 hover:border-gray-400"
                   }`}
-                  onDragOver={isViewMode ? undefined : handleDragOver}
-                  onDragLeave={isViewMode ? undefined : handleDragLeave}
-                  onDrop={isViewMode ? undefined : handleDrop}
+                  onDragOver={
+                    isViewMode || isImagesUploading ? undefined : handleDragOver
+                  }
+                  onDragLeave={
+                    isViewMode || isImagesUploading
+                      ? undefined
+                      : handleDragLeave
+                  }
+                  onDrop={
+                    isViewMode || isImagesUploading ? undefined : handleDrop
+                  }
                 >
-                  <div className="flex flex-col items-center space-y-4">
-                    {/* Upload Icon */}
-                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-                      <svg
-                        className="h-8 w-8 text-gray-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                        />
-                      </svg>
+                  {isImagesUploading ? (
+                    <div className="flex flex-col items-center space-y-4">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-50">
+                        <svg
+                          className="h-8 w-8 animate-spin text-blue-500"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-blue-600">Uploading images...</p>
+                      </div>
                     </div>
+                  ) : (
+                    <div className="flex flex-col items-center space-y-4">
+                      {/* Upload Icon */}
+                      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+                        <svg
+                          className="h-8 w-8 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
+                      </div>
 
-                    {/* Upload Text */}
-                    <div className="space-y-2">
-                      <p className="text-gray-600">
-                        {isViewMode
-                          ? "No images uploaded"
-                          : "Drop image here or "}
-                        {!isViewMode && (
-                          <button
-                            type="button"
-                            onClick={openFileDialog}
-                            className="text-blue-600 underline hover:text-blue-700"
-                          >
-                            Click to browse
-                          </button>
-                        )}
-                      </p>
-                      {!isViewMode && (
-                        <p className="text-sm text-gray-500">
-                          Max 10 image(s) • up to 10MB each • Allowed:
-                          image/jpeg, image/png
+                      {/* Upload Text */}
+                      <div className="space-y-2">
+                        <p className="text-gray-600">
+                          {isViewMode
+                            ? "No images uploaded"
+                            : "Drop image here or "}
+                          {!isViewMode && (
+                            <button
+                              type="button"
+                              onClick={openFileDialog}
+                              className="text-blue-600 underline hover:text-blue-700"
+                            >
+                              Click to browse
+                            </button>
+                          )}
                         </p>
-                      )}
+                        {!isViewMode && (
+                          <p className="text-sm text-gray-500">
+                            Max 10 image(s) • up to 10MB each • Allowed:
+                            image/jpeg, image/png
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Hidden File Input */}
                   <input
@@ -2416,14 +3185,56 @@ const ProductCreate = () => {
                 </div>
 
                 {/* Uploaded Images Preview */}
-                {uploadedImages.length > 0 && (
+                {(uploadedImages.length > 0 ||
+                  existingImagesUrls.length > 0) && (
                   <div className="space-y-4">
                     <h4 className="text-sm font-medium text-gray-700">
-                      Uploaded Images ({uploadedImages.length}/10)
+                      Images (
+                      {uploadedImages.length + existingImagesUrls.length}/10)
                     </h4>
                     <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
+                      {/* Existing Images */}
+                      {existingImagesUrls.map((url, index) => (
+                        <div
+                          key={`existing-${index}`}
+                          className="group relative"
+                        >
+                          <div className="aspect-square overflow-hidden rounded-lg bg-gray-100">
+                            <img
+                              src={url}
+                              alt={`Existing image ${index + 1}`}
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                          {!isViewMode && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newUrls = existingImagesUrls.filter(
+                                  (_, i) => i !== index,
+                                );
+                                setExistingImagesUrls(newUrls);
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  images:
+                                    prev.images?.filter(
+                                      (_, i) => i !== index,
+                                    ) || [],
+                                }));
+                              }}
+                              className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs text-white transition-colors hover:bg-red-600"
+                            >
+                              ×
+                            </button>
+                          )}
+                          <div className="mt-1 truncate text-xs text-gray-500">
+                            Existing image {index + 1}
+                          </div>
+                        </div>
+                      ))}
+                      {/* New Uploaded Images */}
                       {uploadedImages.map((file, index) => (
-                        <div key={index} className="group relative">
+                        <div key={`new-${index}`} className="group relative">
                           <div className="aspect-square overflow-hidden rounded-lg bg-gray-100">
                             <img
                               src={URL.createObjectURL(file)}
