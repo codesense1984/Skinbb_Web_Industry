@@ -3,7 +3,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/core/components/ui/avatar";
-import { Badge, StatusBadge } from "@/core/components/ui/badge";
+import { StatusBadge } from "@/core/components/ui/badge";
 import { TableAction } from "@/core/components/data-table/components/table-action";
 import type { Product } from "@/modules/panel/types/product.type";
 import { formatCurrency, formatDate } from "@/core/utils";
@@ -47,7 +47,11 @@ export const columns: ColumnDef<Product>[] = [
         <AvatarRoot className="size-10 rounded-md border">
           <AvatarImage
             className="object-cover"
-            src={row.original.thumbnail?.url}
+            src={typeof row.original.thumbnail === "string" 
+              ? row.original.thumbnail 
+              : (typeof row.original.thumbnail === "object" && row.original.thumbnail && "url" in row.original.thumbnail)
+                ? (row.original.thumbnail as { url: string }).url
+                : ""}
             alt={`${row.original.productName} thumbnail`}
           />
           <AvatarFallback className="rounded-md capitalize">
@@ -62,8 +66,14 @@ export const columns: ColumnDef<Product>[] = [
     accessorKey: "brand",
     header: "Brand",
     cell: ({ getValue }) => {
-      const brand = (getValue() as { name: string }) || { name: "Unknown" };
-      return <div className="">{brand.name}</div>;
+      const brand = getValue();
+      // Handle both string and object cases
+      const brandName = typeof brand === "string" 
+        ? brand 
+        : (typeof brand === "object" && brand && "name" in brand) 
+          ? (brand as { name: string }).name 
+          : "Unknown";
+      return <div className="">{brandName}</div>;
     },
   },
   // {
@@ -103,11 +113,15 @@ export const columns: ColumnDef<Product>[] = [
     accessorKey: "priceRange",
     header: "Price Range",
     cell: ({ row, getValue }) => {
-      const priceRange = (getValue() as { min: number; max: number }) || {
-        min: 0,
-        max: 0,
-      };
-      const salePriceRange = row.original.salePriceRange || { min: 0, max: 0 };
+      const priceRangeValue = getValue();
+      const priceRange = (typeof priceRangeValue === "object" && priceRangeValue && "min" in priceRangeValue && "max" in priceRangeValue)
+        ? priceRangeValue as { min: number; max: number }
+        : { min: 0, max: 0 };
+      
+      const salePriceRangeValue = row.original.salePriceRange;
+      const salePriceRange = (typeof salePriceRangeValue === "object" && salePriceRangeValue && "min" in salePriceRangeValue && "max" in salePriceRangeValue)
+        ? salePriceRangeValue as { min: number; max: number }
+        : { min: 0, max: 0 };
 
       return (
         <div className="flex w-max flex-col">

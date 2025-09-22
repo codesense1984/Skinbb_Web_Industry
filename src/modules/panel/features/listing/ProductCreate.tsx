@@ -35,7 +35,7 @@ interface ProductCreateData {
   productName: string;
   slug: string;
   description?: string;
-  status: "draft" | "publish";
+  status: "draft" | "publish" | "pending" | "inactive";
   price: number;
   salePrice: number;
   quantity: number;
@@ -89,6 +89,21 @@ interface ProductCreateData {
   thumbnail?: string;
   barcodeImage?: string;
   images?: string[];
+  // Additional fields from new API
+  aboutTheBrand?: string;
+  weight?: string;
+  dimensions?: string;
+  isFeatured?: boolean;
+  isNewArrival?: boolean;
+  isBestSeller?: boolean;
+  isTrendingNow?: boolean;
+  metaTitle?: string;
+  metaDescription?: string;
+  metaKeywords?: string[];
+  hairTypes?: string[];
+  hairConcerns?: string[];
+  hairGoals?: string[];
+  status_feedback?: string;
 }
 
 interface DropdownOption {
@@ -178,6 +193,9 @@ const ProductCreate = () => {
     uploadedImages,
     thumbnailImage,
     barcodeImage,
+    existingThumbnailUrl,
+    existingBarcodeUrl,
+    existingImagesUrls,
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
@@ -272,6 +290,21 @@ const ProductCreate = () => {
     thumbnail: "",
     barcodeImage: "",
     images: [],
+    // Additional fields from new API
+    aboutTheBrand: "",
+    weight: "",
+    dimensions: "",
+    isFeatured: false,
+    isNewArrival: false,
+    isBestSeller: false,
+    isTrendingNow: false,
+    metaTitle: "",
+    metaDescription: "",
+    metaKeywords: [],
+    hairTypes: [],
+    hairConcerns: [],
+    hairGoals: [],
+    status_feedback: "",
   });
   console.log("🚀 ~ ProductCreate ~ formData:", formData);
 
@@ -335,8 +368,10 @@ const ProductCreate = () => {
 
         // Basic dropdowns
         const brandsResponse = brandsRes as ApiResponse<BrandsResponse>;
+        console.log("Brands response:", brandsResponse);
         if (brandsResponse?.success) {
           setBrands(brandsResponse.data.brands || []);
+          console.log("Brands loaded:", brandsResponse.data.brands);
         }
 
         const categoriesResponse =
@@ -347,6 +382,7 @@ const ProductCreate = () => {
         );
         if (categoriesResponse?.success) {
           setCategories(categoriesResponse.data);
+          console.log("Categories loaded:", categoriesResponse.data);
         }
 
         const tagsResponse = tagsRes as ApiResponse<TagsResponse>;
@@ -356,9 +392,14 @@ const ProductCreate = () => {
 
         const variationTypesResponse =
           variationTypesRes as ApiResponse<VariationTypesResponse>;
+        console.log("Variation types response:", variationTypesResponse);
         if (variationTypesResponse?.success) {
           setVariationTypes(
             variationTypesResponse.data.productVariationTypes || [],
+          );
+          console.log(
+            "Variation types loaded:",
+            variationTypesResponse.data.productVariationTypes,
           );
         }
 
@@ -505,135 +546,302 @@ const ProductCreate = () => {
             statusCode: number;
             success: boolean;
             data: {
+              id: string;
+              name: string;
+              sku: string;
+              price: number;
               _id: string;
-              productName?: string;
-              slug?: string;
-              description?: string;
-              status?: string;
-              price?: number;
-              salePrice?: number;
-              quantity?: number;
-              sku?: string;
-              brand?: { _id: string; name: string; aboutTheBrand?: string };
-              productVariationType?: {
-                _id: string;
-                name: string;
-                slug: string;
-              };
-              productCategory?: Array<{ _id: string; name: string }>;
-              tags?: Array<{ _id: string; name: string }>;
-              marketedBy?: { _id: string; name: string; address: string };
-              marketedByAddress?: string;
-              manufacturedBy?: { _id: string; name: string; address: string };
-              manufacturedByAddress?: string;
-              importedBy?: { _id: string; name: string; address: string };
-              importedByAddress?: string;
-              ingredients?: Array<{ _id: string; name: string }>;
-              keyIngredients?: Array<{ _id: string; name: string }>;
-              benefit?: Array<{ _id: string; name: string }>;
-              capturedBy?: { _id: string; firstName: string; lastName: string };
-              capturedDate?: string;
-              thumbnail?: { _id: string; url: string };
-              images?: Array<{ _id: string; url: string; tag?: string }>;
-              barcodeImage?: { _id: string; url: string };
-              dimensions?: {
+              productName: string;
+              slug: string;
+              description: string;
+              status: string;
+              status_feedback: string;
+              brand: string;
+              // aboutTheBrand: string;
+              productVariationType: string;
+              productCategory: string[];
+              tags: string[];
+              ingredients: string[];
+              keyIngredients: string[];
+              skinTypes: string[];
+              hairTypes: string[];
+              skinConcerns: string[];
+              hairConcerns: string[];
+              hairGoals: string[];
+              productType: string;
+              marketedBy: string;
+              marketedByAddress: string;
+              manufacturedBy: string;
+              manufacturedByAddress: string;
+              importedBy: string;
+              importedByAddress: string;
+              benefit: string[];
+              salePrice: number;
+              quantity: number;
+              weight: number;
+              dimensions: {
                 length: number;
                 width: number;
                 height: number;
               };
-              weight?: number;
-              productType?: { _id: string; label: string } | null;
-              skinTypes?: Array<{ _id: string; label: string }>;
-              hairTypes?: Array<{ _id: string; label: string }>;
-              skinConcerns?: Array<{ _id: string; label: string }>;
-              hairConcerns?: Array<{ _id: string; label: string }>;
-              hairGoals?: Array<{ _id: string; label: string }>;
-              metaData?: Array<{
+              manufacturingDate: string;
+              expiryDate: string;
+              isFeatured: boolean;
+              isNewArrival: boolean;
+              isBestSeller: boolean;
+              isTrendingNow: boolean;
+              metaTitle: string;
+              metaDescription: string;
+              metaKeywords: string[];
+              metaData: Array<{
                 key: string;
-                value: any;
+                value: unknown;
               }>;
-              aboutTheBrand?: string;
-              manufacturingDate?: string | null;
-              expiryDate?: string | null;
+              images: {
+                _id: string;
+                url: string;
+              }[];
+              thumbnail: {
+                _id: string;
+                url: string;
+              };
+              barcodeImage: {
+                _id: string;
+                url: string;
+              };
+              capturedBy: string;
+              capturedDate: string;
+              createdAt: string;
+              updatedAt: string;
+              aboutTheBrand: string;
             };
             message: string;
           };
           if (response.success && response.data) {
             const product = response.data;
 
-            // Extract meta data values
-            const metaData = product.metaData || [];
-            const getMetaValue = (key: string) => {
-              const item = metaData.find((item) => item.key === key);
+            console.log("API Response Product Data:", product);
+
+            // Helper function to ensure we get string values
+            const getStringValue = (value: unknown): string => {
+              if (typeof value === "string") return value;
+              if (typeof value === "object" && value && "_id" in value) {
+                return String((value as { _id: string })._id);
+              }
+              return "";
+            };
+
+            const getStringArray = (value: unknown): string[] => {
+              if (Array.isArray(value)) {
+                return value.map((item) => getStringValue(item));
+              }
+              return [];
+            };
+
+            // Helper function to extract a single value from metaData
+            const getMetaValue = (
+              metaData: Array<{ key: string; value: unknown }> | undefined,
+              key: string,
+            ): unknown => {
+              const item = metaData?.find((item) => item.key === key);
               return item?.value;
             };
 
+            // Helper function to extract an array of values from metaData
+            const getMetaValueArray = (
+              metaData: Array<{ key: string; value: unknown }> | undefined,
+              key: string,
+            ): unknown[] => {
+              const item = metaData?.find((item) => item.key === key);
+              if (Array.isArray(item?.value)) {
+                return item.value;
+              }
+              if (item?.value) {
+                return [item.value]; // Wrap single object/string in array
+              }
+              return [];
+            };
+
             // Populate form data with existing product data
-            setFormData({
+            const initialFormData = {
               productName: product.productName || "",
               slug: product.slug || "",
               description: product.description || "",
-              status: (product.status as "draft" | "publish") || "draft",
+              status:
+                (product.status as
+                  | "draft"
+                  | "publish"
+                  | "pending"
+                  | "inactive") || "pending",
               price: product.price || 0,
               salePrice: product.salePrice || 0,
               quantity: product.quantity || 0,
               sku: product.sku || "",
-              brand: product.brand?._id || "",
-              productVariationType: product.productVariationType?._id || "",
-              productCategory:
-                product.productCategory?.map((cat) => cat._id) || [],
-              tags: product.tags?.map((tag) => tag._id) || [],
-              marketedBy: product.marketedBy?._id || "",
+              brand: getStringValue(product.brand),
+              productVariationType: getStringValue(
+                product.productVariationType,
+              ),
+              productCategory: getStringArray(product.productCategory),
+              tags: getStringArray(product.tags),
+              marketedBy: getStringValue(product.marketedBy),
               marketedByAddress: product.marketedByAddress || "",
-              manufacturedBy: product.manufacturedBy?._id || "",
+              manufacturedBy: getStringValue(product.manufacturedBy),
               manufacturedByAddress: product.manufacturedByAddress || "",
-              importedBy: product.importedBy?._id || "",
+              importedBy: getStringValue(product.importedBy),
               importedByAddress: product.importedByAddress || "",
-              // Extract from metaData
-              targetConcerns:
-                getMetaValue("concern")?.map((item: any) => item._id) || [],
-              productFeatures:
-                getMetaValue("special-feature")?.map((item: any) => item._id) ||
-                [],
-              countryOfOrigin: "", // Not in the response structure
-              benefits: product.benefit?.map((benefit) => benefit._id) || [],
-              certifications: [], // Not in the response structure
-              productForm: getMetaValue("formulation")?.[0]?._id || "",
-              gender: getMetaValue("gender")?._id || "",
-              productType: product.productType?._id || "",
-              targetArea: getMetaValue("body-part")?.[0]?._id || "",
-              finish: getMetaValue("makeup-finish")?.[0]?._id || "",
-              fragrance: getMetaValue("fragrance-family")?.[0]?._id || "",
-              skinConcerns:
-                product.skinConcerns?.map((concern) => concern._id) || [],
-              hairType: product.hairTypes?.[0]?._id || "",
-              skinType: product.skinTypes?.[0]?._id || "",
-              shelfLife: getMetaValue("shelf-life") || "",
-              licenseNo: getMetaValue("license-no") || "",
-              manufacturingDate: product.manufacturingDate || "",
-              expiryDate: product.expiryDate || "",
+              // Map from metaData array
+              targetConcerns: getStringArray(
+                getMetaValueArray(product.metaData, "concern"),
+              ),
+              productFeatures: getStringArray(
+                getMetaValueArray(product.metaData, "special-feature"),
+              ),
+              countryOfOrigin: getStringValue(
+                getMetaValue(product.metaData, "country-of-origin"),
+              ),
+              benefits: [
+                ...getStringArray(product.benefit),
+                ...getStringArray(
+                  getMetaValueArray(product.metaData, "conscious"),
+                ),
+                ...getStringArray(
+                  getMetaValueArray(product.metaData, "claims"),
+                ),
+              ],
+              certifications: getStringArray(
+                getMetaValueArray(product.metaData, "certification-applicable"),
+              ),
+              productForm: getStringValue(
+                getMetaValueArray(product.metaData, "formulation")[0],
+              ),
+              gender: getStringValue(getMetaValue(product.metaData, "gender")),
+              productType: getStringValue(
+                getMetaValue(product.metaData, "product-classification"),
+              ),
+              targetArea: getStringValue(
+                getMetaValueArray(product.metaData, "body-part")[0],
+              ),
+              finish: getStringValue(
+                getMetaValueArray(product.metaData, "makeup-finish")[0],
+              ),
+              fragrance: getStringValue(
+                getMetaValueArray(product.metaData, "fragrance-family")[0],
+              ),
+              skinConcerns: getStringArray(
+                getMetaValueArray(product.metaData, "claims"),
+              ),
+              hairType: getStringValue(
+                getMetaValue(product.metaData, "hair-type"),
+              ),
+              skinType: getStringValue(
+                getMetaValue(product.metaData, "skin-type"),
+              ),
+              shelfLife: getStringValue(
+                getMetaValue(product.metaData, "shelf-life"),
+              ),
+              licenseNo: getStringValue(
+                getMetaValue(product.metaData, "license-no"),
+              ),
+              manufacturingDate: product.manufacturingDate
+                ? product.manufacturingDate.split("T")[0]
+                : "",
+              expiryDate: product.expiryDate
+                ? product.expiryDate.split("T")[0]
+                : "",
               length: product.dimensions?.length || 0,
               width: product.dimensions?.width || 0,
               height: product.dimensions?.height || 0,
-              safetyPrecaution: "", // Not in the response structure
-              howToUse: "", // Not in the response structure
-              customerCareEmail: "", // Not in the response structure
-              customerCareNumber: "", // Not in the response structure
-              ingredient: product.ingredients?.[0]?.name || "",
-              keyIngredients: product.keyIngredients?.[0]?.name || "",
-              benefitsSingle: product.benefit?.[0]?.name || "",
-              captureBy: product.capturedBy?._id || userId,
+              safetyPrecaution: getStringValue(
+                getMetaValue(product.metaData, "safety-precaution"),
+              ),
+              howToUse: getStringValue(
+                getMetaValue(product.metaData, "how-to-use"),
+              ),
+              customerCareEmail: getStringValue(
+                getMetaValue(product.metaData, "customer-care-email"),
+              ),
+              customerCareNumber: getStringValue(
+                getMetaValue(product.metaData, "customer-care-number"),
+              ),
+              ingredient: getStringValue(product.ingredients?.[0]),
+              keyIngredients: getStringValue(product.keyIngredients?.[0]),
+              benefitsSingle: getStringValue(product.benefit?.[0]),
+              captureBy: getStringValue(product.capturedBy) || userId,
               capturedDate: product.capturedDate || new Date().toISOString(),
-              // Media
-              thumbnail: product.thumbnail?._id || "",
-              barcodeImage: product.barcodeImage?._id || "",
-              images: product.images?.map((img) => img._id) || [],
+              // Media - these are now string IDs
+              thumbnail: getStringValue(product.thumbnail),
+              barcodeImage: getStringValue(product.barcodeImage),
+              images: getStringArray(product.images.map((image) => image.url)),
+              // Additional fields from new API
+              aboutTheBrand: product.aboutTheBrand || "",
+              weight: String(product.weight || 0),
+              dimensions: product.dimensions
+                ? `${product.dimensions.length}x${product.dimensions.width}x${product.dimensions.height}`
+                : "",
+              isFeatured: product.isFeatured || false,
+              isNewArrival: product.isNewArrival || false,
+              isBestSeller: product.isBestSeller || false,
+              isTrendingNow: product.isTrendingNow || false,
+              metaTitle: product.metaTitle || "",
+              metaDescription: product.metaDescription || "",
+              metaKeywords: product.metaKeywords || [],
+              hairTypes: getStringArray(product.hairTypes),
+              hairConcerns: getStringArray(product.hairConcerns),
+              hairGoals: getStringArray(product.hairGoals),
+              status_feedback: product.status_feedback || "",
+            };
+
+            console.log("Product data loaded:", {
+              brandId: product.brand,
+              variationTypeId: product.productVariationType,
+              categoryIds: product.productCategory,
+              tagIds: product.tags,
+              marketedById: product.marketedBy,
+              manufacturedById: product.manufacturedBy,
+              importedById: product.importedBy,
+              ingredientIds: product.ingredients,
+              keyIngredientIds: product.keyIngredients,
+              benefitIds: product.benefit,
+              skinConcerns: product.skinConcerns,
+              hairTypes: product.hairTypes,
+              skinTypes: product.skinTypes,
+              productType: product.productType,
             });
 
-            // Set existing media URLs for display
+            // Additional safety check - ensure all form data values are strings
+            const sanitizedFormData = {
+              ...initialFormData,
+              brand: String(initialFormData.brand || ""),
+              productVariationType: String(
+                initialFormData.productVariationType || "",
+              ),
+              productCategory: Array.isArray(initialFormData.productCategory)
+                ? initialFormData.productCategory.map(String)
+                : [],
+              tags: Array.isArray(initialFormData.tags)
+                ? initialFormData.tags.map(String)
+                : [],
+              marketedBy: String(initialFormData.marketedBy || ""),
+              manufacturedBy: String(initialFormData.manufacturedBy || ""),
+              importedBy: String(initialFormData.importedBy || ""),
+              productType: String(initialFormData.productType || ""),
+              ingredient: String(initialFormData.ingredient || ""),
+              keyIngredients: String(initialFormData.keyIngredients || ""),
+              benefitsSingle: String(initialFormData.benefitsSingle || ""),
+              thumbnail: String(initialFormData.thumbnail || ""),
+              barcodeImage: String(initialFormData.barcodeImage || ""),
+              images: Array.isArray(initialFormData.images)
+                ? initialFormData.images.map(String)
+                : [],
+            };
+
+            setFormData(sanitizedFormData);
+
+            // Set existing media URLs for display - these are now string IDs
+            // For now, we'll treat them as URLs or construct URLs from IDs
             setExistingThumbnailUrl(product.thumbnail?.url || "");
             setExistingBarcodeUrl(product.barcodeImage?.url || "");
-            setExistingImagesUrls(product.images?.map((img) => img.url) || []);
+            setExistingImagesUrls(product.images?.map((image) => image.url) || []);
           }
         } catch {
           setError("Failed to load product data");
@@ -642,7 +850,15 @@ const ProductCreate = () => {
     };
 
     fetchProductData();
-  }, [productId, isEditMode, isViewMode]);
+  }, [
+    productId,
+    isEditMode,
+    isViewMode,
+    userId,
+    brands,
+    categories,
+    variationTypes,
+  ]);
 
   const handleInputChange = (
     field: keyof ProductCreateData,
@@ -688,7 +904,7 @@ const ProductCreate = () => {
         importedByAddress: formData.importedByAddress,
         // capturedBy: formData.captureBy,
         capturedBy: "68a862ba96534be7c7c4821d",
-        capturedDate: formData.capturedDate.split("T")[0], // Convert to date string
+        capturedDate: formData.capturedDate.split("T")[0] ?? new Date().toISOString(), // Convert to date string
         thumbnail: formData.thumbnail || "", // Include thumbnail ID
         barcodeImage: formData.barcodeImage || "", // Include barcode ID
         images: formData.images || [], // Include image IDs
@@ -906,20 +1122,20 @@ const ProductCreate = () => {
 
       if (isEditMode && productId) {
         // Update existing product
-        result = (await api.patch(
+        result = (await api.put(
           `${ENDPOINTS.PRODUCT.MAIN}/${productId}`,
           jsonData,
         )) as { success: boolean; message?: string; data?: { _id: string } };
 
-        if (result.success) {
-          // Upload files after successful update
-          try {
-            await uploadFiles(productId);
-          } catch (fileError) {
-            console.warn("File upload failed:", fileError);
-            // Continue even if file upload fails
-          }
-        }
+        // if (result.success) {
+        //   // Upload files after successful update
+        //   try {
+        //     await uploadFiles(productId);
+        //   } catch (fileError) {
+        //     console.warn("File upload failed:", fileError);
+        //     // Continue even if file upload fails
+        // //   }
+        // }
       } else {
         // Create new product
         result = (await api.post(ENDPOINTS.PRODUCT.MAIN, jsonData)) as {
@@ -1359,70 +1575,70 @@ const ProductCreate = () => {
   };
 
   // Function to upload files separately
-  const uploadFiles = async (productId: string) => {
-    const fileUploadPromises = [];
+  // const uploadFiles = async (productId: string) => {
+  //   const fileUploadPromises = [];
 
-    // Upload main images
-    if (uploadedImages.length > 0) {
-      const imageFormData = new FormData();
-      uploadedImages.forEach((file) => {
-        imageFormData.append("images", file);
-      });
+  //   // Upload main images
+  //   if (uploadedImages.length > 0) {
+  //     const imageFormData = new FormData();
+  //     uploadedImages.forEach((file) => {
+  //       imageFormData.append("images", file);
+  //     });
 
-      fileUploadPromises.push(
-        api.post(
-          `${ENDPOINTS.PRODUCT.MAIN}/${productId}/images`,
-          imageFormData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          },
-        ),
-      );
-    }
+  //     fileUploadPromises.push(
+  //       api.post(
+  //         `${ENDPOINTS.PRODUCT.MAIN}/${productId}/images`,
+  //         imageFormData,
+  //         {
+  //           headers: {
+  //             "Content-Type": "multipart/form-data",
+  //           },
+  //         },
+  //       ),
+  //     );
+  //   }
 
-    // Upload thumbnail
-    if (thumbnailImage) {
-      const thumbnailFormData = new FormData();
-      thumbnailFormData.append("thumbnail", thumbnailImage);
+  //   // Upload thumbnail
+  //   if (thumbnailImage) {
+  //     const thumbnailFormData = new FormData();
+  //     thumbnailFormData.append("thumbnail", thumbnailImage);
 
-      fileUploadPromises.push(
-        api.post(
-          `${ENDPOINTS.PRODUCT.MAIN}/${productId}/thumbnail`,
-          thumbnailFormData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          },
-        ),
-      );
-    }
+  //     fileUploadPromises.push(
+  //       api.post(
+  //         `${ENDPOINTS.PRODUCT.MAIN}/${productId}/thumbnail`,
+  //         thumbnailFormData,
+  //         {
+  //           headers: {
+  //             "Content-Type": "multipart/form-data",
+  //           },
+  //         },
+  //       ),
+  //     );
+  //   }
 
-    // Upload barcode image
-    if (barcodeImage) {
-      const barcodeFormData = new FormData();
-      barcodeFormData.append("barcodeImage", barcodeImage);
+  //   // Upload barcode image
+  //   if (barcodeImage) {
+  //     const barcodeFormData = new FormData();
+  //     barcodeFormData.append("barcodeImage", barcodeImage);
 
-      fileUploadPromises.push(
-        api.post(
-          `${ENDPOINTS.PRODUCT.MAIN}/${productId}/barcode`,
-          barcodeFormData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          },
-        ),
-      );
-    }
+  //     fileUploadPromises.push(
+  //       api.post(
+  //         `${ENDPOINTS.PRODUCT.MAIN}/${productId}/barcode`,
+  //         barcodeFormData,
+  //         {
+  //           headers: {
+  //             "Content-Type": "multipart/form-data",
+  //           },
+  //         },
+  //       ),
+  //     );
+  //   }
 
-    // Execute all file uploads in parallel
-    if (fileUploadPromises.length > 0) {
-      await Promise.all(fileUploadPromises);
-    }
-  };
+  //   // Execute all file uploads in parallel
+  //   if (fileUploadPromises.length > 0) {
+  //     await Promise.all(fileUploadPromises);
+  //   }
+  // };
 
   // Dynamic title and description based on mode
   const getPageTitle = () => {
@@ -1644,7 +1860,7 @@ const ProductCreate = () => {
                       Brand *
                     </Label>
                     <SelectRoot
-                      value={formData.brand}
+                      value={String(formData.brand || "")}
                       onValueChange={(value) =>
                         handleInputChange("brand", value)
                       }
@@ -1668,17 +1884,17 @@ const ProductCreate = () => {
                       htmlFor="productVariationType"
                       className="text-sm font-medium text-gray-700"
                     >
-                      Variation Type *
+                      Product Type *
                     </Label>
                     <SelectRoot
-                      value={formData.productVariationType}
+                      value={String(formData.productVariationType || "")}
                       onValueChange={(value) =>
                         handleInputChange("productVariationType", value)
                       }
                       disabled={isViewMode}
                     >
                       <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Select variation type" />
+                        <SelectValue placeholder="Select product type" />
                       </SelectTrigger>
                       <SelectContent>
                         {variationTypes.map((type) => (
@@ -1700,7 +1916,7 @@ const ProductCreate = () => {
                     Category *
                   </Label>
                   <SelectRoot
-                    value={formData.productCategory[0] || ""}
+                    value={String(formData.productCategory[0] || "")}
                     onValueChange={(value) =>
                       handleInputChange("productCategory", [value])
                     }
@@ -1727,7 +1943,7 @@ const ProductCreate = () => {
                     Tags
                   </Label>
                   <SelectRoot
-                    value={formData.tags?.[0] || ""}
+                    value={String(formData.tags?.[0] || "")}
                     onValueChange={(value) =>
                       handleInputChange("tags", [value])
                     }
@@ -1765,8 +1981,10 @@ const ProductCreate = () => {
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="pending">Draft</SelectItem>
+                      <SelectItem value="draft">Draft</SelectItem>
                       <SelectItem value="publish">Publish</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
                     </SelectContent>
                   </SelectRoot>
                 </div>
@@ -2116,7 +2334,7 @@ const ProductCreate = () => {
                 </div>
 
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <div className="space-y-2">
+                  {/* <div className="space-y-2">
                     <Label
                       htmlFor="customerCareEmail"
                       className="text-sm font-medium text-gray-700"
@@ -2134,9 +2352,9 @@ const ProductCreate = () => {
                       className="h-10"
                       disabled={isViewMode}
                     />
-                  </div>
+                  </div> */}
 
-                  <div className="space-y-2">
+                  {/* <div className="space-y-2">
                     <Label
                       htmlFor="customerCareNumber"
                       className="text-sm font-medium text-gray-700"
@@ -2153,7 +2371,7 @@ const ProductCreate = () => {
                       className="h-10"
                       disabled={isViewMode}
                     />
-                  </div>
+                  </div> */}
                 </div>
               </div>
 
@@ -2253,7 +2471,7 @@ const ProductCreate = () => {
               </div>
 
               {/* Capture Details */}
-              <div className="space-y-4">
+              {/* <div className="space-y-4">
                 <h3 className="border-b border-gray-200 pb-2 text-lg font-semibold text-gray-900">
                   Capture Details
                 </h3>
@@ -2275,21 +2493,7 @@ const ProductCreate = () => {
                       className="h-10"
                       disabled={true}
                     />
-                    {/* <SelectRoot
-                      value={formData.captureBy || "admin"}
-                      onValueChange={(value) =>
-                        handleInputChange("captureBy", value)
-                      }
-                      disabled={isViewMode}
-                    >
-                      <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Select capture by" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="user">User</SelectItem>
-                      </SelectContent>
-                    </SelectRoot> */}
+                    
                   </div>
 
                   <div className="space-y-2">
@@ -2318,7 +2522,7 @@ const ProductCreate = () => {
                     />
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               {/* Product Attributes Section */}
               <div className="space-y-4">
@@ -3202,7 +3406,7 @@ const ProductCreate = () => {
                           <div className="aspect-square overflow-hidden rounded-lg bg-gray-100">
                             <img
                               src={url}
-                              alt={`Existing image ${index + 1}`}
+                              alt={`Existing ${index + 1}`}
                               className="h-full w-full object-cover"
                             />
                           </div>
