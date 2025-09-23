@@ -25,7 +25,7 @@ const BrandProductCreate: React.FC = () => {
     );
   }
 
-  return <ProductCreate />;
+  return <ProductCreate companyId={companyId} locationId={locationId} brandId={brandId} />;
 };
 
 export default BrandProductCreate;

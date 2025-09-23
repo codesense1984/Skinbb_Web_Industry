@@ -142,6 +142,14 @@ export const ENDPOINTS = {
       `${API_PREFIX}/sellers/${companyId}/locations/${locationId}/products/${productId}`,
   },
 
+  // Seller Brand Products (New endpoint for product view/edit)
+  SELLER_BRAND_PRODUCTS: {
+    LIST: (sellerId: string, brandId: string) =>
+      `${API_PREFIX}/sellers/${sellerId}/brands/${brandId}/products`,
+    GET_BY_ID: (sellerId: string, brandId: string, productId: string) =>
+      `${API_PREFIX}/sellers/${sellerId}/brands/${brandId}/products/${productId}`,
+  },
+
   DISCOUNT: {
     LIST: `${API_PREFIX}/discount/admin/list`,
   },

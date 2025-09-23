@@ -102,6 +102,18 @@ export const panelRoutes: RouteObject = {
         () => import("@/modules/panel/features/company-location-brands/products/create"),
       ),
     },
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_VIEW(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company-location-brands/products/view"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_EDIT(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company-location-brands/products/edit"),
+      ),
+    },
 
     // company-location-products
     {

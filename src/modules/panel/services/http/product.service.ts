@@ -1,5 +1,5 @@
 import { api } from "@/core/services/http";
-import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
+import { ENDPOINTS, API_PREFIX } from "@/modules/panel/config/endpoint.config";
 
 // API Request/Response Types
 interface ApiParams {
@@ -201,4 +201,13 @@ export async function apiGetProductsForDropdown(params?: ApiParams) {
       // status: "active" // Only active products
     } 
   });
+}
+
+// Product Detail and Update APIs
+export async function apiGetProductDetail(id: string) {
+  return api.get(`${API_PREFIX}/products/detail/${id}`);
+}
+
+export async function apiUpdateProduct(id: string, data: Record<string, unknown>) {
+  return api.put(`${API_PREFIX}/products/admin/${id}`, data);
 }

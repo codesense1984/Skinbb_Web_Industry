@@ -5,22 +5,22 @@ import { Button } from "@/core/components/ui/button";
 import { DataTable } from "@/core/components/data-table";
 import { createSimpleFetcher } from "@/core/components/data-table";
 import { StatusFilter } from "@/core/components/data-table/components/table-filter";
-import { apiGetCompanyLocationProducts } from "@/modules/panel/services/http/company.service";
+import { apiGetSellerBrandProducts } from "@/modules/panel/services/http/company.service";
 import { columns } from "./data";
 import { NavLink } from "react-router";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { ArrowLeftIcon, PlusIcon } from "@heroicons/react/24/solid";
 
 // Create fetcher for server-side data
-const fetcher = (companyId: string, locationId: string, brandId: string) =>
+const fetcher = (companyId: string, brandId: string) =>
   createSimpleFetcher(
-    (params) => apiGetCompanyLocationProducts(companyId, locationId, {
-      ...(params && { params }),
-      brand: brandId, // Filter by brand ID
-    }),
+    (params) =>
+      apiGetSellerBrandProducts(companyId, brandId, {
+        ...(params && { params }),
+      }),
     {
-      dataPath: "data.items",
-      totalPath: "data.total",
+      dataPath: "data.products",
+      totalPath: "data.pagination.totalRecords",
       filterMapping: {
         status: "status",
         category: "category",
@@ -41,11 +41,14 @@ const BrandProductsList: React.FC = () => {
       <PageContent
         header={{
           title: "Brand Products",
-          description: "Company ID, Location ID, and Brand ID are required to view products.",
+          description:
+            "Company ID, Location ID, and Brand ID are required to view products.",
         }}
       >
         <div className="py-8 text-center">
-          <p className="text-gray-500">Invalid company, location, or brand ID provided.</p>
+          <p className="text-gray-500">
+            Invalid company, location, or brand ID provided.
+          </p>
         </div>
       </PageContent>
     );
@@ -61,15 +64,23 @@ const BrandProductsList: React.FC = () => {
             <Button
               asChild
               variant="outlined"
-              className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
+              className="border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50"
             >
-              <NavLink to={PANEL_ROUTES.COMPANY_LOCATION.BRANDS(companyId, locationId)}>
+              <NavLink
+                to={PANEL_ROUTES.COMPANY_LOCATION.BRANDS(companyId, locationId)}
+              >
                 <ArrowLeftIcon className="mr-2 h-4 w-4" />
                 Back to Brands
               </NavLink>
             </Button>
             <Button color={"primary"} asChild>
-              <NavLink to={PANEL_ROUTES.COMPANY_LOCATION.BRAND_PRODUCT_CREATE(companyId, locationId, brandId)}>
+              <NavLink
+                to={PANEL_ROUTES.COMPANY_LOCATION.BRAND_PRODUCT_CREATE(
+                  companyId,
+                  locationId,
+                  brandId,
+                )}
+              >
                 <PlusIcon className="mr-2 h-4 w-4" />
                 Add Product
               </NavLink>
@@ -81,8 +92,8 @@ const BrandProductsList: React.FC = () => {
       <DataTable
         columns={columns(companyId, locationId, brandId)}
         isServerSide
-        fetcher={fetcher(companyId, locationId, brandId)}
-        queryKeyPrefix={`brand-products-${companyId}-${locationId}-${brandId}`}
+        fetcher={fetcher(companyId, brandId)}
+        queryKeyPrefix={`brand-products-${companyId}-${brandId}`}
         actionProps={(tableState) => ({
           children: (
             <StatusFilter
