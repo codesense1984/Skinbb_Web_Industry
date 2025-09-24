@@ -107,7 +107,7 @@ const validateDocuments = async (
               });
 
               if (
-                cinResponse.data.data.company_master_data[
+                cinResponse.data.company_master_data[
                   "company_status(for_efiling)"
                 ] !== "Active"
               ) {
