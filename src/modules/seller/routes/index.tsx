@@ -2,6 +2,7 @@ import MainLayout from "@/core/layouts/main-layout";
 import { lazy } from "react";
 import type { RouteObject } from "react-router";
 import { SELLER_ROUTES } from "./constant";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 
 export const sellerRoutes: RouteObject = {
   Component: MainLayout,
@@ -19,66 +20,110 @@ export const sellerRoutes: RouteObject = {
       ),
     },
 
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.BRANDS(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company-location-brands/list"),
+      ),
+    },
     // brands - using existing panel components
+    // {
+    //   path: "/company/:companyId/locations/:locationId/brands",
+    //   Component: lazy(() => import("@/modules/panel/features/company-location-brands/list")),
+    // },
     {
-      path: "/company/:companyId/locations/:locationId/brands",
-      Component: lazy(() => import("@/modules/panel/features/company-location-brands/list")),
+      path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_VIEW(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company-location-brands/view"),
+      ),
     },
     {
-      path: "/company/:companyId/locations/:locationId/brands/:brandId/view",
-      Component: lazy(() => import("@/modules/panel/features/company-location-brands/view")),
+      path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_CREATE(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company-location-brands/create"),
+      ),
     },
     {
-      path: "/company/:companyId/locations/:locationId/brands/create",
-      Component: lazy(() => import("@/modules/panel/features/company-location-brands/create")),
+      path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_EDIT(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company-location-brands/edit"),
+      ),
     },
+
     {
-      path: "/company/:companyId/locations/:locationId/brands/:brandId/edit",
-      Component: lazy(() => import("@/modules/panel/features/company-location-brands/edit")),
+      path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_CREATE(),
+      Component: lazy(
+        () =>
+          import(
+            "@/modules/panel/features/company-location-brands/products/create"
+          ),
+      ),
     },
+
     {
-      path: "/company/:companyId/locations/:locationId/brands/:brandId/products",
-      Component: lazy(() => import("@/modules/panel/features/company-location-brands/products/list")),
-    },
-    {
-      path: "/company/:companyId/locations/:locationId/brands/:brandId/products/create",
-      Component: lazy(() => import("@/modules/panel/features/company-location-brands/products/create")),
+      path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_PRODUCTS(),
+      Component: lazy(
+        () =>
+          import(
+            "@/modules/panel/features/company-location-brands/products/list"
+          ),
+      ),
     },
 
     // products - using existing panel components
+    // {
+    //   path: "/company/:companyId/locations/:locationId/products",
+    //   Component: lazy(
+    //     () => import("@/modules/panel/features/company-location-products/list"),
+    //   ),
+    // },
+    // {
+    //   path: "/company/:companyId/locations/:locationId/products/:productId/view",
+    //   Component: lazy(
+    //     () => import("@/modules/panel/features/company-location-products/view"),
+    //   ),
+    // },
     {
-      path: "/company/:companyId/locations/:locationId/products",
-      Component: lazy(() => import("@/modules/panel/features/company-location-products/list")),
+      path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_PRODUCT_CREATE(),
+      Component: lazy(
+        () =>
+          import("@/modules/panel/features/company-location-products/create"),
+      ),
     },
     {
-      path: "/company/:companyId/locations/:locationId/products/:productId/view",
-      Component: lazy(() => import("@/modules/panel/features/company-location-products/view")),
-    },
-    {
-      path: "/company/:companyId/locations/:locationId/products/create",
-      Component: lazy(() => import("@/modules/panel/features/company-location-products/create")),
-    },
-    {
-      path: "/company/:companyId/locations/:locationId/products/:productId/edit",
-      Component: lazy(() => import("@/modules/panel/features/company-location-products/edit")),
+      path: PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_EDIT(),
+      Component: lazy(
+        () =>
+          import(
+            "@/modules/panel/features/company-location-brands/products/edit"
+          ),
+      ),
     },
 
     // users - using existing panel components
     {
       path: "/company/:id/users",
-      Component: lazy(() => import("@/modules/panel/features/company/users/list")),
+      Component: lazy(
+        () => import("@/modules/panel/features/company/users/list"),
+      ),
     },
     {
       path: "/company/:id/users/:userId/view",
-      Component: lazy(() => import("@/modules/panel/features/company/users/user-form")),
+      Component: lazy(
+        () => import("@/modules/panel/features/company/users/user-form"),
+      ),
     },
     {
       path: "/company/:id/users/create",
-      Component: lazy(() => import("@/modules/panel/features/company/users/user-form")),
+      Component: lazy(
+        () => import("@/modules/panel/features/company/users/user-form"),
+      ),
     },
     {
       path: "/company/:id/users/:userId/edit",
-      Component: lazy(() => import("@/modules/panel/features/company/users/user-form")),
+      Component: lazy(
+        () => import("@/modules/panel/features/company/users/user-form"),
+      ),
     },
 
     // Products routes

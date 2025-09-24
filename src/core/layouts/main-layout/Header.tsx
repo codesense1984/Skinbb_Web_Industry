@@ -6,9 +6,11 @@ import {
 } from "@/core/components/ui/avatar";
 import { Button } from "@/core/components/ui/button";
 import { DropdownMenu } from "@/core/components/ui/dropdown-menu";
+import { HorizontalLogo } from "@/core/config/svg";
 import { useSidebar } from "@/core/store/theme-provider";
 import { cn } from "@/core/utils";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
+import { ROLE } from "@/modules/auth/types/permission.type.";
 import { useEffect } from "react";
 import { NavLink } from "react-router";
 
@@ -36,45 +38,53 @@ const Header = () => {
         )}
       >
         <div className="flex">
-          <Button
-            variant="ghost"
-            className="text-muted-foreground"
-            size="icon"
-            onClick={toggleSidebar}
+          {role === ROLE.ADMIN && (
+            <Button
+              variant="ghost"
+              className="text-muted-foreground"
+              size="icon"
+              onClick={toggleSidebar}
+            >
+              {isSidebarOpen && (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="size-6"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12"
+                  />
+                </svg>
+              )}
+              {!isSidebarOpen && (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="size-6"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h16.5"
+                  />
+                </svg>
+              )}
+            </Button>
+          )}
+          <NavLink
+            to="/"
+            className="ml-4 flex hidden items-center no-underline transition-all active:scale-98 md:block"
           >
-            {isSidebarOpen && (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="size-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12"
-                />
-              </svg>
-            )}
-            {!isSidebarOpen && (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="size-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h16.5"
-                />
-              </svg>
-            )}
-          </Button>
+            <HorizontalLogo className="!h-7 !w-full" />
+          </NavLink>
           <NavLink
             to="/"
             className="flex items-center no-underline transition-all active:scale-98 md:hidden"
