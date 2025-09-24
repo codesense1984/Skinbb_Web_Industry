@@ -1,45 +1,46 @@
-import React, { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/core/components/ui/card";
-import { PageContent } from "@/core/components/ui/structure";
-import { Badge } from "@/core/components/ui/badge";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/core/components/ui/accordion";
-import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
-import { apiGetCompanyDetailById } from "@/modules/panel/services/http/company.service";
-import { apiGetCompanyLocationById } from "@/modules/panel/services/http/company-location.service";
-import { useQuery } from "@tanstack/react-query";
-import { Link, useNavigate } from "react-router";
+import { Badge, StatusBadge } from "@/core/components/ui/badge";
+import { Button } from "@/core/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/core/components/ui/card";
+import { DropdownMenu } from "@/core/components/ui/dropdown-menu";
+import { PageContent } from "@/core/components/ui/structure";
+import { STATUS_MAP } from "@/core/config/status";
+import { LocationService } from "@/core/services/location.service";
 import { formatDate } from "@/core/utils";
+import { useAuth } from "@/modules/auth/hooks/useAuth";
+import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
+import { apiGetCompanyLocationById } from "@/modules/panel/services/http/company-location.service";
+import { apiGetCompanyDetailById } from "@/modules/panel/services/http/company.service";
 import {
   BuildingOfficeIcon,
-  MapPinIcon,
-  PhoneIcon,
   CalendarIcon,
-  DocumentTextIcon,
-  LinkIcon,
-  StarIcon,
   CheckCircleIcon,
-  XCircleIcon,
-  ExclamationTriangleIcon,
-  UserGroupIcon,
-  TagIcon,
-  PencilIcon,
+  DocumentTextIcon,
   EllipsisVerticalIcon,
+  ExclamationTriangleIcon,
+  LinkIcon,
+  MapPinIcon,
+  PencilIcon,
+  PhoneIcon,
+  StarIcon,
+  TagIcon,
+  UserGroupIcon,
+  XCircleIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@/core/components/ui/button";
-import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
-import { LocationService } from "@/core/services/location.service";
-import { StatusBadge } from "@/core/components/ui/badge";
-import { DropdownMenu } from "@/core/components/ui/dropdown-menu";
+import { useQuery } from "@tanstack/react-query";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router";
 
 // Reusable InfoItem component for displaying information with icons
 interface InfoItemProps {
@@ -160,7 +161,11 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
           <div className="flex flex-wrap items-center gap-2">
             <DropdownMenu
               items={[
-                ...(onViewLocation && address.status === "pending"
+                ...(onViewLocation &&
+                [
+                  STATUS_MAP.company.pending.value,
+                  STATUS_MAP.company.rejected.value,
+                ].includes(address.status || "")
                   ? [
                       {
                         type: "item" as const,
@@ -192,7 +197,10 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                       },
                     ]
                   : []),
-                ...(onViewBrands
+                ...(![
+                  STATUS_MAP.company.pending.value,
+                  STATUS_MAP.company.rejected.value,
+                ].includes(address.status || "") && onViewBrands
                   ? [
                       {
                         type: "item" as const,
@@ -208,22 +216,22 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                       },
                     ]
                   : []),
-                ...(onViewProducts
-                  ? [
-                      {
-                        type: "item" as const,
-                        onClick: () => {
-                          onViewProducts(companyId, locationId || "");
-                        },
-                        children: (
-                          <>
-                            <DocumentTextIcon />
-                            View Products
-                          </>
-                        ),
-                      },
-                    ]
-                  : []),
+                // ...(onViewProducts
+                //   ? [
+                //       {
+                //         type: "item" as const,
+                //         onClick: () => {
+                //           onViewProducts(companyId, locationId || "");
+                //         },
+                //         children: (
+                //           <>
+                //             <DocumentTextIcon />
+                //             View Products
+                //           </>
+                //         ),
+                //       },
+                //     ]
+                //   : []),
               ]}
             >
               <Button variant="ghost" size="icon">
@@ -493,6 +501,7 @@ export const CompanyViewCore: React.FC<CompanyViewCoreProps> = ({
   onEditLocation,
 }) => {
   const navigate = useNavigate();
+  const { userId } = useAuth();
   const [expandedAddress, setExpandedAddress] = useState<string | null>(null);
 
   const {
@@ -501,7 +510,7 @@ export const CompanyViewCore: React.FC<CompanyViewCoreProps> = ({
     error: companyError,
   } = useQuery({
     queryKey: [ENDPOINTS.COMPANY.DETAIL(companyId)],
-    queryFn: () => apiGetCompanyDetailById(companyId),
+    queryFn: () => apiGetCompanyDetailById(companyId, userId!),
     enabled: !!companyId,
   });
 

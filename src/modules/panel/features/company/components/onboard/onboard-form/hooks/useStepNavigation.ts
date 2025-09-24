@@ -58,7 +58,7 @@ const validateDocuments = async (
                 panData: {
                   pan: doc.number,
                   nameAsPerPan: name,
-                  dateOfBirth: format(establishedIn, "MM/dd/yyyy"),
+                  dateOfBirth: format(establishedIn, "dd/MM/yyyy"),
                 },
               });
 

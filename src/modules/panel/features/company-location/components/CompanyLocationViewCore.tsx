@@ -179,7 +179,9 @@ export const CompanyLocationViewCore: React.FC<
         <div className="text-center">
           <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
           <p className="text-gray-600">
-            {isAuthLoading ? "Loading user data..." : "Loading location details..."}
+            {isAuthLoading
+              ? "Loading user data..."
+              : "Loading location details..."}
           </p>
         </div>
       </div>
@@ -365,15 +367,12 @@ export const CompanyLocationViewCore: React.FC<
             <InfoItem
               icon={<MapPinIcon className="h-5 w-5" />}
               label="Country"
-              value={LocationService.getCountryName(currentLocation.country)}
+              value={currentLocation.country}
             />
             <InfoItem
               icon={<MapPinIcon className="h-5 w-5" />}
               label="State"
-              value={LocationService.getStateName(
-                currentLocation.country,
-                currentLocation.state,
-              )}
+              value={currentLocation.state}
             />
             <InfoItem
               icon={<MapPinIcon className="h-5 w-5" />}
@@ -560,7 +559,7 @@ export const CompanyLocationViewCore: React.FC<
 
                       {/* Brand Metrics */}
                       <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-                        <InfoItem
+                        {/* <InfoItem
                           icon={<ShoppingBagIcon className="h-5 w-5" />}
                           label="Total SKU"
                           value={
@@ -581,7 +580,19 @@ export const CompanyLocationViewCore: React.FC<
                             </span>
                           }
                           className="rounded-lg border p-3"
-                        />
+                        /> */}
+                        {brand?.websiteUrl && (
+                          <InfoItem
+                            icon={<LinkIcon className="h-5 w-5" />}
+                            label="Website URL"
+                            value={
+                              <span className="text-lg font-bold">
+                                {brand?.websiteUrl || ""}
+                              </span>
+                            }
+                            className="rounded-lg border p-3"
+                          />
+                        )}
                         <InfoItem
                           icon={<TagIcon className="h-5 w-5" />}
                           label="Product Categories"
@@ -691,11 +702,7 @@ export const CompanyLocationViewCore: React.FC<
                             label="Email"
                             value={brand.owner?.ownerEmail || "-"}
                           />
-                          <InfoItem
-                            icon={<PhoneIcon className="h-5 w-5" />}
-                            label="Fixed landline Number"
-                            value={brand.owner?.landlineNo || "-"}
-                          />
+
                           <InfoItem
                             icon={<DocumentTextIcon className="h-5 w-5" />}
                             label="Designation"
@@ -710,21 +717,25 @@ export const CompanyLocationViewCore: React.FC<
           </Card>
         )}
 
-      {/* Brand and Product Management */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <BrandDropdown
-          brands={currentLocation.brands?.filter((brand: Brand | null) => brand != null) || []}
-          selectedBrandId={selectedBrandId}
-          onBrandSelect={(brand) => setSelectedBrandId(brand?._id)}
-          companyId={companyId}
-          locationId={locationId}
-        />
-        <ProductDropdown
-          companyId={companyId}
-          locationId={locationId}
-          maxProducts={5}
-        />
-      </div>
+      {/* Brand and Product Management
+      // <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      //   <BrandDropdown
+      //     brands={
+      //       currentLocation.brands?.filter(
+      //         (brand: Brand | null) => brand != null,
+      //       ) || []
+      //     }
+      //     selectedBrandId={selectedBrandId}
+      //     onBrandSelect={(brand) => setSelectedBrandId(brand?._id)}
+      //     companyId={companyId}
+      //     locationId={locationId}
+      //   />
+      //   <ProductDropdown
+      //     companyId={companyId}
+      //     locationId={locationId}
+      //     maxProducts={5}
+      //   />
+      // </div> */}
 
       {/* Company Information */}
       <Card>
@@ -736,25 +747,23 @@ export const CompanyLocationViewCore: React.FC<
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <div className="space-y-4">
-              <InfoItem
-                icon={<BuildingOfficeIcon className="h-5 w-5" />}
-                label="Company Name"
-                value={company.companyName}
-              />
-              <InfoItem
-                icon={<TagIcon className="h-5 w-5" />}
-                label="Business Type"
-                value={company.businessType || "-"}
-              />
-              <InfoItem
-                icon={<TagIcon className="h-5 w-5" />}
-                label="Company Category"
-                value={company.companyCategory || "-"}
-              />
-            </div>
+            <InfoItem
+              icon={<BuildingOfficeIcon className="h-5 w-5" />}
+              label="Company Name"
+              value={company.companyName}
+            />
+            <InfoItem
+              icon={<TagIcon className="h-5 w-5" />}
+              label="Business Type"
+              value={company.businessType || "-"}
+            />
+            <InfoItem
+              icon={<TagIcon className="h-5 w-5" />}
+              label="Company Category"
+              value={company.companyCategory || "-"}
+            />
 
-            <div className="space-y-4">
+            {/* <div className="space-y-4">
               <InfoItem
                 icon={<CalendarIcon className="h-5 w-5" />}
                 label="Established In"
@@ -765,48 +774,46 @@ export const CompanyLocationViewCore: React.FC<
                 label="Designation"
                 value={owner?.ownerDesignation || "-"}
               />
-            </div>
+            </div> */}
 
-            <div className="space-y-4">
+            <InfoItem
+              icon={
+                company.subsidiaryOfGlobalBusiness ? (
+                  <CheckCircleIcon className="h-5 w-5" />
+                ) : (
+                  <XCircleIcon className="h-5 w-5" />
+                )
+              }
+              label="Subsidiary of Global Business"
+              value={company.subsidiaryOfGlobalBusiness ? "Yes" : "No"}
+            />
+            <InfoItem
+              icon={<MapPinIcon className="h-5 w-5" />}
+              label="Headquarters"
+              value={company.headquaterLocation || "-"}
+            />
+            {company.website && (
               <InfoItem
-                icon={
-                  company.subsidiaryOfGlobalBusiness ? (
-                    <CheckCircleIcon className="h-5 w-5" />
-                  ) : (
-                    <XCircleIcon className="h-5 w-5" />
-                  )
+                icon={<GlobeAltIcon className="h-5 w-5" />}
+                label="Company Website"
+                value={
+                  <a
+                    href={company.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm break-all text-blue-600 hover:text-blue-800"
+                  >
+                    {company.website}
+                  </a>
                 }
-                label="Subsidiary of Global Business"
-                value={company.subsidiaryOfGlobalBusiness ? "Yes" : "No"}
               />
-              <InfoItem
-                icon={<MapPinIcon className="h-5 w-5" />}
-                label="Headquarters"
-                value={company.headquaterLocation || "-"}
-              />
-              {company.website && (
-                <InfoItem
-                  icon={<GlobeAltIcon className="h-5 w-5" />}
-                  label="Company Website"
-                  value={
-                    <a
-                      href={company.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm break-all text-blue-600 hover:text-blue-800"
-                    >
-                      {company.website}
-                    </a>
-                  }
-                />
-              )}
-            </div>
+            )}
             {company.companyDescription && (
               <InfoItem
                 icon={<GlobeAltIcon className="h-5 w-5" />}
                 label="Company Information"
                 value={company.companyDescription}
-                className="col-span-4"
+                className="lg:col-span-3"
               />
             )}
           </div>
