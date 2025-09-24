@@ -254,7 +254,7 @@ export const rawItems: Readonly<Record<string, SidebarItem>> = {
   },
 
   surveys: {
-    name: "surveys",
+    name: "brand surveys",
     requiredRoles: [ROLE.ADMIN],
 
     href: SURVEY_ROUTES.LIST,

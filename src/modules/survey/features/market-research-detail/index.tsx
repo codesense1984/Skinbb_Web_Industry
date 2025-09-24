@@ -28,7 +28,7 @@ const marketData: Survey = {
   category: "Product Feedback",
   questions: [
     {
-      text: "How effective was the dermatology product in addressing your skin concerns?",
+      text: "How Effective Was MyBrand To Address Your Skin Concern?",
       type: SurveyQuestionType.multiple_choice,
       description: "Please rate how well the product worked for you.",
       options: [
@@ -40,7 +40,7 @@ const marketData: Survey = {
       ],
     },
     {
-      text: "What skin concerns do you usually have?",
+      text: "Which skin concern do you feel our product range is not addressing? ",
       type: SurveyQuestionType.single_choice,
       description: "Select all that apply to your skin’s condition.",
       options: [
@@ -56,7 +56,7 @@ const marketData: Survey = {
       ],
     },
     {
-      text: "Would you like us to improve our products?",
+      text: "Would you recommend MYBRAND to your friend? ",
       type: SurveyQuestionType.yes_no,
       description: "",
       options: [],
