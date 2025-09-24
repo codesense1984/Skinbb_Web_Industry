@@ -169,6 +169,8 @@ interface ProductCreateProps {
   companyId?: string;
   locationId?: string;
   brandId?: string;
+  productId?: string;
+  mode?: "create" | "edit" | "view";
 }
 
 const ProductCreate = (props?: ProductCreateProps) => {
@@ -182,6 +184,8 @@ const ProductCreate = (props?: ProductCreateProps) => {
   // Use props if provided, otherwise use URL params
   const brandId = props?.brandId ||"";
   const companyId = props?.companyId ||"";
+  const productId = props?.productId ||"";
+  const mode = props?.mode ||"";
   const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -189,17 +193,19 @@ const ProductCreate = (props?: ProductCreateProps) => {
 
   const { userId, role } = useAuth();
 
-  // Get mode and id from URL parameters
-  const mode = searchParams.get("mode"); // 'view' or 'edit'
-  const productId = searchParams.get("id");
+  // Get mode and id from URL parameters (fallback if not provided as props)
+  const urlMode = searchParams.get("mode"); // 'view' or 'edit'
+  const urlProductId = searchParams.get("id");
   const urlCompanyId = searchParams.get("companyId");
   const urlBrandId = searchParams.get("brandId");
-  const isEditMode = mode === "edit";
-  const isViewMode = mode === "view";
   
-  // Use URL params if available, otherwise use props
+  // Use props if available, otherwise use URL params
+  const finalMode = mode || urlMode;
+  const finalProductId = productId || urlProductId;
   const finalCompanyId = urlCompanyId || companyId;
   const finalBrandId = urlBrandId || brandId;
+  const isEditMode = finalMode === "edit";
+  const isViewMode = finalMode === "view";
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const [thumbnailImage, setThumbnailImage] = useState<File | null>(null);
@@ -562,7 +568,7 @@ const ProductCreate = (props?: ProductCreateProps) => {
   // Fetch product data for edit/view mode
   useEffect(() => {
     const fetchProductData = async () => {
-      if (productId && (isEditMode || isViewMode)) {
+      if (finalProductId && (isEditMode || isViewMode)) {
         try {
           // Only use new API endpoint - require both companyId and brandId
           if (!finalCompanyId || !finalBrandId) {
@@ -570,7 +576,7 @@ const ProductCreate = (props?: ProductCreateProps) => {
             return;
           }
 
-          const response = (await apiGetSellerBrandProductById(finalCompanyId, finalBrandId, productId)) as {
+          const response = (await apiGetSellerBrandProductById(finalCompanyId, finalBrandId, finalProductId)) as {
             statusCode: number;
             success: boolean;
             data: Record<string, unknown>;
@@ -811,7 +817,7 @@ const ProductCreate = (props?: ProductCreateProps) => {
 
     fetchProductData();
   }, [
-    productId,
+    finalProductId,
     isEditMode,
     isViewMode,
     userId,
