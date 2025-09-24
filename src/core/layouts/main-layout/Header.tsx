@@ -79,12 +79,12 @@ const Header = () => {
               )}
             </Button>
           )}
-          <NavLink
+          {role !== ROLE.ADMIN && <NavLink
             to="/"
             className="ml-4 flex hidden items-center no-underline transition-all active:scale-98 md:block"
           >
             <HorizontalLogo className="!h-7 !w-full" />
-          </NavLink>
+          </NavLink>}
           <NavLink
             to="/"
             className="flex items-center no-underline transition-all active:scale-98 md:hidden"
