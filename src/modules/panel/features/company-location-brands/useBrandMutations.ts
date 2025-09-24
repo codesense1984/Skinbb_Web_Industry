@@ -7,6 +7,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
+import { ENDPOINTS } from "../../config/endpoint.config";
 import type { BrandFormData } from "./brand.schema";
 import {
   BRAND_ERROR_MESSAGES,
@@ -36,7 +37,9 @@ export const useBrandCreateMutation = () => {
 
       // Invalidate and refetch the brands list
       queryClient.invalidateQueries({
-        queryKey: BRAND_QUERY_KEYS.BRANDS_LIST(companyId!, locationId!),
+        queryKey: [
+          ENDPOINTS.COMPANY_LOCATION_BRANDS.LIST(companyId!, locationId!),
+        ],
       });
 
       // Navigate back to brands list
@@ -74,9 +77,10 @@ export const useBrandUpdateMutation = () => {
 
       // Invalidate and refetch the brands list
       queryClient.invalidateQueries({
-        queryKey: BRAND_QUERY_KEYS.BRANDS_LIST(companyId!, locationId!),
+        queryKey: [
+          ENDPOINTS.COMPANY_LOCATION_BRANDS.LIST(companyId!, locationId!),
+        ],
       });
-
       // Navigate back to brands list
       navigate(PANEL_ROUTES.COMPANY_LOCATION.BRANDS(companyId!, locationId!));
     },

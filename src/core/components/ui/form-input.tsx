@@ -213,7 +213,7 @@ function FormInput<T extends FieldValues, N extends FieldPath<T>>(
   const { inputProps: _, ...formItem } = rest;
 
   const formItemPropsClass = cn(
-    "h-fit",
+    "h-fit block space-y-2",
     type === "checkbox" && "flex items-center flex-row-reverse justify-end",
     className,
   );

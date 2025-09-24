@@ -554,12 +554,10 @@ export async function apiGetCompanyLocationProductById<
 
 // ---- Seller Brand Products (New endpoint for product view/edit) ----
 // Get product details for a specific seller brand
-export async function apiGetSellerBrandProductById<
+export async function apiGetProductDetailById<
   T = ApiResponse<Record<string, unknown>>, // Product type will be defined later
->(sellerId: string, brandId: string, productId: string) {
-  return api.get<T>(
-    ENDPOINTS.SELLER_BRAND_PRODUCTS.GET_BY_ID(sellerId, brandId, productId),
-  );
+>(productId: string) {
+  return api.get<T>(ENDPOINTS.SELLER_BRAND_PRODUCTS.DETAILS(productId));
 }
 
 // Get products list for a specific seller brand
@@ -576,8 +574,9 @@ export async function apiGetSellerBrandProducts<
   params?: PaginationParams,
   signal?: AbortSignal,
 ) {
+  console.log("🚀 ~ apiGetSellerBrandProducts ~ params:", params);
   return api.get<T>(ENDPOINTS.SELLER_BRAND_PRODUCTS.LIST(sellerId, brandId), {
-    ...(params && { params }),
+    params,
     signal,
   });
 }

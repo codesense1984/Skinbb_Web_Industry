@@ -1,12 +1,20 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/core/components/ui/badge";
 import { StatusBadge } from "@/core/components/ui/badge";
-import { AvatarRoot, AvatarImage, AvatarFallback } from "@/core/components/ui/avatar";
+import {
+  AvatarRoot,
+  AvatarImage,
+  AvatarFallback,
+} from "@/core/components/ui/avatar";
 import { Button } from "@/core/components/ui/button";
 import { DropdownMenu } from "@/core/components/ui/dropdown-menu";
 import { formatCurrency } from "@/core/utils";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
-import { EyeIcon, PencilIcon, EllipsisVerticalIcon } from "@heroicons/react/24/solid";
+import {
+  EyeIcon,
+  PencilIcon,
+  EllipsisVerticalIcon,
+} from "@heroicons/react/24/solid";
 
 // Product type - this should match the actual product type from your API
 interface Product {
@@ -17,6 +25,7 @@ interface Product {
   };
   brand?: {
     name: string;
+    _id: string;
   };
   productCategory?: Array<{ name: string }>;
   status: string;
@@ -97,10 +106,10 @@ export const columns = (
     cell: ({ getValue }) => {
       const priceRange = getValue() as { min: number; max: number } | undefined;
       if (!priceRange) return "-";
-      
+
       const minPrice = formatCurrency(priceRange.min);
       const maxPrice = formatCurrency(priceRange.max);
-      
+
       return (
         <div className="text-sm">
           {minPrice === maxPrice ? minPrice : `${minPrice} - ${maxPrice}`}
@@ -114,7 +123,7 @@ export const columns = (
     cell: ({ getValue }) => {
       const variants = (getValue() as Array<any>) || [];
       return (
-        <div className="text-sm text-muted-foreground">
+        <div className="text-muted-foreground text-sm">
           {variants.length} variant{variants.length !== 1 ? "s" : ""}
         </div>
       );
@@ -126,7 +135,7 @@ export const columns = (
     cell: ({ getValue }) => {
       const date = getValue() as string;
       return (
-        <div className="text-sm text-muted-foreground">
+        <div className="text-muted-foreground text-sm">
           {new Date(date).toLocaleDateString()}
         </div>
       );
@@ -145,6 +154,7 @@ export const columns = (
           to: PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_VIEW(
             companyId,
             locationId,
+            row.original.brand?._id,
             row.original._id,
           ),
           title: "View product details",
@@ -159,6 +169,7 @@ export const columns = (
           to: PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_EDIT(
             companyId,
             locationId,
+            row.original.brand?._id,
             row.original._id,
           ),
           title: "Edit product",

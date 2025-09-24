@@ -223,6 +223,7 @@ export const PANEL_ROUTES = {
     PRODUCT_EDIT: (
       companyId: string = ":companyId",
       locationId: string = ":locationId",
+      brandId: string = ":brandId",
       productId: string = ":productId",
     ) =>
       ROUTE.build(
@@ -231,12 +232,16 @@ export const PANEL_ROUTES = {
         "locations",
         locationId,
         "products",
+        "brand",
+        brandId,
+        "product",
         productId,
         ROUTE.seg.edit,
       ), // /company/:companyId/locations/:locationId/products/:productId/edit
     PRODUCT_VIEW: (
       companyId: string = ":companyId",
       locationId: string = ":locationId",
+      brandId: string = ":brandId",
       productId: string = ":productId",
     ) =>
       ROUTE.build(
@@ -245,6 +250,9 @@ export const PANEL_ROUTES = {
         "locations",
         locationId,
         "products",
+        "brand",
+        brandId,
+        "product",
         productId,
         ROUTE.seg.view,
       ), // /company/:companyId/locations/:locationId/products/:productId/view
@@ -280,13 +288,16 @@ export const PANEL_ROUTES = {
     LIST: LISTING_BASE, // /listing
     CREATE: ROUTE.build(LISTING_BASE, ROUTE.seg.create), // /listing/create
     CREATE_WITH_PARAMS: (companyId: string, brandId: string) =>
-      ROUTE.build(LISTING_BASE, ROUTE.seg.create) + `?companyId=${companyId}&brandId=${brandId}`, // /listing/create?companyId=:companyId&brandId=:brandId
+      ROUTE.build(LISTING_BASE, ROUTE.seg.create) +
+      `?companyId=${companyId}&brandId=${brandId}`, // /listing/create?companyId=:companyId&brandId=:brandId
     EDIT: (id: string = ROUTE.seg.id) =>
       ROUTE.build(LISTING_BASE, id, ROUTE.seg.edit), // /listing/edit/:id
     EDIT_WITH_PARAMS: (companyId: string, brandId: string, id: string) =>
-      ROUTE.build(LISTING_BASE, ROUTE.seg.create) + `?mode=edit&id=${id}&companyId=${companyId}&brandId=${brandId}`, // /listing/create?mode=edit&id=:id&companyId=:companyId&brandId=:brandId
+      ROUTE.build(LISTING_BASE, ROUTE.seg.create) +
+      `?mode=edit&id=${id}&companyId=${companyId}&brandId=${brandId}`, // /listing/create?mode=edit&id=:id&companyId=:companyId&brandId=:brandId
     VIEW_WITH_PARAMS: (companyId: string, brandId: string, id: string) =>
-      ROUTE.build(LISTING_BASE, ROUTE.seg.create) + `?mode=view&id=${id}&companyId=${companyId}&brandId=${brandId}`, // /listing/create?mode=view&id=:id&companyId=:companyId&brandId=:brandId
+      ROUTE.build(LISTING_BASE, ROUTE.seg.create) +
+      `?mode=view&id=${id}&companyId=${companyId}&brandId=${brandId}`, // /listing/create?mode=view&id=:id&companyId=:companyId&brandId=:brandId
     DETAIL: (id: string = ROUTE.seg.id) => ROUTE.build(LISTING_BASE, id), // /listing/:id
   },
 

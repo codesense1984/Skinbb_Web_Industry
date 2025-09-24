@@ -28,8 +28,9 @@ import {
   apiGetBenefits,
   apiGetProductAttributeValues,
 } from "@/modules/panel/services/http/product.service";
-import { apiGetSellerBrandProductById } from "@/modules/panel/services/http/company.service";
+import { apiGetProductDetailById } from "@/modules/panel/services/http/company.service";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
+import { MODE } from "@/core/types";
 
 interface ProductCreateData {
   productName: string;
@@ -170,42 +171,36 @@ interface ProductCreateProps {
   locationId?: string;
   brandId?: string;
   productId?: string;
-  mode?: "create" | "edit" | "view";
+  mode?: MODE;
 }
 
 const ProductCreate = (props?: ProductCreateProps) => {
   const navigate = useNavigate();
-  // const urlParams = useParams<{ 
+  // const urlParams = useParams<{
   //   brandId: string;
   //   companyId?: string;
   //   locationId?: string;
   // }>();
-  
+
   // Use props if provided, otherwise use URL params
-  const brandId = props?.brandId ||"";
-  const companyId = props?.companyId ||"";
-  const productId = props?.productId ||"";
-  const mode = props?.mode ||"";
+  const brandId = props?.brandId || "";
+  const companyId = props?.companyId || "";
+  let productId = props?.productId || "";
+  const mode = props?.mode || "";
   const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  console.log("🚀 ~ ProductCreate ~ brandId:", brandId);
 
   const { userId, role } = useAuth();
 
   // Get mode and id from URL parameters (fallback if not provided as props)
-  const urlMode = searchParams.get("mode"); // 'view' or 'edit'
-  const urlProductId = searchParams.get("id");
-  const urlCompanyId = searchParams.get("companyId");
-  const urlBrandId = searchParams.get("brandId");
-  
+  if (!productId) {
+    productId = searchParams.get("id") ?? "";
+  }
+
   // Use props if available, otherwise use URL params
-  const finalMode = mode || urlMode;
-  const finalProductId = productId || urlProductId;
-  const finalCompanyId = urlCompanyId || companyId;
-  const finalBrandId = urlBrandId || brandId;
-  const isEditMode = finalMode === "edit";
-  const isViewMode = finalMode === "view";
+  const isEditMode = mode === MODE.EDIT;
+  const isViewMode = mode === MODE.VIEW;
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const [thumbnailImage, setThumbnailImage] = useState<File | null>(null);
@@ -217,14 +212,6 @@ const ProductCreate = (props?: ProductCreateProps) => {
   const [existingThumbnailUrl, setExistingThumbnailUrl] = useState<string>("");
   const [existingBarcodeUrl, setExistingBarcodeUrl] = useState<string>("");
   const [existingImagesUrls, setExistingImagesUrls] = useState<string[]>([]);
-  console.log("🚀 ~ ProductCreate ~ uploadedImages:", {
-    uploadedImages,
-    thumbnailImage,
-    barcodeImage,
-    existingThumbnailUrl,
-    existingBarcodeUrl,
-    existingImagesUrls,
-  });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const barcodeInputRef = useRef<HTMLInputElement>(null);
@@ -269,7 +256,7 @@ const ProductCreate = (props?: ProductCreateProps) => {
     salePrice: 0,
     quantity: 0,
     sku: "",
-    brand: finalBrandId || "",
+    brand: brandId || "",
     productVariationType: "",
     productCategory: [],
     tags: [],
@@ -568,20 +555,22 @@ const ProductCreate = (props?: ProductCreateProps) => {
   // Fetch product data for edit/view mode
   useEffect(() => {
     const fetchProductData = async () => {
-      if (finalProductId && (isEditMode || isViewMode)) {
+      if (productId && (isEditMode || isViewMode)) {
         try {
           // Only use new API endpoint - require both companyId and brandId
-          if (!finalCompanyId || !finalBrandId) {
-            setError("Company ID and Brand ID are required to fetch product data");
+          if (!companyId || !brandId) {
+            setError(
+              "Company ID and Brand ID are required to fetch product data",
+            );
             return;
           }
 
-          const response = (await apiGetSellerBrandProductById(finalCompanyId, finalBrandId, finalProductId)) as {
+          const response = (await apiGetProductDetailById(productId)) as {
             statusCode: number;
             success: boolean;
             data: Record<string, unknown>;
           };
-          
+
           if (response.success && response.data) {
             // Extract product data from response - handle both old and new API response structures
             const product = response.data as Record<string, unknown>;
@@ -652,61 +641,115 @@ const ProductCreate = (props?: ProductCreateProps) => {
               marketedBy: getStringValue(product.marketedBy),
               marketedByAddress: (product.marketedByAddress as string) || "",
               manufacturedBy: getStringValue(product.manufacturedBy),
-              manufacturedByAddress: (product.manufacturedByAddress as string) || "",
+              manufacturedByAddress:
+                (product.manufacturedByAddress as string) || "",
               importedBy: getStringValue(product.importedBy),
               importedByAddress: (product.importedByAddress as string) || "",
               // Map from metaData array
               targetConcerns: getStringArray(
-                getMetaValueArray(product.metaData as Array<{ key: string; value: unknown }>, "concern"),
+                getMetaValueArray(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "concern",
+                ),
               ),
               productFeatures: getStringArray(
-                getMetaValueArray(product.metaData as Array<{ key: string; value: unknown }>, "special-feature"),
+                getMetaValueArray(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "special-feature",
+                ),
               ),
               countryOfOrigin: getStringValue(
-                getMetaValue(product.metaData as Array<{ key: string; value: unknown }>, "country-of-origin"),
+                getMetaValue(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "country-of-origin",
+                ),
               ),
               benefits: [
                 ...getStringArray(product.benefit),
                 ...getStringArray(
-                  getMetaValueArray(product.metaData as Array<{ key: string; value: unknown }>, "conscious"),
+                  getMetaValueArray(
+                    product.metaData as Array<{ key: string; value: unknown }>,
+                    "conscious",
+                  ),
                 ),
                 ...getStringArray(
-                  getMetaValueArray(product.metaData as Array<{ key: string; value: unknown }>, "claims"),
+                  getMetaValueArray(
+                    product.metaData as Array<{ key: string; value: unknown }>,
+                    "claims",
+                  ),
                 ),
               ],
               certifications: getStringArray(
-                getMetaValueArray(product.metaData as Array<{ key: string; value: unknown }>, "certification-applicable"),
+                getMetaValueArray(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "certification-applicable",
+                ),
               ),
               productForm: getStringValue(
-                getMetaValueArray(product.metaData as Array<{ key: string; value: unknown }>, "formulation")[0],
+                getMetaValueArray(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "formulation",
+                )[0],
               ),
-              gender: getStringValue(getMetaValue(product.metaData as Array<{ key: string; value: unknown }>, "gender")),
+              gender: getStringValue(
+                getMetaValue(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "gender",
+                ),
+              ),
               productType: getStringValue(
-                getMetaValue(product.metaData as Array<{ key: string; value: unknown }>, "product-classification"),
+                getMetaValue(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "product-classification",
+                ),
               ),
               targetArea: getStringValue(
-                getMetaValueArray(product.metaData as Array<{ key: string; value: unknown }>, "body-part")[0],
+                getMetaValueArray(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "body-part",
+                )[0],
               ),
               finish: getStringValue(
-                getMetaValueArray(product.metaData as Array<{ key: string; value: unknown }>, "makeup-finish")[0],
+                getMetaValueArray(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "makeup-finish",
+                )[0],
               ),
               fragrance: getStringValue(
-                getMetaValueArray(product.metaData as Array<{ key: string; value: unknown }>, "fragrance-family")[0],
+                getMetaValueArray(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "fragrance-family",
+                )[0],
               ),
               skinConcerns: getStringArray(
-                getMetaValueArray(product.metaData as Array<{ key: string; value: unknown }>, "claims"),
+                getMetaValueArray(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "claims",
+                ),
               ),
               hairType: getStringValue(
-                getMetaValue(product.metaData as Array<{ key: string; value: unknown }>, "hair-type"),
+                getMetaValue(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "hair-type",
+                ),
               ),
               skinType: getStringValue(
-                getMetaValue(product.metaData as Array<{ key: string; value: unknown }>, "skin-type"),
+                getMetaValue(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "skin-type",
+                ),
               ),
               shelfLife: getStringValue(
-                getMetaValue(product.metaData as Array<{ key: string; value: unknown }>, "shelf-life"),
+                getMetaValue(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "shelf-life",
+                ),
               ),
               licenseNo: getStringValue(
-                getMetaValue(product.metaData as Array<{ key: string; value: unknown }>, "license-no"),
+                getMetaValue(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "license-no",
+                ),
               ),
               manufacturingDate: (product.manufacturingDate as string)
                 ? (product.manufacturingDate as string).split("T")[0]
@@ -714,34 +757,82 @@ const ProductCreate = (props?: ProductCreateProps) => {
               expiryDate: (product.expiryDate as string)
                 ? (product.expiryDate as string).split("T")[0]
                 : "",
-              length: (product.dimensions as { length: number; width: number; height: number })?.length || 0,
-              width: (product.dimensions as { length: number; width: number; height: number })?.width || 0,
-              height: (product.dimensions as { length: number; width: number; height: number })?.height || 0,
+              length:
+                (
+                  product.dimensions as {
+                    length: number;
+                    width: number;
+                    height: number;
+                  }
+                )?.length || 0,
+              width:
+                (
+                  product.dimensions as {
+                    length: number;
+                    width: number;
+                    height: number;
+                  }
+                )?.width || 0,
+              height:
+                (
+                  product.dimensions as {
+                    length: number;
+                    width: number;
+                    height: number;
+                  }
+                )?.height || 0,
               safetyPrecaution: getStringValue(
-                getMetaValue(product.metaData as Array<{ key: string; value: unknown }>, "safety-precaution"),
+                getMetaValue(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "safety-precaution",
+                ),
               ),
               howToUse: getStringValue(
-                getMetaValue(product.metaData as Array<{ key: string; value: unknown }>, "how-to-use"),
+                getMetaValue(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "how-to-use",
+                ),
               ),
               customerCareEmail: getStringValue(
-                getMetaValue(product.metaData as Array<{ key: string; value: unknown }>, "customer-care-email"),
+                getMetaValue(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "customer-care-email",
+                ),
               ),
               customerCareNumber: getStringValue(
-                getMetaValue(product.metaData as Array<{ key: string; value: unknown }>, "customer-care-number"),
+                getMetaValue(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "customer-care-number",
+                ),
               ),
-              ingredient: getStringValue((product.ingredients as string[])?.[0]),
-              keyIngredients: getStringValue((product.keyIngredients as string[])?.[0]),
-              benefitsSingle: getStringValue((product.benefit as string[])?.[0]),
+              ingredient: getStringValue(
+                (product.ingredients as string[])?.[0],
+              ),
+              keyIngredients: getStringValue(
+                (product.keyIngredients as string[])?.[0],
+              ),
+              benefitsSingle: getStringValue(
+                (product.benefit as string[])?.[0],
+              ),
               captureBy: getStringValue(product.capturedBy) || userId,
-              capturedDate: (product.capturedDate as string) || new Date().toISOString(),
+              capturedDate:
+                (product.capturedDate as string) || new Date().toISOString(),
               // Media - these are now string IDs
               thumbnail: getStringValue(product.thumbnail),
               barcodeImage: getStringValue(product.barcodeImage),
-              images: getStringArray((product.images as Array<{ url: string }>).map((image) => image.url)),
+              images: getStringArray(
+                (product.images as Array<{ url: string }>).map(
+                  (image) => image.url,
+                ),
+              ),
               // Additional fields from new API
               aboutTheBrand: (product.aboutTheBrand as string) || "",
               weight: String((product.weight as number) || 0),
-              dimensions: (product.dimensions as { length: number; width: number; height: number })
+              dimensions: (product.dimensions as {
+                length: number;
+                width: number;
+                height: number;
+              })
                 ? `${(product.dimensions as { length: number; width: number; height: number }).length}x${(product.dimensions as { length: number; width: number; height: number }).width}x${(product.dimensions as { length: number; width: number; height: number }).height}`
                 : "",
               isFeatured: (product.isFeatured as boolean) || false,
@@ -805,9 +896,17 @@ const ProductCreate = (props?: ProductCreateProps) => {
 
             // Set existing media URLs for display - these are now string IDs
             // For now, we'll treat them as URLs or construct URLs from IDs
-            setExistingThumbnailUrl((product.thumbnail as { url: string })?.url || "");
-            setExistingBarcodeUrl((product.barcodeImage as { url: string })?.url || "");
-            setExistingImagesUrls((product.images as Array<{ url: string }>)?.map((image) => image.url) || []);
+            setExistingThumbnailUrl(
+              (product.thumbnail as { url: string })?.url || "",
+            );
+            setExistingBarcodeUrl(
+              (product.barcodeImage as { url: string })?.url || "",
+            );
+            setExistingImagesUrls(
+              (product.images as Array<{ url: string }>)?.map(
+                (image) => image.url,
+              ) || [],
+            );
           }
         } catch {
           setError("Failed to load product data");
@@ -817,15 +916,15 @@ const ProductCreate = (props?: ProductCreateProps) => {
 
     fetchProductData();
   }, [
-    finalProductId,
+    productId,
     isEditMode,
     isViewMode,
     userId,
     brands,
     categories,
     variationTypes,
-    finalBrandId,
-    finalCompanyId,
+    brandId,
+    companyId,
   ]);
 
   const handleInputChange = (
@@ -872,7 +971,8 @@ const ProductCreate = (props?: ProductCreateProps) => {
         importedByAddress: formData.importedByAddress,
         // capturedBy: formData.captureBy,
         capturedBy: userId,
-        capturedDate: formData.capturedDate.split("T")[0] ?? new Date().toISOString(), // Convert to date string
+        capturedDate:
+          formData.capturedDate.split("T")[0] ?? new Date().toISOString(), // Convert to date string
         thumbnail: formData.thumbnail || "", // Include thumbnail ID
         barcodeImage: formData.barcodeImage || "", // Include barcode ID
         images: formData.images || [], // Include image IDs

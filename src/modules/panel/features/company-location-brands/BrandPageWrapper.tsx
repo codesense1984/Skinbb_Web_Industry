@@ -22,6 +22,8 @@ import { BrandApprovalDialog } from "../company/brands/components/BrandApprovalD
 import { ENDPOINTS } from "../../config/endpoint.config";
 import { WithAccess } from "@/modules/auth/components/guard";
 import { ROLE } from "@/modules/auth/types/permission.type.";
+import { STATUS_MAP } from "@/core/config/status";
+import { StatusBadge } from "@/core/components/ui/badge";
 
 interface BrandPageWrapperProps {
   mode: MODE;
@@ -108,15 +110,32 @@ export const BrandPageWrapper = ({
       header={{
         title,
         description,
-        actions: mode === MODE.VIEW && (
-          <WithAccess roles={[ROLE.ADMIN]}>
-          <Button
-            onClick={() => setIsApprovalDialogOpen(true)}
-            variant="outlined"
-          >
-            Manage Approval
-          </Button>
-          </WithAccess>
+        actions: (
+          <div className="flex flex-wrap gap-3">
+            {(mode === MODE.VIEW || mode === MODE.EDIT) && (
+              <StatusBadge
+                status={brandData?.data?.status || ""}
+                module="brand"
+                variant="badge"
+              >
+                {brandData?.data?.status}
+              </StatusBadge>
+            )}
+            {mode === MODE.VIEW &&
+              [
+                STATUS_MAP.brand.pending.value,
+                STATUS_MAP.brand.rejected.value,
+              ].includes(brandData?.data?.status || "") && (
+                <WithAccess roles={[ROLE.ADMIN]}>
+                  <Button
+                    onClick={() => setIsApprovalDialogOpen(true)}
+                    variant="outlined"
+                  >
+                    Manage Approval
+                  </Button>
+                </WithAccess>
+              )}
+          </div>
         ),
       }}
     >
