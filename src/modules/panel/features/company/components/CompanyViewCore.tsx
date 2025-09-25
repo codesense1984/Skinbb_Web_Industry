@@ -17,7 +17,9 @@ import { PageContent } from "@/core/components/ui/structure";
 import { STATUS_MAP } from "@/core/config/status";
 import { LocationService } from "@/core/services/location.service";
 import { formatDate } from "@/core/utils";
+import { hasAccess } from "@/modules/auth/components/guard";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
+import { PAGE, PERMISSION } from "@/modules/auth/types/permission.type.";
 import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { apiGetCompanyLocationById } from "@/modules/panel/services/http/company-location.service";
@@ -111,6 +113,7 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
   onEditLocation,
 }) => {
   const locationId = address.addressId || address._id;
+  const { permissions } = useAuth();
 
   const {
     data: companyLocationData,
@@ -181,7 +184,11 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                       },
                     ]
                   : []),
-                ...(onEditLocation
+                ...(hasAccess({
+                  userPermissions: permissions,
+                  page: PAGE.COMPANIES,
+                  actions: PERMISSION.UPDATE,
+                }) && onEditLocation
                   ? [
                       {
                         type: "item" as const,
