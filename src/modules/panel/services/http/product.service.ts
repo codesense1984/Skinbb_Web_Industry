@@ -211,3 +211,8 @@ export async function apiGetProductDetail(id: string) {
 export async function apiUpdateProduct(id: string, data: Record<string, unknown>) {
   return api.put(`${API_PREFIX}/products/admin/${id}`, data);
 }
+
+// Product Status Update API
+export async function apiUpdateProductStatus(id: string, data: { status: string; reason?: string; feedback?: string }) {
+  return api.patch(`${API_PREFIX}/products/status/${id}`, data);
+}
