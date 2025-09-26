@@ -128,18 +128,18 @@ export const columns: ColumnDef<SellerMemberList>[] = [
         <TableAction
           view={{
             to: PANEL_ROUTES.USER.VIEW(user._id),
-            tooltip: "View user details",
+            title: "View user details",
           }}
           edit={{
             to: PANEL_ROUTES.USER.EDIT(user._id),
-            tooltip: "Edit user",
+            title: "Edit user",
           }}
           delete={{
             onClick: () => {
               // TODO: Implement delete functionality
               console.log("Delete user:", user._id);
             },
-            tooltip: "Delete user",
+            title: "Delete user",
           }}
         />
       );

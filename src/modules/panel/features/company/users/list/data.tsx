@@ -1,6 +1,8 @@
 import { TableAction } from "@/core/components/data-table/components/table-action";
 import { Badge, StatusBadge } from "@/core/components/ui/badge";
 import { formatDate } from "@/core/utils";
+import { hasAccess } from "@/modules/auth/components/guard";
+import { PAGE, PERMISSION } from "@/modules/auth/types/permission.type.";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import type { CompanyUserResponse } from "@/modules/panel/services/http/company.service";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -78,24 +80,24 @@ export const columns = (
       return formatDate(row.original.createdAt);
     },
   },
-  {
-    header: "Action",
-    accessorKey: "actions",
-    enableSorting: false,
-    size: 100,
-    enableHiding: false,
-    cell: ({ row }) => {
-      const user = row.original;
-      return (
-        <TableAction
-          view={{
-            to: PANEL_ROUTES.COMPANY.USER_VIEW(companyId, user.userId),
-          }}
-          edit={{
-            to: PANEL_ROUTES.COMPANY.USER_EDIT(companyId, user.userId),
-          }}
-        />
-      );
-    },
-  },
+  // {
+  //   header: "Action",
+  //   accessorKey: "actions",
+  //   enableSorting: false,
+  //   size: 100,
+  //   enableHiding: false,
+  //   cell: ({ row }: { row: any }) => {
+  //     const user = row.original;
+  //     return (
+  //       <TableAction
+  //         view={{
+  //           to: PANEL_ROUTES.COMPANY.USER_VIEW(companyId, user.userId),
+  //         }}
+  //         edit={{
+  //           to: PANEL_ROUTES.COMPANY.USER_EDIT(companyId, user.userId),
+  //         }}
+  //       />
+  //     );
+  //   },
+  // },
 ];
