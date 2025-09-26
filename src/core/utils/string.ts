@@ -49,3 +49,15 @@ export function mapToSelectOptions<T extends string | Record<string, unknown>>(
     };
   });
 }
+
+export function isURL(str: string) {
+  if (/^[a-zA-Z]:(\\|\/)/.test(str)) {
+    return false; // e.g. "C:\fakepath\..."
+  }
+  try {
+    const url = new URL(str);
+    return /^(https?|ftp|file):$/.test(url.protocol); /// If it can be parsed as a URL, it's valid
+  } catch (_) {
+    return false; // If parsing fails, it's not a URL
+  }
+}

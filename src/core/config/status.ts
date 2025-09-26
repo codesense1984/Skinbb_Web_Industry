@@ -61,18 +61,18 @@ export const STATUS_MAP: Record<ModuleType, Record<string, StatusStyle>> = {
       textColor: "text-yellow-700",
       bgColor: "bg-yellow-100",
     },
-    approved: {
-      label: "Approved",
-      value: "approved",
-      textColor: "text-green-700",
-      bgColor: "bg-green-100",
-    },
-    pending: {
-      label: "Pending",
-      value: "pending",
-      textColor: "text-yellow-700",
-      bgColor: "bg-yellow-100",
-    },
+    // approved: {
+    //   label: "Approved",
+    //   value: "approved",
+    //   textColor: "text-green-700",
+    //   bgColor: "bg-green-100",
+    // },
+    // pending: {
+    //   label: "Pending",
+    //   value: "pending",
+    //   textColor: "text-yellow-700",
+    //   bgColor: "bg-yellow-100",
+    // },
     rejected: {
       label: "Rejected",
       value: "rejected",
@@ -265,11 +265,23 @@ export const STATUS_MAP: Record<ModuleType, Record<string, StatusStyle>> = {
       textColor: "text-emerald-700",
       bgColor: "bg-emerald-100",
     },
+    approved: {
+      label: "Approved",
+      value: "approved",
+      textColor: "text-emerald-700",
+      bgColor: "bg-emerald-100",
+    },
     pending: {
       label: "Pending",
       value: "pending",
       textColor: "text-yellow-700",
       bgColor: "bg-yellow-100",
+    },
+    rejected: {
+      label: "Rejected",
+      value: "rejected",
+      textColor: "text-red-700",
+      bgColor: "bg-red-100",
     },
     inactive: {
       label: "Inactive",

@@ -22,7 +22,7 @@ export const brandFormSchema = z.object({
   instagramUrl: createUrlValidator("Instagram"),
   facebookUrl: createUrlValidator("Facebook"),
   youtubeUrl: createUrlValidator("YouTube"),
-  productCategory: z.array(z.string()).min(1),
+  brandType: z.array(z.string()).min(1),
   sellingOn: z
     .array(
       z.object({
@@ -76,8 +76,8 @@ export const brandSchema: {
       className: "md:col-span-2",
     },
     {
-      name: "productCategory",
-      label: "Product Category",
+      name: "brandType",
+      label: "Brand Type",
       type: INPUT_TYPES.COMBOBOX,
       maxVisibleItems: 2,
       multi: true,
@@ -88,15 +88,15 @@ export const brandSchema: {
       required: true,
     },
 
-    {
-      name: "totalSKU",
-      label: "Total SKU",
-      type: INPUT_TYPES.NUMBER,
-      placeholder: "Enter total SKU",
-      disabled: mode === MODE.VIEW,
-      className: "md:col-span-2 lg:col-span-1",
-      required: true,
-    },
+    // {
+    //   name: "totalSKU",
+    //   label: "Total SKU",
+    //   type: INPUT_TYPES.NUMBER,
+    //   placeholder: "Enter total SKU",
+    //   disabled: mode === MODE.VIEW,
+    //   className: "md:col-span-2 lg:col-span-1",
+    //   required: true,
+    // },
     {
       name: "marketingBudget",
       label: "Marketing Budget",
@@ -142,7 +142,7 @@ export const brandSchema: {
     {
       name: "authorizationLetter",
       label: "Authorization Letter",
-      type: mode === MODE.VIEW ? INPUT_TYPES.CUSTOM : INPUT_TYPES.FILE,
+      type: INPUT_TYPES.FILE,
       placeholder: "Upload letter",
       disabled: mode === MODE.VIEW,
       required: mode === MODE.ADD,
@@ -150,26 +150,6 @@ export const brandSchema: {
         accept: ".pdf,.doc,.docx,.jpg,.jpeg,.png",
       },
       className: "md:col-span-2",
-      ...(mode === MODE.VIEW && {
-        render: ({ field }) => {
-          const value = field.value as string;
-          return value ? (
-            <div className="flex items-center gap-2">
-              <DocumentTextIcon className="h-5 w-5 text-gray-500" />
-              <a
-                href={value}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 hover:text-blue-700 underline text-sm"
-              >
-                View Document
-              </a>
-            </div>
-          ) : (
-            <span className="text-gray-500 text-sm">No document uploaded</span>
-          );
-        },
-      }),
     },
     {
       name: "aboutTheBrand",
@@ -197,7 +177,7 @@ export const brandSchema: {
     {
       name: `sellingOn.${index}.url` as keyof BrandFormData,
       label: "URL",
-      type: INPUT_TYPES.URL,
+      type: INPUT_TYPES.TEXT,
       placeholder: "https://example.com",
       disabled: mode === MODE.VIEW,
     },

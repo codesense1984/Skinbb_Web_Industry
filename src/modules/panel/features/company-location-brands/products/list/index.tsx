@@ -1,26 +1,26 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router";
+import { useParams, NavLink } from "react-router";
 import { PageContent } from "@/core/components/ui/structure";
 import { Button } from "@/core/components/ui/button";
 import { DataTable } from "@/core/components/data-table";
 import { createSimpleFetcher } from "@/core/components/data-table";
 import { StatusFilter } from "@/core/components/data-table/components/table-filter";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { apiGetSellerBrandProducts } from "@/modules/panel/services/http/company.service";
 import { apiUpdateProductStatus } from "@/modules/panel/services/http/product.service";
 import { columns } from "./data";
-import { NavLink } from "react-router";
-import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
-import { ArrowLeftIcon, PlusIcon } from "@heroicons/react/24/solid";
+import { PlusIcon } from "@heroicons/react/24/solid";
 import { ProductApprovalDialog } from "../components/ProductApprovalDialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
 
 // Create fetcher for server-side data
 const fetcher = (companyId: string, brandId: string) =>
   createSimpleFetcher(
     (params) =>
       apiGetSellerBrandProducts(companyId, brandId, {
-        ...(params && { params }),
+        ...(params && { ...params }),
       }),
     {
       dataPath: "data.products",
@@ -121,19 +121,7 @@ const BrandProductsList: React.FC = () => {
         description: "Manage products for this brand",
         actions: (
           <div className="flex gap-2">
-            <Button
-              asChild
-              variant="outlined"
-              className="border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50"
-            >
-              <NavLink
-                to={PANEL_ROUTES.COMPANY_LOCATION.BRANDS(companyId, locationId)}
-              >
-                <ArrowLeftIcon className="mr-2 h-4 w-4" />
-                Back to Brands
-              </NavLink>
-            </Button>
-            <Button color={"primary"} asChild>
+            <Button color={"secondary"} asChild>
               <NavLink
                 to={PANEL_ROUTES.COMPANY_LOCATION.BRAND_PRODUCT_CREATE(
                   companyId,
@@ -153,7 +141,10 @@ const BrandProductsList: React.FC = () => {
         columns={columns(companyId, locationId, brandId)}
         isServerSide
         fetcher={fetcher(companyId, brandId)}
-        queryKeyPrefix={`brand-products-${companyId}-${brandId}`}
+        queryKeyPrefix={ENDPOINTS.SELLER_BRAND_PRODUCTS.LIST(
+          companyId,
+          brandId,
+        )}
         actionProps={(tableState) => ({
           children: (
             <StatusFilter

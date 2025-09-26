@@ -87,6 +87,7 @@ const validateDocumentRequirements = (
   doc: z.infer<ReturnType<typeof createCompanySchema>>["documents"][number],
   ctx: z.RefinementCtx,
   businessType?: string,
+  isCreatingNewCompany?: boolean,
   basePath: string[] = [],
 ) => {
   const config = DOCUMENT_CONFIG[doc.type as keyof typeof DOCUMENT_CONFIG];
@@ -94,6 +95,16 @@ const validateDocumentRequirements = (
 
   // Skip CIN validation for proprietor business type
   if (doc.type === "coi" && businessType === "proprietor") {
+    return;
+  }
+
+  // Skip COI validation when not creating new company
+  if (doc.type === "coi" && !isCreatingNewCompany) {
+    return;
+  }
+
+  // Skip PAN validation when not creating new company
+  if (doc.type === "pan" && !isCreatingNewCompany) {
     return;
   }
 
@@ -143,6 +154,7 @@ import {
   createRequiredString,
   createUrlValidator,
 } from "@/core/utils/validation.utils";
+import { cn } from "@/core/utils";
 
 // Address schema
 const addressSchema = z.object({
@@ -166,22 +178,28 @@ const sellingPlatformSchema = z
   .optional()
   .superRefine((platform, ctx) => {
     if (platform?.platform && platform.platform.trim() !== "") {
-      if (!platform.url || platform.url.trim() === "") {
-        ctx.addIssue({
-          path: ["url"],
-          code: z.ZodIssueCode.custom,
-          message: "URL is required when platform is selected",
-        });
-        return;
+      // URL is required only when platform is "other"
+      if (platform.platform.toLowerCase() === "other") {
+        if (!platform.url || platform.url.trim() === "") {
+          ctx.addIssue({
+            path: ["url"],
+            code: z.ZodIssueCode.custom,
+            message: "URL is required when platform is 'Other'",
+          });
+          return;
+        }
       }
 
-      if (!VALIDATION_CONSTANTS.URL.REGEX.test(platform.url)) {
-        ctx.addIssue({
-          path: ["url"],
-          code: z.ZodIssueCode.custom,
-          message:
-            "Please enter a valid URL (e.g., https://amazon.in, https://flipkart.com)",
-        });
+      // Validate URL format only if URL is provided
+      if (platform.url && platform.url.trim() !== "") {
+        if (!VALIDATION_CONSTANTS.URL.REGEX.test(platform.url)) {
+          ctx.addIssue({
+            path: ["url"],
+            code: z.ZodIssueCode.custom,
+            message:
+              "Please enter a valid URL (e.g., https://amazon.in, https://flipkart.com)",
+          });
+        }
       }
     }
   });
@@ -382,9 +400,13 @@ export function createCompanySchema(
       // Document validation with business type context
       if (data?.documents) {
         data.documents.forEach((doc, index) => {
-          validateDocumentRequirements(doc, ctx, data?.businessType, [
-            `documents.${index}`,
-          ]);
+          validateDocumentRequirements(
+            doc,
+            ctx,
+            data?.businessType,
+            data?.isCreatingNewCompany,
+            [`documents.${index}`],
+          );
         });
       }
     });
@@ -621,7 +643,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
     }
 
     fields.push({
-      className: showNumber ? "" : "sm:col-span-2",
+      className: cn("block space-y-2", showNumber ? "" : "sm:col-span-2"),
       name: makeName("url"),
       label: uploadLabel,
       type: INPUT_TYPES.FILE,
@@ -684,6 +706,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
         inputProps: {
           keyfilter: "int",
           maxLength: 10,
+          startIcon: <p>+91</p>,
         },
       },
       {

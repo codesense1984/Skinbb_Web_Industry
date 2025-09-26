@@ -213,8 +213,10 @@ export async function apiGetOnboardCompanyDetailById<
 
 export async function apiGetCompanyDetailById<
   T = ApiResponse<CompanyDetailResponse>,
->(companyId: string) {
-  return api.get<T>(ENDPOINTS.SELLER.GET_COMPANY_DETAILS(companyId));
+>(companyId: string, userId: string) {
+  return api.get<T>(ENDPOINTS.SELLER.GET_COMPANY_DETAILS(companyId), {
+    params: { userId },
+  });
 }
 
 // Get company detail data by ID (new endpoint)
@@ -542,18 +544,20 @@ export async function apiGetCompanyLocationProductById<
   T = ApiResponse<Record<string, unknown>>, // Product type will be defined later
 >(companyId: string, locationId: string, productId: string) {
   return api.get<T>(
-    ENDPOINTS.COMPANY_LOCATION_PRODUCTS.GET_BY_ID(companyId, locationId, productId),
+    ENDPOINTS.COMPANY_LOCATION_PRODUCTS.GET_BY_ID(
+      companyId,
+      locationId,
+      productId,
+    ),
   );
 }
 
 // ---- Seller Brand Products (New endpoint for product view/edit) ----
 // Get product details for a specific seller brand
-export async function apiGetSellerBrandProductById<
+export async function apiGetProductDetailById<
   T = ApiResponse<Record<string, unknown>>, // Product type will be defined later
->(sellerId: string, brandId: string, productId: string) {
-  return api.get<T>(
-    ENDPOINTS.SELLER_BRAND_PRODUCTS.GET_BY_ID(sellerId, brandId, productId),
-  );
+>(productId: string) {
+  return api.get<T>(ENDPOINTS.SELLER_BRAND_PRODUCTS.DETAILS(productId));
 }
 
 // Get products list for a specific seller brand
@@ -570,11 +574,9 @@ export async function apiGetSellerBrandProducts<
   params?: PaginationParams,
   signal?: AbortSignal,
 ) {
-  return api.get<T>(
-    ENDPOINTS.SELLER_BRAND_PRODUCTS.LIST(sellerId, brandId),
-    {
-      ...(params && { params }),
-      signal,
-    },
-  );
+  console.log("🚀 ~ apiGetSellerBrandProducts ~ params:", params);
+  return api.get<T>(ENDPOINTS.SELLER_BRAND_PRODUCTS.LIST(sellerId, brandId), {
+    params,
+    signal,
+  });
 }

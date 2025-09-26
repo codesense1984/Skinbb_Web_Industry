@@ -45,7 +45,7 @@ export const getDefaultValues = (
     instagramUrl: brandData?.instagramUrl || "",
     facebookUrl: brandData?.facebookUrl || "",
     youtubeUrl: brandData?.youtubeUrl || "",
-    productCategory: brandData?.productCategory || [],
+    brandType: brandData?.brandType || [],
     sellingOn: brandData?.sellingOn || [],
     authorizationLetter: brandData?.authorizationLetter || "",
     logo: brandData?.logoImage || "",

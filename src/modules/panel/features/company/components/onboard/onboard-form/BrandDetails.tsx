@@ -41,12 +41,12 @@ const BrandDetails = ({ mode }: BrandDetailsProps) => {
     control,
     name: "brandType",
   });
-  
+
   console.log("🔍 BrandDetails - brandType:", {
     brandType,
     type: typeof brandType,
     isArray: Array.isArray(brandType),
-    length: brandType?.length
+    length: brandType?.length,
   });
 
   // Fetch company details for dropdown
@@ -85,15 +85,25 @@ const BrandDetails = ({ mode }: BrandDetailsProps) => {
     name: "sellingOn",
   });
 
-  const hasEmptyPlatforms = sellingOn.some(
-    (field) => !field?.platform || !field?.url,
-  );
+  const hasEmptyPlatforms = sellingOn.some((field) => {
+    if (!field?.platform) return true;
+    // URL is required only when platform is "other"
+    if (field.platform.toLowerCase() === "other") {
+      return !field?.url;
+    }
+    return false;
+  });
 
   const addPlatform = () => {
     // Check if there are any empty platforms first
-    const hasEmptyPlatforms = sellingOn.some(
-      (platform) => !platform?.platform || !platform?.url,
-    );
+    const hasEmptyPlatforms = sellingOn.some((platform) => {
+      if (!platform?.platform) return true;
+      // URL is required only when platform is "other"
+      if (platform.platform.toLowerCase() === "other") {
+        return !platform?.url;
+      }
+      return false;
+    });
     if (hasEmptyPlatforms) {
       // Don't add new platform if there are empty ones
       return;

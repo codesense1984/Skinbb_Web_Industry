@@ -93,25 +93,37 @@ export const panelRoutes: RouteObject = {
     {
       path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_PRODUCTS(),
       Component: lazy(
-        () => import("@/modules/panel/features/company-location-brands/products/list"),
+        () =>
+          import(
+            "@/modules/panel/features/company-location-brands/products/list"
+          ),
       ),
     },
     {
       path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_PRODUCT_CREATE(),
       Component: lazy(
-        () => import("@/modules/panel/features/company-location-brands/products/create"),
+        () =>
+          import(
+            "@/modules/panel/features/company-location-brands/products/create"
+          ),
       ),
     },
     {
       path: PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_VIEW(),
       Component: lazy(
-        () => import("@/modules/panel/features/company-location-brands/products/view"),
+        () =>
+          import(
+            "@/modules/panel/features/company-location-brands/products/view"
+          ),
       ),
     },
     {
       path: PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_EDIT(),
       Component: lazy(
-        () => import("@/modules/panel/features/company-location-brands/products/edit"),
+        () =>
+          import(
+            "@/modules/panel/features/company-location-brands/products/edit"
+          ),
       ),
     },
 
@@ -125,7 +137,8 @@ export const panelRoutes: RouteObject = {
     {
       path: PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_CREATE(),
       Component: lazy(
-        () => import("@/modules/panel/features/company-location-products/create"),
+        () =>
+          import("@/modules/panel/features/company-location-products/create"),
       ),
     },
     {
@@ -324,7 +337,9 @@ export const panelRoutes: RouteObject = {
     },
     {
       path: "/test-products",
-      Component: lazy(() => import("@/modules/panel/features/products/test-routes")),
+      Component: lazy(
+        () => import("@/modules/panel/features/products/test-routes"),
+      ),
     },
     // {
     //   path: PANEL_ROUTES.COMPANY.EDIT(),

@@ -14,7 +14,7 @@ import {
   type UseFormStateReturn,
 } from "react-hook-form";
 
-import { cn } from "@/core/utils/index";
+import { cn, isURL } from "@/core/utils/index";
 import type { Mode } from "react-day-picker";
 import { Checkbox } from "./checkbox";
 import { ComboBox } from "./combo-box";
@@ -45,6 +45,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Tooltip } from "./tooltip";
 import type { Option } from "@/core/types";
+import { Link } from "react-router";
 
 const INPUT_TYPES = {
   TEXT: "text",
@@ -212,7 +213,7 @@ function FormInput<T extends FieldValues, N extends FieldPath<T>>(
   const { inputProps: _, ...formItem } = rest;
 
   const formItemPropsClass = cn(
-    "h-fit",
+    "h-fit block space-y-2",
     type === "checkbox" && "flex items-center flex-row-reverse justify-end",
     className,
   );
@@ -445,7 +446,7 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
               title={value?.split("\\").pop()}
               htmlFor={inputId}
               data-disabled={disabled}
-              data-readOnly={readOnly}
+              data-readonly={readOnly}
             >
               <ArrowUpTrayIcon className="block w-4 min-w-4" />
               <input
@@ -466,12 +467,21 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
                 {...(inputProps?.accept && { accept: inputProps.accept })}
               />
               <p className="text-nowrap">{placeholder ?? "Choose File"}</p>
-              {value && <span className="text-muted-foreground mx-1">|</span>}
+            </label>
+
+            {isURL(value) ? (
+              <Link
+                className="text-foreground block truncate"
+                target="_blank"
+                to={value}
+              >
+                {value?.split("\\").pop()}
+              </Link>
+            ) : (
               <p className="text-foreground truncate">
                 {value?.split("\\").pop()}
               </p>
-            </label>
-            <p className="text-foreground truncate">{value?.split("\\").pop()}</p>
+            )}
           </div>
         </FormControl>
       );

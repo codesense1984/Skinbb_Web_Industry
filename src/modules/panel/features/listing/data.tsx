@@ -47,11 +47,15 @@ export const columns: ColumnDef<Product>[] = [
         <AvatarRoot className="size-10 rounded-md border">
           <AvatarImage
             className="object-cover"
-            src={typeof row.original.thumbnail === "string" 
-              ? row.original.thumbnail 
-              : (typeof row.original.thumbnail === "object" && row.original.thumbnail && "url" in row.original.thumbnail)
-                ? (row.original.thumbnail as { url: string }).url
-                : ""}
+            src={
+              typeof row.original.thumbnail === "string"
+                ? row.original.thumbnail
+                : typeof row.original.thumbnail === "object" &&
+                    row.original.thumbnail &&
+                    "url" in row.original.thumbnail
+                  ? (row.original.thumbnail as { url: string }).url
+                  : ""
+            }
             alt={`${row.original.productName} thumbnail`}
           />
           <AvatarFallback className="rounded-md capitalize">
@@ -68,11 +72,12 @@ export const columns: ColumnDef<Product>[] = [
     cell: ({ getValue }) => {
       const brand = getValue();
       // Handle both string and object cases
-      const brandName = typeof brand === "string" 
-        ? brand 
-        : (typeof brand === "object" && brand && "name" in brand) 
-          ? (brand as { name: string }).name 
-          : "Unknown";
+      const brandName =
+        typeof brand === "string"
+          ? brand
+          : typeof brand === "object" && brand && "name" in brand
+            ? (brand as { name: string }).name
+            : "Unknown";
       return <div className="">{brandName}</div>;
     },
   },
@@ -114,14 +119,22 @@ export const columns: ColumnDef<Product>[] = [
     header: "Price Range",
     cell: ({ row, getValue }) => {
       const priceRangeValue = getValue();
-      const priceRange = (typeof priceRangeValue === "object" && priceRangeValue && "min" in priceRangeValue && "max" in priceRangeValue)
-        ? priceRangeValue as { min: number; max: number }
-        : { min: 0, max: 0 };
-      
+      const priceRange =
+        typeof priceRangeValue === "object" &&
+        priceRangeValue &&
+        "min" in priceRangeValue &&
+        "max" in priceRangeValue
+          ? (priceRangeValue as { min: number; max: number })
+          : { min: 0, max: 0 };
+
       const salePriceRangeValue = row.original.salePriceRange;
-      const salePriceRange = (typeof salePriceRangeValue === "object" && salePriceRangeValue && "min" in salePriceRangeValue && "max" in salePriceRangeValue)
-        ? salePriceRangeValue as { min: number; max: number }
-        : { min: 0, max: 0 };
+      const salePriceRange =
+        typeof salePriceRangeValue === "object" &&
+        salePriceRangeValue &&
+        "min" in salePriceRangeValue &&
+        "max" in salePriceRangeValue
+          ? (salePriceRangeValue as { min: number; max: number })
+          : { min: 0, max: 0 };
 
       return (
         <div className="flex w-max flex-col">
@@ -162,27 +175,27 @@ export const columns: ColumnDef<Product>[] = [
       return <div>{formatDate(capturedDate)}</div>;
     },
   },
-  {
-    header: "Action",
-    accessorKey: "actions",
-    enableSorting: false,
-    enableHiding: false,
-    size: 100,
-    cell: ({ row }) => {
-      return (
-        <TableAction
-          view={{
-            to:
-              PANEL_ROUTES.LISTING.CREATE + `?mode=view&id=${row.original._id}`,
-            title: "View product details",
-          }}
-          edit={{
-            to:
-              PANEL_ROUTES.LISTING.CREATE + `?mode=edit&id=${row.original._id}`,
-            title: "Edit product",
-          }}
-        />
-      );
-    },
-  },
+  // {
+  //   header: "Action",
+  //   accessorKey: "actions",
+  //   enableSorting: false,
+  //   enableHiding: false,
+  //   size: 100,
+  //   cell: ({ row }) => {
+  //     return (
+  //       <TableAction
+  //         view={{
+  //           to:
+  //             PANEL_ROUTES.LISTING.CREATE + `?mode=view&id=${row.original._id}`,
+  //           title: "View product details",
+  //         }}
+  //         edit={{
+  //           to:
+  //             PANEL_ROUTES.LISTING.CREATE + `?mode=edit&id=${row.original._id}`,
+  //           title: "Edit product",
+  //         }}
+  //       />
+  //     );
+  //   },
+  // },
 ];

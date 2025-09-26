@@ -195,7 +195,7 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
 
           return (
             <div
-              className="space-y-2 inline-grid"
+              className="w-full"
               key={`company-field-${isCreatingNewCompany}`}
             >
               <ComboBox
@@ -264,7 +264,7 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
   });
 
   return (
-    <>
+    <div className="space-y-8 space-x-8">
       <div className="grid grid-cols-2 gap-6">
         <FormFieldsRenderer<FullCompanyFormType>
           className="gap-6 lg:grid-cols-2"
@@ -272,7 +272,7 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
           fieldConfigs={compannyNameFields}
         />
 
-        <div className="flex items-start gap-4 ">
+        <div className="flex items-start gap-4">
           {element}
           <FormFieldsRenderer<FullCompanyFormType>
             className="w-full grid-cols-1 sm:grid-cols-1 lg:grid-cols-1"
@@ -286,7 +286,7 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
         control={control}
         fieldConfigs={filteredInfoFields}
       />
-    </>
+    </div>
   );
 };
 

@@ -148,6 +148,8 @@ export const ENDPOINTS = {
       `${API_PREFIX}/sellers/${sellerId}/brands/${brandId}/products`,
     GET_BY_ID: (sellerId: string, brandId: string, productId: string) =>
       `${API_PREFIX}/sellers/${sellerId}/brands/${brandId}/products/${productId}`,
+    DETAILS: ( productId: string) =>
+      `${API_PREFIX}/products/admin/${productId}`,
   },
 
   DISCOUNT: {

@@ -25,7 +25,7 @@ export async function apiVerifyGst<T = ApiResponse<GstVerificationResponse>>(
 }
 
 // Verify CIN details
-export async function apiVerifyCin<T = ApiResponse<CinVerificationResponse>>(
+export async function apiVerifyCin<T = CinVerificationResponse>(
   data: CinVerificationRequest,
 ) {
   return api.post<T>(ENDPOINTS.VERIFICATION.VERIFY_CIN, data);
