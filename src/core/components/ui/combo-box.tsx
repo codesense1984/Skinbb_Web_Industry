@@ -341,7 +341,7 @@ export const ComboBox = <T extends boolean = false>({
                   {loading && "Loading options..."}
                 </div>
               ) : (
-                options.map((option) => {
+                options?.map((option) => {
                   const isSelected = multi
                     ? Array.isArray(value) && value.includes(option.value)
                     : value === option.value;

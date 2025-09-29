@@ -382,8 +382,8 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
               <SelectValue placeholder={placeholder}></SelectValue>
             </SelectTrigger>
             <SelectContent>
-              {"options" in props &&
-                props?.options?.map((option: SelectOption) => (
+              {"options" in props && Array.isArray(props?.options) &&
+                props.options.map((option: SelectOption) => (
                   <SelectItem
                     key={option.value}
                     value={option.value}

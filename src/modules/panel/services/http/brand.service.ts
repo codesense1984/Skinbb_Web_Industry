@@ -16,6 +16,8 @@ export async function apiGetBrands(
   if (params?.sortBy) searchParams.append("sortBy", params.sortBy);
   if (params?.order) searchParams.append("order", params.order);
   if (params?.search) searchParams.append("search", params.search);
+  if (params?.companyId) searchParams.append("companyId", params.companyId);
+  if (params?.locationId) searchParams.append("locationId", params.locationId);
 
   const queryString = searchParams.toString();
   const url = queryString

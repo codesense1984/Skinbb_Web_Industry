@@ -17,6 +17,8 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { NavLink } from "react-router";
 import { useCallback, useEffect, useState } from "react";
 import { apiGetBrands } from "@/modules/panel/services/http/brand.service";
+import { CompanyFilter } from "../components/CompanyFilter";
+import { LocationFilter } from "../components/LocationFilter";
 
 // Legacy static data - commented out
 // const statsData = [
@@ -191,18 +193,35 @@ const columns: ColumnDef<Brand>[] = [
 ];
 
 // Create fetcher for server-side data
-const fetcher = () =>
-  createSimpleFetcher(apiGetBrands, {
-    dataPath: "data.brands",
-    totalPath: "data.totalRecords",
-    filterMapping: {
-      isActive: "isActive",
-      status: "status", // Map the status column filter to the status API parameter
+const createBrandFetcher = (companyId?: string, locationId?: string) => {
+  return createSimpleFetcher(
+    (params: Record<string, unknown>) => {
+      // Add our custom filter parameters to the API call
+      const filterParams = {
+        ...params,
+        ...(companyId && companyId !== "all" && { companyId }),
+        ...(locationId && locationId !== "all" && { locationId }),
+      };
+      // console.log("Brand API call with filters:", filterParams);
+      return apiGetBrands(filterParams);
     },
-  });
+    {
+      dataPath: "data.brands",
+      totalPath: "data.totalRecords",
+      filterMapping: {
+        isActive: "isActive",
+        status: "status", // Map the status column filter to the status API parameter
+        companyId: "companyId",
+        locationId: "locationId",
+      },
+    }
+  );
+};
 
 const BrandList = () => {
   const [stats, setStats] = useState(initialStatsData);
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>("all");
+  const [selectedLocationId, setSelectedLocationId] = useState<string>("all");
 
   // Fetch stats separately since we need them for the summary cards
   const fetchStats = useCallback(async () => {
@@ -258,6 +277,17 @@ const BrandList = () => {
     fetchStats();
   }, [fetchStats]);
 
+  // Handle company filter change
+  const handleCompanyChange = (companyId: string) => {
+    setSelectedCompanyId(companyId === "all" ? "" : companyId);
+    setSelectedLocationId(""); // Reset location when company changes
+  };
+
+  // Handle location filter change
+  const handleLocationChange = (locationId: string) => {
+    setSelectedLocationId(locationId === "all" ? "" : locationId);
+  };
+
   return (
     <PageContent
       header={{
@@ -284,15 +314,38 @@ const BrandList = () => {
       <DataTable
         columns={columns}
         isServerSide
-        fetcher={fetcher()}
-        queryKeyPrefix={PANEL_ROUTES.BRAND.LIST}
+        fetcher={createBrandFetcher(
+          selectedCompanyId === "all" ? undefined : selectedCompanyId,
+          selectedLocationId === "all" ? undefined : selectedLocationId
+        )}
+        queryKeyPrefix={`${PANEL_ROUTES.BRAND.LIST}-${selectedCompanyId}-${selectedLocationId}`}
         actionProps={(tableState) => ({
           children: (
-            <StatusFilter
-              tableState={tableState}
-              module="brand"
-              multi={false} // Single selection mode
-            />
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Company:</span>
+                <CompanyFilter
+                  value={selectedCompanyId}
+                  onValueChange={handleCompanyChange}
+                  placeholder="All Companies"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Location:</span>
+                <LocationFilter
+                  companyId={selectedCompanyId}
+                  value={selectedLocationId}
+                  onValueChange={handleLocationChange}
+                  placeholder="All Locations"
+                  disabled={!selectedCompanyId}
+                />
+              </div>
+              <StatusFilter
+                tableState={tableState}
+                module="brand"
+                multi={false} // Single selection mode
+              />
+            </div>
           ),
         })}
       />
