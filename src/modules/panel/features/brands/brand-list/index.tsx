@@ -14,7 +14,7 @@ import { formatNumber, formatDate } from "@/core/utils";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import type { Brand } from "@/modules/panel/types/brand.type";
 import type { ColumnDef } from "@tanstack/react-table";
-import { NavLink } from "react-router";
+import { NavLink, useSearchParams } from "react-router";
 import { useCallback, useEffect, useState } from "react";
 import { apiGetBrands } from "@/modules/panel/services/http/brand.service";
 import { CompanyFilter } from "../components/CompanyFilter";
@@ -219,9 +219,18 @@ const createBrandFetcher = (companyId?: string, locationId?: string) => {
 };
 
 const BrandList = () => {
+  const [searchParams] = useSearchParams();
   const [stats, setStats] = useState(initialStatsData);
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("all");
   const [selectedLocationId, setSelectedLocationId] = useState<string>("all");
+
+  // Initialize company filter from URL parameters
+  useEffect(() => {
+    const companyIdFromUrl = searchParams.get("companyId");
+    if (companyIdFromUrl) {
+      setSelectedCompanyId(companyIdFromUrl);
+    }
+  }, [searchParams]);
 
   // Fetch stats separately since we need them for the summary cards
   const fetchStats = useCallback(async () => {

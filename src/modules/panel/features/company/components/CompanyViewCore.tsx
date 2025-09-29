@@ -552,7 +552,29 @@ export const CompanyViewCore: React.FC<CompanyViewCoreProps> = ({
     title: "Company Details",
     description: "View comprehensive company information and addresses",
     actions: showViewUsersAction && (
-      <div className="ml-6 flex-shrink-0">
+      <div className="ml-6 flex-shrink-0 flex gap-3">
+        <Button
+          onClick={() => navigate(`${PANEL_ROUTES.BRAND.LIST}?companyId=${companyId}`)}
+          variant="outlined"
+          className="border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="mr-2 h-4 w-4"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z"
+            />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6Z" />
+          </svg>
+          View Brands
+        </Button>
         <Button
           onClick={() => handleViewUsers(companyId)}
           variant="outlined"

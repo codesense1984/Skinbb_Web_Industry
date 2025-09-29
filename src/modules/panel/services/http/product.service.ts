@@ -7,6 +7,14 @@ interface ApiParams {
   limit?: number;
   search?: string;
   status?: string;
+  category?: string;
+  tag?: string;
+  brand?: string;
+  productType?: string;
+  sortBy?: string;
+  order?: string;
+  companyId?: string;
+  locationId?: string;
   [key: string]: unknown;
 }
 
@@ -189,7 +197,23 @@ export async function apiGetProductById(id: string) {
 }
 
 export async function apiGetProducts(params?: ApiParams) {
-  return api.get(ENDPOINTS.PRODUCT.MAIN, { params });
+  const searchParams = new URLSearchParams();
+  
+  if (params?.page) searchParams.append("page", params.page.toString());
+  if (params?.limit) searchParams.append("limit", params.limit.toString());
+  if (params?.search) searchParams.append("search", params.search);
+  if (params?.status) searchParams.append("status", params.status);
+  if (params?.category) searchParams.append("category", params.category);
+  if (params?.tag) searchParams.append("tag", params.tag);
+  if (params?.brand) searchParams.append("brand", params.brand);
+  if (params?.productType) searchParams.append("productType", params.productType);
+  if (params?.sortBy) searchParams.append("sortBy", params.sortBy);
+  if (params?.order) searchParams.append("order", params.order);
+  if (params?.companyId) searchParams.append("companyId", params.companyId);
+  if (params?.locationId) searchParams.append("locationId", params.locationId);
+  
+  const url = `${ENDPOINTS.PRODUCT.MAIN}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+  return api.get(url);
 }
 
 // Get products for dropdown selection

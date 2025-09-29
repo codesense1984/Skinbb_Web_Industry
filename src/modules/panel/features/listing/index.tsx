@@ -6,21 +6,52 @@ import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { apiGetProducts } from "@/modules/panel/services/http/product.service";
 import { NavLink } from "react-router";
 import { columns } from "./data";
+import { CompanyFilter } from "./components/CompanyFilter";
+import { LocationFilter } from "./components/LocationFilter";
+import { useState } from "react";
 
 // Create fetcher for server-side data
-const fetcher = () =>
-  createSimpleFetcher(apiGetProducts, {
-    dataPath: "data.products",
-    totalPath: "data.totalRecords",
-    filterMapping: {
-      status: "status",
-      category: "category",
-      brand: "brand",
-      tag: "tag",
+const createProductFetcher = (companyId?: string, locationId?: string) => {
+  return createSimpleFetcher(
+    (params: Record<string, unknown>) => {
+      // Add our custom filter parameters to the API call
+      const filterParams = {
+        ...params,
+        ...(companyId && companyId !== "all" && { companyId }),
+        ...(locationId && locationId !== "all" && { locationId }),
+      };
+      return apiGetProducts(filterParams);
     },
-  });
+    {
+      dataPath: "data.products",
+      totalPath: "data.totalRecords",
+      filterMapping: {
+        status: "status",
+        category: "category",
+        brand: "brand",
+        tag: "tag",
+        companyId: "companyId",
+        locationId: "locationId",
+      },
+    }
+  );
+};
 
 const ProductList = () => {
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>("all");
+  const [selectedLocationId, setSelectedLocationId] = useState<string>("all");
+
+  // Handle company filter change
+  const handleCompanyChange = (companyId: string) => {
+    setSelectedCompanyId(companyId === "all" ? "" : companyId);
+    setSelectedLocationId(""); // Reset location when company changes
+  };
+
+  // Handle location filter change
+  const handleLocationChange = (locationId: string) => {
+    setSelectedLocationId(locationId === "all" ? "" : locationId);
+  };
+
   // const [stats, setStats] = useState(initialStatsData);
 
   // // Fetch stats separately since we need them for the summary cards
@@ -106,15 +137,38 @@ const ProductList = () => {
       <DataTable
         columns={columns}
         isServerSide
-        fetcher={fetcher()}
-        queryKeyPrefix={PANEL_ROUTES.LISTING.LIST}
+        fetcher={createProductFetcher(
+          selectedCompanyId === "all" ? undefined : selectedCompanyId,
+          selectedLocationId === "all" ? undefined : selectedLocationId
+        )}
+        queryKeyPrefix={`${PANEL_ROUTES.LISTING.LIST}-${selectedCompanyId === "all" ? "" : selectedCompanyId}-${selectedLocationId === "all" ? "" : selectedLocationId}`}
         actionProps={(tableState) => ({
           children: (
-            <StatusFilter
-              tableState={tableState}
-              module="product"
-              multi={false} // Single selection mode
-            />
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Company:</span>
+                <CompanyFilter
+                  value={selectedCompanyId}
+                  onValueChange={handleCompanyChange}
+                  placeholder="All Companies"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Location:</span>
+                <LocationFilter
+                  companyId={selectedCompanyId}
+                  value={selectedLocationId}
+                  onValueChange={handleLocationChange}
+                  placeholder="All Locations"
+                  disabled={!selectedCompanyId}
+                />
+              </div>
+              <StatusFilter
+                tableState={tableState}
+                module="product"
+                multi={false} // Single selection mode
+              />
+            </div>
           ),
         })}
       />

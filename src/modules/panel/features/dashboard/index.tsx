@@ -141,7 +141,7 @@ const cardData: CardConfig[] = [
     title: "Promotion",
     description:
       "Create targeted campaigns and track promotion performance in real-time",
-    buttons: [{ name: "Explore", href: "/brands" }],
+    buttons: [{ name: "Explore", href: "/" }],
     requiredRoles: [ROLE.ADMIN],
     icon: (
       <svg
@@ -167,7 +167,7 @@ const cardData: CardConfig[] = [
       page: PAGE.PRODUCTS,
       action: [PERMISSION.VIEW, PERMISSION.CREATE],
     },
-    buttons: [{ name: "Explore", href: "/brands" }],
+    buttons: [{ name: "Explore", href: "/listing" }],
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -188,7 +188,7 @@ const cardData: CardConfig[] = [
     title: "Sales & Revenue",
     description:
       "Overview of earnings generated from product or service sales.",
-    buttons: [{ name: "Explore", href: "/brands" }],
+    buttons: [{ name: "Explore", href: "/analytic/ecommerce" }],
     requiredRoles: [ROLE.ADMIN],
     icon: (
       <svg
