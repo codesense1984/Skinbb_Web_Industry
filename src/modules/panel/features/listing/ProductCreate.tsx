@@ -12,6 +12,7 @@ import {
 import { Input } from "@/core/components/ui/input";
 import { Label } from "@/core/components/ui/label";
 import { RichTextEditor } from "@/core/components/ui/rich-text-editor";
+import { Trash2, Plus } from "lucide-react";
 
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { api } from "@/core/services/http";
@@ -28,6 +29,8 @@ import {
   apiGetBenefits,
   apiGetProductAttributeValues,
 } from "@/modules/panel/services/http/product.service";
+import { apiGetProductAttributes } from "@/modules/panel/services/http/product-attribute.service";
+import { apiGetProductAttributeValues as apiGetAttributeValues } from "@/modules/panel/services/http/product-attribute-value.service";
 import { apiGetProductDetailById } from "@/modules/panel/services/http/company.service";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
 import { MODE } from "@/core/types";
@@ -105,6 +108,11 @@ interface ProductCreateData {
   hairConcerns?: string[];
   hairGoals?: string[];
   status_feedback?: string;
+  // Variant attributes
+  attributes?: Array<{
+    attributeId: { value: string; label: string } | null;
+    attributeValueId: Array<{ value: string; label: string }>;
+  }>;
 }
 
 interface DropdownOption {
@@ -245,6 +253,10 @@ const ProductCreate = (props?: ProductCreateProps) => {
   const [skinConcerns, setSkinConcerns] = useState<DropdownOption[]>([]);
   const [hairType, setHairType] = useState<DropdownOption[]>([]);
   const [skinType, setSkinType] = useState<DropdownOption[]>([]);
+
+  // Variant attributes state
+  const [variantAttributes, setVariantAttributes] = useState<DropdownOption[]>([]);
+  const [attributeValues, setAttributeValues] = useState<Record<string, DropdownOption[]>>({});
 
   // Form data state
   const [formData, setFormData] = useState<ProductCreateData>({
@@ -550,6 +562,51 @@ const ProductCreate = (props?: ProductCreateProps) => {
     };
 
     loadDropdownData();
+  }, []);
+
+  // Fetch variant attributes
+  const fetchVariantAttributes = async () => {
+    try {
+      const response = await apiGetProductAttributes({
+        isVariantField: true,
+        page: 1,
+        limit: 100,
+      });
+      const attributes = response?.data?.productAttributes || [];
+      setVariantAttributes(attributes.map((attr: { _id: string; name: string }) => ({
+        _id: attr._id,
+        name: attr.name
+      })));
+    } catch (err) {
+      console.error("Failed to load variant attributes", err);
+    }
+  };
+
+  // Fetch attribute values for a specific attribute
+  const fetchAttributeValues = async (attributeId: string) => {
+    try {
+      const response = await apiGetAttributeValues({
+        attributeId,
+        page: 1,
+        limit: 100,
+      });
+      const values = response?.data?.productAttributeValues || [];
+      const options = values.map((v: { _id: string; label: string }) => ({
+        _id: v._id,
+        name: v.label
+      }));
+      setAttributeValues(prev => ({
+        ...prev,
+        [attributeId]: options,
+      }));
+    } catch (err) {
+      console.error(`Failed to load values for attribute ${attributeId}`, err);
+    }
+  };
+
+  // Load variant attributes on component mount
+  useEffect(() => {
+    fetchVariantAttributes();
   }, []);
 
   // Fetch product data for edit/view mode
@@ -1833,11 +1890,15 @@ const ProductCreate = (props?: ProductCreateProps) => {
                 </div>
               </div>
 
-              {/* Pricing */}
-              <div className="space-y-4">
-                <h3 className="border-b border-gray-200 pb-2 text-lg font-semibold text-gray-900">
-                  Pricing & Inventory
-                </h3>
+              {/* Pricing - Only show for simple products */}
+              {(() => {
+                const selectedVariationType = variationTypes.find(type => type._id === formData.productVariationType);
+                return !selectedVariationType?.name?.toLowerCase().includes("variable");
+              })() && (
+                <div className="space-y-4">
+                  <h3 className="border-b border-gray-200 pb-2 text-lg font-semibold text-gray-900">
+                    Pricing & Inventory
+                  </h3>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                   <div className="space-y-2">
                     <Label
@@ -1912,7 +1973,8 @@ const ProductCreate = (props?: ProductCreateProps) => {
                     />
                   </div>
                 </div>
-              </div>
+                </div>
+              )}
 
               {/* Product Details */}
               <div className="space-y-4">
@@ -1974,6 +2036,132 @@ const ProductCreate = (props?: ProductCreateProps) => {
                     </SelectRoot>
                   </div>
                 </div>
+
+                {/* Variant Section - Only show for variable products */}
+                {(() => {
+                  const selectedVariationType = variationTypes.find(type => type._id === formData.productVariationType);
+                  return selectedVariationType?.name?.toLowerCase().includes("variable");
+                })() && (
+                  <div className="space-y-4">
+                    <h3 className="border-b border-gray-200 pb-2 text-lg font-semibold text-gray-900">
+                      Variant
+                    </h3>
+                    
+                    {/* Add Variant Attribute Button */}
+                    <Button
+                      type="button"
+                      variant="outlined"
+                      onClick={() => {
+                        const newAttributes = [...(formData.attributes || []), { attributeId: null, attributeValueId: [] }];
+                        setFormData(prev => ({ ...prev, attributes: newAttributes }));
+                      }}
+                      className="flex items-center gap-2 mb-4"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Variant Attribute
+                    </Button>
+
+                    {/* Attribute List */}
+                    {formData.attributes?.map((attribute: { attributeId: { value: string; label: string } | null; attributeValueId: Array<{ value: string; label: string }> }, index: number) => (
+                      <div key={index} className="space-y-4 p-4 border border-gray-200 rounded-lg bg-white">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-sm font-medium text-gray-700">
+                            {attribute.attributeId?.label || "Select an Attribute"}
+                          </h4>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              const newAttributes = formData.attributes?.filter((_, i: number) => i !== index) || [];
+                              setFormData(prev => ({ ...prev, attributes: newAttributes }));
+                            }}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {/* Attribute Selection */}
+                          <div>
+                            <Label htmlFor={`attribute-${index}`} className="text-sm font-medium text-gray-700">
+                              Attribute
+                            </Label>
+                            <SelectRoot
+                              value={attribute.attributeId?.value || ""}
+                              onValueChange={(attributeId) => {
+                                const selectedAttribute = variantAttributes.find(attr => attr._id === attributeId);
+                                const newAttributes = [...(formData.attributes || [])];
+                                newAttributes[index] = { 
+                                  ...newAttributes[index], 
+                                  attributeId: { value: attributeId, label: selectedAttribute?.name || "" }, 
+                                  attributeValueId: [] 
+                                };
+                                setFormData(prev => ({ ...prev, attributes: newAttributes }));
+                                // Fetch attribute values when attribute is selected
+                                if (attributeId) {
+                                  fetchAttributeValues(attributeId);
+                                }
+                              }}
+                              disabled={isViewMode}
+                            >
+                              <SelectTrigger className="h-10">
+                                <SelectValue placeholder="Select Attribute" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {variantAttributes.map((attr) => (
+                                  <SelectItem key={attr._id} value={attr._id}>
+                                    {attr.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </SelectRoot>
+                          </div>
+
+                          {/* Attribute Values Selection */}
+                          <div>
+                            <Label htmlFor={`values-${index}`} className="text-sm font-medium text-gray-700">
+                              Values
+                            </Label>
+                            <select
+                              id={`values-${index}`}
+                              multiple
+                              value={attribute.attributeValueId?.map((v: { value: string; label: string }) => v.value) || []}
+                              onChange={(e) => {
+                                const selectedValues = Array.from(e.target.selectedOptions, option => option.value);
+                                const selectedOptions = selectedValues.map(value => {
+                                  const attributeId = attribute.attributeId?.value;
+                                  if (!attributeId) return { value, label: "" };
+                                  const option = attributeValues[attributeId]?.find((opt) => opt._id === value);
+                                  return { value, label: option?.name || "" };
+                                });
+                                const newAttributes = [...(formData.attributes || [])];
+                                newAttributes[index] = { ...newAttributes[index], attributeValueId: selectedOptions };
+                                setFormData(prev => ({ ...prev, attributes: newAttributes }));
+                              }}
+                              className="h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+                              disabled={!attribute.attributeId?.value || isViewMode}
+                            >
+                              {attribute.attributeId?.value ? (
+                                attributeValues[attribute.attributeId.value]?.map((option) => (
+                                  <option key={option._id} value={option._id}>
+                                    {option.name || ""}
+                                  </option>
+                                )) || <option disabled>No options available</option>
+                              ) : (
+                                <option disabled>Select Attribute Value</option>
+                              )}
+                            </select>
+                            {attribute.attributeId?.value && !attributeValues[attribute.attributeId.value]?.length && (
+                              <p className="text-sm text-gray-500 mt-1">No options</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 {/* Category */}
                 <div className="space-y-2">

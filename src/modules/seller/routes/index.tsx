@@ -7,12 +7,27 @@ import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 export const sellerRoutes: RouteObject = {
   Component: MainLayout,
   children: [
+    // Dashboard
     {
       index: true,
-      Component: lazy(() => import("@/modules/seller/features/CompanyView")),
+      Component: lazy(() => import("@/modules/seller/features/dashboard")),
     },
 
-    // company location
+    // Company Management
+    {
+      path: "/company/:id/view",
+      Component: lazy(
+        () => import("@/modules/panel/features/company/view"),
+      ),
+    },
+    {
+      path: "/company/:id/edit",
+      Component: lazy(
+        () => import("@/modules/panel/features/company/edit"),
+      ),
+    },
+
+    // Company Location
     {
       path: SELLER_ROUTES.COMPANY_LOCATION.VIEW(),
       Component: lazy(
@@ -20,87 +35,73 @@ export const sellerRoutes: RouteObject = {
       ),
     },
 
+    // Brand Management - Using simplified routes
     {
-      path: PANEL_ROUTES.COMPANY_LOCATION.BRANDS(),
+      path: "/brands",
       Component: lazy(
-        () => import("@/modules/panel/features/company-location-brands/list"),
-      ),
-    },
-    // brands - using existing panel components
-    // {
-    //   path: "/company/:companyId/locations/:locationId/brands",
-    //   Component: lazy(() => import("@/modules/panel/features/company-location-brands/list")),
-    // },
-    {
-      path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_VIEW(),
-      Component: lazy(
-        () => import("@/modules/panel/features/company-location-brands/view"),
+        () => import("@/modules/seller/features/brands/SellerBrandList"),
       ),
     },
     {
-      path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_CREATE(),
+      path: "/brand/create",
       Component: lazy(
-        () => import("@/modules/panel/features/company-location-brands/create"),
+        () => import("@/modules/panel/features/brands/brand-form"),
       ),
     },
     {
-      path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_EDIT(),
+      path: "/brand/:id/view",
       Component: lazy(
-        () => import("@/modules/panel/features/company-location-brands/edit"),
+        () => import("@/modules/panel/features/brands/brand-form"),
+      ),
+    },
+    {
+      path: "/brand/:id/edit",
+      Component: lazy(
+        () => import("@/modules/panel/features/brands/brand-form"),
       ),
     },
 
+    // Product Management - Using simplified routes
     {
-      path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_CREATE(),
+      path: "/products",
       Component: lazy(
-        () =>
-          import(
-            "@/modules/panel/features/company-location-brands/products/create"
-          ),
+        () => import("@/modules/seller/features/products/SellerProductList"),
+      ),
+    },
+    {
+      path: "/product/create",
+      Component: lazy(
+        () => import("@/modules/panel/features/products/create"),
+      ),
+    },
+    {
+      path: "/product/:id/view",
+      Component: lazy(
+        () => import("@/modules/panel/features/products/view"),
+      ),
+    },
+    {
+      path: "/product/:id/edit",
+      Component: lazy(
+        () => import("@/modules/panel/features/products/edit"),
       ),
     },
 
+    // Order Management
     {
-      path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_PRODUCTS(),
+      path: "/orders",
       Component: lazy(
-        () =>
-          import(
-            "@/modules/panel/features/company-location-brands/products/list"
-          ),
+        () => import("@/modules/seller/features/orders/SellerOrders"),
+      ),
+    },
+    {
+      path: "/order/:id/view",
+      Component: lazy(
+        () => import("@/modules/seller/features/orders/OrderView"),
       ),
     },
 
-    // products - using existing panel components
-    // {
-    //   path: "/company/:companyId/locations/:locationId/products",
-    //   Component: lazy(
-    //     () => import("@/modules/panel/features/company-location-products/list"),
-    //   ),
-    // },
-    // {
-    //   path: "/company/:companyId/locations/:locationId/products/:productId/view",
-    //   Component: lazy(
-    //     () => import("@/modules/panel/features/company-location-products/view"),
-    //   ),
-    // },
-    {
-      path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_PRODUCT_CREATE(),
-      Component: lazy(
-        () =>
-          import("@/modules/panel/features/company-location-products/create"),
-      ),
-    },
-    {
-      path: PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_EDIT(),
-      Component: lazy(
-        () =>
-          import(
-            "@/modules/panel/features/company-location-brands/products/edit"
-          ),
-      ),
-    },
-
-    // users - using existing panel components
+    // User Management
     {
       path: "/company/:id/users",
       Component: lazy(
@@ -108,13 +109,13 @@ export const sellerRoutes: RouteObject = {
       ),
     },
     {
-      path: "/company/:id/users/:userId/view",
+      path: "/company/:id/users/create",
       Component: lazy(
         () => import("@/modules/panel/features/company/users/user-form"),
       ),
     },
     {
-      path: "/company/:id/users/create",
+      path: "/company/:id/users/:userId/view",
       Component: lazy(
         () => import("@/modules/panel/features/company/users/user-form"),
       ),
@@ -126,49 +127,96 @@ export const sellerRoutes: RouteObject = {
       ),
     },
 
-    // Products routes
-    // {
-    //   path: SELLER_ROUTES.PRODUCTS.LIST,
-    //   Component: lazy(
-    //     () => import("@/modules/seller/features/products/SellerProducts"),
-    //   ),
-    // },
+    // Listing/Product Management
+    {
+      path: "/listings",
+      Component: lazy(
+        () => import("@/modules/panel/features/listing"),
+      ),
+    },
+    {
+      path: "/listing/create",
+      Component: lazy(
+        () => import("@/modules/panel/features/listing/ProductCreate"),
+      ),
+    },
 
-    // {
-    //   path: SELLER_ROUTES.PRODUCTS.CREATE,
-    //   Component: lazy(
-    //     () => import("@/modules/seller/features/products/ProductForm"),
-    //   ),
-    // },
-    // {
-    //   path: SELLER_ROUTES.PRODUCTS.EDIT(),
-    //   Component: lazy(
-    //     () => import("@/modules/seller/features/products/ProductForm"),
-    //   ),
-    // },
-    // {
-    //   path: SELLER_ROUTES.PRODUCTS.VIEW(),
-    //   Component: lazy(
-    //     () => import("@/modules/seller/features/products/ProductView"),
-    //   ),
-    // },
-    // Orders routes
-    // {
-    //   path: SELLER_ROUTES.ORDERS.LIST,
-    //   Component: lazy(
-    //     () => import("@/modules/seller/features/orders/SellerOrders"),
-    //   ),
-    // },
-    // {
-    //   path: SELLER_ROUTES.ORDERS.VIEW(),
-    //   Component: lazy(
-    //     () => import("@/modules/seller/features/orders/OrderView"),
-    //   ),
-    // },
+    // Company Location Brand Management (Complex routes)
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.BRANDS(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company-location-brands/list"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_CREATE(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company-location-brands/create"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_VIEW(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company-location-brands/view"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_EDIT(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company-location-brands/edit"),
+      ),
+    },
 
+    // Company Location Product Management (Complex routes)
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.PRODUCTS(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company-location-products/list"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_CREATE(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company-location-products/create"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_VIEW(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company-location-products/view"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_EDIT(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company-location-products/edit"),
+      ),
+    },
+
+    // Brand Product Management (Complex routes)
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_PRODUCTS(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company-location-brands/products/list"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_PRODUCT_CREATE(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company-location-brands/products/create"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_EDIT(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company-location-brands/products/edit"),
+      ),
+    },
+
+    // 404 fallback
     {
       path: "*",
-      element: <div></div>,
+      element: <div>Page not found</div>,
     },
   ],
 };

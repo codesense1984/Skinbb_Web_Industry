@@ -9,6 +9,7 @@ export type BrandFormData = {
   // Brand Information
   brand_name: string;
   description: string;
+  status: string;
   total_skus: string;
   marketing_budget: string;
   product_category: string;
@@ -73,6 +74,7 @@ export const defaultValues: BrandFormData = {
   // Brand Information
   brand_name: "",
   description: "",
+  status: "active",
   total_skus: "",
   marketing_budget: "",
   product_category: "",
@@ -150,6 +152,16 @@ export const brandFormSchema: BrandFormSchema = {
       label: "Description",
       placeholder: "Enter brand description",
       className: "col-span-full",
+    },
+    {
+      type: "select",
+      name: "status",
+      label: "Status",
+      placeholder: "Select status",
+      options: [
+        { label: "Active", value: "active" },
+        { label: "Inactive", value: "inactive" },
+      ],
     },
     {
       type: "text",

@@ -4,6 +4,7 @@ import type {
   BrandListParams,
 } from "@/modules/panel/types/brand.type";
 import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
+import { createFormData } from "@/core/utils/formdata.utils";
 
 export async function apiGetBrands(
   params?: BrandListParams,
@@ -25,4 +26,33 @@ export async function apiGetBrands(
     : ENDPOINTS.BRAND.MAIN_ALL;
 
   return api.get<BrandListResponse>(url, { signal });
+}
+
+// Get brand by ID
+export async function apiGetBrandById<T>(id: string) {
+  return api.get<T>(ENDPOINTS.BRAND.MAIN_BY_ID(id));
+}
+
+// Create brand
+export async function apiCreateBrand<T>(data: FormData) {
+  return api.post<T>(ENDPOINTS.BRAND.MAIN, data, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+}
+
+// Update brand by ID
+export async function apiUpdateBrandById<T>(id: string, data: Record<string, unknown>) {
+  const formData = createFormData(data, ["brand_logo_files", "brand_authorization_letter_files", "sellingOn"]);
+  return api.put<T>(ENDPOINTS.BRAND.MAIN_BY_ID(id), formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+}
+
+// Delete brand by ID
+export async function apiDeleteBrandById<T>(id: string) {
+  return api.delete<T>(ENDPOINTS.BRAND.MAIN_BY_ID(id));
 }

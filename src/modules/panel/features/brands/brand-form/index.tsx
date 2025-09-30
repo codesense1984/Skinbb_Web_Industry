@@ -174,7 +174,7 @@ import { PageContent } from "@/core/components/ui/structure";
 import { useImagePreview } from "@/core/hooks/useImagePreview";
 import { MODE } from "@/core/types/base.type";
 // import { apiGetAllProductCategories } from "@/modules/panel/services/http/master.service";
-import { apiGetBrandById } from "@/modules/panel/services/http/company.service";
+import { apiGetBrandById, apiCreateBrand, apiUpdateBrandById } from "@/modules/panel/services/http/brand.service";
 import { useQuery } from "@tanstack/react-query";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { useParams, useLocation } from "react-router";
@@ -444,9 +444,47 @@ const BrandForm = () => {
     return new Set(platforms).size !== platforms.length;
   };
 
-  const onSubmit = (data: BrandFormData) => {
+  const onSubmit = async (data: BrandFormData) => {
     console.log("Brand form data:", data);
-    // Handle form submission here
+    
+    try {
+      if (mode === MODE.ADD) {
+        // Create new brand
+        const formData = new FormData();
+        
+        // Add form fields to FormData
+        Object.entries(data).forEach(([key, value]) => {
+          if (key === 'brand_logo_files' || key === 'brand_authorization_letter_files') {
+            // Handle file arrays
+            if (Array.isArray(value) && value.length > 0) {
+              value.forEach((file, index) => {
+                formData.append(`${key}[${index}]`, file);
+              });
+            }
+          } else if (key === 'sellingOn') {
+            // Handle selling platforms array
+            if (Array.isArray(value)) {
+              formData.append(key, JSON.stringify(value));
+            }
+          } else {
+            // Handle regular fields
+            formData.append(key, String(value || ''));
+          }
+        });
+
+        const response = await apiCreateBrand(formData);
+        console.log("Brand created successfully:", response);
+        // Handle success (e.g., redirect, show success message)
+      } else if (mode === MODE.EDIT && id) {
+        // Update existing brand
+        const response = await apiUpdateBrandById(id, data);
+        console.log("Brand updated successfully:", response);
+        // Handle success (e.g., redirect, show success message)
+      }
+    } catch (error) {
+      console.error("Error submitting brand form:", error);
+      // Handle error (e.g., show error message)
+    }
   };
 
   // Force re-render when pathname changes

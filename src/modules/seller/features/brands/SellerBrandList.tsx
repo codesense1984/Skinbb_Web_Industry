@@ -10,57 +10,14 @@ import { StatusBadge } from "@/core/components/ui/badge";
 import { Button } from "@/core/components/ui/button";
 import { PageContent } from "@/core/components/ui/structure";
 import { formatDate } from "@/core/utils";
-import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
+import { SELLER_ROUTES } from "@/modules/seller/routes/constant";
 import type { Brand } from "@/modules/panel/types/brand.type";
 import type { ColumnDef } from "@tanstack/react-table";
-import { NavLink, useSearchParams } from "react-router";
-import { useEffect, useState } from "react";
+import { NavLink } from "react-router";
+import { useState } from "react";
 import { apiGetBrands } from "@/modules/panel/services/http/brand.service";
-import { CompanyFilter } from "../components/CompanyFilter";
-import { LocationFilter } from "../components/LocationFilter";
-
-// Legacy static data - commented out
-// const statsData = [
-//   {
-//     title: "Listed brands",
-//     value: 380,
-//     barColor: "bg-primary",
-//     icon: true,
-//   },
-//   {
-//     title: "Inactive Brands",
-//     value: 350,
-//     barColor: "bg-blue-300",
-//     icon: false,
-//   },
-//   {
-//     title: "Total Surveys",
-//     value: 550,
-//     barColor: "bg-violet-300",
-//     icon: false,
-//   },
-//   {
-//     title: "Total Products",
-//     value: 860,
-//     barColor: "bg-red-300",
-//     icon: true,
-//   },
-// ];
-
-// export const brandData: Brand[] = [
-//   {
-//     id: 1,
-//     name: "The Derma",
-//     category: "Sensitive Skin",
-//     image: "https://images.thedermaco.com/TheDermaCoLogo2-min.png",
-//     status: "active",
-//     products: 50,
-//     surveys: 50,
-//     promotions: 50,
-//     earnings: 125500,
-//   },
-//   // ... other static data
-// ];
+import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth";
+import { LocationFilter } from "@/modules/panel/features/brands/components/LocationFilter";
 
 
 const columns: ColumnDef<Brand>[] = [
@@ -71,35 +28,22 @@ const columns: ColumnDef<Brand>[] = [
       <ul className="flex min-w-40 items-center gap-2">
         <AvatarRoot className="size-10 rounded-md border">
           <AvatarImage
-            className="object-contain"
             src={row.original.logoImage?.url}
-            alt={`${row.original.name} logo`}
+            alt={getValue() as string}
+            className="size-10 rounded-md object-cover"
           />
-          <AvatarFallback className="rounded-md capitalize">
-            {(getValue() as string)?.charAt(0)}
+          <AvatarFallback className="size-10 rounded-md bg-primary/10 text-primary">
+            {(getValue() as string)?.charAt(0)?.toUpperCase()}
           </AvatarFallback>
         </AvatarRoot>
-        <div className="flex flex-col">
+        <li className="flex flex-col">
           <span className="font-medium">{getValue() as string}</span>
-          <span className="text-muted-foreground text-sm">
-            {row.original.slug}
+          <span className="text-muted-foreground text-xs">
+            {row.original.aboutTheBrand ? row.original.aboutTheBrand.substring(0, 50) + "..." : "N/A"}
           </span>
-        </div>
+        </li>
       </ul>
     ),
-  },
-  {
-    accessorKey: "aboutTheBrand",
-    header: "Description",
-    cell: ({ getValue }) => {
-      const description = getValue() as string;
-      const cleanDescription = description.replace(/<[^>]*>/g, ""); // Remove HTML tags
-      return (
-        <div className="w-max max-w-xs truncate" title={cleanDescription}>
-          {cleanDescription || "No description"}
-        </div>
-      );
-    },
   },
   {
     accessorKey: "isActive",
@@ -110,12 +54,10 @@ const columns: ColumnDef<Brand>[] = [
         <StatusBadge
           module="brand"
           status={isActive ? "active" : "inactive"}
-          variant="badge"
+          variant={isActive ? "contained" : "badge"}
+          className="w-max"
         />
       );
-    },
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
     },
   },
   {
@@ -123,6 +65,7 @@ const columns: ColumnDef<Brand>[] = [
     header: "Products",
     cell: ({ getValue }) => {
       const count = getValue() as number;
+
       return <div className="w-max font-medium">{count}</div>;
     },
   },
@@ -151,11 +94,11 @@ const columns: ColumnDef<Brand>[] = [
       return (
         <TableAction
           view={{
-            to: PANEL_ROUTES.BRAND.VIEW(row.original._id),
+            to: SELLER_ROUTES.SELLER_BRANDS.VIEW(row.original._id),
             title: "View brand details",
           }}
           edit={{
-            to: PANEL_ROUTES.BRAND.EDIT(row.original._id),
+            to: SELLER_ROUTES.SELLER_BRANDS.EDIT(row.original._id),
             title: "Edit brand",
           }}
         />
@@ -164,17 +107,16 @@ const columns: ColumnDef<Brand>[] = [
   },
 ];
 
-// Create fetcher for server-side data
-const createBrandFetcher = (companyId?: string, locationId?: string) => {
+// Create fetcher for server-side data with seller's company ID
+const createSellerBrandFetcher = (companyId: string, locationId?: string) => {
   return createSimpleFetcher(
     (params: Record<string, unknown>) => {
-      // Add our custom filter parameters to the API call
+      // Always filter by seller's company ID
       const filterParams = {
         ...params,
-        ...(companyId && companyId !== "all" && { companyId }),
+        companyId, // Always include seller's company ID
         ...(locationId && locationId !== "all" && { locationId }),
       };
-      // console.log("Brand API call with filters:", filterParams);
       return apiGetBrands(filterParams);
     },
     {
@@ -182,47 +124,63 @@ const createBrandFetcher = (companyId?: string, locationId?: string) => {
       totalPath: "data.totalRecords",
       filterMapping: {
         isActive: "isActive",
-        status: "status", // Map the status column filter to the status API parameter
-        companyId: "companyId",
+        status: "status",
         locationId: "locationId",
       },
     }
   );
 };
 
-const BrandList = () => {
-  const [searchParams] = useSearchParams();
-  const [selectedCompanyId, setSelectedCompanyId] = useState<string>("all");
+const SellerBrandList = () => {
+  const { sellerInfo, isLoading: sellerInfoLoading } = useSellerAuth();
   const [selectedLocationId, setSelectedLocationId] = useState<string>("all");
 
-  // Initialize company filter from URL parameters
-  useEffect(() => {
-    const companyIdFromUrl = searchParams.get("companyId");
-    if (companyIdFromUrl) {
-      setSelectedCompanyId(companyIdFromUrl);
-    }
-  }, [searchParams]);
-
-
-  // Handle company filter change
-  const handleCompanyChange = (companyId: string) => {
-    setSelectedCompanyId(companyId === "all" ? "" : companyId);
-    setSelectedLocationId(""); // Reset location when company changes
-  };
 
   // Handle location filter change
   const handleLocationChange = (locationId: string) => {
     setSelectedLocationId(locationId === "all" ? "" : locationId);
   };
 
+  if (sellerInfoLoading) {
+    return (
+      <PageContent
+        header={{
+          title: "Brands",
+          description: "Loading your company's brands...",
+        }}
+      >
+        <div className="py-8 text-center">
+          <p className="text-gray-500">Loading...</p>
+        </div>
+      </PageContent>
+    );
+  }
+
+  if (!sellerInfo?.companyId) {
+    return (
+      <PageContent
+        header={{
+          title: "Brands",
+          description: "Unable to load company information.",
+        }}
+      >
+        <div className="py-8 text-center">
+          <p className="text-gray-500">
+            Company information not available. Please contact support.
+          </p>
+        </div>
+      </PageContent>
+    );
+  }
+
   return (
     <PageContent
       header={{
         title: "Brands",
-        description: "Discover top brands from around the world.",
+        description: `Brands for ${sellerInfo.companyName}`,
         actions: (
           <Button color={"primary"} asChild>
-            <NavLink to={PANEL_ROUTES.BRAND.CREATE}>Add Brand</NavLink>
+            <NavLink to={SELLER_ROUTES.SELLER_BRANDS.CREATE}>Add Brand</NavLink>
           </Button>
         ),
       }}
@@ -242,30 +200,21 @@ const BrandList = () => {
       <DataTable
         columns={columns}
         isServerSide
-        fetcher={createBrandFetcher(
-          selectedCompanyId === "all" ? undefined : selectedCompanyId,
+        fetcher={createSellerBrandFetcher(
+          sellerInfo.companyId,
           selectedLocationId === "all" ? undefined : selectedLocationId
         )}
-        queryKeyPrefix={`${PANEL_ROUTES.BRAND.LIST}-${selectedCompanyId}-${selectedLocationId}`}
+        queryKeyPrefix={`seller-brands-${sellerInfo.companyId}-${selectedLocationId}`}
         actionProps={(tableState) => ({
           children: (
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">Company:</span>
-                <CompanyFilter
-                  value={selectedCompanyId}
-                  onValueChange={handleCompanyChange}
-                  placeholder="All Companies"
-                />
-              </div>
-              <div className="flex items-center gap-2">
                 <span className="text-sm font-medium">Location:</span>
                 <LocationFilter
-                  companyId={selectedCompanyId}
+                  companyId={sellerInfo.companyId}
                   value={selectedLocationId}
                   onValueChange={handleLocationChange}
                   placeholder="All Locations"
-                  disabled={!selectedCompanyId}
                 />
               </div>
               <StatusFilter
@@ -281,4 +230,4 @@ const BrandList = () => {
   );
 };
 
-export default BrandList;
+export default SellerBrandList;

@@ -1,17 +1,20 @@
-import { useEffect, useState } from 'react';
-import { FormProvider, useForm, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { toast } from 'sonner';
+import React, { useEffect, useState, useCallback } from "react";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 
-import { getProductSchema } from '../../schema/product.schema';
-import type { ProductFormSchema, ProductReqData } from '../../types/product.types';
-import { transformFormDataToApiRequest } from '../../utils/product.utils';
+import { getProductSchema } from "../../schema/product.schema";
+import type { ProductFormSchema, ProductReqData } from "../../types/product.types";
+import { transformFormDataToApiRequest } from "../../utils/product.utils";
 import { 
   apiGetProductMetaFieldAttributes, 
   apiGetProductAttributeValues 
-} from '../../services/product.service';
-import type { ProductAttribute } from '../../types/product.types';
-import { FormInput, INPUT_TYPES, FormFieldsRenderer } from '@/core/components/ui/form-input';
+} from "../../services/product.service";
+import { apiGetProductAttributes } from "@/modules/panel/services/http/product-attribute.service";
+import { apiGetProductAttributeValues as apiGetAttributeValues } from "@/modules/panel/services/http/product-attribute-value.service";
+import type { ProductAttribute } from "../../types/product.types";
+import { Button } from "@/core/components/ui/button";
+import { Trash2, Plus } from "lucide-react";
 
 type DropDownOption = {
   label: string;
@@ -23,12 +26,154 @@ type ProductFormProps = {
   defaultValues?: ProductFormSchema;
   newProduct?: boolean;
   setBackendErrorRef?: React.MutableRefObject<
-    ((errors: any[]) => void) | null
+    ((errors: Array<{ field: string | number; message: string }>) => void) | null
   >;
   children?: React.ReactNode;
 };
 
-const SIMPLE_PRODUCT_ID = '685a4f3f2d20439677a5e89d';
+// Variant Attributes Section Component
+interface VariantAttributesSectionProps {
+  methods: {
+    watch: (name: string) => unknown;
+    setValue: (name: string, value: unknown) => void;
+  };
+  variantAttributes: ProductAttribute[];
+  attributeValues: Record<string, DropDownOption[]>;
+  onFetchAttributeValues: (attributeId: string) => void;
+}
+
+const VariantAttributesSection = ({ 
+  methods, 
+  variantAttributes, 
+  attributeValues, 
+  onFetchAttributeValues 
+}: VariantAttributesSectionProps) => {
+  const { watch, setValue } = methods;
+  const attributes = (watch("attributes") as Array<{
+    attributeId: { value: string; label: string } | null;
+    attributeValueId: Array<{ value: string; label: string }>;
+  }>) || [];
+
+  const addAttribute = () => {
+    const newAttributes = [...attributes, { attributeId: null, attributeValueId: [] }];
+    setValue("attributes", newAttributes);
+  };
+
+  const removeAttribute = (index: number) => {
+    const newAttributes = attributes.filter((_, i: number) => i !== index);
+    setValue("attributes", newAttributes);
+  };
+
+  const updateAttribute = (index: number, field: string, value: unknown) => {
+    const newAttributes = [...attributes];
+    newAttributes[index] = { ...newAttributes[index], [field]: value };
+    setValue("attributes", newAttributes);
+  };
+
+  const handleAttributeChange = (index: number, attributeId: string) => {
+    updateAttribute(index, "attributeId", { value: attributeId, label: variantAttributes.find(a => a._id === attributeId)?.name || "" });
+    updateAttribute(index, "attributeValueId", []);
+    // Fetch attribute values when attribute is selected
+    onFetchAttributeValues(attributeId);
+  };
+
+  const handleValueChange = (index: number, selectedValues: string[]) => {
+    const selectedOptions = selectedValues.map(value => {
+      const attributeId = attributes[index]?.attributeId?.value;
+      const option = attributeValues[attributeId || ""]?.find((opt: DropDownOption) => opt.value === value);
+      return { value, label: option?.label || "" };
+    });
+    updateAttribute(index, "attributeValueId", selectedOptions);
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Add Variant Attribute Button */}
+      <Button
+        type="button"
+        variant="outlined"
+        onClick={addAttribute}
+        className="flex items-center gap-2 text-blue-600 border-blue-600 hover:bg-blue-50"
+      >
+        <Plus className="w-4 h-4" />
+        Add Variant Attribute
+      </Button>
+
+      {/* Attribute List */}
+      {attributes.map((attribute, index: number) => (
+        <div key={index} className="bg-gray-50 p-4 rounded-lg border">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="font-medium text-gray-900">
+              {attribute.attributeId?.label || "Select an Attribute"}
+            </h4>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => removeAttribute(index)}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Attribute Selection */}
+            <div>
+              <label htmlFor={`attribute-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
+                Attribute
+              </label>
+              <select
+                id={`attribute-${index}`}
+                value={attribute.attributeId?.value || ""}
+                onChange={(e) => handleAttributeChange(index, e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Select Attribute</option>
+                {variantAttributes.map((attr) => (
+                  <option key={attr._id} value={attr._id}>
+                    {attr.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Attribute Values Selection */}
+            <div>
+              <label htmlFor={`values-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
+                Values
+              </label>
+              <select
+                id={`values-${index}`}
+                multiple
+                value={attribute.attributeValueId?.map((v) => v.value) || []}
+                onChange={(e) => {
+                  const selectedValues = Array.from(e.target.selectedOptions, option => option.value);
+                  handleValueChange(index, selectedValues);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={!attribute.attributeId?.value}
+              >
+                {attribute.attributeId?.value ? (
+                  attributeValues[attribute.attributeId.value]?.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  )) || <option disabled>No options available</option>
+                ) : (
+                  <option disabled>Select Attribute Value</option>
+                )}
+              </select>
+              {attribute.attributeId?.value && !attributeValues[attribute.attributeId.value]?.length && (
+                <p className="text-sm text-gray-500 mt-1">No options</p>
+              )}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 const ProductForm = (props: ProductFormProps) => {
   const { onFormSubmit, defaultValues, children, setBackendErrorRef } = props;
@@ -37,6 +182,47 @@ const ProductForm = (props: ProductFormProps) => {
   const [selectOptions, setSelectOptions] = useState<
     Record<string, DropDownOption[]>
   >({});
+  const [variantAttributes, setVariantAttributes] = useState<ProductAttribute[]>([]);
+  const [attributeValues, setAttributeValues] = useState<Record<string, DropDownOption[]>>({});
+
+  // Fetch variant attributes
+  const fetchVariantAttributes = async () => {
+    try {
+      const response = await apiGetProductAttributes({
+        isVariantField: true,
+        page: 1,
+        limit: 100,
+      });
+      const attributes = response?.data?.productAttributes || [];
+      setVariantAttributes(attributes);
+    } catch (err) {
+      console.error("Failed to load variant attributes", err);
+      toast.error("Failed to load variant attributes");
+    }
+  };
+
+  // Fetch attribute values for a specific attribute
+  const fetchAttributeValues = async (attributeId: string) => {
+    try {
+      const response = await apiGetAttributeValues({
+        attributeId,
+        page: 1,
+        limit: 100,
+      });
+      const values = response?.data?.productAttributeValues || [];
+      const options = values.map((v: { label: string; _id: string }) => ({
+        label: v.label,
+        value: v._id,
+      }));
+      setAttributeValues(prev => ({
+        ...prev,
+        [attributeId]: options,
+      }));
+    } catch (err) {
+      console.error(`Failed to load values for attribute ${attributeId}`, err);
+      toast.error("Failed to load attribute values");
+    }
+  };
 
   useEffect(() => {
     const fetchMetaFieldsAndOptions = async () => {
@@ -52,8 +238,8 @@ const ProductForm = (props: ProductFormProps) => {
 
         const selectFields = fields.filter(
           (f: ProductAttribute) =>
-            f.fieldType === 'single-select' ||
-            f.fieldType === 'multi-select',
+            f.fieldType === "single-select" ||
+            f.fieldType === "multi-select",
         );
 
         const optionsMap: Record<string, DropDownOption[]> = {};
@@ -64,8 +250,8 @@ const ProductForm = (props: ProductFormProps) => {
               const res = await apiGetProductAttributeValues({
                 attributeId: field._id,
               });
-              const values = (res as any)?.productAttributeValues || [];
-              optionsMap[field._id] = values.map((v: any) => ({
+              const values = (res as { productAttributeValues?: Array<{ label: string; _id: string }> })?.productAttributeValues || [];
+              optionsMap[field._id] = values.map((v: { label: string; _id: string }) => ({
                 label: v.label,
                 value: v._id,
               }));
@@ -80,12 +266,13 @@ const ProductForm = (props: ProductFormProps) => {
 
         setSelectOptions(optionsMap);
       } catch (err) {
-        console.error('Failed to load meta fields', err);
-        toast.error('Failed to load form fields');
+        console.error("Failed to load meta fields", err);
+        toast.error("Failed to load form fields");
       }
     };
 
     fetchMetaFieldsAndOptions();
+    fetchVariantAttributes();
   }, []);
 
   const methods = useForm<ProductFormSchema>({
@@ -93,8 +280,8 @@ const ProductForm = (props: ProductFormProps) => {
       ...defaultValues,
     },
     resolver: zodResolver(getProductSchema()),
-    mode: 'onTouched',
-    reValidateMode: 'onChange',
+    mode: "onTouched",
+    reValidateMode: "onChange",
   });
 
   const {
@@ -111,18 +298,21 @@ const ProductForm = (props: ProductFormProps) => {
     }
   }, [defaultValues, reset]);
 
+  const handleBackendErrors = useCallback((errors: Array<{ field: string | number; message: string }>) => {
+    errors.forEach((error) => {
+      const fieldName = String(error.field);
+      (setError as (name: string, error: { type: string; message: string }) => void)(fieldName, {
+        type: "manual",
+        message: error.message,
+      });
+    });
+  }, [setError]);
+
   useEffect(() => {
     if (setBackendErrorRef) {
-      setBackendErrorRef.current = (errors: any[]) => {
-        errors.forEach((error) => {
-          setError(error.field as any, {
-            type: 'manual',
-            message: error.message,
-          });
-        });
-      };
+      setBackendErrorRef.current = handleBackendErrors;
     }
-  }, [setError, setBackendErrorRef]);
+  }, [setError, setBackendErrorRef, handleBackendErrors]);
 
   // const mapFieldTypeToMetaType = (
   //   fieldType: string,
@@ -143,17 +333,17 @@ const ProductForm = (props: ProductFormProps) => {
   const onSubmit = (values: ProductFormSchema) => {
     try {
       const cleanedValues = transformFormDataToApiRequest(values, metaFields);
-      console.log('Submitted values:', cleanedValues);
+      console.log("Submitted values:", cleanedValues);
       onFormSubmit?.(cleanedValues);
     } catch (error) {
-      console.error('Form submission error:', error);
-      toast.error('Failed to process form data');
+      console.error("Form submission error:", error);
+      toast.error("Failed to process form data");
     }
   };
 
   const productVariationType = useWatch({
     control,
-    name: 'productVariationType',
+    name: "productVariationType",
   });
 
   return (
@@ -170,12 +360,13 @@ const ProductForm = (props: ProductFormProps) => {
                 <h3 className="text-lg font-semibold mb-4">General Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="productName" className="block text-sm font-medium text-gray-700 mb-1">
                       Product Name *
                     </label>
                     <input
+                      id="productName"
                       type="text"
-                      {...methods.register('productName')}
+                      {...methods.register("productName")}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="Enter product name"
                     />
@@ -186,12 +377,13 @@ const ProductForm = (props: ProductFormProps) => {
                     )}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="slug" className="block text-sm font-medium text-gray-700 mb-1">
                       Slug *
                     </label>
                     <input
+                      id="slug"
                       type="text"
-                      {...methods.register('slug')}
+                      {...methods.register("slug")}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="product-slug"
                     />
@@ -201,12 +393,36 @@ const ProductForm = (props: ProductFormProps) => {
                       </p>
                     )}
                   </div>
+                  <div>
+                    <label htmlFor="productVariationType" className="block text-sm font-medium text-gray-700 mb-1">
+                      Product Type *
+                    </label>
+                    <select
+                      id="productVariationType"
+                      value={productVariationType?.value || ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        methods.setValue("productVariationType", value ? { value, label: value === "simple" ? "Simple product" : "Variable product" } : null);
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select Product Type</option>
+                      <option value="simple">Simple product</option>
+                      <option value="variable">Variable product</option>
+                    </select>
+                    {errors.productVariationType && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.productVariationType.message}
+                      </p>
+                    )}
+                  </div>
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
                       Description
                     </label>
                     <textarea
-                      {...methods.register('description')}
+                      id="description"
+                      {...methods.register("description")}
                       rows={3}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="Enter product description"
@@ -216,44 +432,62 @@ const ProductForm = (props: ProductFormProps) => {
               </div>
 
               {/* Pricing Section - Only show for simple products */}
-              {productVariationType?.value === SIMPLE_PRODUCT_ID && (
+              {productVariationType?.value === "simple" && (
                 <div className="bg-white p-6 rounded-lg shadow-sm border">
                   <h3 className="text-lg font-semibold mb-4">Pricing & Inventory</h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
                         Price
                       </label>
                       <input
+                        id="price"
                         type="number"
-                        {...methods.register('price')}
+                        {...methods.register("price")}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="0.00"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label htmlFor="salePrice" className="block text-sm font-medium text-gray-700 mb-1">
                         Sale Price
                       </label>
                       <input
+                        id="salePrice"
                         type="number"
-                        {...methods.register('salePrice')}
+                        {...methods.register("salePrice")}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="0.00"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-1">
                         Quantity
                       </label>
                       <input
+                        id="quantity"
                         type="number"
-                        {...methods.register('quantity')}
+                        {...methods.register("quantity")}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="0"
                       />
                     </div>
                   </div>
+                </div>
+              )}
+
+              {/* Variant Section - Only show for variable products */}
+              {productVariationType?.value === "variable" && (
+                <div className="bg-white p-6 rounded-lg shadow-sm border">
+                  <h3 className="text-lg font-semibold mb-4">Variant</h3>
+                  
+                  {/* Variant Attributes */}
+                  <VariantAttributesSection 
+                    methods={methods}
+                    variantAttributes={variantAttributes}
+                    attributeValues={attributeValues}
+                    onFetchAttributeValues={fetchAttributeValues}
+                  />
                 </div>
               )}
 
@@ -266,9 +500,9 @@ const ProductForm = (props: ProductFormProps) => {
                       <div key={field._id}>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           {field.name}
-                          {field.isRequired && ' *'}
+                          {field.isRequired && " *"}
                         </label>
-                        {field.fieldType === 'text' && (
+                        {field.fieldType === "text" && (
                           <input
                             type="text"
                             {...methods.register(field.slug)}
@@ -276,7 +510,7 @@ const ProductForm = (props: ProductFormProps) => {
                             placeholder={`Enter ${field.name.toLowerCase()}`}
                           />
                         )}
-                        {field.fieldType === 'single-select' && (
+                        {field.fieldType === "single-select" && (
                           <select
                             {...methods.register(field.slug)}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -289,7 +523,7 @@ const ProductForm = (props: ProductFormProps) => {
                             ))}
                           </select>
                         )}
-                        {field.fieldType === 'multi-select' && (
+                        {field.fieldType === "multi-select" && (
                           <select
                             {...methods.register(field.slug)}
                             multiple
@@ -302,7 +536,7 @@ const ProductForm = (props: ProductFormProps) => {
                             ))}
                           </select>
                         )}
-                        {field.fieldType === 'rich-textbox' && (
+                        {field.fieldType === "rich-textbox" && (
                           <textarea
                             {...methods.register(field.slug)}
                             rows={3}
@@ -322,11 +556,12 @@ const ProductForm = (props: ProductFormProps) => {
               <div className="bg-white p-6 rounded-lg shadow-sm border">
                 <h3 className="text-lg font-semibold mb-4">Status</h3>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
                     Product Status
                   </label>
                   <select
-                    {...methods.register('status')}
+                    id="status"
+                    {...methods.register("status")}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Select Status</option>
@@ -342,20 +577,22 @@ const ProductForm = (props: ProductFormProps) => {
                 <h3 className="text-lg font-semibold mb-4">Images</h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="thumbnail" className="block text-sm font-medium text-gray-700 mb-1">
                       Thumbnail
                     </label>
                     <input
+                      id="thumbnail"
                       type="file"
                       accept="image/*"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="productImages" className="block text-sm font-medium text-gray-700 mb-1">
                       Product Images
                     </label>
                     <input
+                      id="productImages"
                       type="file"
                       accept="image/*"
                       multiple

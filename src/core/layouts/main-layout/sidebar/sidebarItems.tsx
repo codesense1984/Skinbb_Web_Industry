@@ -130,7 +130,7 @@ export const rawItems: Readonly<Record<string, SidebarItem>> = {
         />
       </svg>
     ),
-    children: ["productCategories", "productTags", "discountCoupons"],
+    children: ["productCategories", "productTags", "productAttributes", "discountCoupons"],
   },
   productCategories: {
     name: "Product Categories",
@@ -140,6 +140,11 @@ export const rawItems: Readonly<Record<string, SidebarItem>> = {
   productTags: {
     name: "Product Tags",
     href: PANEL_ROUTES.MASTER.PRODUCT_TAG,
+    requiredRoles: [ROLE.ADMIN],
+  },
+  productAttributes: {
+    name: "Product Attributes",
+    href: PANEL_ROUTES.MASTER.PRODUCT_ATTRIBUTE,
     requiredRoles: [ROLE.ADMIN],
   },
   discountCoupons: {

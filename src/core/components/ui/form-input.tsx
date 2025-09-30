@@ -443,7 +443,7 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
           <div>
             <label
               className="form-control items-center gap-1"
-              title={value?.split("\\").pop()}
+              title={typeof value === 'string' ? value?.split("\\").pop() : Array.isArray(value) && value.length > 0 ? value[0]?.name : ''}
               htmlFor={inputId}
               data-disabled={disabled}
               data-readonly={readOnly}
@@ -475,11 +475,11 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
                 target="_blank"
                 to={value}
               >
-                {value?.split("\\").pop()}
+                {typeof value === 'string' ? value?.split("\\").pop() : Array.isArray(value) && value.length > 0 ? value[0]?.name : ''}
               </Link>
             ) : (
               <p className="text-foreground truncate">
-                {value?.split("\\").pop()}
+                {typeof value === 'string' ? value?.split("\\").pop() : Array.isArray(value) && value.length > 0 ? value[0]?.name : ''}
               </p>
             )}
           </div>

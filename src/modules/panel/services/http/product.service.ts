@@ -45,11 +45,11 @@ interface BulkTagCreateData {
 }
 
 // Product Category APIs
-export async function apiGetProductCategories(params?: ApiParams) {
+export async function apiGetProductCategories(params?: ApiParams, signal?: AbortSignal) {
     const response = await api.get(ENDPOINTS.PRODUCT.CATEGORY, { 
-      params: params || {}
+      params: params || {},
+      signal
     });
-    
     return response;
 }
 
