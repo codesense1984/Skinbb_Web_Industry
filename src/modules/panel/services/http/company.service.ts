@@ -103,19 +103,28 @@ export async function apiGetPageDetails<T, U extends Record<string, unknown>>(
 export async function apiGetBrandList<T, U extends Record<string, unknown>>(
   params: U,
 ) {
-return api.get<T>(ENDPOINTS.BRAND.MAIN_ALL, { params });
+  return api.get<T>(ENDPOINTS.BRAND.MAIN_ALL, { params });
 }
 
 // Get companies for dropdown filter
-export async function apiGetCompaniesForFilter<T, U extends Record<string, unknown>>(
-  params: U,
-) {
+export async function apiGetCompaniesForFilter<
+  T,
+  U extends Record<string, unknown>,
+>(params: U) {
   return api.get<T>(ENDPOINTS.COMPANY.MAIN, { params });
 }
 
 // Get locations for a specific company
-export async function apiGetCompanyLocations<T>(companyId: string) {
-  return api.get<T>(ENDPOINTS.COMPANY.LOCATION(companyId));
+export async function apiGetCompanyLocations<T>(
+  companyId: string,
+  params?: {
+    userId?: string;
+    page?: number;
+    limit?: number;
+  },
+  signal?: AbortSignal,
+) {
+  return api.get<T>(ENDPOINTS.COMPANY.LOCATION(companyId), { params, signal });
 }
 
 // export async function apiCreateBrand(data: BrandReqData) {

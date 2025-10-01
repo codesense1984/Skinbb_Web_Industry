@@ -16,20 +16,28 @@ export const LocationFilter = ({
   value,
   onValueChange,
   placeholder = "Select Location",
-  disabled = false
+  disabled = false,
 }: LocationFilterProps) => {
-  const { data: locationsData, isLoading, error } = useQuery({
+  const {
+    data: locationsData,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["company-locations", companyId],
-    queryFn: () => apiGetCompanyLocations<{
-      statusCode: number;
-      data: {
-        items: CompanyLocation[];
-        page: number;
-        limit: number;
-        total: number;
-      };
-      message: string;
-    }>(companyId!),
+    queryFn: () =>
+      apiGetCompanyLocations<{
+        statusCode: number;
+        data: {
+          items: CompanyLocation[];
+          page: number;
+          limit: number;
+          total: number;
+        };
+        message: string;
+      }>(companyId!, {
+        page: 1,
+        limit: 100,
+      }),
     select: (data) => {
       if (Array.isArray(data?.data?.items)) {
         return data.data.items;
@@ -45,14 +53,13 @@ export const LocationFilter = ({
     ...(isLoading
       ? [{ value: "loading", label: "Loading...", disabled: true }]
       : error
-      ? [{ value: "error", label: "Error loading locations", disabled: true }]
-      : Array.isArray(locationsData)
-        ? locationsData.map((location) => ({
-            value: location._id,
-            label: `${location.addressLine1} - ${location.city}`,
-          }))
-        : []
-    ),
+        ? [{ value: "error", label: "Error loading locations", disabled: true }]
+        : Array.isArray(locationsData)
+          ? locationsData.map((location) => ({
+              value: location._id,
+              label: `${location.addressLine1} - ${location.city}`,
+            }))
+          : []),
   ];
 
   return (

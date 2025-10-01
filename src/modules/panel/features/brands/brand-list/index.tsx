@@ -1,23 +1,31 @@
 import { createSimpleFetcher, DataTable } from "@/core/components/data-table";
-import { StatusFilter } from "@/core/components/data-table/components/table-filter";
 import { TableAction } from "@/core/components/data-table/components/table-action";
 import {
-  AvatarRoot,
   AvatarFallback,
   AvatarImage,
+  AvatarRoot,
 } from "@/core/components/ui/avatar";
 import { StatusBadge } from "@/core/components/ui/badge";
 import { Button } from "@/core/components/ui/button";
 import { PageContent } from "@/core/components/ui/structure";
 import { formatDate } from "@/core/utils";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
-import type { Brand } from "@/modules/panel/types/brand.type";
-import type { ColumnDef } from "@tanstack/react-table";
-import { NavLink, useSearchParams } from "react-router";
-import { useEffect, useState } from "react";
 import { apiGetBrands } from "@/modules/panel/services/http/brand.service";
-import { CompanyFilter } from "../components/CompanyFilter";
-import { LocationFilter } from "../components/LocationFilter";
+import {
+  apiGetCompanyList,
+  apiGetCompanyLocations,
+} from "@/modules/panel/services/http/company.service";
+import type { Brand } from "@/modules/panel/types/brand.type";
+import type {
+  CompanyAddressInfo,
+  CompanyListItem,
+} from "@/modules/panel/types/company.type";
+import type { ColumnDef } from "@tanstack/react-table";
+import { NavLink } from "react-router";
+import { useUrlFilters } from "@/core/hooks/use-url-filters";
+import { FilterDropdown } from "@/core/components/filters/FilterDropdown";
+import { useCallback, useEffect, useRef, useMemo } from "react";
+import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
 
 // Legacy static data - commented out
 // const statsData = [
@@ -62,7 +70,6 @@ import { LocationFilter } from "../components/LocationFilter";
 //   // ... other static data
 // ];
 
-
 const columns: ColumnDef<Brand>[] = [
   {
     accessorKey: "name",
@@ -88,19 +95,19 @@ const columns: ColumnDef<Brand>[] = [
       </ul>
     ),
   },
-  {
-    accessorKey: "aboutTheBrand",
-    header: "Description",
-    cell: ({ getValue }) => {
-      const description = getValue() as string;
-      const cleanDescription = description.replace(/<[^>]*>/g, ""); // Remove HTML tags
-      return (
-        <div className="w-max max-w-xs truncate" title={cleanDescription}>
-          {cleanDescription || "No description"}
-        </div>
-      );
-    },
-  },
+  // {
+  //   accessorKey: "aboutTheBrand",
+  //   header: "Description",
+  //   cell: ({ getValue }) => {
+  //     const description = getValue() as string;
+  //     const cleanDescription = description.replace(/<[^>]*>/g, ""); // Remove HTML tags
+  //     return (
+  //       <div className="w-max max-w-xs truncate" title={cleanDescription}>
+  //         {cleanDescription || "No description"}
+  //       </div>
+  //     );
+  //   },
+  // },
   {
     accessorKey: "isActive",
     header: "Status",
@@ -118,22 +125,22 @@ const columns: ColumnDef<Brand>[] = [
       return value.includes(row.getValue(id));
     },
   },
-  {
-    accessorKey: "associatedProductsCount",
-    header: "Products",
-    cell: ({ getValue }) => {
-      const count = getValue() as number;
-      return <div className="w-max font-medium">{count}</div>;
-    },
-  },
-  {
-    accessorKey: "associatedUsers",
-    header: "Users",
-    cell: ({ getValue }) => {
-      const count = getValue() as number;
-      return <div className="w-max font-medium">{count}</div>;
-    },
-  },
+  // {
+  //   accessorKey: "associatedProductsCount",
+  //   header: "Products",
+  //   cell: ({ getValue }) => {
+  //     const count = getValue() as number;
+  //     return <div className="w-max font-medium">{count}</div>;
+  //   },
+  // },
+  // {
+  //   accessorKey: "associatedUsers",
+  //   header: "Users",
+  //   cell: ({ getValue }) => {
+  //     const count = getValue() as number;
+  //     return <div className="w-max font-medium">{count}</div>;
+  //   },
+  // },
   {
     accessorKey: "createdAt",
     header: "Created",
@@ -147,6 +154,7 @@ const columns: ColumnDef<Brand>[] = [
     accessorKey: "actions",
     enableSorting: false,
     enableHiding: false,
+    size: 50,
     cell: ({ row }) => {
       return (
         <TableAction
@@ -165,17 +173,10 @@ const columns: ColumnDef<Brand>[] = [
 ];
 
 // Create fetcher for server-side data
-const createBrandFetcher = (companyId?: string, locationId?: string) => {
+const createBrandFetcher = () => {
   return createSimpleFetcher(
     (params: Record<string, unknown>) => {
-      // Add our custom filter parameters to the API call
-      const filterParams = {
-        ...params,
-        ...(companyId && companyId !== "all" && { companyId }),
-        ...(locationId && locationId !== "all" && { locationId }),
-      };
-      // console.log("Brand API call with filters:", filterParams);
-      return apiGetBrands(filterParams);
+      return apiGetBrands(params);
     },
     {
       dataPath: "data.brands",
@@ -186,34 +187,82 @@ const createBrandFetcher = (companyId?: string, locationId?: string) => {
         companyId: "companyId",
         locationId: "locationId",
       },
-    }
+    },
   );
 };
 
 const BrandList = () => {
-  const [searchParams] = useSearchParams();
-  const [selectedCompanyId, setSelectedCompanyId] = useState<string>("all");
-  const [selectedLocationId, setSelectedLocationId] = useState<string>("all");
+  // Simple URL-based filter management
+  const { filters, updateFilter, updateFilters } = useUrlFilters([
+    "companyId",
+    "locationId",
+  ]);
+  const tableRef = useRef<any>(null);
 
-  // Initialize company filter from URL parameters
+  // Memoize API functions to prevent recreation
+  const companyApi = useMemo(
+    () =>
+      createSimpleFetcher((params) => apiGetCompanyList(params), {
+        dataPath: "data.items",
+        totalPath: "data.total",
+      }),
+    [],
+  );
+
+  const locationApi = useMemo(
+    () =>
+      createSimpleFetcher(
+        (params) => {
+          // Return empty result if no company selected
+          if (!filters.companyId) {
+            return Promise.resolve({ rows: [], total: 0 });
+          }
+          return apiGetCompanyLocations(filters.companyId, params);
+        },
+        { dataPath: "data.items", totalPath: "data.totalPages" },
+      ),
+    [filters.companyId],
+  );
+
+  // Handle company change - clear location when company changes
+  const handleCompanyChange = useCallback(
+    (companyId: string) => {
+      // Use batch update to ensure both filters are updated together
+      updateFilters({
+        companyId: companyId,
+        locationId: "", // Always clear location when company changes
+      });
+    },
+    [updateFilters, filters.locationId],
+  );
+
+  // Handle location change
+  const handleLocationChange = useCallback(
+    (locationId: string) => {
+      // Only update location, don't touch company
+      updateFilter("locationId", locationId);
+    },
+    [updateFilter, filters.companyId],
+  );
+
+  // Sync table filters with URL state - debounced
   useEffect(() => {
-    const companyIdFromUrl = searchParams.get("companyId");
-    if (companyIdFromUrl) {
-      setSelectedCompanyId(companyIdFromUrl);
+    if (tableRef.current) {
+      const timeoutId = setTimeout(() => {
+        const tableFilters = [];
+        if (filters.companyId) {
+          tableFilters.push({ id: "companyId", value: filters.companyId });
+        }
+        if (filters.locationId) {
+          tableFilters.push({ id: "locationId", value: filters.locationId });
+        }
+        console.log("Setting table filters:", tableFilters);
+        tableRef.current.table.setColumnFilters(tableFilters);
+      }, 100);
+
+      return () => clearTimeout(timeoutId);
     }
-  }, [searchParams]);
-
-
-  // Handle company filter change
-  const handleCompanyChange = (companyId: string) => {
-    setSelectedCompanyId(companyId === "all" ? "" : companyId);
-    setSelectedLocationId(""); // Reset location when company changes
-  };
-
-  // Handle location filter change
-  const handleLocationChange = (locationId: string) => {
-    setSelectedLocationId(locationId === "all" ? "" : locationId);
-  };
+  }, [filters.companyId, filters.locationId]);
 
   return (
     <PageContent
@@ -242,40 +291,66 @@ const BrandList = () => {
       <DataTable
         columns={columns}
         isServerSide
-        fetcher={createBrandFetcher(
-          selectedCompanyId === "all" ? undefined : selectedCompanyId,
-          selectedLocationId === "all" ? undefined : selectedLocationId
-        )}
-        queryKeyPrefix={`${PANEL_ROUTES.BRAND.LIST}-${selectedCompanyId}-${selectedLocationId}`}
-        actionProps={(tableState) => ({
-          children: (
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">Company:</span>
-                <CompanyFilter
-                  value={selectedCompanyId}
-                  onValueChange={handleCompanyChange}
-                  placeholder="All Companies"
-                />
+        fetcher={createBrandFetcher()}
+        queryKeyPrefix={`${PANEL_ROUTES.BRAND.LIST}`}
+        initialColumnFilters={[
+          ...(filters.companyId
+            ? [{ id: "companyId", value: filters.companyId }]
+            : []),
+          ...(filters.locationId
+            ? [{ id: "locationId", value: filters.locationId }]
+            : []),
+        ]}
+        actionProps={(tableState) => {
+          // Store table reference for filter updates
+          tableRef.current = tableState;
+
+          return {
+            children: (
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="hidden text-sm font-medium md:block">
+                    Company:
+                  </span>
+                  <FilterDropdown<CompanyListItem>
+                    apiFunction={companyApi}
+                    transform={(val) => ({
+                      value: val._id,
+                      label: val.companyName,
+                    })}
+                    value={filters.companyId || ""}
+                    onChange={handleCompanyChange}
+                    placeholder="Filter by company..."
+                    queryKey={[ENDPOINTS.COMPANY.MAIN]}
+                    enabled={true}
+                    componentEnabled={true}
+                  />
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="hidden text-sm font-medium md:block">
+                    Location:
+                  </span>
+                  <FilterDropdown<CompanyAddressInfo>
+                    key={`location-${filters.companyId}`}
+                    apiFunction={locationApi}
+                    transform={(val) => ({
+                      value: val._id ?? val.addressId ?? "",
+                      label: `${val.city}, ${val.state}`,
+                    })}
+                    value={filters.locationId || ""}
+                    onChange={handleLocationChange}
+                    placeholder={"Filter by location..."}
+                    disabled={!filters.companyId}
+                    enabled={!!filters.companyId}
+                    componentEnabled={!!filters.companyId}
+                    queryKey={[ENDPOINTS.COMPANY.LOCATION(filters.companyId)]}
+                  />
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">Location:</span>
-                <LocationFilter
-                  companyId={selectedCompanyId}
-                  value={selectedLocationId}
-                  onValueChange={handleLocationChange}
-                  placeholder="All Locations"
-                  disabled={!selectedCompanyId}
-                />
-              </div>
-              <StatusFilter
-                tableState={tableState}
-                module="brand"
-                multi={false} // Single selection mode
-              />
-            </div>
-          ),
-        })}
+            ),
+          };
+        }}
       />
     </PageContent>
   );

@@ -159,6 +159,7 @@ export interface CompanyBrandInfo {
 }
 
 export interface CompanyAddressInfo {
+  _id?: string;
   addressId: string;
   addressType: "registered" | "office";
   landmark?: string;

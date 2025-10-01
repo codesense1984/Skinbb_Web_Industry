@@ -11,25 +11,33 @@ interface LocationFilterProps {
   disabled?: boolean;
 }
 
-export const LocationFilter = ({ 
-  companyId, 
-  value, 
-  onValueChange, 
+export const LocationFilter = ({
+  companyId,
+  value,
+  onValueChange,
   placeholder = "Select Location",
-  disabled = false 
+  disabled = false,
 }: LocationFilterProps) => {
-  const { data: locationsData, isLoading, error } = useQuery({
+  const {
+    data: locationsData,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["company-locations", companyId],
-    queryFn: () => apiGetCompanyLocations<{
-      statusCode: number;
-      data: {
-        items: CompanyLocation[];
-        page: number;
-        limit: number;
-        total: number;
-      };
-      message: string;
-    }>(companyId!),
+    queryFn: () =>
+      apiGetCompanyLocations<{
+        statusCode: number;
+        data: {
+          items: CompanyLocation[];
+          page: number;
+          limit: number;
+          total: number;
+        };
+        message: string;
+      }>(companyId!, {
+        page: 1,
+        limit: 100,
+      }),
     select: (data) => {
       // Ensure we always return an array
       if (Array.isArray(data?.data?.items)) {
@@ -44,17 +52,16 @@ export const LocationFilter = ({
   // Format data for Select component
   const options = [
     { value: "all", label: "All Locations" },
-    ...(isLoading 
+    ...(isLoading
       ? [{ value: "loading", label: "Loading...", disabled: true }]
-      : error 
-      ? [{ value: "error", label: "Error loading locations", disabled: true }]
-      : Array.isArray(locationsData) 
-        ? locationsData.map((location) => ({
-            value: location._id,
-            label: `${location.addressLine1} - ${location.city}`,
-          }))
-        : []
-    ),
+      : error
+        ? [{ value: "error", label: "Error loading locations", disabled: true }]
+        : Array.isArray(locationsData)
+          ? locationsData.map((location) => ({
+              value: location._id,
+              label: `${location.addressLine1} - ${location.city}`,
+            }))
+          : []),
   ];
 
   return (
