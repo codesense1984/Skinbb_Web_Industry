@@ -19,6 +19,7 @@ import { useCallback, useEffect, useState } from "react";
 import { apiGetProducts } from "@/modules/panel/services/http/product.service";
 import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth";
 import { LocationFilter } from "@/modules/panel/features/listing/components/LocationFilter";
+import { BrandFilter } from "@/modules/panel/features/listing/components/BrandFilter";
 
 // Initial stats data
 const initialStatsData = [
@@ -178,7 +179,7 @@ const columns: ColumnDef<Product>[] = [
 ];
 
 // Create fetcher for server-side data with seller's company ID
-const createSellerProductFetcher = (companyId: string, locationId?: string) => {
+const createSellerProductFetcher = (companyId: string, locationId?: string, brandId?: string) => {
   return createSimpleFetcher(
     (params: Record<string, unknown>) => {
       // Always filter by seller's company ID
@@ -186,6 +187,7 @@ const createSellerProductFetcher = (companyId: string, locationId?: string) => {
         ...params,
         companyId, // Always include seller's company ID
         ...(locationId && locationId !== "all" && { locationId }),
+        ...(brandId && brandId !== "all" && { brand: brandId }), // Use brand parameter with brandId
       };
       return apiGetProducts(filterParams);
     },
@@ -198,6 +200,7 @@ const createSellerProductFetcher = (companyId: string, locationId?: string) => {
         brand: "brand",
         tag: "tag",
         locationId: "locationId",
+        brandId: "brand",
       },
     }
   );
@@ -207,6 +210,7 @@ const SellerProductList = () => {
   const { sellerInfo, isLoading: sellerInfoLoading } = useSellerAuth();
   const [stats, setStats] = useState(initialStatsData);
   const [selectedLocationId, setSelectedLocationId] = useState<string>("all");
+  const [selectedBrandId, setSelectedBrandId] = useState<string>("all");
 
   // Fetch stats separately since we need them for the summary cards
   const fetchStats = useCallback(async () => {
@@ -219,22 +223,23 @@ const SellerProductList = () => {
         companyId: sellerInfo.companyId 
       });
 
-      if (response.success) {
-        const publishedProducts = response.data.products.filter(
-          (p) => p.status === "publish",
+      if ((response as { success: boolean }).success) {
+        const responseData = response as { data: { products: Array<{ status: string; variants?: Array<unknown> }>; totalRecords: number } };
+        const publishedProducts = responseData.data.products.filter(
+          (p: { status: string }) => p.status === "publish",
         ).length;
-        const draftProducts = response.data.products.filter(
-          (p) => p.status === "draft",
+        const draftProducts = responseData.data.products.filter(
+          (p: { status: string }) => p.status === "draft",
         ).length;
-        const totalVariants = response.data.products.reduce(
-          (sum, product) => sum + (product.variants?.length || 0),
+        const totalVariants = responseData.data.products.reduce(
+          (sum: number, product: { variants?: Array<unknown> }) => sum + (product.variants?.length || 0),
           0,
         );
 
         setStats([
           {
             title: "Total Products",
-            value: response.data.totalRecords,
+            value: responseData.data.totalRecords,
             barColor: "bg-primary",
             icon: true,
           },
@@ -272,6 +277,11 @@ const SellerProductList = () => {
   // Handle location filter change
   const handleLocationChange = (locationId: string) => {
     setSelectedLocationId(locationId === "all" ? "" : locationId);
+  };
+
+  // Handle brand filter change
+  const handleBrandChange = (brandId: string) => {
+    setSelectedBrandId(brandId === "all" ? "all" : brandId);
   };
 
   if (sellerInfoLoading) {
@@ -334,9 +344,10 @@ const SellerProductList = () => {
         isServerSide
         fetcher={createSellerProductFetcher(
           sellerInfo.companyId,
-          selectedLocationId === "all" ? undefined : selectedLocationId
+          selectedLocationId === "all" ? undefined : selectedLocationId,
+          selectedBrandId === "all" ? undefined : selectedBrandId
         )}
-        queryKeyPrefix={`seller-products-${sellerInfo.companyId}-${selectedLocationId}`}
+        queryKeyPrefix={`seller-products-${sellerInfo.companyId}-${selectedLocationId}-${selectedBrandId}`}
         actionProps={(tableState) => ({
           children: (
             <div className="flex items-center gap-4">
@@ -347,6 +358,15 @@ const SellerProductList = () => {
                   value={selectedLocationId}
                   onValueChange={handleLocationChange}
                   placeholder="All Locations"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Brand:</span>
+                <BrandFilter
+                  value={selectedBrandId}
+                  onValueChange={handleBrandChange}
+                  placeholder="All Brands"
+                  companyId={sellerInfo.companyId}
                 />
               </div>
               <StatusFilter

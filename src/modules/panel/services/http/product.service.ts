@@ -10,6 +10,7 @@ interface ApiParams {
   category?: string;
   tag?: string;
   brand?: string;
+  brandId?: string;
   productType?: string;
   sortBy?: string;
   order?: string;
@@ -94,14 +95,6 @@ export async function apiBulkCreateProductTags(data: BulkTagCreateData) {
 }
 
 // Additional Product APIs (placeholder functions)
-export async function apiGetBrandsForDropdown() {
-  return api.get(ENDPOINTS.BRAND.MAIN_ALL, {
-    params: {
-      limit: 1000,
-      page: 1,
-    },
-  });
-}
 
 export async function apiGetCategoriesForDropdown() {
   return api.get(ENDPOINTS.PRODUCT.CATEGORY_HIERARCHY, {
@@ -206,6 +199,7 @@ export async function apiGetProducts(params?: ApiParams) {
   if (params?.category) searchParams.append("category", params.category);
   if (params?.tag) searchParams.append("tag", params.tag);
   if (params?.brand) searchParams.append("brand", params.brand);
+  if (params?.brandId) searchParams.append("brandId", params.brandId);
   if (params?.productType) searchParams.append("productType", params.productType);
   if (params?.sortBy) searchParams.append("sortBy", params.sortBy);
   if (params?.order) searchParams.append("order", params.order);

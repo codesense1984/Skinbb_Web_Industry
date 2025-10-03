@@ -1,6 +1,8 @@
-import { Select } from "@/core/components/ui/select";
-import { useQuery } from "@tanstack/react-query";
+import { PaginationComboBox } from "@/core/components/ui/pagination-combo-box";
+import { createSimpleFetcher } from "@/core/components/data-table";
 import { apiGetCompaniesForFilter } from "@/modules/panel/services/http/company.service";
+import { useQuery } from "@tanstack/react-query";
+import { Select } from "@/core/components/ui/select";
 
 interface Company {
   _id: string;
@@ -14,50 +16,27 @@ interface CompanyFilterProps {
   placeholder?: string;
 }
 
+const companyFilter = createSimpleFetcher(apiGetCompaniesForFilter, {
+  dataPath: "data.items",
+  totalPath: "data.total",
+});
+
 export const CompanyFilter = ({ value, onValueChange, placeholder = "Select Company" }: CompanyFilterProps) => {
-  const { data: companiesData, isLoading, error } = useQuery({
-    queryKey: ["companies-filter"],
-    queryFn: () => apiGetCompaniesForFilter<{
-      statusCode: number;
-      data: {
-        items: Company[];
-        page: number;
-        limit: number;
-        total: number;
-      };
-      message: string;
-    }, {
-      page: number;
-      limit: number;
-      search?: string;
-    }>({
-      page: 1,
-      limit: 100,
-    }),
-    select: (data) => data?.data?.items || [],
-    retry: 1,
-  });
-
-  const options = [
-    { value: "all", label: "All Companies" },
-    ...(isLoading
-      ? [{ value: "loading", label: "Loading...", disabled: true }]
-      : error
-      ? [{ value: "error", label: "Error loading companies", disabled: true }]
-      : companiesData?.map((company) => ({
-          value: company._id,
-          label: company.companyName,
-        })) || []
-    ),
-  ];
-
   return (
-    <Select
-      value={value}
-      onValueChange={onValueChange}
-      options={options}
+    <PaginationComboBox
+      apiFunction={companyFilter}
+      transform={(company: Company) => ({
+        label: company.companyName,
+        value: company._id,
+      })}
       placeholder={placeholder}
+      value={value === "all" ? "" : value}
+      onChange={(selectedValue: string | string[]) => {
+        const stringValue = Array.isArray(selectedValue) ? selectedValue[0] : selectedValue;
+        onValueChange(stringValue || "all");
+      }}
       className="w-[150px]"
+      queryKey={["companies-filter"]}
     />
   );
 };

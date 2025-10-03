@@ -93,7 +93,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-lg border border-gray-300",
+        "relative overflow-hidden rounded-lg border border-gray-300",
         className,
       )}
     >

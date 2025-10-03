@@ -6,6 +6,10 @@ export type BrandFormData = {
   brand_logo_files: File[];
   brand_logo: string;
 
+  // Company and Location
+  company_id: string;
+  location_id: string;
+
   // Brand Information
   brand_name: string;
   description: string;
@@ -71,6 +75,10 @@ export const defaultValues: BrandFormData = {
   brand_logo_files: [],
   brand_logo: "",
 
+  // Company and Location
+  company_id: "",
+  location_id: "",
+
   // Brand Information
   brand_name: "",
   description: "",
@@ -133,6 +141,29 @@ export const brandFormSchema: BrandFormSchema = {
       name: "brand_logo_files",
       label: "Brand Logo",
       placeholder: "Upload brand logo",
+    },
+  ],
+
+  company_location: [
+    {
+      type: "select",
+      name: "company_id",
+      label: "Company",
+      placeholder: "Select company",
+      options: [], // Will be populated dynamically
+      rules: {
+        required: "Company is required",
+      },
+    },
+    {
+      type: "select",
+      name: "location_id",
+      label: "Location",
+      placeholder: "Select location",
+      options: [], // Will be populated dynamically
+      rules: {
+        required: "Location is required",
+      },
     },
   ],
 

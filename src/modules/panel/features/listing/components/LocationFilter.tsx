@@ -1,5 +1,5 @@
-import { Select } from "@/core/components/ui/select";
-import { useQuery } from "@tanstack/react-query";
+import { PaginationComboBox } from "@/core/components/ui/pagination-combo-box";
+import { createSimpleFetcher } from "@/core/components/data-table";
 import { apiGetCompanyLocations } from "@/modules/panel/services/http/company.service";
 import type { CompanyLocation } from "@/modules/panel/types/company-location.type";
 
@@ -11,6 +11,19 @@ interface LocationFilterProps {
   disabled?: boolean;
 }
 
+const locationFilter = (companyId: string) => createSimpleFetcher(
+  (params: Record<string, unknown>) => {
+    return apiGetCompanyLocations(companyId, {
+      page: (params.pageIndex as number) + 1,
+      limit: params.pageSize as number,
+    });
+  },
+  {
+    dataPath: "data.items",
+    totalPath: "data.total",
+  }
+);
+
 export const LocationFilter = ({
   companyId,
   value,
@@ -18,58 +31,32 @@ export const LocationFilter = ({
   placeholder = "Select Location",
   disabled = false,
 }: LocationFilterProps) => {
-  const {
-    data: locationsData,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["company-locations", companyId],
-    queryFn: () =>
-      apiGetCompanyLocations<{
-        statusCode: number;
-        data: {
-          items: CompanyLocation[];
-          page: number;
-          limit: number;
-          total: number;
-        };
-        message: string;
-      }>(companyId!, {
-        page: 1,
-        limit: 100,
-      }),
-    select: (data) => {
-      if (Array.isArray(data?.data?.items)) {
-        return data.data.items;
-      }
-      return [];
-    },
-    enabled: !!companyId,
-    retry: 1,
-  });
-
-  const options = [
-    { value: "all", label: "All Locations" },
-    ...(isLoading
-      ? [{ value: "loading", label: "Loading...", disabled: true }]
-      : error
-        ? [{ value: "error", label: "Error loading locations", disabled: true }]
-        : Array.isArray(locationsData)
-          ? locationsData.map((location) => ({
-              value: location._id,
-              label: `${location.addressLine1} - ${location.city}`,
-            }))
-          : []),
-  ];
+  // Don't render the component if companyId is not valid
+  if (!companyId || companyId === "all" || companyId === "") {
+    return (
+      <div className="w-[150px] h-10 px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-500 flex items-center">
+        {placeholder}
+      </div>
+    );
+  }
 
   return (
-    <Select
-      value={value}
-      onValueChange={onValueChange}
-      options={options}
+    <PaginationComboBox
+      apiFunction={locationFilter(companyId)}
+      transform={(location: CompanyLocation) => ({
+        label: `${location.addressLine1} - ${location.city}`,
+        value: location._id,
+      })}
       placeholder={placeholder}
+      value={value === "all" ? "" : value}
+      onChange={(selectedValue: string | string[]) => {
+        const stringValue = Array.isArray(selectedValue) ? selectedValue[0] : selectedValue;
+        onValueChange(stringValue || "all");
+      }}
       className="w-[150px]"
       disabled={disabled || !companyId}
+      enabled={!!companyId}
+      queryKey={["company-locations", companyId]}
     />
   );
 };

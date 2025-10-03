@@ -211,9 +211,12 @@ export const PaginationComboBox = <T = unknown,>({
   const allOptions = useMemo(() => {
     if (!(data as any)?.pages) return [];
 
-    return (data as any).pages.flatMap((page: ServerTableResult<T>) =>
-      page.rows.map(transform),
-    );
+    return (data as any).pages.flatMap((page: any) => {
+      // useInfiniteQuery wraps the data in a 'data' property
+      const pageData = page.data || page;
+      const rows = Array.isArray(pageData.rows) ? pageData.rows : [];
+      return rows.map(transform);
+    });
   }, [data, transform]);
 
   // Handle search input change with debouncing

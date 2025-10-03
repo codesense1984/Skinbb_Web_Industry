@@ -2,19 +2,65 @@ import React, { useEffect, useState, useCallback } from "react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-
 import { getProductSchema } from "../../schema/product.schema";
 import type { ProductFormSchema, ProductReqData } from "../../types/product.types";
 import { transformFormDataToApiRequest } from "../../utils/product.utils";
 import { 
-  apiGetProductMetaFieldAttributes, 
-  apiGetProductAttributeValues 
+  apiGetProductMetaFieldAttributes
 } from "../../services/product.service";
 import { apiGetProductAttributes } from "@/modules/panel/services/http/product-attribute.service";
 import { apiGetProductAttributeValues as apiGetAttributeValues } from "@/modules/panel/services/http/product-attribute-value.service";
 import type { ProductAttribute } from "../../types/product.types";
 import { Button } from "@/core/components/ui/button";
+import { PaginationComboBox } from "@/core/components/ui/pagination-combo-box";
 import { Trash2, Plus } from "lucide-react";
+import { productAttributeFetcher, productAttributeValueFetcher } from "../../services/product-fetchers";
+import { createSimpleFetcher } from "@/core/components/data-table";
+
+// Fetchers for static options
+const productTypeFetcher = createSimpleFetcher(
+  () => Promise.resolve({
+    data: {
+      items: [
+        { _id: "simple", name: "Simple product" },
+        { _id: "variable", name: "Variable product" }
+      ],
+      total: 2
+    }
+  }),
+  {
+    dataPath: "data.items",
+    totalPath: "data.total",
+  }
+);
+
+const productStatusFetcher = createSimpleFetcher(
+  () => Promise.resolve({
+    data: {
+      items: [
+        { _id: "draft", name: "Draft" },
+        { _id: "published", name: "Published" },
+        { _id: "archived", name: "Archived" }
+      ],
+      total: 3
+    }
+  }),
+  {
+    dataPath: "data.items",
+    totalPath: "data.total",
+  }
+);
+
+// Types for API responses
+interface ProductAttributeResponse {
+  _id: string;
+  name: string;
+}
+
+interface ProductAttributeValueResponse {
+  _id: string;
+  label: string;
+}
 
 type DropDownOption = {
   label: string;
@@ -123,19 +169,22 @@ const VariantAttributesSection = ({
               <label htmlFor={`attribute-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
                 Attribute
               </label>
-              <select
-                id={`attribute-${index}`}
+              <PaginationComboBox
+                apiFunction={productAttributeFetcher}
+                transform={(attr: ProductAttributeResponse) => ({
+                  label: attr.name,
+                  value: attr._id,
+                })}
+                placeholder="Select Attribute"
                 value={attribute.attributeId?.value || ""}
-                onChange={(e) => handleAttributeChange(index, e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Select Attribute</option>
-                {variantAttributes.map((attr) => (
-                  <option key={attr._id} value={attr._id}>
-                    {attr.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(value: string | string[]) => {
+                  if (typeof value === "string" && value) {
+                    handleAttributeChange(index, value);
+                  }
+                }}
+                className="w-full"
+                queryKey={["product-attributes", index.toString()]}
+              />
             </div>
 
             {/* Attribute Values Selection */}
@@ -143,30 +192,25 @@ const VariantAttributesSection = ({
               <label htmlFor={`values-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
                 Values
               </label>
-              <select
-                id={`values-${index}`}
-                multiple
-                value={attribute.attributeValueId?.map((v) => v.value) || []}
-                onChange={(e) => {
-                  const selectedValues = Array.from(e.target.selectedOptions, option => option.value);
-                  handleValueChange(index, selectedValues);
+              <PaginationComboBox
+                apiFunction={attribute.attributeId?.value ? productAttributeValueFetcher(attribute.attributeId.value) : productAttributeValueFetcher("")}
+                transform={(value: ProductAttributeValueResponse) => ({
+                  label: value.label,
+                  value: value._id,
+                })}
+                placeholder="Select Values"
+                value={attribute.attributeValueId?.map(v => v.value) || []}
+                onChange={(value: string | string[]) => {
+                  if (Array.isArray(value)) {
+                    handleValueChange(index, value);
+                  }
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full"
+                multi={true}
                 disabled={!attribute.attributeId?.value}
-              >
-                {attribute.attributeId?.value ? (
-                  attributeValues[attribute.attributeId.value]?.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  )) || <option disabled>No options available</option>
-                ) : (
-                  <option disabled>Select Attribute Value</option>
-                )}
-              </select>
-              {attribute.attributeId?.value && !attributeValues[attribute.attributeId.value]?.length && (
-                <p className="text-sm text-gray-500 mt-1">No options</p>
-              )}
+                queryKey={["product-attribute-values", attribute.attributeId?.value || "", index.toString()]}
+                enabled={!!attribute.attributeId?.value}
+              />
             </div>
           </div>
         </div>
@@ -179,9 +223,6 @@ const ProductForm = (props: ProductFormProps) => {
   const { onFormSubmit, defaultValues, children, setBackendErrorRef } = props;
 
   const [metaFields, setMetaFields] = useState<ProductAttribute[]>([]);
-  const [selectOptions, setSelectOptions] = useState<
-    Record<string, DropDownOption[]>
-  >({});
   const [variantAttributes, setVariantAttributes] = useState<ProductAttribute[]>([]);
   const [attributeValues, setAttributeValues] = useState<Record<string, DropDownOption[]>>({});
 
@@ -236,35 +277,6 @@ const ProductForm = (props: ProductFormProps) => {
         const fields = response?.productAttributes || [];
         setMetaFields(fields);
 
-        const selectFields = fields.filter(
-          (f: ProductAttribute) =>
-            f.fieldType === "single-select" ||
-            f.fieldType === "multi-select",
-        );
-
-        const optionsMap: Record<string, DropDownOption[]> = {};
-
-        await Promise.all(
-          selectFields.map(async (field: ProductAttribute) => {
-            try {
-              const res = await apiGetProductAttributeValues({
-                attributeId: field._id,
-              });
-              const values = (res as { productAttributeValues?: Array<{ label: string; _id: string }> })?.productAttributeValues || [];
-              optionsMap[field._id] = values.map((v: { label: string; _id: string }) => ({
-                label: v.label,
-                value: v._id,
-              }));
-            } catch (err) {
-              console.warn(
-                `Failed to fetch options for ${field.name}`,
-                err,
-              );
-            }
-          }),
-        );
-
-        setSelectOptions(optionsMap);
       } catch (err) {
         console.error("Failed to load meta fields", err);
         toast.error("Failed to load form fields");
@@ -397,19 +409,26 @@ const ProductForm = (props: ProductFormProps) => {
                     <label htmlFor="productVariationType" className="block text-sm font-medium text-gray-700 mb-1">
                       Product Type *
                     </label>
-                    <select
-                      id="productVariationType"
+                    <PaginationComboBox
+                      apiFunction={productTypeFetcher}
+                      transform={(option: { _id: string; name: string }) => ({
+                        label: option.name,
+                        value: option._id,
+                      })}
+                      placeholder="Select Product Type"
                       value={productVariationType?.value || ""}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        methods.setValue("productVariationType", value ? { value, label: value === "simple" ? "Simple product" : "Variable product" } : null);
+                      onChange={(value: string | string[]) => {
+                        const stringValue = Array.isArray(value) ? value[0] : value;
+                        if (stringValue) {
+                          const option = stringValue === "simple" ? "Simple product" : "Variable product";
+                          methods.setValue("productVariationType", { value: stringValue, label: option });
+                        } else {
+                          methods.setValue("productVariationType", null);
+                        }
                       }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">Select Product Type</option>
-                      <option value="simple">Simple product</option>
-                      <option value="variable">Variable product</option>
-                    </select>
+                      className="w-full"
+                      queryKey={["product-types"]}
+                    />
                     {errors.productVariationType && (
                       <p className="text-red-500 text-xs mt-1">
                         {errors.productVariationType.message}
@@ -511,30 +530,41 @@ const ProductForm = (props: ProductFormProps) => {
                           />
                         )}
                         {field.fieldType === "single-select" && (
-                          <select
-                            {...methods.register(field.slug)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          >
-                            <option value="">Select {field.name}</option>
-                            {selectOptions[field._id]?.map((option) => (
-                              <option key={option.value} value={option.value}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </select>
+                          <PaginationComboBox
+                            apiFunction={productAttributeValueFetcher(field._id)}
+                            transform={(value: ProductAttributeValueResponse) => ({
+                              label: value.label,
+                              value: value._id,
+                            })}
+                            placeholder={`Select ${field.name}`}
+                            value={methods.watch(field.slug) as string || ""}
+                            onChange={(value: string | string[]) => {
+                              if (typeof value === "string") {
+                                methods.setValue(field.slug, value);
+                              }
+                            }}
+                            className="w-full"
+                            queryKey={["meta-field-values", field._id]}
+                          />
                         )}
                         {field.fieldType === "multi-select" && (
-                          <select
-                            {...methods.register(field.slug)}
-                            multiple
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          >
-                            {selectOptions[field._id]?.map((option) => (
-                              <option key={option.value} value={option.value}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </select>
+                          <PaginationComboBox
+                            apiFunction={productAttributeValueFetcher(field._id)}
+                            transform={(value: ProductAttributeValueResponse) => ({
+                              label: value.label,
+                              value: value._id,
+                            })}
+                            placeholder={`Select ${field.name}`}
+                            value={methods.watch(field.slug) as string[] || []}
+                            onChange={(value: string | string[]) => {
+                              if (Array.isArray(value)) {
+                                methods.setValue(field.slug, value);
+                              }
+                            }}
+                            className="w-full"
+                            multi={true}
+                            queryKey={["meta-field-values-multi", field._id]}
+                          />
                         )}
                         {field.fieldType === "rich-textbox" && (
                           <textarea
@@ -559,16 +589,27 @@ const ProductForm = (props: ProductFormProps) => {
                   <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
                     Product Status
                   </label>
-                  <select
-                    id="status"
-                    {...methods.register("status")}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select Status</option>
-                    <option value="draft">Draft</option>
-                    <option value="published">Published</option>
-                    <option value="archived">Archived</option>
-                  </select>
+                  <PaginationComboBox
+                    apiFunction={productStatusFetcher}
+                    transform={(option: { _id: string; name: string }) => ({
+                      label: option.name,
+                      value: option._id,
+                    })}
+                    placeholder="Select Status"
+                    value={methods.watch("status")?.value || ""}
+                    onChange={(value: string | string[]) => {
+                      const stringValue = Array.isArray(value) ? value[0] : value;
+                      if (stringValue) {
+                        const option = stringValue === "draft" ? "Draft" : 
+                                     stringValue === "published" ? "Published" : "Archived";
+                        methods.setValue("status", { value: stringValue, label: option });
+                      } else {
+                        methods.setValue("status", null);
+                      }
+                    }}
+                    className="w-full"
+                    queryKey={["product-statuses"]}
+                  />
                 </div>
               </div>
 

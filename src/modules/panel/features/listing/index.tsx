@@ -8,10 +8,12 @@ import { NavLink } from "react-router";
 import { columns } from "./data";
 import { CompanyFilter } from "./components/CompanyFilter";
 import { LocationFilter } from "./components/LocationFilter";
-import { useState } from "react";
+import { BrandFilter } from "./components/BrandFilter";
+import React, { useState } from "react";
+import { useParams, useSearchParams } from "react-router";
 
 // Create fetcher for server-side data
-const createProductFetcher = (companyId?: string, locationId?: string) => {
+const createProductFetcher = (companyId?: string, locationId?: string, brandId?: string) => {
   return createSimpleFetcher(
     (params: Record<string, unknown>) => {
       // Add our custom filter parameters to the API call
@@ -19,6 +21,7 @@ const createProductFetcher = (companyId?: string, locationId?: string) => {
         ...params,
         ...(companyId && companyId !== "all" && { companyId }),
         ...(locationId && locationId !== "all" && { locationId }),
+        ...(brandId && brandId !== "all" && { brand: brandId }),
       };
       return apiGetProducts(filterParams);
     },
@@ -32,14 +35,18 @@ const createProductFetcher = (companyId?: string, locationId?: string) => {
         tag: "tag",
         companyId: "companyId",
         locationId: "locationId",
+        brandId: "brand",
       },
     }
   );
 };
 
 const ProductList = () => {
+  const { companyId, locationId, brandId } = useParams();
+  const [searchParams] = useSearchParams();
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("all");
   const [selectedLocationId, setSelectedLocationId] = useState<string>("all");
+  const [selectedBrandId, setSelectedBrandId] = useState<string>("all");
 
   // Handle company filter change
   const handleCompanyChange = (companyId: string) => {
@@ -51,6 +58,30 @@ const ProductList = () => {
   const handleLocationChange = (locationId: string) => {
     setSelectedLocationId(locationId === "all" ? "" : locationId);
   };
+
+  // Handle brand filter change
+  const handleBrandChange = (brandId: string) => {
+    setSelectedBrandId(brandId === "all" ? "all" : brandId);
+  };
+
+  // Auto-fill from URL parameters
+  React.useEffect(() => {
+    const urlCompanyId = companyId || searchParams.get("companyId");
+    const urlLocationId = locationId || searchParams.get("locationId");
+    const urlBrandId = brandId || searchParams.get("brandId");
+    
+    if (urlCompanyId) {
+      setSelectedCompanyId(urlCompanyId);
+    }
+    
+    if (urlLocationId) {
+      setSelectedLocationId(urlLocationId);
+    }
+    
+    if (urlBrandId) {
+      setSelectedBrandId(urlBrandId);
+    }
+  }, [companyId, locationId, brandId, searchParams]);
 
   // const [stats, setStats] = useState(initialStatsData);
 
@@ -139,9 +170,10 @@ const ProductList = () => {
         isServerSide
         fetcher={createProductFetcher(
           selectedCompanyId === "all" ? undefined : selectedCompanyId,
-          selectedLocationId === "all" ? undefined : selectedLocationId
+          selectedLocationId === "all" ? undefined : selectedLocationId,
+          selectedBrandId === "all" ? undefined : selectedBrandId
         )}
-        queryKeyPrefix={`${PANEL_ROUTES.LISTING.LIST}-${selectedCompanyId === "all" ? "" : selectedCompanyId}-${selectedLocationId === "all" ? "" : selectedLocationId}`}
+        queryKeyPrefix={`${PANEL_ROUTES.LISTING.LIST}-${selectedCompanyId === "all" ? "" : selectedCompanyId}-${selectedLocationId === "all" ? "" : selectedLocationId}-${selectedBrandId === "all" ? "" : selectedBrandId}`}
         actionProps={(tableState) => ({
           children: (
             <div className="flex items-center gap-4">
@@ -161,6 +193,15 @@ const ProductList = () => {
                   onValueChange={handleLocationChange}
                   placeholder="All Locations"
                   disabled={!selectedCompanyId}
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Brand:</span>
+                <BrandFilter
+                  value={selectedBrandId}
+                  onValueChange={handleBrandChange}
+                  placeholder="All Brands"
+                  companyId={selectedCompanyId === "all" ? undefined : selectedCompanyId}
                 />
               </div>
               <StatusFilter
