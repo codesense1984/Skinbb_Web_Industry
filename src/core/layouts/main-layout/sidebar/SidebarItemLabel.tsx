@@ -1,20 +1,26 @@
+import { TreeItemLabel } from "@/core/components/ui/tree";
 import { useSidebar } from "@/core/store/theme-provider";
 import { camelToTitle, cn } from "@/core/utils";
+import { useAuth } from "@/modules/auth/hooks/useAuth";
+import type { Role } from "@/modules/auth/types/permission.type.";
 import type { ItemInstance } from "@headless-tree/core";
-import React, { memo } from "react";
+import React, { memo, useMemo } from "react";
 import { NavLink, useLocation } from "react-router";
-import { rawItems, type SidebarItem } from "./sidebarItems";
-import { TreeItemLabel } from "@/core/components/ui/tree";
+import { type SidebarItem } from "./sidebarItems";
+import { getSidebarItems } from "./sidebarUtils";
 
 function SidebarItemLabel({ item }: { item: ItemInstance<SidebarItem> }) {
   const location = useLocation();
   const { closeSidebar, isMobile } = useSidebar();
+  const { role } = useAuth();
   const { href, icon, children } = item.getItemData();
+
+  const sidebarItems = useMemo(() => getSidebarItems(role as Role), [role]);
 
   // Highlight folder when any descendant is active (kept from your behavior)
   const isChildActive = React.useCallback(
     (id: string): boolean => {
-      const child = rawItems[id];
+      const child = sidebarItems[id];
       if (!child) return false;
       if (child.href === location.pathname) return true;
       return child.children?.some(isChildActive) ?? false;

@@ -19,7 +19,6 @@ import { apiGetBrands } from "@/modules/panel/services/http/brand.service";
 import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth";
 import { LocationFilter } from "@/modules/panel/features/brands/components/LocationFilter";
 
-
 const columns: ColumnDef<Brand>[] = [
   {
     accessorKey: "name",
@@ -32,14 +31,16 @@ const columns: ColumnDef<Brand>[] = [
             alt={getValue() as string}
             className="size-10 rounded-md object-cover"
           />
-          <AvatarFallback className="size-10 rounded-md bg-primary/10 text-primary">
+          <AvatarFallback className="bg-primary/10 text-primary size-10 rounded-md">
             {(getValue() as string)?.charAt(0)?.toUpperCase()}
           </AvatarFallback>
         </AvatarRoot>
         <li className="flex flex-col">
           <span className="font-medium">{getValue() as string}</span>
           <span className="text-muted-foreground text-xs">
-            {row.original.aboutTheBrand ? row.original.aboutTheBrand.substring(0, 50) + "..." : "N/A"}
+            {row.original.aboutTheBrand
+              ? row.original.aboutTheBrand.substring(0, 50) + "..."
+              : "N/A"}
           </span>
         </li>
       </ul>
@@ -127,14 +128,13 @@ const createSellerBrandFetcher = (companyId: string, locationId?: string) => {
         status: "status",
         locationId: "locationId",
       },
-    }
+    },
   );
 };
 
 const SellerBrandList = () => {
   const { sellerInfo, isLoading: sellerInfoLoading } = useSellerAuth();
   const [selectedLocationId, setSelectedLocationId] = useState<string>("all");
-
 
   // Handle location filter change
   const handleLocationChange = (locationId: string) => {
@@ -202,7 +202,7 @@ const SellerBrandList = () => {
         isServerSide
         fetcher={createSellerBrandFetcher(
           sellerInfo.companyId,
-          selectedLocationId === "all" ? undefined : selectedLocationId
+          selectedLocationId === "all" ? undefined : selectedLocationId,
         )}
         queryKeyPrefix={`seller-brands-${sellerInfo.companyId}-${selectedLocationId}`}
         actionProps={(tableState) => ({

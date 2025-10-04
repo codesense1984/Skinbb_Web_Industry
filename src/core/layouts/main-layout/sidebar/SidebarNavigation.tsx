@@ -6,14 +6,16 @@ import {
   syncDataLoaderFeature,
 } from "@headless-tree/core";
 import { useTree } from "@headless-tree/react";
+import type { Role } from "@/modules/auth/types/permission.type.";
 import { useEffect, useMemo } from "react";
 import { useLocation } from "react-router";
 import SidebarItemLabel from "./SidebarItemLabel";
-import { rawItems, type SidebarItem } from "./sidebarItems";
+import { type SidebarItem } from "./sidebarItems";
 import {
   buildFilteredItems,
   findActiveParentFolders,
   getCurrentItemId,
+  getSidebarItems,
 } from "./sidebarUtils";
 
 const INDENT = 32;
@@ -22,8 +24,10 @@ export default function SidebarNavigation() {
   const location = useLocation();
   const { role, permissions } = useAuth();
 
+  const sidebarItems = useMemo(() => getSidebarItems(role as Role), [role]);
+
   const filteredItems = useMemo(
-    () => buildFilteredItems(rawItems, role, permissions),
+    () => buildFilteredItems(sidebarItems, role, permissions),
     [role, permissions],
   );
 

@@ -1,6 +1,14 @@
 import { hasRole, hasPermission, type MatchMode } from "@auth/components/guard";
-import type { SidebarItem } from "./sidebarItems";
-import type { Role, Permission } from "@/modules/auth/types/permission.type.";
+import {
+  panelSidebarItems,
+  sellerSidebarItems,
+  type SidebarItem,
+} from "./sidebarItems";
+import {
+  type Role,
+  type Permission,
+  ROLE,
+} from "@/modules/auth/types/permission.type.";
 
 /**
  * Returns whether the current user can see a given item.
@@ -107,4 +115,11 @@ export const getCurrentItemId = (
       ? "dashboard"
       : (items.sidebar?.children?.[0] ?? "sidebar"))
   );
+};
+
+export const getSidebarItems = (role: Role) => {
+  if (role === ROLE.ADMIN) {
+    return panelSidebarItems;
+  }
+  return sellerSidebarItems;
 };

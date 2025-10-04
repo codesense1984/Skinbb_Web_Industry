@@ -1,12 +1,11 @@
-import { NotFoundComponent } from "@/core/features/not-found";
-import MainLayout from "@/core/layouts/main-layout";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { lazy } from "react";
 import type { RouteObject } from "react-router";
 import { SELLER_ROUTES } from "./constant";
 
 export const sellerRoutes: RouteObject = {
-  Component: MainLayout,
+  // Component: MainLayout,
+  Component: lazy(() => import("@/core/layouts/main-layout")),
   children: [
     // Dashboard
     {
@@ -82,7 +81,7 @@ export const sellerRoutes: RouteObject = {
     {
       path: "/orders",
       Component: lazy(
-        () => import("@/modules/seller/features/orders/SellerOrders"),
+        () => import("@/modules/panel/features/orders/list"),
       ),
     },
     {
@@ -94,30 +93,34 @@ export const sellerRoutes: RouteObject = {
 
     // User Management
     {
-      path: "/company/:id/users",
-      Component: lazy(
-        () => import("@/modules/panel/features/company/users/list"),
-      ),
-    },
-    {
-      path: "/company/:id/users/create",
-      Component: lazy(
-        () => import("@/modules/panel/features/company/users/user-form"),
-      ),
-    },
-    {
-      path: "/company/:id/users/:userId/view",
-      Component: lazy(
-        () => import("@/modules/panel/features/company/users/user-form"),
-      ),
-    },
-    {
-      path: "/company/:id/users/:userId/edit",
-      Component: lazy(
-        () => import("@/modules/panel/features/company/users/user-form"),
-      ),
-    },
-
+      path: SELLER_ROUTES.USERS.LIST(),
+      Component: lazy(() => import("@/modules/seller/features/users/list")),
+    }
+    // {
+    //   path: "/company/:id/users",
+    //   Component: lazy(
+    //     () => import("@/modules/panel/features/company/users/list"),
+    //   ),
+    // },
+    // {
+    //   path: "/company/:id/users/create",
+    //   Component: lazy(
+    //     () => import("@/modules/panel/features/company/users/user-form"),
+    //   ),
+    // },
+    // {
+    //   path: "/company/:id/users/:userId/view",
+    //   Component: lazy(
+    //     () => import("@/modules/panel/features/company/users/user-form"),
+    //   ),
+    // },
+    // {
+    //   path: "/company/:id/users/:userId/edit",
+    //   Component: lazy(
+    //     () => import("@/modules/panel/features/company/users/user-form"),
+    //   ),
+    // },
+,
     // Listing/Product Management
     {
       path: "/listings",
@@ -215,7 +218,8 @@ export const sellerRoutes: RouteObject = {
     // 404 fallback
     {
       path: "*",
-      element: <NotFoundComponent />,
+      // element: <NotFoundComponent />,
+      Component: lazy(() => import("@/core/features/not-found")),
     },
   ],
 };

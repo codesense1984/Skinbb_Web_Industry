@@ -6,7 +6,8 @@ import { apiGetCompanyUsers } from "@/modules/panel/services/http/company.servic
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { useNavigate, useParams } from "react-router";
 import { columns } from "./data.tsx";
-import { LocationFilter } from "../../../brands/components/LocationFilter.tsx";
+import { useAuth } from "@/modules/auth/hooks/useAuth.ts";
+import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth.ts";
 
 const fetcher = (companyId: string) =>
   createSimpleFetcher((...item) => apiGetCompanyUsers(companyId, ...item), {
@@ -18,8 +19,10 @@ const fetcher = (companyId: string) =>
   });
 
 const CompanyUsersList = () => {
-  const { id: companyId } = useParams();
+  const { getCompanyId } = useSellerAuth();
   const navigate = useNavigate();
+
+  const companyId = getCompanyId();
 
   if (!companyId) {
     return (
