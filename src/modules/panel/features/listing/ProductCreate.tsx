@@ -1660,8 +1660,9 @@ const ProductCreate = (props?: ProductCreateProps) => {
 
               {/* Pricing - Only show for simple products */}
               {(() => {
-                // Check if product type is not variable
-                return formData.productVariationType && !formData.productVariationType.toLowerCase().includes("variable");
+                // Check if product type is simple (not variable)
+                const SIMPLE_PRODUCT_ID = "685a4f3f2d20439677a5e89d";
+                return formData.productVariationType && formData.productVariationType === SIMPLE_PRODUCT_ID;
               })() && (
                 <div className="space-y-4">
                   <h3 className="border-b border-gray-200 pb-2 text-lg font-semibold text-gray-900">
@@ -1803,8 +1804,9 @@ const ProductCreate = (props?: ProductCreateProps) => {
 
                 {/* Variant Section - Only show for variable products */}
                 {(() => {
-                  // Check if product type is variable
-                  return formData.productVariationType && formData.productVariationType.toLowerCase().includes("variable");
+                  // Check if product type is variable (not simple product)
+                  const SIMPLE_PRODUCT_ID = "685a4f3f2d20439677a5e89d";
+                  return formData.productVariationType && formData.productVariationType !== SIMPLE_PRODUCT_ID;
                 })() && (
                   <div className="space-y-4">
                     <h3 className="border-b border-gray-200 pb-2 text-lg font-semibold text-gray-900">
@@ -1886,37 +1888,39 @@ const ProductCreate = (props?: ProductCreateProps) => {
                             <Label htmlFor={`values-${index}`} className="text-sm font-medium text-gray-700">
                               Values
                             </Label>
-                            <select
-                              id={`values-${index}`}
+                            <ComboBox
+                              options={
+                                attribute.attributeId?.value
+                                  ? (attributeValues[attribute.attributeId.value] || []).map((option) => ({
+                                      value: option._id,
+                                      label: option.name || "",
+                                    }))
+                                  : []
+                              }
                               value={attribute.attributeValueId?.map((v: { value: string; label: string }) => v.value) || []}
-                              onChange={(e) => {
-                                const selectedValues = Array.from(e.target.selectedOptions, option => option.value);
-                                const selectedOptions = selectedValues.map(value => {
-                                  const attributeId = attribute.attributeId?.value;
-                                  if (!attributeId) return { value, label: "" };
-                                  const option = attributeValues[attributeId]?.find((opt) => opt._id === value);
-                                  return { value, label: option?.name || "" };
-                                });
+                              onChange={(_, selectedOptions) => {
                                 const newAttributes = [...(formData.attributes || [])];
-                                newAttributes[index] = { ...newAttributes[index], attributeValueId: selectedOptions };
+                                newAttributes[index] = { 
+                                  ...newAttributes[index], 
+                                  attributeValueId: (selectedOptions || []).map(option => ({
+                                    value: option.value,
+                                    label: typeof option.label === "string" ? option.label : String(option.label)
+                                  }))
+                                };
                                 setFormData(prev => ({ ...prev, attributes: newAttributes }));
                               }}
-                              className="h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+                              placeholder={
+                                !attribute.attributeId?.value 
+                                  ? "Select Attribute Value" 
+                                  : attributeValues[attribute.attributeId.value]?.length 
+                                    ? "Select values..." 
+                                    : "No options available"
+                              }
+                              multi={true}
                               disabled={!attribute.attributeId?.value || isViewMode}
-                            >
-                              {attribute.attributeId?.value ? (
-                                attributeValues[attribute.attributeId.value]?.map((option) => (
-                                  <option key={option._id} value={option._id}>
-                                    {option.name || ""}
-                                  </option>
-                                )) || <option disabled>No options available</option>
-                              ) : (
-                                <option disabled>Select Attribute Value</option>
-                              )}
-                            </select>
-                            {attribute.attributeId?.value && !attributeValues[attribute.attributeId.value]?.length && (
-                              <p className="text-sm text-gray-500 mt-1">No options</p>
-                            )}
+                              className="w-full"
+                              emptyMessage="No options available"
+                            />
                           </div>
                         </div>
                       </div>

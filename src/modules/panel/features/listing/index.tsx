@@ -145,9 +145,14 @@ const ProductList = () => {
         description:
           "Manage your product catalog, pricing, descriptions and media assets.",
         actions: (
-          <Button color={"primary"} asChild>
-            <NavLink to={PANEL_ROUTES.LISTING.CREATE}>Add Product</NavLink>
-          </Button>
+          <div className="flex gap-2">
+            <Button color={"primary"} asChild>
+              <NavLink to={PANEL_ROUTES.LISTING.CREATE}>Add Product</NavLink>
+            </Button>
+            <Button color={"secondary"} asChild>
+              <NavLink to={PANEL_ROUTES.LISTING.CATALOG}>Add Catalog</NavLink>
+            </Button>
+          </div>
         ),
       }}
     >

@@ -140,6 +140,12 @@ export const sellerRoutes: RouteObject = {
         () => import("@/modules/panel/features/listing/ProductCreate"),
       ),
     },
+    {
+      path: "/listing/catalog",
+      Component: lazy(
+        () => import("@/modules/panel/features/listing/AddCatalog"),
+      ),
+    },
 
     // Company Location Brand Management (Complex routes)
     {

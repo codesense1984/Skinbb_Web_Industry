@@ -322,9 +322,14 @@ const SellerProductList = () => {
         title: "Products",
         description: `Products for ${sellerInfo.companyName}`,
         actions: (
-          <Button color={"primary"} asChild>
-            <NavLink to={PANEL_ROUTES.LISTING.CREATE}>Add Product</NavLink>
-          </Button>
+          <div className="flex gap-2">
+            <Button color={"primary"} asChild>
+              <NavLink to={PANEL_ROUTES.LISTING.CREATE}>Add Product</NavLink>
+            </Button>
+            <Button color={"secondary"} asChild>
+              <NavLink to={PANEL_ROUTES.LISTING.CATALOG}>Add Catalog</NavLink>
+            </Button>
+          </div>
         ),
       }}
     >
