@@ -4,6 +4,8 @@ import { QueryClient } from "@tanstack/react-query";
 import type { LoggedUser } from "../types/user.type";
 import type { SellerInfo } from "../types/seller.type";
 import { getSellerInfo, type LoginSuccess } from "./http/auth.service";
+import { STATUS_MAP } from "@/core/config/status";
+import type { AxiosError } from "axios";
 
 /* -------------------------------------------------------------------------- */
 /*                               Storage section                               */
@@ -129,6 +131,11 @@ async function fetchSellerInfoIfNeeded(
     console.log(`Fetching seller info for user: ${userId}`);
     const response = await getSellerInfo(userId);
 
+    if (response.data.companyStatus === STATUS_MAP.company.pending.value) {
+      throw Error(
+        me.user.firstName + " " + me.user.lastName + "is not approved yet",
+      );
+    }
     // Update both the seller info cache and the ME query
     qc.setQueryData([...QK.SELLER_INFO, userId], response.data);
     qc.setQueryData(QK.ME, {
@@ -141,10 +148,17 @@ async function fetchSellerInfoIfNeeded(
     );
     return response.data;
   } catch (error) {
+    let errorInstance = error as AxiosError;
     console.error(`Failed to fetch seller info for user ${userId}:`, error);
+
+    // if (error instanceof Error && error.message === "Seller pending") {
+    //   throw error;
+    // }
     // Clear auth and throw error to redirect to login
     logout(qc);
-    throw new Error("Authentication failed - please login again");
+    throw new Error(
+      errorInstance?.message || "Authentication failed - please login again",
+    );
   }
 }
 
@@ -173,11 +187,12 @@ export async function onLoginSuccess(
       accessToken: data.data.accessToken,
       refreshToken: data.data.refreshToken,
     };
-    qc.setQueryData(QK.ME, me);
 
     // Automatically fetch seller info for seller and seller-member roles (only if cache is empty)
     if (isSellerRole(u.roleValue)) {
       await fetchSellerInfoIfNeeded(qc, u._id, me);
+    } else {
+      qc.setQueryData(QK.ME, me);
     }
   }
 }

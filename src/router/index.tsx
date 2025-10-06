@@ -1,4 +1,4 @@
-import NotFound from "@/core/features/not-found";
+import PageNotFound from "@/core/features/not-found";
 import { authRoutes } from "@/modules/auth/routes";
 import PrivateRoute from "@/modules/auth/routes/PrivateRoute";
 import PublicRoute from "@/modules/auth/routes/PublicRoute";
@@ -44,6 +44,6 @@ export const appRoutes = createBrowserRouter([
   protectedRoutes,
   {
     path: "*",
-    Component: NotFound,
+    Component: PageNotFound,
   },
 ]);

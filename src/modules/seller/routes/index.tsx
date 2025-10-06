@@ -1,11 +1,11 @@
-import MainLayout from "@/core/layouts/main-layout";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { lazy } from "react";
 import type { RouteObject } from "react-router";
 import { SELLER_ROUTES } from "./constant";
-import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 
 export const sellerRoutes: RouteObject = {
-  Component: MainLayout,
+  // Component: MainLayout,
+  Component: lazy(() => import("@/core/layouts/main-layout")),
   children: [
     // Dashboard
     {
@@ -16,15 +16,11 @@ export const sellerRoutes: RouteObject = {
     // Company Management
     {
       path: "/company/:id/view",
-      Component: lazy(
-        () => import("@/modules/panel/features/company/view"),
-      ),
+      Component: lazy(() => import("@/modules/panel/features/company/view")),
     },
     {
       path: "/company/:id/edit",
-      Component: lazy(
-        () => import("@/modules/panel/features/company/edit"),
-      ),
+      Component: lazy(() => import("@/modules/panel/features/company/edit")),
     },
 
     // Company Location
@@ -70,28 +66,22 @@ export const sellerRoutes: RouteObject = {
     },
     {
       path: "/product/create",
-      Component: lazy(
-        () => import("@/modules/panel/features/products/create"),
-      ),
+      Component: lazy(() => import("@/modules/panel/features/products/create")),
     },
     {
       path: "/product/:id/view",
-      Component: lazy(
-        () => import("@/modules/panel/features/products/view"),
-      ),
+      Component: lazy(() => import("@/modules/panel/features/products/view")),
     },
     {
       path: "/product/:id/edit",
-      Component: lazy(
-        () => import("@/modules/panel/features/products/edit"),
-      ),
+      Component: lazy(() => import("@/modules/panel/features/products/edit")),
     },
 
     // Order Management
     {
       path: "/orders",
       Component: lazy(
-        () => import("@/modules/seller/features/orders/SellerOrders"),
+        () => import("@/modules/panel/features/orders/list"),
       ),
     },
     {
@@ -103,36 +93,38 @@ export const sellerRoutes: RouteObject = {
 
     // User Management
     {
-      path: "/company/:id/users",
-      Component: lazy(
-        () => import("@/modules/panel/features/company/users/list"),
-      ),
-    },
-    {
-      path: "/company/:id/users/create",
-      Component: lazy(
-        () => import("@/modules/panel/features/company/users/user-form"),
-      ),
-    },
-    {
-      path: "/company/:id/users/:userId/view",
-      Component: lazy(
-        () => import("@/modules/panel/features/company/users/user-form"),
-      ),
-    },
-    {
-      path: "/company/:id/users/:userId/edit",
-      Component: lazy(
-        () => import("@/modules/panel/features/company/users/user-form"),
-      ),
-    },
-
+      path: SELLER_ROUTES.USERS.LIST(),
+      Component: lazy(() => import("@/modules/seller/features/users/list")),
+    }
+    // {
+    //   path: "/company/:id/users",
+    //   Component: lazy(
+    //     () => import("@/modules/panel/features/company/users/list"),
+    //   ),
+    // },
+    // {
+    //   path: "/company/:id/users/create",
+    //   Component: lazy(
+    //     () => import("@/modules/panel/features/company/users/user-form"),
+    //   ),
+    // },
+    // {
+    //   path: "/company/:id/users/:userId/view",
+    //   Component: lazy(
+    //     () => import("@/modules/panel/features/company/users/user-form"),
+    //   ),
+    // },
+    // {
+    //   path: "/company/:id/users/:userId/edit",
+    //   Component: lazy(
+    //     () => import("@/modules/panel/features/company/users/user-form"),
+    //   ),
+    // },
+,
     // Listing/Product Management
     {
       path: "/listings",
-      Component: lazy(
-        () => import("@/modules/panel/features/listing"),
-      ),
+      Component: lazy(() => import("@/modules/panel/features/listing")),
     },
     {
       path: "/listing/create",
@@ -183,7 +175,8 @@ export const sellerRoutes: RouteObject = {
     {
       path: PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_CREATE(),
       Component: lazy(
-        () => import("@/modules/panel/features/company-location-products/create"),
+        () =>
+          import("@/modules/panel/features/company-location-products/create"),
       ),
     },
     {
@@ -203,26 +196,36 @@ export const sellerRoutes: RouteObject = {
     {
       path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_PRODUCTS(),
       Component: lazy(
-        () => import("@/modules/panel/features/company-location-brands/products/list"),
+        () =>
+          import(
+            "@/modules/panel/features/company-location-brands/products/list"
+          ),
       ),
     },
     {
       path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_PRODUCT_CREATE(),
       Component: lazy(
-        () => import("@/modules/panel/features/company-location-brands/products/create"),
+        () =>
+          import(
+            "@/modules/panel/features/company-location-brands/products/create"
+          ),
       ),
     },
     {
       path: PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_EDIT(),
       Component: lazy(
-        () => import("@/modules/panel/features/company-location-brands/products/edit"),
+        () =>
+          import(
+            "@/modules/panel/features/company-location-brands/products/edit"
+          ),
       ),
     },
 
     // 404 fallback
     {
       path: "*",
-      element: <div>Page not found</div>,
+      // element: <NotFoundComponent />,
+      Component: lazy(() => import("@/core/features/not-found")),
     },
   ],
 };

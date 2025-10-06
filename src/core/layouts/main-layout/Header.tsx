@@ -1,17 +1,15 @@
 import logo from "@/core/assets/images/logo-icon.png";
 import {
-  AvatarRoot,
   AvatarFallback,
   AvatarImage,
+  AvatarRoot,
 } from "@/core/components/ui/avatar";
 import { Button } from "@/core/components/ui/button";
 import { DropdownMenu } from "@/core/components/ui/dropdown-menu";
-import { HorizontalLogo } from "@/core/config/svg";
 import { useSidebar } from "@/core/store/theme-provider";
 import { cn } from "@/core/utils";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
 import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth";
-import { ROLE } from "@/modules/auth/types/permission.type.";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { useEffect } from "react";
 import { NavLink } from "react-router";
@@ -23,10 +21,10 @@ const Header = () => {
   const fullName = user?.firstName || "";
   const profile = user?.profilePic?.[0]?.url || "";
   const fullNameInitial = `${user?.firstName?.charAt(0) || ""}${user?.lastName?.charAt(0) || ""}`;
-  
+
   // Check if user is a seller and has company info
-  const isSeller = ["seller-member", "seller"].includes(role || "");
-  const hasCompanyInfo = sellerInfo?.companyId;
+  // const isSeller = ["seller-member", "seller"].includes(role || "");
+  // const hasCompanyInfo = sellerInfo?.companyId;
 
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
@@ -45,7 +43,7 @@ const Header = () => {
         )}
       >
         <div className="flex">
-          {role === ROLE.ADMIN && (
+          {
             <Button
               variant="ghost"
               className="text-muted-foreground"
@@ -85,13 +83,15 @@ const Header = () => {
                 </svg>
               )}
             </Button>
-          )}
-          {role !== ROLE.ADMIN && <NavLink
-            to="/"
-            className="ml-4 flex hidden items-center no-underline transition-all active:scale-98 md:block"
-          >
-            <HorizontalLogo className="!h-7 !w-full" />
-          </NavLink>}
+          }
+          {/* {role !== ROLE.ADMIN && (
+            <NavLink
+              to="/"
+              className="ml-4 flex hidden items-center no-underline transition-all active:scale-98 md:block"
+            >
+              <HorizontalLogo className="!h-7 !w-full" />
+            </NavLink>
+          )} */}
           <NavLink
             to="/"
             className="flex items-center no-underline transition-all active:scale-98 md:hidden"
@@ -152,35 +152,34 @@ const Header = () => {
                 children: "Account",
                 type: "item",
               },
-              ...(isSeller && hasCompanyInfo ? [
-                { type: "separator" },
-                {
-                  children: (
-                    <NavLink 
-                      to={PANEL_ROUTES.COMPANY.VIEW(sellerInfo.companyId)}
-                      className="flex items-center gap-2 w-full"
+              { type: "separator" },
+              {
+                children: (
+                  <NavLink
+                    to={PANEL_ROUTES.COMPANY.VIEW(sellerInfo?.companyId || "")}
+                    className="flex w-full items-center gap-2"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                      stroke="currentColor"
+                      className="size-4"
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={1.5}
-                        stroke="currentColor"
-                        className="size-4"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3a3 3 0 0 1 3-3h3a3 3 0 0 1 3 3v3M6 3h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"
-                        />
-                      </svg>
-                      Company Details
-                    </NavLink>
-                  ),
-                  type: "item",
-                  className: "cursor-pointer",
-                },
-              ] : []),
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3a3 3 0 0 1 3-3h3a3 3 0 0 1 3 3v3M6 3h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"
+                      />
+                    </svg>
+                    Company Details
+                  </NavLink>
+                ),
+                type: "item",
+                className: "cursor-pointer",
+              },
+
               { type: "separator" },
               {
                 children: "Logout",
