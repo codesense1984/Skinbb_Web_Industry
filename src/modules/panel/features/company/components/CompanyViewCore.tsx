@@ -15,7 +15,6 @@ import {
 import { DropdownMenu } from "@/core/components/ui/dropdown-menu";
 import { PageContent } from "@/core/components/ui/structure";
 import { STATUS_MAP } from "@/core/config/status";
-import { LocationService } from "@/core/services/location.service";
 import { formatDate } from "@/core/utils";
 import { hasAccess } from "@/modules/auth/components/guard";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
@@ -92,6 +91,14 @@ interface LocationAccordionItemProps {
     landmark?: string;
     isPrimary: boolean;
     status?: string;
+    cinNumber?: string;
+    coiCertificate?: string;
+    panDocument?: string;
+    gstDocument?: string;
+    msmeCertificate?: string;
+    msmeNumber?: string;
+    panNumber?: string;
+    gstNumber?: string;
   };
   companyId: string;
   index: number;
@@ -245,7 +252,7 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                 <EllipsisVerticalIcon />
               </Button>
             </DropdownMenu>
-            {/* {onViewLocation && address.status === "pending" && (
+            {onViewLocation && address.status === "pending" && (
               <Button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -296,7 +303,7 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
             >
               <DocumentTextIcon className="mr-1 h-3 w-3" />
               <span className="hidden sm:inline">View Products</span>
-            </Button> */}
+            </Button>
           </div>
         </div>
       </AccordionTrigger>
@@ -395,7 +402,7 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                       <InfoItem
                         icon={<DocumentTextIcon className="h-5 w-5" />}
                         label="COI Certificate"
-                        value="Certificate Available"
+                        value={location.cinNumber ?? "-"}
                         className="rounded-lg border p-3"
                       >
                         <Link
@@ -551,7 +558,24 @@ export const CompanyViewCore: React.FC<CompanyViewCoreProps> = ({
     actions: showViewUsersAction && (
       <div className="ml-6 flex-shrink-0 flex gap-3">
         <Button
-          onClick={() => navigate(`${PANEL_ROUTES.BRAND.LIST}?companyId=${companyId}`)}
+          onClick={() => {
+            // Get the primary location ID from company data
+            const primaryLocation = company?.addresses?.find(addr => addr.isPrimary);
+            if (primaryLocation) {
+              const locationId = primaryLocation.addressId;
+              // Navigate to company-location-brand route
+              navigate(PANEL_ROUTES.COMPANY_LOCATION.BRANDS(companyId, locationId));
+            } else {
+              // Fallback to general brand list with company and location context
+              const firstLocation = company?.addresses?.[0];
+              const locationId = firstLocation?.addressId;
+              if (locationId) {
+                navigate(`${PANEL_ROUTES.BRAND.LIST}?companyId=${companyId}&locationId=${locationId}`);
+              } else {
+                navigate(`${PANEL_ROUTES.BRAND.LIST}?companyId=${companyId}`);
+              }
+            }
+          }}
           variant="outlined"
           className="border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50"
         >
