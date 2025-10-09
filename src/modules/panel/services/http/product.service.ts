@@ -206,7 +206,7 @@ export async function apiGetProducts(params?: ApiParams) {
   if (params?.companyId) searchParams.append("companyId", params.companyId);
   if (params?.locationId) searchParams.append("locationId", params.locationId);
   
-  const url = `${ENDPOINTS.PRODUCT.MAIN}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+  const url = `${ENDPOINTS.PRODUCT.MAIN}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
   return api.get(url);
 }
 
@@ -233,4 +233,157 @@ export async function apiUpdateProduct(id: string, data: Record<string, unknown>
 // Product Status Update API
 export async function apiUpdateProductStatus(id: string, data: { status: string; reason?: string; feedback?: string }) {
   return api.patch(`${API_PREFIX}/products/status/${id}`, data);
+}
+
+// Bulk import products with S3 upload
+export interface BulkImportRequest {
+  file: File;
+  brandId: string;
+  category: string;
+  sellerId: string;
+}
+
+export interface BulkImportResponse {
+  success: boolean;
+  statusCode: number;
+  message: string;
+  data: {
+    fileUrl: string;
+    fileKey: string;
+    importJobId: string;
+    totalRows: number;
+    status: string;
+  };
+}
+
+export async function apiBulkImportProducts(data: BulkImportRequest): Promise<BulkImportResponse> {
+  const formData = new FormData();
+  formData.append("file", data.file);
+  formData.append("brandId", data.brandId);
+  formData.append("category", data.category);
+  formData.append("sellerId", data.sellerId);
+
+  return api.post<BulkImportResponse>(ENDPOINTS.PRODUCT.BULK_IMPORT, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+}
+
+// Catalog List API Types
+export interface CatalogListParams {
+  page?: number;
+  limit?: number;
+  companyId?: string;
+  brandId?: string;
+  categoryId?: string;
+  importId?: string;
+  search?: string;
+  status?: "pending" | "processing" | "completed" | "failed" | "approved";
+  validationStatus?: "pending" | "valid" | "invalid";
+  sortBy?: "createdAt" | "startedAt" | "completedAt" | "fileName" | "status";
+  order?: "asc" | "desc";
+}
+
+export interface CatalogJob {
+  _id: string;
+  fileName: string;
+  userId: string;
+  brandId: string;
+  categoryId: string;
+  sellerId: string;
+  status: string;
+  validationStatus: string;
+  totalRows: number;
+  importedCount: number;
+  failedCount: number;
+  errorMessage?: string | null;
+  fileUrl: string;
+  fileKey: string;
+  startedAt: string;
+  completedAt: string;
+  failedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CatalogListResponse {
+  success: boolean;
+  statusCode: number;
+  message: string;
+  data: {
+    importJobs: CatalogJob[];
+    pagination: {
+      currentPage: number;
+      totalPages: number;
+      totalJobs: number;
+      hasNextPage: boolean;
+      hasPrevPage: boolean;
+    };
+  };
+}
+
+export interface CatalogDetailResponse {
+  success: boolean;
+  statusCode: number;
+  message: string;
+  data: CatalogJob;
+}
+
+export interface CatalogApprovalResponse {
+  success: boolean;
+  statusCode: number;
+  message: string;
+}
+
+export interface CatalogDownloadResponse {
+  success: boolean;
+  statusCode: number;
+  message: string;
+  data: {
+    downloadUrl: string;
+    expiresAt: string;
+  };
+}
+
+// Get catalog list
+export async function apiGetCatalogList(params?: CatalogListParams): Promise<CatalogListResponse> {
+  const searchParams = new URLSearchParams();
+  
+  if (params?.page) searchParams.append("page", params.page.toString());
+  if (params?.limit) searchParams.append("limit", params.limit.toString());
+  if (params?.companyId) searchParams.append("companyId", params.companyId);
+  if (params?.brandId) searchParams.append("brandId", params.brandId);
+  if (params?.categoryId) searchParams.append("categoryId", params.categoryId);
+  if (params?.importId) searchParams.append("importId", params.importId);
+  if (params?.search) searchParams.append("search", params.search);
+  if (params?.status) searchParams.append("status", params.status);
+  if (params?.validationStatus) searchParams.append("validationStatus", params.validationStatus);
+  if (params?.sortBy) searchParams.append("sortBy", params.sortBy);
+  if (params?.order) searchParams.append("order", params.order);
+
+  const queryString = searchParams.toString();
+  const url = queryString ? `${ENDPOINTS.PRODUCT.BULK_IMPORTS}?${queryString}` : ENDPOINTS.PRODUCT.BULK_IMPORTS;
+
+  return api.get<CatalogListResponse>(url);
+}
+
+// Get catalog detail
+export async function apiGetCatalogDetail(importJobId: string): Promise<CatalogDetailResponse> {
+  return api.get<CatalogDetailResponse>(ENDPOINTS.PRODUCT.BULK_IMPORT_DETAIL(importJobId));
+}
+
+// Approve catalog
+export async function apiApproveCatalog(importJobId: string, data: { status: string; reason?: string }): Promise<CatalogApprovalResponse> {
+  return api.post<CatalogApprovalResponse>(ENDPOINTS.PRODUCT.BULK_IMPORT_APPROVE(importJobId), data);
+}
+
+// Download catalog
+export async function apiDownloadCatalog(importJobId: string): Promise<CatalogDownloadResponse> {
+  return api.get<CatalogDownloadResponse>(ENDPOINTS.PRODUCT.BULK_IMPORT_DOWNLOAD(importJobId));
+}
+
+// Reject catalog
+export async function apiRejectCatalog(importJobId: string, data: { status: string; reason?: string }): Promise<CatalogApprovalResponse> {
+  return api.post<CatalogApprovalResponse>(ENDPOINTS.PRODUCT.BULK_IMPORT_APPROVE(importJobId), data);
 }

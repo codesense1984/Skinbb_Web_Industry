@@ -3,7 +3,6 @@ import { PageContent } from "@/core/components/ui/structure";
 import { useMotionConfig } from "@/core/store/motion-provider";
 import { fadeInUp } from "@/core/styles/animation/presets";
 import { cn } from "@/core/utils";
-import { ANALYTICS_ROUTES } from "@/modules/analytics/routes/constants";
 import { hasAccess, type MatchMode } from "@/modules/auth/components/guard";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
 import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth";
@@ -59,40 +58,31 @@ const cardData: CardConfig[] = [
       </svg>
     ),
   },
-  // {
-  //   title: "Analytics",
-  //   description: "Dive into user behavior, demographics, and performance",
-  //   requiredRoles: [ROLE.ADMIN],
-  //   buttons: [
-  //     {
-  //       name: "Platform",
-  //       href: `${ANALYTICS_ROUTES.PLATFORM.BASE}`,
-  //     },
-  //     {
-  //       name: "Brand",
-  //       href: `${ANALYTICS_ROUTES.BRAND.BASE}`,
-  //     },
-  //     {
-  //       name: "Ecommerce",
-  //       href: `${ANALYTICS_ROUTES.ECOMMERCE.BASE}`,
-  //     },
-  //   ],
-  //   icon: (
-  //     <svg
-  //       xmlns="http://www.w3.org/2000/svg"
-  //       fill="none"
-  //       viewBox="0 0 24 24"
-  //       strokeWidth={0.7}
-  //       stroke="currentColor"
-  //     >
-  //       <path
-  //         strokeLinecap="round"
-  //         strokeLinejoin="round"
-  //         d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6"
-  //       />
-  //     </svg>
-  //   ),
-  // },
+  {
+    title: "Ecommerce Analytics",
+    description: "Track sales performance, orders, and revenue insights",
+    buttons: [
+      {
+        name: "View Analytics",
+        href: `${SELLER_ROUTES.ANALYTICS.ECOMMERCE.BASE}`,
+      },
+    ],
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={0.7}
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6"
+        />
+      </svg>
+    ),
+  },
   // {
   //   title: "Survey",
   //   description:

@@ -277,6 +277,24 @@ export const STATUS_MAP: Record<ModuleType, Record<string, StatusStyle>> = {
       textColor: "text-yellow-700",
       bgColor: "bg-yellow-100",
     },
+    completed: {
+      label: "Completed",
+      value: "completed",
+      textColor: "text-emerald-700",
+      bgColor: "bg-emerald-100",
+    },
+    failed: {
+      label: "Failed",
+      value: "failed",
+      textColor: "text-red-700",
+      bgColor: "bg-red-100",
+    },
+    processing: {
+      label: "Processing",
+      value: "processing",
+      textColor: "text-blue-700",
+      bgColor: "bg-blue-100",
+    },
     rejected: {
       label: "Rejected",
       value: "rejected",

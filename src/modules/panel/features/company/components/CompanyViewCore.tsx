@@ -346,15 +346,12 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                 <InfoItem
                   icon={<MapPinIcon className="h-5 w-5" />}
                   label="Country"
-                  value={LocationService.getCountryName(location.country)}
+                  value={location.country || "-"}
                 />
                 <InfoItem
                   icon={<MapPinIcon className="h-5 w-5" />}
                   label="State"
-                  value={LocationService.getStateName(
-                    location.country,
-                    location.state,
-                  )}
+                  value={location.state || "-"}
                 />
                 <InfoItem
                   icon={<MapPinIcon className="h-5 w-5" />}

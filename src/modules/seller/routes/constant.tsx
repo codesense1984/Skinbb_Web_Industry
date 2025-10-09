@@ -153,4 +153,12 @@ export const SELLER_ROUTES = {
     EDIT: (companyId: string = ROUTE.seg.id, userId: string = ROUTE.seg.id) =>
       `/company/${companyId}/users/${userId}/edit`, // /company/:id/users/:userId/edit
   },
+
+  // ---- Analytics - Ecommerce Only ----
+  ANALYTICS: {
+    BASE: "/analytic",
+    ECOMMERCE: {
+      BASE: "/analytic/ecommerce",
+    },
+  },
 } as const;

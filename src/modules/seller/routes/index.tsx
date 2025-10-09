@@ -41,19 +41,19 @@ export const sellerRoutes: RouteObject = {
     {
       path: "/brand/create",
       Component: lazy(
-        () => import("@/modules/panel/features/brands/brand-form"),
+        () => import("@/modules/seller/features/brands/SellerBrandForm"),
       ),
     },
     {
       path: "/brand/:id/view",
       Component: lazy(
-        () => import("@/modules/panel/features/brands/brand-form"),
+        () => import("@/modules/seller/features/brands/SellerBrandForm"),
       ),
     },
     {
       path: "/brand/:id/edit",
       Component: lazy(
-        () => import("@/modules/panel/features/brands/brand-form"),
+        () => import("@/modules/seller/features/brands/SellerBrandForm"),
       ),
     },
 
@@ -66,15 +66,15 @@ export const sellerRoutes: RouteObject = {
     },
     {
       path: "/product/create",
-      Component: lazy(() => import("@/modules/panel/features/products/create")),
+      Component: lazy(() => import("@/modules/panel/features/listing/ProductCreate")),
     },
     {
       path: "/product/:id/view",
-      Component: lazy(() => import("@/modules/panel/features/products/view")),
+      Component: lazy(() => import("@/modules/panel/features/listing/ProductCreate")),
     },
     {
       path: "/product/:id/edit",
-      Component: lazy(() => import("@/modules/panel/features/products/edit")),
+      Component: lazy(() => import("@/modules/panel/features/listing/ProductCreate")),
     },
 
     // Order Management
@@ -95,32 +95,13 @@ export const sellerRoutes: RouteObject = {
     {
       path: SELLER_ROUTES.USERS.LIST(),
       Component: lazy(() => import("@/modules/seller/features/users/list")),
-    }
-    // {
-    //   path: "/company/:id/users",
-    //   Component: lazy(
-    //     () => import("@/modules/panel/features/company/users/list"),
-    //   ),
-    // },
-    // {
-    //   path: "/company/:id/users/create",
-    //   Component: lazy(
-    //     () => import("@/modules/panel/features/company/users/user-form"),
-    //   ),
-    // },
-    // {
-    //   path: "/company/:id/users/:userId/view",
-    //   Component: lazy(
-    //     () => import("@/modules/panel/features/company/users/user-form"),
-    //   ),
-    // },
-    // {
-    //   path: "/company/:id/users/:userId/edit",
-    //   Component: lazy(
-    //     () => import("@/modules/panel/features/company/users/user-form"),
-    //   ),
-    // },
-,
+    },
+
+    // Analytics - Ecommerce Only
+    {
+      path: SELLER_ROUTES.ANALYTICS.ECOMMERCE.BASE,
+      Component: lazy(() => import("@/modules/analytics/features/ecommerce")),
+    },
     // Listing/Product Management
     {
       path: "/listings",

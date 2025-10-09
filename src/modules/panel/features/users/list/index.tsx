@@ -1,113 +1,29 @@
-// import { PageContent } from "@/core/components/ui/structure";
+import { PageContent } from "@/core/components/ui/structure";
+import { Button } from "@/core/components/ui/button";
+import { NavLink } from "react-router";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 
-// // // Create fetcher for server-side data
-// // const fetcher = () =>
-// //   createSimpleFetcher(apiGetSellerMembers, {
-// //     dataPath: "data.items",
-// //     totalPath: "data.total",
-// //     filterMapping: {
-// //       query: "query",
-// //     },
-// //   });
+const UserList = () => {
+  return (
+    <PageContent
+      header={{
+        title: "User Management",
+        description: "Manage user accounts, roles, and permissions.",
+        actions: (
+          <Button color={"primary"} asChild>
+            <NavLink to={PANEL_ROUTES.USER.CREATE}>Add User</NavLink>
+          </Button>
+        ),
+      }}
+    >
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <h3 className="text-lg font-medium">User Management</h3>
+          <p className="text-muted-foreground">User list functionality coming soon.</p>
+        </div>
+      </div>
+    </PageContent>
+  );
+};
 
-// const UserList = () => {
-//   // const [stats, setStats] = useState(statsData);
-//   // const navigate = useNavigate();
-
-//   // // Fetch stats separately since we need them for the summary cards
-//   // const fetchStats = useCallback(async () => {
-//   //   try {
-//   //     console.log("Fetching user stats...");
-//   //     const response = await apiGetSellerMembers({ page: 1, limit: 1000 }); // Get all for stats
-//   //     console.log("User stats response:", response);
-
-//   //     if (response.success) {
-//   //       const totalUsers = response.data.total;
-//   //       const activeUsers = response.data.items.filter(user => user.active).length;
-//   //       const inactiveUsers = response.data.items.filter(user => !user.active).length;
-
-//   //       // Calculate new users this month
-//   //       const currentMonth = new Date().getMonth();
-//   //       const currentYear = new Date().getFullYear();
-//   //       const newThisMonth = response.data.items.filter(user => {
-//   //         const userDate = new Date(user.createdAt);
-//   //         return userDate.getMonth() === currentMonth && userDate.getFullYear() === currentYear;
-//   //       }).length;
-
-//   //       setStats([
-//   //         {
-//   //           title: "Total Users",
-//   //           value: totalUsers,
-//   //           barColor: "bg-primary",
-//   //           icon: true,
-//   //         },
-//   //         {
-//   //           title: "Active Users",
-//   //           value: activeUsers,
-//   //           barColor: "bg-blue-300",
-//   //           icon: false,
-//   //         },
-//   //         {
-//   //           title: "Inactive Users",
-//   //           value: inactiveUsers,
-//   //           barColor: "bg-violet-300",
-//   //           icon: false,
-//   //         },
-//   //         {
-//   //           title: "New This Month",
-//   //           value: newThisMonth,
-//   //           barColor: "bg-red-300",
-//   //           icon: true,
-//   //         },
-//   //       ]);
-//   //     } else {
-//   //       console.error("API response not successful:", response);
-//   //     }
-//   //   } catch (error) {
-//   //     console.error("Failed to fetch user stats:", error);
-//   //   }
-//   // }, []);
-
-//   // useEffect(() => {
-//   //   fetchStats();
-//   // }, [fetchStats]);
-
-//   return (
-//     <PageContent
-//       header={{
-//         title: "Users",
-//         description: "Manage and view seller member information and analytics.",
-//         // actions: (
-//         //   <Button onClick={() => navigate(PANEL_ROUTES.USER.CREATE)}>
-//         //     <PlusIcon className="mr-2 h-4 w-4" />
-//         //     Add User
-//         //   </Button>
-//         // ),
-//       }}
-//     >
-//       Users
-//       {/* <section
-//         className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:gap-5 lg:grid-cols-4"
-//         aria-label="User Statistics"
-//       >
-//         {stats.map((item) => (
-//           <StatCard
-//             key={item.title}
-//             title={item.title}
-//             value={formatNumber(item.value)}
-//             barColor={item.barColor}
-//           />
-//         ))}
-//       </section> */}
-//       {/* 
-//       <DataTable
-//         columns={columns}
-//         isServerSide
-//         fetcher={fetcher()}
-//         queryKeyPrefix={PANEL_ROUTES.USER.LIST}
-//       /> */}
-//     </PageContent>
-//   );
-// };
-
-// export default UserList;
+export default UserList;

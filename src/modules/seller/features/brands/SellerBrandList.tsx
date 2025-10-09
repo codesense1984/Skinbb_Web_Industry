@@ -208,15 +208,17 @@ const SellerBrandList = () => {
         actionProps={(tableState) => ({
           children: (
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">Location:</span>
-                <LocationFilter
-                  companyId={sellerInfo.companyId}
-                  value={selectedLocationId}
-                  onValueChange={handleLocationChange}
-                  placeholder="All Locations"
-                />
-              </div>
+              {sellerInfo.addresses.length > 1 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">Location:</span>
+                  <LocationFilter
+                    companyId={sellerInfo.companyId}
+                    value={selectedLocationId}
+                    onValueChange={handleLocationChange}
+                    placeholder="All Locations"
+                  />
+                </div>
+              )}
               <StatusFilter
                 tableState={tableState}
                 module="brand"

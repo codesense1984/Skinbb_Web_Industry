@@ -1,12 +1,8 @@
 import { createSimpleFetcher, DataTable } from "@/core/components/data-table";
-import { Button } from "@/core/components/ui/button";
 import { PageContent } from "@/core/components/ui/structure";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { apiGetCompanyUsers } from "@/modules/panel/services/http/company.service";
-import { PlusIcon } from "@heroicons/react/24/outline";
-import { useNavigate, useParams } from "react-router";
 import { columns } from "./data.tsx";
-import { useAuth } from "@/modules/auth/hooks/useAuth.ts";
 import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth.ts";
 
 const fetcher = (companyId: string) =>
@@ -20,7 +16,6 @@ const fetcher = (companyId: string) =>
 
 const CompanyUsersList = () => {
   const { getCompanyId } = useSellerAuth();
-  const navigate = useNavigate();
 
   const companyId = getCompanyId();
 
@@ -44,18 +39,6 @@ const CompanyUsersList = () => {
       header={{
         title: "Users",
         description: "Manage company users",
-        actions: (
-          <Button
-            onClick={() =>
-              navigate(PANEL_ROUTES.COMPANY.USER_CREATE(companyId))
-            }
-            variant="contained"
-            color="secondary"
-          >
-            <PlusIcon className="mr-2 h-4 w-4" />
-            Add User
-          </Button>
-        ),
       }}
     >
       <div className="space-y-4">

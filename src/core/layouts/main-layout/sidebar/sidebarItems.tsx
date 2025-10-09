@@ -11,6 +11,7 @@ import { SURVEY_ROUTES } from "@/modules/survey/routes/constant";
 import {
   BoltIcon,
   BuildingStorefrontIcon,
+  ChartBarIcon,
   HomeIcon,
   ShoppingBagIcon,
   UserIcon,
@@ -350,7 +351,7 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
 export const sellerSidebarItems: Readonly<Record<string, SidebarItem>> = {
   sidebar: {
     name: "sidebar",
-    children: ["dashboard", "products", "orders", "brands", "users"],
+    children: ["dashboard", "products", "orders", "brands", "analytics", "users"],
   },
   dashboard: {
     name: "dashboard",
@@ -385,6 +386,11 @@ export const sellerSidebarItems: Readonly<Record<string, SidebarItem>> = {
         />
       </svg>
     ),
+  },
+  analytics: {
+    name: "ecommerce analytics",
+    href: SELLER_ROUTES.ANALYTICS.ECOMMERCE.BASE,
+    icon: <ChartBarIcon />,
   },
   users: {
     name: "users",

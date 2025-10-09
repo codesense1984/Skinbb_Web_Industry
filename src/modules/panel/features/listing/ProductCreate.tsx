@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { useNavigate, useSearchParams, useParams, useLocation } from "react-router";
 import { Button } from "@/core/components/ui/button";
 import { PageContent } from "@/core/components/ui/structure";
 import { PaginationComboBox } from "@/core/components/ui/pagination-combo-box";
@@ -29,13 +29,25 @@ import { apiGetProductAttributes } from "@/modules/panel/services/http/product-a
 import { apiGetProductAttributeValues as apiGetAttributeValues } from "@/modules/panel/services/http/product-attribute-value.service";
 import { apiGetProductDetailById } from "@/modules/panel/services/http/company.service";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
+import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth";
 import { MODE } from "@/core/types";
 
 // Fetchers for dropdown data using createSimpleFetcher
-const brandsFetcher = createSimpleFetcher(apiGetBrands, {
-  dataPath: "data.brands",
-  totalPath: "data.totalRecords",
-});
+const createBrandsFetcher = (companyId?: string) => {
+  return createSimpleFetcher(
+    (params: Record<string, unknown>) => {
+      const brandParams = {
+        ...params,
+        ...(companyId && { companyId }),
+      };
+      return apiGetBrands(brandParams);
+    },
+    {
+      dataPath: "data.brands",
+      totalPath: "data.totalRecords",
+    }
+  );
+};
 
 const categoriesFetcher = createSimpleFetcher(apiGetCategoriesForDropdown, {
   dataPath: "data",
@@ -225,31 +237,39 @@ interface ProductCreateProps {
 
 const ProductCreate = (props?: ProductCreateProps) => {
   const navigate = useNavigate();
-  // const urlParams = useParams<{
-  //   brandId: string;
-  //   companyId?: string;
-  //   locationId?: string;
-  // }>();
-
-  // Use props if provided, otherwise use URL params
-  const brandId = props?.brandId || "";
-  const companyId = props?.companyId || "";
-  let productId = props?.productId || "";
-  const mode = props?.mode || "";
+  const params = useParams<{ id?: string }>();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const { userId, role } = useAuth();
+  const { sellerInfo } = useSellerAuth();
+
+  // Use props if provided, otherwise use URL params or seller context
+  const brandId = props?.brandId || "";
+  const companyId = props?.companyId || sellerInfo?.companyId || "";
+  let productId = props?.productId || "";
+  const mode = props?.mode || "";
 
   // Get mode and id from URL parameters (fallback if not provided as props)
   if (!productId) {
-    productId = searchParams.get("id") ?? "";
+    productId = params.id || searchParams.get("id") || "";
   }
+  
+  // Get mode from URL parameters or pathname if not provided as props
+  const urlMode = searchParams.get("mode") ?? "";
+  let pathMode = "";
+  if (location.pathname.includes("/edit")) {
+    pathMode = MODE.EDIT;
+  } else if (location.pathname.includes("/view")) {
+    pathMode = MODE.VIEW;
+  }
+  const finalMode = mode || urlMode || pathMode;
 
   // Use props if available, otherwise use URL params
-  const isEditMode = mode === MODE.EDIT;
-  const isViewMode = mode === MODE.VIEW;
+  const isEditMode = finalMode === MODE.EDIT;
+  const isViewMode = finalMode === MODE.VIEW;
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const [thumbnailImage, setThumbnailImage] = useState<File | null>(null);
@@ -409,10 +429,10 @@ const ProductCreate = (props?: ProductCreateProps) => {
     const fetchProductData = async () => {
       if (productId && (isEditMode || isViewMode)) {
         try {
-          // Only use new API endpoint - require both companyId and brandId
-          if (!companyId || !brandId) {
+          // Only use new API endpoint - require companyId
+          if (!companyId) {
             setError(
-              "Company ID and Brand ID are required to fetch product data",
+              "Company ID is required to fetch product data",
             );
             return;
           }
@@ -426,6 +446,7 @@ const ProductCreate = (props?: ProductCreateProps) => {
           if (response.success && response.data) {
             // Extract product data from response - handle both old and new API response structures
             const product = response.data as Record<string, unknown>;
+
 
             // Helper function to ensure we get string values
             const getStringValue = (value: unknown): string => {
@@ -1759,7 +1780,7 @@ const ProductCreate = (props?: ProductCreateProps) => {
                       Brand *
                     </Label>
                     <PaginationComboBox
-                      apiFunction={brandsFetcher}
+                      apiFunction={createBrandsFetcher(companyId)}
                       transform={(brand: { _id: string; name: string }) => ({
                         label: brand.name,
                         value: brand._id,
@@ -1772,7 +1793,7 @@ const ProductCreate = (props?: ProductCreateProps) => {
                       }}
                       className="w-full"
                       disabled={isViewMode}
-                      queryKey={["brands-dropdown"]}
+                      queryKey={["brands-dropdown", companyId]}
                     />
                   </div>
 
