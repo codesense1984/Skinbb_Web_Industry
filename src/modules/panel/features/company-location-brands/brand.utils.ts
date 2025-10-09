@@ -12,14 +12,14 @@ export const transformBrandDataForApi = (brandData?: BrandFormData) => {
     name: brandData?.name || "",
     aboutTheBrand: brandData?.aboutTheBrand || "",
     websiteUrl: brandData?.websiteUrl || "",
-    totalSKU: brandData?.totalSKU ? String(brandData.totalSKU) : "0",
+    // totalSKU: brandData?.totalSKU ? String(brandData.totalSKU) : "0",
     marketingBudget: brandData?.marketingBudget
       ? String(brandData.marketingBudget)
       : "",
     instagramUrl: brandData?.instagramUrl || "",
     facebookUrl: brandData?.facebookUrl || "",
     youtubeUrl: brandData?.youtubeUrl || "",
-    productCategory: brandData?.productCategory || [],
+    brandType: brandData?.brandType || [],
     sellingOn: brandData?.sellingOn || [],
   };
 

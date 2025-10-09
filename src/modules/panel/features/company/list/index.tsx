@@ -9,6 +9,7 @@ import { PlusIcon } from "@heroicons/react/24/outline";
 import { Link } from "react-router";
 import { WithAccess } from "@/modules/auth/components/guard";
 import { PAGE, PERMISSION } from "@/modules/auth/types/permission.type.";
+import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
 
 // const CompanyForm = lazy(() => import("../components/AddCompanyForm"));
 
@@ -60,7 +61,7 @@ const CompanyList = () => {
         columns={columns}
         isServerSide={true}
         fetcher={fetcher}
-        queryKeyPrefix={PANEL_ROUTES.COMPANY.LIST}
+        queryKeyPrefix={ENDPOINTS.COMPANY.MAIN}
         actionProps={(tableState) => ({
           children: (
             <StatusFilter

@@ -7,8 +7,7 @@ import Sidebar from "./sidebar";
 const MainLayout = ({ children }: { children?: ReactNode }) => {
   return (
     <div className="bg-background flex min-h-dvh flex-1 flex-row">
-      {/* <Sidebar /> */}
-      <Sidebar />
+      {<Sidebar />}
       <main className="h-dvh w-full flex-1 overflow-auto">
         <Header />
         {children ?? <Outlet />}

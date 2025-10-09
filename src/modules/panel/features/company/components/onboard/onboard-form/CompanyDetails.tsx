@@ -25,6 +25,7 @@ import {
 import { transformApiResponseToFormData } from "../../../utils/onboarding.utils";
 import { Button } from "@/core/components/ui/button";
 import { STATUS_MAP } from "@/core/config/status";
+import { cn } from "@/core/utils";
 
 interface CompanyDetailsProps {
   mode: MODE;
@@ -147,17 +148,17 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
       const overridden = {
         ...field,
         type: "custom" as const,
-        className: "col-span-2",
+        className: "col-span-2 w-full",
         render: ({
           field: formField,
           fieldState,
-        }: CustomRenders<FullCompanyFormType, "companyName">) => (
-          <div
-            className="space-y-2"
-            key={`company-field-${isCreatingNewCompany}`}
-          >
-            {isCreatingNewCompany ? (
-              <div className="space-y-2">
+        }: CustomRenders<FullCompanyFormType, "companyName">) => {
+          if (isCreatingNewCompany)
+            return (
+              <div
+                className="space-y-2"
+                key={`company-field-${isCreatingNewCompany}`}
+              >
                 <Input
                   type="text"
                   placeholder="Enter new company name..."
@@ -190,50 +191,54 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
                   {...formField}
                 />
               </div>
-            ) : (
-              <div className="space-y-2">
-                <ComboBox
-                  options={companyOptions}
-                  value={formField.value}
-                  onChange={(value) => {
-                    if (value === "__create_new__") {
-                      reset(transformApiResponseToFormData());
-                      setValue("disabledCompanyDetails", false, {
-                        shouldDirty: true,
-                        shouldTouch: true,
-                      });
-                      formField.onChange("");
-                      setValue("isCreatingNewCompany", true, {
-                        shouldDirty: true,
-                        shouldTouch: true,
-                      });
-                    } else {
-                      formField.onChange(value);
-                      handleCompanyChange(value as string);
-                    }
-                  }}
-                  placeholder="Select a company..."
-                  className={fieldState.error ? "border-red-500" : ""}
-                  error={!!fieldState.error}
-                  disabled={
-                    isLoadingCompanies ||
-                    isLoadingCompanyDetails ||
-                    disabledCompanyName
+            );
+
+          return (
+            <div
+              className="w-full"
+              key={`company-field-${isCreatingNewCompany}`}
+            >
+              <ComboBox
+                options={companyOptions}
+                value={formField.value}
+                onChange={(value) => {
+                  if (value === "__create_new__") {
+                    reset(transformApiResponseToFormData());
+                    setValue("disabledCompanyDetails", false, {
+                      shouldDirty: true,
+                      shouldTouch: true,
+                    });
+                    formField.onChange("");
+                    setValue("isCreatingNewCompany", true, {
+                      shouldDirty: true,
+                      shouldTouch: true,
+                    });
+                  } else {
+                    formField.onChange(value);
+                    handleCompanyChange(value as string);
                   }
-                  loading={isLoadingCompanies}
-                  clearable={true}
-                  searchable={true}
-                />
-                {isLoadingCompanyDetails && (
-                  <div className="border-muted-foreground flex items-center gap-2 text-sm">
-                    <div className="border-muted-foreground h-4 w-4 animate-spin rounded-full border-2 border-t-transparent"></div>
-                    Loading company details...
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        ),
+                }}
+                placeholder="Select a company..."
+                className={cn(fieldState.error ? "border-red-500" : "")}
+                error={!!fieldState.error}
+                disabled={
+                  isLoadingCompanies ||
+                  isLoadingCompanyDetails ||
+                  disabledCompanyName
+                }
+                loading={isLoadingCompanies}
+                clearable={true}
+                searchable={true}
+              />
+              {isLoadingCompanyDetails && (
+                <div className="border-muted-foreground flex items-center gap-2 text-sm">
+                  <div className="border-muted-foreground h-4 w-4 animate-spin rounded-full border-2 border-t-transparent"></div>
+                  Loading company details...
+                </div>
+              )}
+            </div>
+          );
+        },
       } as unknown as FormFieldConfig<FullCompanyFormType>;
       return overridden;
     }
@@ -253,30 +258,35 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
       setValue("logo_files", undefined);
       setValue("logo", "");
     },
+    avatarProps: {
+      className: "size-16 rounded-md border border-border",
+    },
   });
 
   return (
-    <>
-      <FormFieldsRenderer<FullCompanyFormType>
-        className="gap-6 lg:grid-cols-2"
-        control={control}
-        fieldConfigs={compannyNameFields}
-      />
-
-      <div className="flex items-center gap-4">
-        {element}
+    <div className="space-y-8 space-x-8">
+      <div className="grid grid-cols-2 gap-6">
         <FormFieldsRenderer<FullCompanyFormType>
-          className="w-full grid-cols-1 sm:grid-cols-1 lg:grid-cols-1"
+          className="gap-6 lg:grid-cols-2"
           control={control}
-          fieldConfigs={uploadFields}
+          fieldConfigs={compannyNameFields}
         />
+
+        <div className="flex items-start gap-4">
+          {element}
+          <FormFieldsRenderer<FullCompanyFormType>
+            className="w-full grid-cols-1 sm:grid-cols-1 lg:grid-cols-1"
+            control={control}
+            fieldConfigs={uploadFields}
+          />
+        </div>
       </div>
       <FormFieldsRenderer<FullCompanyFormType>
         className="gap-6 lg:grid-cols-2"
         control={control}
         fieldConfigs={filteredInfoFields}
       />
-    </>
+    </div>
   );
 };
 

@@ -242,15 +242,17 @@ export function transformFormDataToApiRequest(
             addressLine2: "",
             landmark: safeString(primaryAddress.landmark),
             city: safeString(primaryAddress.city),
-            state: LocationService.getStateName(
-              safeString(primaryAddress.country),
-              safeString(primaryAddress.state),
-            ),
+            state:
+              LocationService.getStateName(
+                safeString(primaryAddress.country),
+                safeString(primaryAddress.state),
+              ) ?? "",
 
             postalCode: safeString(primaryAddress.postalCode),
-            country: LocationService.getCountryName(
-              safeString(primaryAddress.country),
-            ),
+            country:
+              LocationService.getCountryName(
+                safeString(primaryAddress.country),
+              ) ?? "",
             isPrimary: formData.isCreatingNewCompany,
             // brandIds: [],
           },
@@ -488,40 +490,40 @@ export function transformApiResponseToFormData(
   };
   const address = apiData.addresses[0];
 
-  if (address) {
-    mergedData.documents = [
-      {
-        type: DOCUMENT_TYPES.COI,
-        number: address.cinNumber,
-        url: address.coiCertificate,
-        verified: true,
-      },
-      {
-        type: DOCUMENT_TYPES.PAN,
-        number: address.panNumber,
-        url: address.panDocument,
-        verified: true,
-      },
-      {
-        type: DOCUMENT_TYPES.GST_LICENSE,
-        number: address.gstNumber,
-        url: address.gstDocument,
-        verified: true,
-      },
-      {
-        type: DOCUMENT_TYPES.MSME,
-        number: address.msmeNumber,
-        url: address.msmeCertificate,
-        verified: false,
-      },
-      {
-        type: DOCUMENT_TYPES.BRAND_AUTHORIZATION,
-        number: "",
-        url: "",
-        verified: false,
-      },
-    ];
-  }
+  // if (address) {
+  //   mergedData.documents = [
+  //     {
+  //       type: DOCUMENT_TYPES.COI,
+  //       number: "",
+  //       url: "",
+  //       verified: false,
+  //     },
+  //     {
+  //       type: DOCUMENT_TYPES.PAN,
+  //       number: "",
+  //       url: "",
+  //       verified: false,
+  //     },
+  //     {
+  //       type: DOCUMENT_TYPES.GST_LICENSE,
+  //       number: "",
+  //       url: "",
+  //       verified: false,
+  //     },
+  //     {
+  //       type: DOCUMENT_TYPES.MSME,
+  //       number: "",
+  //       url: "",
+  //       verified: false,
+  //     },
+  //     {
+  //       type: DOCUMENT_TYPES.BRAND_AUTHORIZATION,
+  //       number: "",
+  //       url: "",
+  //       verified: false,
+  //     },
+  //   ];
+  // }
 
   if (mergedData.mode === MODE.EDIT) {
     mergedData.category =

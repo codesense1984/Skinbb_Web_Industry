@@ -106,6 +106,27 @@ export async function apiGetBrandList<T, U extends Record<string, unknown>>(
   return api.get<T>(ENDPOINTS.BRAND.MAIN_ALL, { params });
 }
 
+// Get companies for dropdown filter
+export async function apiGetCompaniesForFilter<
+  T,
+  U extends Record<string, unknown>,
+>(params: U) {
+  return api.get<T>(ENDPOINTS.COMPANY.MAIN, { params });
+}
+
+// Get locations for a specific company
+export async function apiGetCompanyLocations<T>(
+  companyId: string,
+  params?: {
+    userId?: string;
+    page?: number;
+    limit?: number;
+  },
+  signal?: AbortSignal,
+) {
+  return api.get<T>(ENDPOINTS.COMPANY.LOCATION(companyId), { params, signal });
+}
+
 // export async function apiCreateBrand(data: BrandReqData) {
 //   return api.post<BrandResData>(endpointConfig.brand, data);
 //     url: endpointConfig.brand,
@@ -213,8 +234,10 @@ export async function apiGetOnboardCompanyDetailById<
 
 export async function apiGetCompanyDetailById<
   T = ApiResponse<CompanyDetailResponse>,
->(companyId: string) {
-  return api.get<T>(ENDPOINTS.SELLER.GET_COMPANY_DETAILS(companyId));
+>(companyId: string, userId: string) {
+  return api.get<T>(ENDPOINTS.SELLER.GET_COMPANY_DETAILS(companyId), {
+    params: { userId },
+  });
 }
 
 // Get company detail data by ID (new endpoint)
@@ -511,4 +534,70 @@ export async function apiDeleteCompanyLocationBrand<T = ApiResponse<unknown>>(
   return api.delete<T>(
     ENDPOINTS.COMPANY_LOCATION_BRANDS.DELETE(companyId, locationId, brandId),
   );
+}
+
+// ---- Company Location Products ----
+// Get products for a specific company location
+export async function apiGetCompanyLocationProducts<
+  T = ApiResponse<{
+    items: Array<Record<string, unknown>>; // Product type will be defined later
+    page: number;
+    limit: number;
+    total: number;
+  }>,
+>(
+  companyId: string,
+  locationId: string,
+  params?: PaginationParams,
+  signal?: AbortSignal,
+) {
+  return api.get<T>(
+    ENDPOINTS.COMPANY_LOCATION_PRODUCTS.LIST(companyId, locationId),
+    {
+      ...(params && { params }),
+      signal,
+    },
+  );
+}
+
+// Get product details for a specific company location
+export async function apiGetCompanyLocationProductById<
+  T = ApiResponse<Record<string, unknown>>, // Product type will be defined later
+>(companyId: string, locationId: string, productId: string) {
+  return api.get<T>(
+    ENDPOINTS.COMPANY_LOCATION_PRODUCTS.GET_BY_ID(
+      companyId,
+      locationId,
+      productId,
+    ),
+  );
+}
+
+// ---- Seller Brand Products (New endpoint for product view/edit) ----
+// Get product details for a specific seller brand
+export async function apiGetProductDetailById<
+  T = ApiResponse<Record<string, unknown>>, // Product type will be defined later
+>(productId: string) {
+  return api.get<T>(ENDPOINTS.SELLER_BRAND_PRODUCTS.DETAILS(productId));
+}
+
+// Get products list for a specific seller brand
+export async function apiGetSellerBrandProducts<
+  T = ApiResponse<{
+    items: Array<Record<string, unknown>>; // Product type will be defined later
+    page: number;
+    limit: number;
+    total: number;
+  }>,
+>(
+  sellerId: string,
+  brandId: string,
+  params?: PaginationParams,
+  signal?: AbortSignal,
+) {
+  console.log("🚀 ~ apiGetSellerBrandProducts ~ params:", params);
+  return api.get<T>(ENDPOINTS.SELLER_BRAND_PRODUCTS.LIST(sellerId, brandId), {
+    params,
+    signal,
+  });
 }

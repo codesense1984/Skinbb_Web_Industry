@@ -4,6 +4,7 @@ import { MODE } from "@/core/types";
 import { createUrlValidator } from "@/core/utils";
 import { SURVEY } from "@/core/config/constants";
 import type { FormFieldConfig } from "@/core/components/ui/form-input";
+import { DocumentTextIcon } from "@heroicons/react/24/outline";
 
 export const brandFormSchema = z.object({
   _id: z.string().optional(),
@@ -21,7 +22,7 @@ export const brandFormSchema = z.object({
   instagramUrl: createUrlValidator("Instagram"),
   facebookUrl: createUrlValidator("Facebook"),
   youtubeUrl: createUrlValidator("YouTube"),
-  productCategory: z.array(z.string()).min(1),
+  brandType: z.array(z.string()).min(1),
   sellingOn: z
     .array(
       z.object({
@@ -75,8 +76,8 @@ export const brandSchema: {
       className: "md:col-span-2",
     },
     {
-      name: "productCategory",
-      label: "Product Category",
+      name: "brandType",
+      label: "Brand Type",
       type: INPUT_TYPES.COMBOBOX,
       maxVisibleItems: 2,
       multi: true,
@@ -87,15 +88,15 @@ export const brandSchema: {
       required: true,
     },
 
-    {
-      name: "totalSKU",
-      label: "Total SKU",
-      type: INPUT_TYPES.NUMBER,
-      placeholder: "Enter total SKU",
-      disabled: mode === MODE.VIEW,
-      className: "md:col-span-2 lg:col-span-1",
-      required: true,
-    },
+    // {
+    //   name: "totalSKU",
+    //   label: "Total SKU",
+    //   type: INPUT_TYPES.NUMBER,
+    //   placeholder: "Enter total SKU",
+    //   disabled: mode === MODE.VIEW,
+    //   className: "md:col-span-2 lg:col-span-1",
+    //   required: true,
+    // },
     {
       name: "marketingBudget",
       label: "Marketing Budget",
@@ -176,7 +177,7 @@ export const brandSchema: {
     {
       name: `sellingOn.${index}.url` as keyof BrandFormData,
       label: "URL",
-      type: INPUT_TYPES.URL,
+      type: INPUT_TYPES.TEXT,
       placeholder: "https://example.com",
       disabled: mode === MODE.VIEW,
     },

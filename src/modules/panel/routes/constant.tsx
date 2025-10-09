@@ -22,9 +22,13 @@ const USERS = "/users";
 
 const LISTING_BASE = "/listing";
 
+const PRODUCT_BASE = "/product";
+const PRODUCTS = "/products";
+
 const MASTER_BASE = "/master";
 const PRODUCT_CATEGORY_BASE = "/product-category";
 const PRODUCT_TAG_BASE = "/product-tag";
+const PRODUCT_ATTRIBUTE_BASE = "/product-attributes";
 const DISCOUNT_COUPON_BASE = "/discount-coupons";
 
 export const PANEL_ROUTES = {
@@ -171,6 +175,88 @@ export const PANEL_ROUTES = {
         brandId,
         ROUTE.seg.view,
       ), // /company/:companyId/locations/:locationId/brands/:brandId/view
+    BRAND_PRODUCTS: (
+      companyId: string = ":companyId",
+      locationId: string = ":locationId",
+      brandId: string = ":brandId",
+    ) =>
+      ROUTE.build(
+        COMPANY_BASE,
+        companyId,
+        "locations",
+        locationId,
+        "brands",
+        brandId,
+        "products",
+      ), // /company/:companyId/locations/:locationId/brands/:brandId/products
+    BRAND_PRODUCT_CREATE: (
+      companyId: string = ":companyId",
+      locationId: string = ":locationId",
+      brandId: string = ":brandId",
+    ) =>
+      ROUTE.build(
+        COMPANY_BASE,
+        companyId,
+        "locations",
+        locationId,
+        "brands",
+        brandId,
+        "products",
+        ROUTE.seg.create,
+      ), // /company/:companyId/locations/:locationId/brands/:brandId/products/create
+    PRODUCTS: (
+      companyId: string = ":companyId",
+      locationId: string = ":locationId",
+    ) =>
+      ROUTE.build(COMPANY_BASE, companyId, "locations", locationId, "products"), // /company/:companyId/locations/:locationId/products
+    PRODUCT_CREATE: (
+      companyId: string = ":companyId",
+      locationId: string = ":locationId",
+    ) =>
+      ROUTE.build(
+        COMPANY_BASE,
+        companyId,
+        "locations",
+        locationId,
+        "products",
+        ROUTE.seg.create,
+      ), // /company/:companyId/locations/:locationId/products/create
+    PRODUCT_EDIT: (
+      companyId: string = ":companyId",
+      locationId: string = ":locationId",
+      brandId: string = ":brandId",
+      productId: string = ":productId",
+    ) =>
+      ROUTE.build(
+        COMPANY_BASE,
+        companyId,
+        "locations",
+        locationId,
+        "products",
+        "brand",
+        brandId,
+        "product",
+        productId,
+        ROUTE.seg.edit,
+      ), // /company/:companyId/locations/:locationId/products/:productId/edit
+    PRODUCT_VIEW: (
+      companyId: string = ":companyId",
+      locationId: string = ":locationId",
+      brandId: string = ":brandId",
+      productId: string = ":productId",
+    ) =>
+      ROUTE.build(
+        COMPANY_BASE,
+        companyId,
+        "locations",
+        locationId,
+        "products",
+        "brand",
+        brandId,
+        "product",
+        productId,
+        ROUTE.seg.view,
+      ), // /company/:companyId/locations/:locationId/products/:productId/view
   },
 
   // ---- Customer ----
@@ -202,9 +288,31 @@ export const PANEL_ROUTES = {
     BASE: LISTING_BASE, // /listing
     LIST: LISTING_BASE, // /listing
     CREATE: ROUTE.build(LISTING_BASE, ROUTE.seg.create), // /listing/create
+    CATALOG: ROUTE.build(LISTING_BASE, "catalog"), // /listing/catalog
+    CREATE_WITH_PARAMS: (companyId: string, brandId: string) =>
+      ROUTE.build(LISTING_BASE, ROUTE.seg.create) +
+      `?companyId=${companyId}&brandId=${brandId}`, // /listing/create?companyId=:companyId&brandId=:brandId
     EDIT: (id: string = ROUTE.seg.id) =>
       ROUTE.build(LISTING_BASE, id, ROUTE.seg.edit), // /listing/edit/:id
+    EDIT_WITH_PARAMS: (companyId: string, brandId: string, id: string) =>
+      ROUTE.build(LISTING_BASE, ROUTE.seg.create) +
+      `?mode=edit&id=${id}&companyId=${companyId}&brandId=${brandId}`, // /listing/create?mode=edit&id=:id&companyId=:companyId&brandId=:brandId
+    VIEW_WITH_PARAMS: (companyId: string, brandId: string, id: string) =>
+      ROUTE.build(LISTING_BASE, ROUTE.seg.create) +
+      `?mode=view&id=${id}&companyId=${companyId}&brandId=${brandId}`, // /listing/create?mode=view&id=:id&companyId=:companyId&brandId=:brandId
     DETAIL: (id: string = ROUTE.seg.id) => ROUTE.build(LISTING_BASE, id), // /listing/:id
+  },
+
+  // ---- Products ----
+  PRODUCT: {
+    BASE: PRODUCT_BASE, // /product
+    LIST: PRODUCTS, // /products
+    CREATE: ROUTE.build(PRODUCT_BASE, ROUTE.seg.create), // /product/create
+    EDIT: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(PRODUCT_BASE, id, ROUTE.seg.edit), // /product/edit/:id
+    VIEW: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(PRODUCT_BASE, id, ROUTE.seg.view), // /product/view/:id
+    DETAIL: (id: string = ROUTE.seg.id) => ROUTE.build(PRODUCT_BASE, id), // /product/:id
   },
 
   // ---- Master Data ----
@@ -230,6 +338,20 @@ export const PANEL_ROUTES = {
       ROUTE.build(MASTER_BASE, PRODUCT_TAG_BASE, id, ROUTE.seg.edit), // /master/product-tag/edit/:id
     PRODUCT_TAG_VIEW: (id: string = ROUTE.seg.id) =>
       ROUTE.build(MASTER_BASE, PRODUCT_TAG_BASE, id, ROUTE.seg.view), // /master/product-tag/view/:id
+    PRODUCT_ATTRIBUTE: ROUTE.build(MASTER_BASE, PRODUCT_ATTRIBUTE_BASE), // /master/product-attributes
+    PRODUCT_ATTRIBUTE_CREATE: ROUTE.build(
+      MASTER_BASE,
+      PRODUCT_ATTRIBUTE_BASE,
+      ROUTE.seg.create,
+    ), // /master/product-attributes/create
+    PRODUCT_ATTRIBUTE_EDIT: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(MASTER_BASE, PRODUCT_ATTRIBUTE_BASE, id, ROUTE.seg.edit), // /master/product-attributes/edit/:id
+    PRODUCT_ATTRIBUTE_VIEW: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(MASTER_BASE, PRODUCT_ATTRIBUTE_BASE, id, ROUTE.seg.view), // /master/product-attributes/view/:id
+    PRODUCT_ATTRIBUTE_VALUES: (id: string = ROUTE.seg.id, name: string = ":name") =>
+      ROUTE.build(MASTER_BASE, PRODUCT_ATTRIBUTE_BASE, id, "values", name), // /master/product-attributes/:id/values/:name
+    PRODUCT_ATTRIBUTE_VALUE_CREATE: (id: string = ROUTE.seg.id, name: string = ":name") =>
+      ROUTE.build(MASTER_BASE, PRODUCT_ATTRIBUTE_BASE, id, "values", name, ROUTE.seg.create), // /master/product-attributes/:id/values/:name/create
     DISCOUNT_COUPON: ROUTE.build(MASTER_BASE, DISCOUNT_COUPON_BASE), // /master/discount-coupons
     DISCOUNT_COUPON_CREATE: ROUTE.build(
       MASTER_BASE,

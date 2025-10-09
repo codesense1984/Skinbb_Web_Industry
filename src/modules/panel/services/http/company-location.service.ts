@@ -24,9 +24,14 @@ export async function apiGetCompanyLocationList<
 // Get company location detail by ID (new API endpoint)
 export async function apiGetCompanyLocationDetail<
   T = { company: CompanyOnboading },
->(companyId: string, locationId: string) {
+>(companyId: string, locationId: string, userId: string) {
   return api.get<T>(
     ENDPOINTS.ONBOARDING.COMPANY_LOCATION_DETAILS(companyId, locationId),
+    {
+      params: {
+        userId,
+      },
+    },
   );
 }
 

@@ -159,6 +159,7 @@ export interface CompanyBrandInfo {
 }
 
 export interface CompanyAddressInfo {
+  _id?: string;
   addressId: string;
   addressType: "registered" | "office";
   landmark?: string;
@@ -397,6 +398,9 @@ export interface CompanyOnboardingAddressDetail {
   coiCertificate: string;
   panCertificate: string;
   gstCertificate: string;
+  gstDocument: string;
+  panDocument: string;
+  msmeDocument: string;
   msmeCertificate: string;
   status: string;
   statusChangeReason: string;

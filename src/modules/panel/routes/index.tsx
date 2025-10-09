@@ -90,6 +90,69 @@ export const panelRoutes: RouteObject = {
         () => import("@/modules/panel/features/company-location-brands/view"),
       ),
     },
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_PRODUCTS(),
+      Component: lazy(
+        () =>
+          import(
+            "@/modules/panel/features/company-location-brands/products/list"
+          ),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_PRODUCT_CREATE(),
+      Component: lazy(
+        () =>
+          import(
+            "@/modules/panel/features/company-location-brands/products/create"
+          ),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_VIEW(),
+      Component: lazy(
+        () =>
+          import(
+            "@/modules/panel/features/company-location-brands/products/view"
+          ),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_EDIT(),
+      Component: lazy(
+        () =>
+          import(
+            "@/modules/panel/features/company-location-brands/products/edit"
+          ),
+      ),
+    },
+
+    // company-location-products
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.PRODUCTS(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company-location-products/list"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_CREATE(),
+      Component: lazy(
+        () =>
+          import("@/modules/panel/features/company-location-products/create"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_EDIT(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company-location-products/edit"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_VIEW(),
+      Component: lazy(
+        () => import("@/modules/panel/features/company-location-products/view"),
+      ),
+    },
 
     // company-users
     {
@@ -166,6 +229,44 @@ export const panelRoutes: RouteObject = {
       path: PANEL_ROUTES.MASTER.PRODUCT_TAG_VIEW(),
       Component: lazy(
         () => import("@/modules/panel/features/master/product_tag/tag-form"),
+      ),
+    },
+
+    // master data - product attributes
+    {
+      path: PANEL_ROUTES.MASTER.PRODUCT_ATTRIBUTE,
+      Component: lazy(
+        () => import("@/modules/panel/features/master/product_attributes/list/index"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.MASTER.PRODUCT_ATTRIBUTE_CREATE,
+      Component: lazy(
+        () => import("@/modules/panel/features/master/product_attributes/create/index"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.MASTER.PRODUCT_ATTRIBUTE_EDIT(),
+      Component: lazy(
+        () => import("@/modules/panel/features/master/product_attributes/edit/index"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.MASTER.PRODUCT_ATTRIBUTE_VIEW(),
+      Component: lazy(
+        () => import("@/modules/panel/features/master/product_attributes/view/index"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.MASTER.PRODUCT_ATTRIBUTE_VALUES(),
+      Component: lazy(
+        () => import("@/modules/panel/features/master/product_attributes/values/list"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.MASTER.PRODUCT_ATTRIBUTE_VALUE_CREATE(),
+      Component: lazy(
+        () => import("@/modules/panel/features/master/product_attributes/values/create/index"),
       ),
     },
 
@@ -252,6 +353,36 @@ export const panelRoutes: RouteObject = {
       path: PANEL_ROUTES.LISTING.CREATE,
       Component: lazy(
         () => import("@/modules/panel/features/listing/ProductCreate"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.LISTING.CATALOG,
+      Component: lazy(
+        () => import("@/modules/panel/features/listing/AddCatalog"),
+      ),
+    },
+
+    // products
+    {
+      path: PANEL_ROUTES.PRODUCT.LIST,
+      Component: lazy(() => import("@/modules/panel/features/products/list")),
+    },
+    {
+      path: PANEL_ROUTES.PRODUCT.CREATE,
+      Component: lazy(() => import("@/modules/panel/features/products/create")),
+    },
+    {
+      path: PANEL_ROUTES.PRODUCT.EDIT(),
+      Component: lazy(() => import("@/modules/panel/features/products/edit")),
+    },
+    {
+      path: PANEL_ROUTES.PRODUCT.VIEW(),
+      Component: lazy(() => import("@/modules/panel/features/products/view")),
+    },
+    {
+      path: "/test-products",
+      Component: lazy(
+        () => import("@/modules/panel/features/products/test-routes"),
       ),
     },
     // {

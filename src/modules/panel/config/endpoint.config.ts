@@ -55,6 +55,11 @@ export const ENDPOINTS = {
     META_FIELD_ATTRIBUTES: `${API_PREFIX}/product-attributes/admin/list`,
     ATTRIBUTE_VALUE_BY_ATTRIBUTE: (attributeId: string) =>
       `${API_PREFIX}/product-attributes/admin/value/list?attributeId=${attributeId}`,
+    BULK_IMPORT: `${API_PREFIX}/products/admin/bulk-import`,
+    BULK_IMPORTS: `${API_PREFIX}/products/admin/bulk-imports`,
+    BULK_IMPORT_DETAIL: (importJobId: string) => `${API_PREFIX}/products/admin/bulk-import/${importJobId}`,
+    BULK_IMPORT_APPROVE: (importJobId: string) => `${API_PREFIX}/products/admin/bulk-import/${importJobId}/approve`,
+    BULK_IMPORT_DOWNLOAD: (importJobId: string) => `${API_PREFIX}/products/admin/bulk-import/${importJobId}/download`,
   },
 
   MEDIA: {
@@ -126,6 +131,30 @@ export const ENDPOINTS = {
       `${API_PREFIX}/sellers/${companyId}/locations/${locationId}/brands/${brandId}`,
     DELETE: (companyId: string, locationId: string, brandId: string) =>
       `${API_PREFIX}/sellers/${companyId}/locations/${locationId}/brands/${brandId}`,
+  },
+
+  // Company Location Products
+  COMPANY_LOCATION_PRODUCTS: {
+    LIST: (companyId: string, locationId: string) =>
+      `${API_PREFIX}/sellers/${companyId}/locations/${locationId}/products`,
+    CREATE: (companyId: string, locationId: string) =>
+      `${API_PREFIX}/sellers/${companyId}/locations/${locationId}/products`,
+    GET_BY_ID: (companyId: string, locationId: string, productId: string) =>
+      `${API_PREFIX}/sellers/${companyId}/locations/${locationId}/products/${productId}`,
+    UPDATE: (companyId: string, locationId: string, productId: string) =>
+      `${API_PREFIX}/sellers/${companyId}/locations/${locationId}/products/${productId}`,
+    DELETE: (companyId: string, locationId: string, productId: string) =>
+      `${API_PREFIX}/sellers/${companyId}/locations/${locationId}/products/${productId}`,
+  },
+
+  // Seller Brand Products (New endpoint for product view/edit)
+  SELLER_BRAND_PRODUCTS: {
+    LIST: (sellerId: string, brandId: string) =>
+      `${API_PREFIX}/sellers/${sellerId}/brands/${brandId}/products`,
+    GET_BY_ID: (sellerId: string, brandId: string, productId: string) =>
+      `${API_PREFIX}/sellers/${sellerId}/brands/${brandId}/products/${productId}`,
+    DETAILS: ( productId: string) =>
+      `${API_PREFIX}/products/admin/${productId}`,
   },
 
   DISCOUNT: {

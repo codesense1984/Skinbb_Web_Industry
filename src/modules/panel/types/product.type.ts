@@ -65,15 +65,51 @@ export interface Product {
   price: number;
   salePrice: number;
   quantity: number;
-  brand: ProductBrand;
-  productVariationType: ProductVariationType;
-  productCategory: ProductCategory[];
-  tags: ProductTag[];
+  brand: string | ProductBrand; // Can be either string ID or object
+  productVariationType: string | ProductVariationType; // Can be either string ID or object
+  productCategory: string[] | ProductCategory[]; // Can be either string IDs or objects
+  tags: string[] | ProductTag[]; // Can be either string IDs or objects
   capturedDate: string;
-  thumbnail: ProductThumbnail | null;
-  variants: ProductVariant[];
-  priceRange: PriceRange;
-  salePriceRange: PriceRange;
+  thumbnail: string | ProductThumbnail; // Can be either string ID or object
+  variants?: ProductVariant[];
+  priceRange?: PriceRange;
+  salePriceRange?: PriceRange;
+  // Additional fields from new API
+  sku?: string;
+  description?: string;
+  status_feedback?: string;
+  aboutTheBrand?: string;
+  ingredients?: string[];
+  keyIngredients?: string[];
+  skinTypes?: string[];
+  hairTypes?: string[];
+  skinConcerns?: string[];
+  hairConcerns?: string[];
+  hairGoals?: string[];
+  productType?: string;
+  marketedBy?: string;
+  marketedByAddress?: string;
+  manufacturedBy?: string;
+  manufacturedByAddress?: string;
+  importedBy?: string;
+  importedByAddress?: string;
+  benefit?: string[];
+  weight?: string;
+  dimensions?: string;
+  manufacturingDate?: string;
+  expiryDate?: string;
+  isFeatured?: boolean;
+  isNewArrival?: boolean;
+  isBestSeller?: boolean;
+  isTrendingNow?: boolean;
+  metaTitle?: string;
+  metaDescription?: string;
+  metaKeywords?: string[];
+  images?: string[];
+  barcodeImage?: string;
+  capturedBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface ProductListResponse {

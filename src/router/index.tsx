@@ -1,11 +1,10 @@
-import NotFound from "@/core/features/not-found";
-import { analyticsRoutes } from "@/modules/analytics/routes";
+import PageNotFound from "@/core/features/not-found";
 import { authRoutes } from "@/modules/auth/routes";
 import PrivateRoute from "@/modules/auth/routes/PrivateRoute";
 import PublicRoute from "@/modules/auth/routes/PublicRoute";
-import { chatRoutes } from "@/modules/chat/routes";
-import { panelOpenRoutes, panelRoutes } from "@/modules/panel/routes";
-import { surveyRoutes } from "@/modules/survey/routes";
+import RoleBasedRouter from "@/modules/auth/routes/RoleBasedRouter";
+import { infoRoutes } from "@/modules/info/routes";
+import { panelOpenRoutes } from "@/modules/panel/routes";
 import { createBrowserRouter, type RouteObject } from "react-router";
 
 /* ----------------------------- helpers ----------------------------- */
@@ -24,7 +23,8 @@ const protectedRoutes: RouteObject = {
   element: <PrivateRoute />,
   children: [
     {
-      children: [panelRoutes, surveyRoutes, analyticsRoutes, chatRoutes],
+      path: "*",
+      element: <RoleBasedRouter />,
     },
   ],
 };
@@ -35,7 +35,7 @@ const publicRoutes: RouteObject = {
 };
 
 const openRoutes = {
-  children: [...panelOpenRoutes],
+  children: [...panelOpenRoutes, ...(infoRoutes.children ?? [])],
 };
 
 // later you can import dashboardRoutes, brandRoutes, etc.
@@ -45,6 +45,6 @@ export const appRoutes = createBrowserRouter([
   protectedRoutes,
   {
     path: "*",
-    Component: NotFound,
+    Component: PageNotFound,
   },
 ]);

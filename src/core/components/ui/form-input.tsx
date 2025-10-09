@@ -14,7 +14,7 @@ import {
   type UseFormStateReturn,
 } from "react-hook-form";
 
-import { cn } from "@/core/utils/index";
+import { cn, isURL } from "@/core/utils/index";
 import type { Mode } from "react-day-picker";
 import { Checkbox } from "./checkbox";
 import { ComboBox } from "./combo-box";
@@ -45,6 +45,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Tooltip } from "./tooltip";
 import type { Option } from "@/core/types";
+import { Link } from "react-router";
 
 const INPUT_TYPES = {
   TEXT: "text",
@@ -212,7 +213,7 @@ function FormInput<T extends FieldValues, N extends FieldPath<T>>(
   const { inputProps: _, ...formItem } = rest;
 
   const formItemPropsClass = cn(
-    "h-fit",
+    "h-fit block space-y-2",
     type === "checkbox" && "flex items-center flex-row-reverse justify-end",
     className,
   );
@@ -381,8 +382,8 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
               <SelectValue placeholder={placeholder}></SelectValue>
             </SelectTrigger>
             <SelectContent>
-              {"options" in props &&
-                props?.options?.map((option: SelectOption) => (
+              {"options" in props && Array.isArray(props?.options) &&
+                props.options.map((option: SelectOption) => (
                   <SelectItem
                     key={option.value}
                     value={option.value}
@@ -439,37 +440,49 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
     case INPUT_TYPES.FILE:
       return (
         <FormControl {...formControlProps}>
-          <label
-            className="form-control items-center gap-1"
-            title={value?.split("\\").pop()}
-            htmlFor={inputId}
-            data-disabled={disabled}
-            data-readOnly={readOnly}
-          >
-            <ArrowUpTrayIcon className="block w-4 min-w-4" />
-            <input
-              {...field}
-              type="file"
-              hidden
-              id={inputId}
-              value={undefined}
-              onChange={(e) => {
-                field.onChange(transform ? transform.output(e) : e);
-                if (type === INPUT_TYPES.FILE) {
-                  setValue(`${String(name)}_files`, e.target?.files);
-                  trigger(name);
-                }
-              }}
-              readOnly={readOnly}
-              disabled={disabled}
-              {...(inputProps?.accept && { accept: inputProps.accept })}
-            />
-            <p className="text-nowrap">{placeholder ?? "Choose File"}</p>
-            {value && <span className="text-muted-foreground mx-1">|</span>}
-            <p className="text-foreground truncate">
-              {value?.split("\\").pop()}
-            </p>
-          </label>
+          <div>
+            <label
+              className="form-control items-center gap-1"
+              title={typeof value === 'string' ? value?.split("\\").pop() : Array.isArray(value) && value.length > 0 ? value[0]?.name : ''}
+              htmlFor={inputId}
+              data-disabled={disabled}
+              data-readonly={readOnly}
+            >
+              <ArrowUpTrayIcon className="block w-4 min-w-4" />
+              <input
+                {...field}
+                type="file"
+                hidden
+                id={inputId}
+                value={undefined}
+                onChange={(e) => {
+                  field.onChange(transform ? transform.output(e) : e);
+                  if (type === INPUT_TYPES.FILE) {
+                    setValue(`${String(name)}_files`, e.target?.files);
+                    trigger(name);
+                  }
+                }}
+                readOnly={readOnly}
+                disabled={disabled}
+                {...(inputProps?.accept && { accept: inputProps.accept })}
+              />
+              <p className="text-nowrap">{placeholder ?? "Choose File"}</p>
+            </label>
+
+            {isURL(value) ? (
+              <Link
+                className="text-foreground block truncate"
+                target="_blank"
+                to={value}
+              >
+                {typeof value === 'string' ? value?.split("\\").pop() : Array.isArray(value) && value.length > 0 ? value[0]?.name : ''}
+              </Link>
+            ) : (
+              <p className="text-foreground truncate">
+                {typeof value === 'string' ? value?.split("\\").pop() : Array.isArray(value) && value.length > 0 ? value[0]?.name : ''}
+              </p>
+            )}
+          </div>
         </FormControl>
       );
 

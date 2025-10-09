@@ -2,11 +2,20 @@
 import { Avatar } from "@/core/components/ui/avatar";
 import { StatusBadge } from "@/core/components/ui/badge";
 import { Button } from "@/core/components/ui/button";
-import { DropdownMenu } from "@/core/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  type DropdownMenuItemType,
+} from "@/core/components/ui/dropdown-menu";
+import { STATUS_MAP } from "@/core/config/status";
 import { formatDate, formatCurrency, capitalize } from "@/core/utils";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import type { CompanyLocationBrand } from "@/modules/panel/types/brand.type";
-import { EllipsisVerticalIcon, EyeIcon, PencilIcon } from "@heroicons/react/24/solid";
+import {
+  EllipsisVerticalIcon,
+  EyeIcon,
+  PencilIcon,
+  ShoppingBagIcon,
+} from "@heroicons/react/24/solid";
 import type { ColumnDef } from "@tanstack/react-table";
 
 export const columns = (
@@ -30,12 +39,12 @@ export const columns = (
     ),
   },
 
-  {
-    header: "Total SKU",
-    accessorKey: "totalSKU",
-    size: 120,
-    cell: ({ row }) => <div className="w-max">{row.original.totalSKU}</div>,
-  },
+  // {
+  //   header: "Total SKU",
+  //   accessorKey: "totalSKU",
+  //   size: 120,
+  //   cell: ({ row }) => <div className="w-max">{row.original.totalSKU}</div>,
+  // },
   {
     header: "Marketing Budget",
     accessorKey: "marketingBudget",
@@ -51,14 +60,22 @@ export const columns = (
     size: 200,
     cell: ({ row }) => (
       <div className="space-y-1">
-        <StatusBadge status={row.original.status} module="brand" variant="badge">
+        <StatusBadge
+          status={row.original.status}
+          module="brand"
+          variant="badge"
+        >
           {row.original.status}
         </StatusBadge>
-        {row.original.status === "rejected" && row.original.statusChangeReason && (
-          <div className="text-xs text-red-600 max-w-[180px] truncate" title={row.original.statusChangeReason}>
-            Reason: {row.original.statusChangeReason}
-          </div>
-        )}
+        {row.original.status === "rejected" &&
+          row.original.statusChangeReason && (
+            <div
+              className="max-w-[180px] truncate text-xs text-red-600"
+              title={row.original.statusChangeReason}
+            >
+              Reason: {row.original.statusChangeReason}
+            </div>
+          )}
       </div>
     ),
   },
@@ -78,39 +95,65 @@ export const columns = (
     enableHiding: false,
     size: 80,
     cell: ({ row }) => {
+      // const brandStatus = row.original.status;
+      const items: DropdownMenuItemType[] = [
+        {
+          type: "link",
+          to: PANEL_ROUTES.COMPANY_LOCATION.BRAND_VIEW(
+            companyId,
+            locationId,
+            row.original._id,
+          ),
+          title: "View brand details",
+          children: (
+            <>
+              <EyeIcon className="size-4" /> View
+            </>
+          ),
+        },
+      ];
+
+      // Always show View Products action
+      if (
+        ![
+          STATUS_MAP.brand.pending.value,
+          STATUS_MAP.brand.rejected.value,
+        ].includes(row.original.status)
+      ) {
+        items.push({
+          type: "link",
+          to: PANEL_ROUTES.COMPANY_LOCATION.BRAND_PRODUCTS(
+            companyId,
+            locationId,
+            row.original._id,
+          ),
+          title: "View products for this brand",
+          children: (
+            <>
+              <ShoppingBagIcon className="size-4" /> View Products
+            </>
+          ),
+        });
+      }
+
+      // Always show Edit action (redirects to onboarding for non-pending statuses)
+      items.push({
+        type: "link",
+        to: PANEL_ROUTES.COMPANY_LOCATION.BRAND_EDIT(
+          companyId,
+          locationId,
+          row.original._id,
+        ),
+        title: "Edit brand",
+        children: (
+          <>
+            <PencilIcon className="size-4" /> Edit
+          </>
+        ),
+      });
+
       return (
-        <DropdownMenu
-          items={[
-            {
-              type: "link",
-              to: PANEL_ROUTES.COMPANY_LOCATION.BRAND_VIEW(
-                companyId,
-                locationId,
-                row.original._id,
-              ),
-              title: "View brand details",
-              children: (
-                <>
-                  <EyeIcon className="size-4" /> View
-                </>
-              ),
-            },
-            {
-              type: "link",
-              to: PANEL_ROUTES.COMPANY_LOCATION.BRAND_EDIT(
-                companyId,
-                locationId,
-                row.original._id,
-              ),
-              title: "Edit brand",
-              children: (
-                <>
-                  <PencilIcon className="size-4" /> Edit
-                </>
-              ),
-            }
-          ]}
-        >
+        <DropdownMenu items={items}>
           <Button variant="outlined" size="icon">
             <EllipsisVerticalIcon className="size-4" />
           </Button>

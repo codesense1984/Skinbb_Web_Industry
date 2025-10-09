@@ -1,23 +1,20 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate, useSearchParams, useParams, useLocation } from "react-router";
 import { Button } from "@/core/components/ui/button";
 import { PageContent } from "@/core/components/ui/structure";
-import {
-  SelectRoot,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/core/components/ui/select";
+import { PaginationComboBox } from "@/core/components/ui/pagination-combo-box";
+import { ComboBox } from "@/core/components/ui/combo-box";
+import type { Option } from "@/core/types";
+import { createSimpleFetcher } from "@/core/components/data-table";
 import { Input } from "@/core/components/ui/input";
 import { Label } from "@/core/components/ui/label";
 import { RichTextEditor } from "@/core/components/ui/rich-text-editor";
+import { Trash2, Plus } from "lucide-react";
 
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { api } from "@/core/services/http";
 import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
 import {
-  apiGetBrandsForDropdown,
   apiGetCategoriesForDropdown,
   apiGetTagsForDropdown,
   apiGetVariationTypes,
@@ -26,15 +23,126 @@ import {
   apiGetImportedBy,
   apiGetIngredients,
   apiGetBenefits,
-  apiGetProductAttributeValues,
-  apiGetProductById,
 } from "@/modules/panel/services/http/product.service";
+import { apiGetBrands } from "@/modules/panel/services/http/brand.service";
+import { apiGetProductAttributes } from "@/modules/panel/services/http/product-attribute.service";
+import { apiGetProductAttributeValues as apiGetAttributeValues } from "@/modules/panel/services/http/product-attribute-value.service";
+import { apiGetProductDetailById } from "@/modules/panel/services/http/company.service";
+import { useAuth } from "@/modules/auth/hooks/useAuth";
+import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth";
+import { MODE } from "@/core/types";
+
+// Fetchers for dropdown data using createSimpleFetcher
+const createBrandsFetcher = (companyId?: string) => {
+  return createSimpleFetcher(
+    (params: Record<string, unknown>) => {
+      const brandParams = {
+        ...params,
+        ...(companyId && { companyId }),
+      };
+      return apiGetBrands(brandParams);
+    },
+    {
+      dataPath: "data.brands",
+      totalPath: "data.totalRecords",
+    }
+  );
+};
+
+const categoriesFetcher = createSimpleFetcher(apiGetCategoriesForDropdown, {
+  dataPath: "data",
+  totalPath: "total",
+});
+
+const tagsFetcher = createSimpleFetcher(apiGetTagsForDropdown, {
+  dataPath: "data.tags",
+  totalPath: "data.totalRecords",
+});
+
+const variationTypesFetcher = createSimpleFetcher(async (_params) => {
+  const response = await apiGetVariationTypes();
+  return response;
+}, {
+  dataPath: "data.productVariationTypes",
+  totalPath: "data.totalRecords",
+});
+
+const marketedByFetcher = createSimpleFetcher(async (_params) => {
+  const response = await apiGetMarketedBy();
+  return response;
+}, {
+  dataPath: "data.marketedBy",
+  totalPath: "data.totalRecords",
+});
+
+const manufacturedByFetcher = createSimpleFetcher(async (_params) => {
+  const response = await apiGetManufacturedBy();
+  return response;
+}, {
+  dataPath: "data.manufacturedBy",
+  totalPath: "data.totalRecords",
+});
+
+const importedByFetcher = createSimpleFetcher(async (_params) => {
+  const response = await apiGetImportedBy();
+  return response;
+}, {
+  dataPath: "data.importedBys",
+  totalPath: "data.totalRecords",
+});
+
+const ingredientsFetcher = createSimpleFetcher(apiGetIngredients, {
+  dataPath: "data.ingredientLists",
+  totalPath: "data.totalRecords",
+});
+
+const benefitsFetcher = createSimpleFetcher(apiGetBenefits, {
+  dataPath: "data.benefits",
+  totalPath: "data.totalRecords",
+});
+
+// Fetcher for product attribute values (takes attributeId as parameter)
+const productAttributeValueFetcher = (attributeId: string) => 
+  createSimpleFetcher(
+    (params: Record<string, unknown>) => apiGetAttributeValues({ ...params, attributeId }),
+    {
+      dataPath: "data.productAttributeValues",
+      totalPath: "data.totalRecords",
+    }
+  );
+
+
+// Fetchers for specific product attributes
+const keyIngredientFetcher = ingredientsFetcher;
+const countryOfOriginFetcher = productAttributeValueFetcher("685544632be6a9f5abc15bd4");
+const productFormFetcher = productAttributeValueFetcher("685545f42be6a9f5abc15bf4");
+const genderFetcher = productAttributeValueFetcher("6855458b2be6a9f5abc15bed");
+const productTypeFetcher = productAttributeValueFetcher("6855480a2be6a9f5abc15c32");
+const targetAreaFetcher = productAttributeValueFetcher("685547d62be6a9f5abc15c2b");
+const finishFetcher = productAttributeValueFetcher("685547af2be6a9f5abc15c26");
+const fragranceFetcher = productAttributeValueFetcher("6855478e2be6a9f5abc15c1f");
+const hairTypeFetcher = productAttributeValueFetcher("685547372be6a9f5abc15c13");
+const skinTypeFetcher = productAttributeValueFetcher("685547232be6a9f5abc15c0c");
+
+// Fetchers for multi-select attributes
+const targetConcernsFetcher = productAttributeValueFetcher("685545232be6a9f5abc15be4");
+const productFeaturesFetcher = productAttributeValueFetcher("685544f12be6a9f5abc15bdd");
+const benefitsAttributeFetcher = productAttributeValueFetcher("6855428336d659329f72b94e");
+const certificationsFetcher = productAttributeValueFetcher("685546332be6a9f5abc15bfb");
+const skinConcernsFetcher = productAttributeValueFetcher("685547672be6a9f5abc15c1a");
+
+// Fetcher for variant attributes
+const variantAttributesFetcher = createSimpleFetcher(apiGetProductAttributes, {
+  dataPath: "data.productAttributes",
+  totalPath: "data.totalRecords",
+});
+
 
 interface ProductCreateData {
   productName: string;
   slug: string;
   description?: string;
-  status: "draft" | "publish";
+  status: "draft" | "publish" | "pending" | "inactive";
   price: number;
   salePrice: number;
   quantity: number;
@@ -84,6 +192,30 @@ interface ProductCreateData {
   // Capture Details
   captureBy?: string;
   capturedDate: string;
+  // Media
+  thumbnail?: string;
+  barcodeImage?: string;
+  images?: string[];
+  // Additional fields from new API
+  aboutTheBrand?: string;
+  weight?: string;
+  dimensions?: string;
+  isFeatured?: boolean;
+  isNewArrival?: boolean;
+  isBestSeller?: boolean;
+  isTrendingNow?: boolean;
+  metaTitle?: string;
+  metaDescription?: string;
+  metaKeywords?: string[];
+  hairTypes?: string[];
+  hairConcerns?: string[];
+  hairGoals?: string[];
+  status_feedback?: string;
+  // Variant attributes
+  attributes?: Array<{
+    attributeId: { value: string; label: string } | null;
+    attributeValueId: Array<{ value: string; label: string }>;
+  }>;
 }
 
 interface DropdownOption {
@@ -94,54 +226,72 @@ interface DropdownOption {
   address?: string;
 }
 
-const ProductCreate = () => {
+
+interface ProductCreateProps {
+  companyId?: string;
+  locationId?: string;
+  brandId?: string;
+  productId?: string;
+  mode?: MODE;
+}
+
+const ProductCreate = (props?: ProductCreateProps) => {
   const navigate = useNavigate();
+  const params = useParams<{ id?: string }>();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Get mode and id from URL parameters
-  const mode = searchParams.get("mode"); // 'view' or 'edit'
-  const productId = searchParams.get("id");
-  const isEditMode = mode === "edit";
-  const isViewMode = mode === "view";
+  const { userId, role } = useAuth();
+  const { sellerInfo } = useSellerAuth();
+
+  // Use props if provided, otherwise use URL params or seller context
+  const brandId = props?.brandId || "";
+  const companyId = props?.companyId || sellerInfo?.companyId || "";
+  let productId = props?.productId || "";
+  const mode = props?.mode || "";
+
+  // Get mode and id from URL parameters (fallback if not provided as props)
+  if (!productId) {
+    productId = params.id || searchParams.get("id") || "";
+  }
+  
+  // Get mode from URL parameters or pathname if not provided as props
+  const urlMode = searchParams.get("mode") ?? "";
+  let pathMode = "";
+  if (location.pathname.includes("/edit")) {
+    pathMode = MODE.EDIT;
+  } else if (location.pathname.includes("/view")) {
+    pathMode = MODE.VIEW;
+  }
+  const finalMode = mode || urlMode || pathMode;
+
+  // Use props if available, otherwise use URL params
+  const isEditMode = finalMode === MODE.EDIT;
+  const isViewMode = finalMode === MODE.VIEW;
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const [thumbnailImage, setThumbnailImage] = useState<File | null>(null);
   const [barcodeImage, setBarcodeImage] = useState<File | null>(null);
+  const [isThumbnailUploading, setIsThumbnailUploading] = useState(false);
+  const [isBarcodeUploading, setIsBarcodeUploading] = useState(false);
+  const [isImagesUploading, setIsImagesUploading] = useState(false);
+  // Existing media URLs for display
+  const [existingThumbnailUrl, setExistingThumbnailUrl] = useState<string>("");
+  const [existingBarcodeUrl, setExistingBarcodeUrl] = useState<string>("");
+  const [existingImagesUrls, setExistingImagesUrls] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const barcodeInputRef = useRef<HTMLInputElement>(null);
 
-  // Dropdown data states
-  const [brands, setBrands] = useState<DropdownOption[]>([]);
-  const [categories, setCategories] = useState<DropdownOption[]>([]);
-  const [tags, setTags] = useState<DropdownOption[]>([]);
-  const [variationTypes, setVariationTypes] = useState<DropdownOption[]>([]);
-  const [marketedBy, setMarketedBy] = useState<DropdownOption[]>([]);
-  const [manufacturedBy, setManufacturedBy] = useState<DropdownOption[]>([]);
-  const [importedBy, setImportedBy] = useState<DropdownOption[]>([]);
-  const [ingredients, setIngredients] = useState<DropdownOption[]>([]);
-  const [benefitsOptions, setBenefitsOptions] = useState<DropdownOption[]>([]);
 
-  // Product Attribute states
-  const [targetConcerns, setTargetConcerns] = useState<DropdownOption[]>([]);
-  const [productFeatures, setProductFeatures] = useState<DropdownOption[]>([]);
-  const [countryOfOrigin, setCountryOfOrigin] = useState<DropdownOption[]>([]);
-  const [benefitsAttribute, setBenefitsAttribute] = useState<DropdownOption[]>(
-    [],
-  );
-  const [certifications, setCertifications] = useState<DropdownOption[]>([]);
-  const [productForm, setProductForm] = useState<DropdownOption[]>([]);
-  const [gender, setGender] = useState<DropdownOption[]>([]);
-  const [productType, setProductType] = useState<DropdownOption[]>([]);
-  const [targetArea, setTargetArea] = useState<DropdownOption[]>([]);
-  // Additional Attribute states
-  const [finish, setFinish] = useState<DropdownOption[]>([]);
-  const [fragrance, setFragrance] = useState<DropdownOption[]>([]);
-  const [skinConcerns, setSkinConcerns] = useState<DropdownOption[]>([]);
-  const [hairType, setHairType] = useState<DropdownOption[]>([]);
-  const [skinType, setSkinType] = useState<DropdownOption[]>([]);
+  // Variant attributes state
+  const [variantAttributes, setVariantAttributes] = useState<DropdownOption[]>([]);
+  const [attributeValues, setAttributeValues] = useState<Record<string, DropdownOption[]>>({});
+
+  // State for static dropdowns only
+  const [statusOptions, setStatusOptions] = useState<Option[]>([]);
 
   // Form data state
   const [formData, setFormData] = useState<ProductCreateData>({
@@ -153,7 +303,7 @@ const ProductCreate = () => {
     salePrice: 0,
     quantity: 0,
     sku: "",
-    brand: "",
+    brand: brandId || "",
     productVariationType: "",
     productCategory: [],
     tags: [],
@@ -196,190 +346,82 @@ const ProductCreate = () => {
     keyIngredients: "",
     benefitsSingle: "",
     // Capture Details
-    captureBy: "admin",
+    captureBy: role,
     capturedDate: new Date().toISOString(),
+    // Media
+    thumbnail: "",
+    barcodeImage: "",
+    images: [],
+    // Additional fields from new API
+    aboutTheBrand: "",
+    weight: "",
+    dimensions: "",
+    isFeatured: false,
+    isNewArrival: false,
+    isBestSeller: false,
+    isTrendingNow: false,
+    metaTitle: "",
+    metaDescription: "",
+    metaKeywords: [],
+    hairTypes: [],
+    hairConcerns: [],
+    hairGoals: [],
+    status_feedback: "",
   });
 
-  // Load dropdown data on component mount
+  // Load static dropdown data on component mount
   useEffect(() => {
-    const loadDropdownData = async () => {
-      try {
-        const [
-          brandsRes,
-          categoriesRes,
-          tagsRes,
-          variationTypesRes,
-          marketedByRes,
-          manufacturedByRes,
-          importedByRes,
-          ingredientsRes,
-          benefitsRes,
-          // Product Attributes
-          targetConcernsRes,
-          productFeaturesRes,
-          countryOfOriginRes,
-          benefitsAttributeRes,
-          certificationsRes,
-          productFormRes,
-          genderRes,
-          productTypeRes,
-          targetAreaRes,
-          // Additional Attributes
-          finishRes,
-          fragranceRes,
-          skinConcernsRes,
-          hairTypeRes,
-          skinTypeRes,
-        ] = await Promise.all([
-          apiGetBrandsForDropdown(),
-          apiGetCategoriesForDropdown(),
-          apiGetTagsForDropdown(),
-          apiGetVariationTypes(),
-          apiGetMarketedBy(),
-          apiGetManufacturedBy(),
-          apiGetImportedBy(),
-          apiGetIngredients(),
-          apiGetBenefits(),
-          // Product Attributes
-          apiGetProductAttributeValues("685545232be6a9f5abc15be4"), // Target Concerns
-          apiGetProductAttributeValues("685544f12be6a9f5abc15bdd"), // Product Features
-          apiGetProductAttributeValues("685544632be6a9f5abc15bd4"), // Country of Origin
-          apiGetProductAttributeValues("6855428336d659329f72b94e"), // Benefits
-          apiGetProductAttributeValues("685546332be6a9f5abc15bfb"), // Certifications
-          apiGetProductAttributeValues("685545f42be6a9f5abc15bf4"), // Product Form
-          apiGetProductAttributeValues("6855458b2be6a9f5abc15bed"), // Gender
-          apiGetProductAttributeValues("6855480a2be6a9f5abc15c32"), // Product Type
-          apiGetProductAttributeValues("685547d62be6a9f5abc15c2b"), // Target Area
-          // Additional Attributes
-          apiGetProductAttributeValues("685547af2be6a9f5abc15c26"), // Finish
-          apiGetProductAttributeValues("6855478e2be6a9f5abc15c1f"), // Fragrance
-          apiGetProductAttributeValues("685547672be6a9f5abc15c1a"), // Skin Concerns
-          apiGetProductAttributeValues("685547372be6a9f5abc15c13"), // Hair Type
-          apiGetProductAttributeValues("685547232be6a9f5abc15c0c"), // Skin Type
-        ]);
+    // Set status options (static data)
+    setStatusOptions([
+      { label: "Active", value: "active" },
+      { label: "Inactive", value: "inactive" },
+      { label: "Draft", value: "draft" },
+    ]);
+  }, []);
 
-        // Basic dropdowns
-        if ((brandsRes as any)?.success) {
-          setBrands((brandsRes as any).data.brands || []);
-        }
+  // Fetch variant attributes
+  const fetchVariantAttributes = async () => {
+    try {
+      const response = await apiGetProductAttributes({
+        isVariantField: true,
+        page: 1,
+        limit: 100,
+      });
+      const attributes = response?.data?.productAttributes || [];
+      setVariantAttributes(attributes.map((attr: { _id: string; name: string }) => ({
+        _id: attr._id,
+        name: attr.name
+      })));
+    } catch (err) {
+      console.error("Failed to load variant attributes", err);
+    }
+  };
 
-        if ((categoriesRes as any)?.success) {
-          setCategories((categoriesRes as any).data.productCategories || []);
-        }
+  // Fetch attribute values for a specific attribute
+  const fetchAttributeValues = async (attributeId: string) => {
+    try {
+      const response = await apiGetAttributeValues({
+        attributeId,
+        page: 1,
+        limit: 100,
+      });
+      const values = response?.data?.productAttributeValues || [];
+      const options = values.map((v: { _id: string; label: string }) => ({
+        _id: v._id,
+        name: v.label
+      }));
+      setAttributeValues(prev => ({
+        ...prev,
+        [attributeId]: options,
+      }));
+    } catch (err) {
+      console.error(`Failed to load values for attribute ${attributeId}`, err);
+    }
+  };
 
-        if ((tagsRes as any)?.success) {
-          setTags((tagsRes as any).data.tags || []);
-        }
-
-        if ((variationTypesRes as any)?.success) {
-          setVariationTypes(
-            (variationTypesRes as any).data.productVariationTypes || [],
-          );
-        }
-
-        if ((marketedByRes as any)?.success) {
-          setMarketedBy((marketedByRes as any).data.marketedBy || []);
-        }
-
-        if ((manufacturedByRes as any)?.success) {
-          setManufacturedBy(
-            (manufacturedByRes as any).data.manufacturedBy || [],
-          );
-        }
-
-        if ((importedByRes as any)?.success) {
-          setImportedBy((importedByRes as any).data.importedBys || []);
-        }
-
-        if ((ingredientsRes as any)?.success) {
-          setIngredients((ingredientsRes as any).data.ingredientLists || []);
-        }
-
-        if ((benefitsRes as any)?.success) {
-          setBenefitsOptions((benefitsRes as any).data.benefits || []);
-        }
-
-        // Product Attributes
-        if ((targetConcernsRes as any)?.success) {
-          setTargetConcerns(
-            (targetConcernsRes as any).data.productAttributeValues || [],
-          );
-        }
-
-        if ((productFeaturesRes as any)?.success) {
-          setProductFeatures(
-            (productFeaturesRes as any).data.productAttributeValues || [],
-          );
-        }
-
-        if ((countryOfOriginRes as any)?.success) {
-          setCountryOfOrigin(
-            (countryOfOriginRes as any).data.productAttributeValues || [],
-          );
-        }
-
-        if ((benefitsAttributeRes as any)?.success) {
-          setBenefitsAttribute(
-            (benefitsAttributeRes as any).data.productAttributeValues || [],
-          );
-        }
-
-        if ((certificationsRes as any)?.success) {
-          setCertifications(
-            (certificationsRes as any).data.productAttributeValues || [],
-          );
-        }
-
-        if ((productFormRes as any)?.success) {
-          setProductForm(
-            (productFormRes as any).data.productAttributeValues || [],
-          );
-        }
-
-        if ((genderRes as any)?.success) {
-          setGender((genderRes as any).data.productAttributeValues || []);
-        }
-
-        if ((productTypeRes as any)?.success) {
-          setProductType(
-            (productTypeRes as any).data.productAttributeValues || [],
-          );
-        }
-
-        if ((targetAreaRes as any)?.success) {
-          setTargetArea(
-            (targetAreaRes as any).data.productAttributeValues || [],
-          );
-        }
-
-        // Additional Attributes
-        if ((finishRes as any)?.success) {
-          setFinish((finishRes as any).data.productAttributeValues || []);
-        }
-
-        if ((fragranceRes as any)?.success) {
-          setFragrance((fragranceRes as any).data.productAttributeValues || []);
-        }
-
-        if ((skinConcernsRes as any)?.success) {
-          setSkinConcerns(
-            (skinConcernsRes as any).data.productAttributeValues || [],
-          );
-        }
-
-        if ((hairTypeRes as any)?.success) {
-          setHairType((hairTypeRes as any).data.productAttributeValues || []);
-        }
-
-        if ((skinTypeRes as any)?.success) {
-          setSkinType((skinTypeRes as any).data.productAttributeValues || []);
-        }
-      } catch (error) {
-        // Handle error silently
-      }
-    };
-
-    loadDropdownData();
+  // Load variant attributes on component mount
+  useEffect(() => {
+    fetchVariantAttributes();
   }, []);
 
   // Fetch product data for edit/view mode
@@ -387,83 +429,359 @@ const ProductCreate = () => {
     const fetchProductData = async () => {
       if (productId && (isEditMode || isViewMode)) {
         try {
-          const response = (await apiGetProductById(productId)) as {
+          // Only use new API endpoint - require companyId
+          if (!companyId) {
+            setError(
+              "Company ID is required to fetch product data",
+            );
+            return;
+          }
+
+          const response = (await apiGetProductDetailById(productId)) as {
+            statusCode: number;
             success: boolean;
-            data: any;
+            data: Record<string, unknown>;
           };
+
           if (response.success && response.data) {
-            const product = response.data;
+            // Extract product data from response - handle both old and new API response structures
+            const product = response.data as Record<string, unknown>;
+
+
+            // Helper function to ensure we get string values
+            const getStringValue = (value: unknown): string => {
+              if (typeof value === "string") return value;
+              if (typeof value === "object" && value && "_id" in value) {
+                return String((value as { _id: string })._id);
+              }
+              return "";
+            };
+
+            const getStringArray = (value: unknown): string[] => {
+              if (Array.isArray(value)) {
+                return value.map((item) => getStringValue(item));
+              }
+              return [];
+            };
+
+            // Helper function to extract a single value from metaData
+            const getMetaValue = (
+              metaData: Array<{ key: string; value: unknown }> | undefined,
+              key: string,
+            ): unknown => {
+              const item = metaData?.find((item) => item.key === key);
+              return item?.value;
+            };
+
+            // Helper function to extract an array of values from metaData
+            const getMetaValueArray = (
+              metaData: Array<{ key: string; value: unknown }> | undefined,
+              key: string,
+            ): unknown[] => {
+              const item = metaData?.find((item) => item.key === key);
+              if (Array.isArray(item?.value)) {
+                return item.value;
+              }
+              if (item?.value) {
+                return [item.value]; // Wrap single object/string in array
+              }
+              return [];
+            };
 
             // Populate form data with existing product data
-            setFormData({
-              productName: product.productName || "",
-              slug: product.slug || "",
-              description: product.description || "",
-              status: product.status || "draft",
-              price: product.price || 0,
-              salePrice: product.salePrice || 0,
-              quantity: product.quantity || 0,
-              sku: product.sku || "",
-              brand: product.brand?._id || "",
-              productVariationType: product.productVariationType?._id || "",
-              productCategory:
-                product.productCategory?.map((cat: any) => cat._id) || [],
-              tags: product.tags?.map((tag: any) => tag._id) || [],
-              marketedBy: product.marketedBy?._id || "",
-              marketedByAddress: product.marketedByAddress || "",
-              manufacturedBy: product.manufacturedBy?._id || "",
-              manufacturedByAddress: product.manufacturedByAddress || "",
-              importedBy: product.importedBy?._id || "",
-              importedByAddress: product.importedByAddress || "",
-              targetConcerns:
-                product.targetConcerns?.map((concern: any) => concern._id) ||
-                [],
-              productFeatures:
-                product.productFeatures?.map((feature: any) => feature._id) ||
-                [],
-              countryOfOrigin: product.countryOfOrigin?._id || "",
-              benefits:
-                product.benefits?.map((benefit: any) => benefit._id) || [],
-              certifications:
-                product.certifications?.map((cert: any) => cert._id) || [],
-              productForm: product.productForm?._id || "",
-              gender: product.gender?._id || "",
-              productType: product.productType?._id || "",
-              targetArea: product.targetArea?._id || "",
-              finish: product.finish?._id || "",
-              fragrance: product.fragrance?._id || "",
-              skinConcerns:
-                product.skinConcerns?.map((concern: any) => concern._id) || [],
-              hairType: product.hairType?._id || "",
-              skinType: product.skinType?._id || "",
-              shelfLife: product.shelfLife || "",
-              licenseNo: product.licenseNo || "",
-              manufacturingDate: product.manufacturingDate || "",
-              expiryDate: product.expiryDate || "",
-              length: product.length || 0,
-              width: product.width || 0,
-              height: product.height || 0,
-              safetyPrecaution: product.safetyPrecaution || "",
-              howToUse: product.howToUse || "",
-              customerCareEmail: product.customerCareEmail || "",
-              customerCareNumber: product.customerCareNumber || "",
-              ingredient: product.ingredient || "",
-              keyIngredients: product.keyIngredients || "",
-              benefitsSingle: product.benefitsSingle || "",
-              captureBy: product.captureBy || "admin",
-              capturedDate: product.capturedDate || new Date().toISOString(),
-            });
+            const initialFormData = {
+              productName: (product.productName as string) || "",
+              slug: (product.slug as string) || "",
+              description: (product.description as string) || "",
+              status:
+                (product.status as
+                  | "draft"
+                  | "publish"
+                  | "pending"
+                  | "inactive") || "pending",
+              price: (product.price as number) || 0,
+              salePrice: (product.salePrice as number) || 0,
+              quantity: (product.quantity as number) || 0,
+              sku: (product.sku as string) || "",
+              brand: getStringValue(product.brand),
+              productVariationType: getStringValue(
+                product.productVariationType,
+              ),
+              productCategory: getStringArray(product.productCategory),
+              tags: getStringArray(product.tags),
+              marketedBy: getStringValue(product.marketedBy),
+              marketedByAddress: (product.marketedByAddress as string) || "",
+              manufacturedBy: getStringValue(product.manufacturedBy),
+              manufacturedByAddress:
+                (product.manufacturedByAddress as string) || "",
+              importedBy: getStringValue(product.importedBy),
+              importedByAddress: (product.importedByAddress as string) || "",
+              // Map from metaData array
+              targetConcerns: getStringArray(
+                getMetaValueArray(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "concern",
+                ),
+              ),
+              productFeatures: getStringArray(
+                getMetaValueArray(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "special-feature",
+                ),
+              ),
+              countryOfOrigin: getStringValue(
+                getMetaValue(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "country-of-origin",
+                ),
+              ),
+              benefits: [
+                ...getStringArray(product.benefit),
+                ...getStringArray(
+                  getMetaValueArray(
+                    product.metaData as Array<{ key: string; value: unknown }>,
+                    "conscious",
+                  ),
+                ),
+                ...getStringArray(
+                  getMetaValueArray(
+                    product.metaData as Array<{ key: string; value: unknown }>,
+                    "claims",
+                  ),
+                ),
+              ],
+              certifications: getStringArray(
+                getMetaValueArray(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "certification-applicable",
+                ),
+              ),
+              productForm: getStringValue(
+                getMetaValueArray(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "formulation",
+                )[0],
+              ),
+              gender: getStringValue(
+                getMetaValue(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "gender",
+                ),
+              ),
+              productType: getStringValue(
+                getMetaValue(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "product-classification",
+                ),
+              ),
+              targetArea: getStringValue(
+                getMetaValueArray(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "body-part",
+                )[0],
+              ),
+              finish: getStringValue(
+                getMetaValueArray(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "makeup-finish",
+                )[0],
+              ),
+              fragrance: getStringValue(
+                getMetaValueArray(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "fragrance-family",
+                )[0],
+              ),
+              skinConcerns: getStringArray(
+                getMetaValueArray(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "claims",
+                ),
+              ),
+              hairType: getStringValue(
+                getMetaValue(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "hair-type",
+                ),
+              ),
+              skinType: getStringValue(
+                getMetaValue(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "skin-type",
+                ),
+              ),
+              shelfLife: getStringValue(
+                getMetaValue(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "shelf-life",
+                ),
+              ),
+              licenseNo: getStringValue(
+                getMetaValue(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "license-no",
+                ),
+              ),
+              manufacturingDate: (product.manufacturingDate as string)
+                ? (product.manufacturingDate as string).split("T")[0]
+                : "",
+              expiryDate: (product.expiryDate as string)
+                ? (product.expiryDate as string).split("T")[0]
+                : "",
+              length:
+                (
+                  product.dimensions as {
+                    length: number;
+                    width: number;
+                    height: number;
+                  }
+                )?.length || 0,
+              width:
+                (
+                  product.dimensions as {
+                    length: number;
+                    width: number;
+                    height: number;
+                  }
+                )?.width || 0,
+              height:
+                (
+                  product.dimensions as {
+                    length: number;
+                    width: number;
+                    height: number;
+                  }
+                )?.height || 0,
+              safetyPrecaution: getStringValue(
+                getMetaValue(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "safety-precaution",
+                ),
+              ),
+              howToUse: getStringValue(
+                getMetaValue(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "how-to-use",
+                ),
+              ),
+              customerCareEmail: getStringValue(
+                getMetaValue(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "customer-care-email",
+                ),
+              ),
+              customerCareNumber: getStringValue(
+                getMetaValue(
+                  product.metaData as Array<{ key: string; value: unknown }>,
+                  "customer-care-number",
+                ),
+              ),
+              ingredient: getStringValue(
+                (product.ingredients as string[])?.[0],
+              ),
+              keyIngredients: getStringValue(
+                (product.keyIngredients as string[])?.[0],
+              ),
+              benefitsSingle: getStringValue(
+                (product.benefit as string[])?.[0],
+              ),
+              captureBy: getStringValue(product.capturedBy) || userId,
+              capturedDate:
+                (product.capturedDate as string) || new Date().toISOString(),
+              // Media - these are now string IDs
+              thumbnail: getStringValue(product.thumbnail),
+              barcodeImage: getStringValue(product.barcodeImage),
+              images: getStringArray(
+                (product.images as Array<{ url: string }>).map(
+                  (image) => image.url,
+                ),
+              ),
+              // Additional fields from new API
+              aboutTheBrand: (product.aboutTheBrand as string) || "",
+              weight: String((product.weight as number) || 0),
+              dimensions: (product.dimensions as {
+                length: number;
+                width: number;
+                height: number;
+              })
+                ? `${(product.dimensions as { length: number; width: number; height: number }).length}x${(product.dimensions as { length: number; width: number; height: number }).width}x${(product.dimensions as { length: number; width: number; height: number }).height}`
+                : "",
+              isFeatured: (product.isFeatured as boolean) || false,
+              isNewArrival: (product.isNewArrival as boolean) || false,
+              isBestSeller: (product.isBestSeller as boolean) || false,
+              isTrendingNow: (product.isTrendingNow as boolean) || false,
+              metaTitle: (product.metaTitle as string) || "",
+              metaDescription: (product.metaDescription as string) || "",
+              metaKeywords: (product.metaKeywords as string[]) || [],
+              hairTypes: getStringArray(product.hairTypes),
+              hairConcerns: getStringArray(product.hairConcerns),
+              hairGoals: getStringArray(product.hairGoals),
+              status_feedback: (product.status_feedback as string) || "",
+            };
+
+            // Additional safety check - ensure all form data values are strings
+            const sanitizedFormData = {
+              ...initialFormData,
+              brand: String(initialFormData.brand || ""),
+              productVariationType: String(
+                initialFormData.productVariationType || "",
+              ),
+              productCategory: Array.isArray(initialFormData.productCategory)
+                ? initialFormData.productCategory.map(String)
+                : [],
+              tags: Array.isArray(initialFormData.tags)
+                ? initialFormData.tags.map(String)
+                : [],
+              marketedBy: String(initialFormData.marketedBy || ""),
+              manufacturedBy: String(initialFormData.manufacturedBy || ""),
+              importedBy: String(initialFormData.importedBy || ""),
+              productType: String(initialFormData.productType || ""),
+              ingredient: String(initialFormData.ingredient || ""),
+              keyIngredients: String(initialFormData.keyIngredients || ""),
+              benefitsSingle: String(initialFormData.benefitsSingle || ""),
+              thumbnail: String(initialFormData.thumbnail || ""),
+              barcodeImage: String(initialFormData.barcodeImage || ""),
+              images: Array.isArray(initialFormData.images)
+                ? initialFormData.images.map(String)
+                : [],
+            };
+
+            setFormData(sanitizedFormData);
+
+            // Set existing media URLs for display - these are now string IDs
+            // For now, we'll treat them as URLs or construct URLs from IDs
+            setExistingThumbnailUrl(
+              (product.thumbnail as { url: string })?.url || "",
+            );
+            setExistingBarcodeUrl(
+              (product.barcodeImage as { url: string })?.url || "",
+            );
+            setExistingImagesUrls(
+              (product.images as Array<{ url: string }>)?.map(
+                (image) => image.url,
+              ) || [],
+            );
           }
-        } catch (error) {
+        } catch {
           setError("Failed to load product data");
         }
       }
     };
 
     fetchProductData();
-  }, [productId, isEditMode, isViewMode]);
+  }, [
+    productId,
+    isEditMode,
+    isViewMode,
+    userId,
+    brandId,
+    companyId,
+  ]);
 
-  const handleInputChange = (field: keyof ProductCreateData, value: any) => {
+  const handleInputChange = (
+    field: keyof ProductCreateData,
+    value: string | number | string[] | boolean,
+  ) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -476,91 +794,286 @@ const ProductCreate = () => {
     setError(null);
 
     try {
-      // Create FormData to handle file uploads
-      const submitData = new FormData();
+      // Prepare JSON data for API (files are uploaded separately)
+      const jsonData = {
+        productName: formData.productName,
+        slug: formData.slug,
+        description: formData.description,
+        status: formData.status,
+        sku: formData.sku,
+        productVariationType: formData.productVariationType,
+        brand: formData.brand || brandId,
+        aboutTheBrand: "", // Add if needed
+        productCategory:
+          formData.productCategory.length > 0
+            ? formData.productCategory
+            : ["68652da5d559321c67d22f44"],
+        tags: formData.tags || [],
+        ingredients: formData.ingredient ? [formData.ingredient] : [],
+        keyIngredients: formData.keyIngredients
+          ? [formData.keyIngredients]
+          : [],
+        benefit: formData.benefitsSingle ? [formData.benefitsSingle] : [],
+        marketedBy: formData.marketedBy,
+        marketedByAddress: formData.marketedByAddress,
+        manufacturedBy: formData.manufacturedBy,
+        manufacturedByAddress: formData.manufacturedByAddress,
+        importedBy: formData.importedBy,
+        importedByAddress: formData.importedByAddress,
+        // capturedBy: formData.captureBy,
+        capturedBy: userId,
+        capturedDate:
+          formData.capturedDate.split("T")[0] ?? new Date().toISOString(), // Convert to date string
+        thumbnail: formData.thumbnail || "", // Include thumbnail ID
+        barcodeImage: formData.barcodeImage || "", // Include barcode ID
+        images: formData.images || [], // Include image IDs
+        dimensions: {
+          length: formData.length || 0,
+          width: formData.width || 0,
+          height: formData.height || 0,
+        },
+        price: formData.price,
+        salePrice: formData.salePrice,
+        quantity: formData.quantity,
+        manufacturingDate: formData.manufacturingDate,
+        expiryDate: formData.expiryDate,
+        metaData: [
+          // Safety precaution
+          ...(formData.safetyPrecaution
+            ? [
+                {
+                  key: "safety-precaution",
+                  value: formData.safetyPrecaution,
+                  type: "rich-text-box",
+                  ref: false,
+                },
+              ]
+            : []),
+          // How to use
+          ...(formData.howToUse
+            ? [
+                {
+                  key: "how-to-use",
+                  value: formData.howToUse,
+                  type: "rich-text-box",
+                  ref: false,
+                },
+              ]
+            : []),
+          // Shelf life
+          ...(formData.shelfLife
+            ? [
+                {
+                  key: "shelf-life",
+                  value: formData.shelfLife,
+                  type: "string",
+                  ref: false,
+                },
+              ]
+            : []),
+          // License no
+          ...(formData.licenseNo
+            ? [
+                {
+                  key: "license-no",
+                  value: formData.licenseNo,
+                  type: "string",
+                  ref: false,
+                },
+              ]
+            : []),
+          // Product classification (using productType)
+          ...(formData.productType
+            ? [
+                {
+                  key: "product-classification",
+                  value: formData.productType,
+                  type: "objectId",
+                  ref: true,
+                },
+              ]
+            : []),
+          // Body part (using targetArea)
+          ...(formData.targetArea
+            ? [
+                {
+                  key: "body-part",
+                  value: [formData.targetArea],
+                  type: "array",
+                  ref: true,
+                },
+              ]
+            : []),
+          // Makeup finish (using finish)
+          ...(formData.finish
+            ? [
+                {
+                  key: "makeup-finish",
+                  value: [formData.finish],
+                  type: "array",
+                  ref: true,
+                },
+              ]
+            : []),
+          // Fragrance family (using fragrance)
+          ...(formData.fragrance
+            ? [
+                {
+                  key: "fragrance-family",
+                  value: [formData.fragrance],
+                  type: "array",
+                  ref: true,
+                },
+              ]
+            : []),
+          // Special feature (using productFeatures)
+          ...(formData.productFeatures && formData.productFeatures.length > 0
+            ? [
+                {
+                  key: "special-feature",
+                  value: formData.productFeatures,
+                  type: "array",
+                  ref: true,
+                },
+              ]
+            : []),
+          // Hair type
+          ...(formData.hairType
+            ? [
+                {
+                  key: "hair-type",
+                  value: formData.hairType,
+                  type: "objectId",
+                  ref: true,
+                },
+              ]
+            : []),
+          // Skin type
+          ...(formData.skinType
+            ? [
+                {
+                  key: "skin-type",
+                  value: formData.skinType,
+                  type: "objectId",
+                  ref: true,
+                },
+              ]
+            : []),
+          // Certification applicable (using certifications)
+          ...(formData.certifications && formData.certifications.length > 0
+            ? [
+                {
+                  key: "certification-applicable",
+                  value: formData.certifications[0], // Take first certification
+                  type: "objectId",
+                  ref: true,
+                },
+              ]
+            : []),
+          // Formulation (using productForm)
+          ...(formData.productForm
+            ? [
+                {
+                  key: "formulation",
+                  value: [formData.productForm],
+                  type: "array",
+                  ref: true,
+                },
+              ]
+            : []),
+          // Gender
+          ...(formData.gender
+            ? [
+                {
+                  key: "gender",
+                  value: formData.gender,
+                  type: "objectId",
+                  ref: true,
+                },
+              ]
+            : []),
+          // Concern (using targetConcerns)
+          ...(formData.targetConcerns && formData.targetConcerns.length > 0
+            ? [
+                {
+                  key: "concern",
+                  value: formData.targetConcerns,
+                  type: "array",
+                  ref: true,
+                },
+              ]
+            : []),
+          // Conscious (using benefits)
+          ...(formData.benefits && formData.benefits.length > 0
+            ? [
+                {
+                  key: "conscious",
+                  value: formData.benefits,
+                  type: "array",
+                  ref: true,
+                },
+              ]
+            : []),
+          // Claims (using skinConcerns)
+          ...(formData.skinConcerns && formData.skinConcerns.length > 0
+            ? [
+                {
+                  key: "claims",
+                  value: formData.skinConcerns,
+                  type: "array",
+                  ref: true,
+                },
+              ]
+            : []),
+        ],
+      };
 
-      // Add form data
-      Object.entries(formData).forEach(([key, value]) => {
-        if (Array.isArray(value)) {
-          value.forEach((item) => submitData.append(`${key}[]`, item));
-        } else if (value !== null && value !== undefined) {
-          submitData.append(key, value.toString());
-        }
-      });
-
-      // Add uploaded images
-      uploadedImages.forEach((file) => {
-        submitData.append("images", file);
-      });
-
-      // Add thumbnail image
-      if (thumbnailImage) {
-        submitData.append("thumbnail", thumbnailImage);
-      }
-
-      // Add barcode image
-      if (barcodeImage) {
-        submitData.append("barcodeImage", barcodeImage);
-      }
-
-      let result: { success: boolean; message?: string };
+      let result: {
+        success: boolean;
+        message?: string;
+        data?: { _id: string };
+      };
 
       if (isEditMode && productId) {
         // Update existing product
+        result = (await api.put(
+          `${ENDPOINTS.PRODUCT.MAIN}/${productId}`,
+          jsonData,
+        )) as { success: boolean; message?: string; data?: { _id: string } };
 
-        // For updates, try sending JSON data instead of FormData
-        const updateData = {
-          ...formData,
-          // Convert arrays to proper format if needed
-          productCategory: formData.productCategory,
-          tags: formData.tags,
-          targetConcerns: formData.targetConcerns,
-          productFeatures: formData.productFeatures,
-          benefits: formData.benefits,
-          certifications: formData.certifications,
-          skinConcerns: formData.skinConcerns,
-        };
-
-        try {
-          // Try PATCH with JSON data first
-          result = (await api.patch(
-            `${ENDPOINTS.PRODUCT.MAIN}/${productId}`,
-            updateData,
-          )) as { success: boolean; message?: string };
-        } catch (patchError) {
-          // Fallback to PUT with FormData
-          result = (await api.put(
-            `${ENDPOINTS.PRODUCT.MAIN}/${productId}`,
-            submitData,
-            {
-              headers: {
-                "Content-Type": "multipart/form-data",
-              },
-            },
-          )) as { success: boolean; message?: string };
-        }
-
-        if (result.success) {
-          // Product updated successfully
-        }
+        // if (result.success) {
+        //   // Upload files after successful update
+        //   try {
+        //     await uploadFiles(productId);
+        //   } catch (fileError) {
+        //     console.warn("File upload failed:", fileError);
+        //     // Continue even if file upload fails
+        // //   }
+        // }
       } else {
         // Create new product
-        result = (await api.post(ENDPOINTS.PRODUCT.MAIN, submitData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        })) as { success: boolean; message?: string };
+        result = (await api.post(ENDPOINTS.PRODUCT.MAIN, jsonData)) as {
+          success: boolean;
+          message?: string;
+          data?: { _id: string };
+        };
 
-        if (result.success) {
-          // Product created successfully
-        }
+        // if (result.success && result.data?._id) {
+        //   // Upload files after successful creation
+        //   try {
+        //     await uploadFiles(result.data._id);
+        //   } catch (fileError) {
+        //     console.warn("File upload failed:", fileError);
+        //     // Continue even if file upload fails
+        //   }
+        // }
       }
 
       if (result.success) {
         // Navigate back to product list
         navigate(PANEL_ROUTES.LISTING.LIST);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Handle error silently
 
       const errorMessage = isEditMode
@@ -569,9 +1082,17 @@ const ProductCreate = () => {
 
       // Get more detailed error message
       const detailedError =
-        error?.response?.data?.message ||
-        error?.response?.data?.error ||
-        error?.message ||
+        (
+          error as {
+            response?: { data?: { message?: string; error?: string } };
+          }
+        )?.response?.data?.message ||
+        (
+          error as {
+            response?: { data?: { message?: string; error?: string } };
+          }
+        )?.response?.data?.error ||
+        (error as { message?: string })?.message ||
         errorMessage;
 
       setError(detailedError);
@@ -595,7 +1116,7 @@ const ProductCreate = () => {
     setIsDragOver(false);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
 
@@ -616,11 +1137,127 @@ const ProductCreate = () => {
       return;
     }
 
-    setUploadedImages((prev) => [...prev, ...imageFiles]);
-    setError(null);
+    setIsImagesUploading(true);
+    setError("");
+
+    try {
+      const imageIds = await uploadImages(imageFiles);
+      setUploadedImages((prev) => [...prev, ...imageFiles]);
+      setFormData((prev) => ({
+        ...prev,
+        images: [...(prev.images || []), ...imageIds],
+      }));
+    } catch (error) {
+      console.error("Images upload failed:", error);
+      setError("Failed to upload images. Please try again.");
+    } finally {
+      setIsImagesUploading(false);
+    }
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleThumbnailDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleThumbnailDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleThumbnailDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
+
+    if (imageFiles.length === 0) {
+      setError("Please drop an image file");
+      return;
+    }
+
+    if (imageFiles.length > 1) {
+      setError("Only one thumbnail image allowed");
+      return;
+    }
+
+    const file = imageFiles[0];
+    if (file.size > 10 * 1024 * 1024) {
+      setError("Thumbnail image size must be less than 10MB");
+      return;
+    }
+
+    setIsThumbnailUploading(true);
+    setError("");
+
+    try {
+      const thumbnailId = await uploadThumbnail(file);
+      setThumbnailImage(file);
+      setFormData((prev) => ({
+        ...prev,
+        thumbnail: thumbnailId,
+      }));
+    } catch (error) {
+      console.error("Thumbnail upload failed:", error);
+      setError("Failed to upload thumbnail. Please try again.");
+    } finally {
+      setIsThumbnailUploading(false);
+    }
+  };
+
+  const handleBarcodeDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleBarcodeDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleBarcodeDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
+
+    if (imageFiles.length === 0) {
+      setError("Please drop an image file");
+      return;
+    }
+
+    if (imageFiles.length > 1) {
+      setError("Only one barcode image allowed");
+      return;
+    }
+
+    const file = imageFiles[0];
+    if (file.size > 10 * 1024 * 1024) {
+      setError("Barcode image size must be less than 10MB");
+      return;
+    }
+
+    setIsBarcodeUploading(true);
+    setError("");
+
+    try {
+      const barcodeId = await uploadBarcode(file);
+      setBarcodeImage(file);
+      setFormData((prev) => ({
+        ...prev,
+        barcodeImage: barcodeId,
+      }));
+    } catch (error) {
+      console.error("Barcode upload failed:", error);
+      setError("Failed to upload barcode. Please try again.");
+    } finally {
+      setIsBarcodeUploading(false);
+    }
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     const imageFiles = files.filter((file) => file.type.startsWith("image/"));
 
@@ -638,12 +1275,34 @@ const ProductCreate = () => {
       return;
     }
 
-    setUploadedImages((prev) => [...prev, ...imageFiles]);
-    setError(null);
+    setIsImagesUploading(true);
+    setError("");
+
+    try {
+      const imageIds = await uploadImages(imageFiles);
+      setUploadedImages((prev) => [...prev, ...imageFiles]);
+      setFormData((prev) => ({
+        ...prev,
+        images: [...(prev.images || []), ...imageIds],
+      }));
+    } catch (error) {
+      console.error("Images upload failed:", error);
+      setError("Failed to upload images. Please try again.");
+    } finally {
+      setIsImagesUploading(false);
+    }
   };
 
   const removeImage = (index: number) => {
-    setUploadedImages((prev) => prev.filter((_, i) => i !== index));
+    setUploadedImages((prev) => {
+      const newImages = prev.filter((_, i) => i !== index);
+      // Also remove the corresponding image ID from formData
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        images: prevFormData.images?.filter((_, i) => i !== index) || [],
+      }));
+      return newImages;
+    });
   };
 
   const openFileDialog = () => {
@@ -658,7 +1317,80 @@ const ProductCreate = () => {
     barcodeInputRef.current?.click();
   };
 
-  const handleThumbnailSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const uploadThumbnail = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("type", "product-images");
+    formData.append("files", file);
+
+    const response = (await api.post(ENDPOINTS.MEDIA.UPLOAD, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    })) as {
+      success: boolean;
+      data: {
+        media: Array<{ _id: string; url: string }>;
+      };
+      message: string;
+    };
+
+    if (response.success && response.data.media.length > 0) {
+      return response.data.media[0]._id;
+    }
+    throw new Error("Failed to upload thumbnail");
+  };
+
+  const uploadBarcode = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("type", "product-images");
+    formData.append("files", file);
+
+    const response = (await api.post(ENDPOINTS.MEDIA.UPLOAD, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    })) as {
+      success: boolean;
+      data: {
+        media: Array<{ _id: string; url: string }>;
+      };
+      message: string;
+    };
+
+    if (response.success && response.data.media.length > 0) {
+      return response.data.media[0]._id;
+    }
+    throw new Error("Failed to upload barcode");
+  };
+
+  const uploadImages = async (files: File[]): Promise<string[]> => {
+    const formData = new FormData();
+    formData.append("type", "product-images");
+    files.forEach((file) => {
+      formData.append("files", file);
+    });
+
+    const response = (await api.post(ENDPOINTS.MEDIA.UPLOAD, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    })) as {
+      success: boolean;
+      data: {
+        media: Array<{ _id: string; url: string }>;
+      };
+      message: string;
+    };
+
+    if (response.success && response.data.media.length > 0) {
+      return response.data.media.map((media) => media._id);
+    }
+    throw new Error("Failed to upload images");
+  };
+
+  const handleThumbnailSelect = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
@@ -669,11 +1401,29 @@ const ProductCreate = () => {
         setError("Thumbnail must be an image file");
         return;
       }
-      setThumbnailImage(file);
+
+      setIsThumbnailUploading(true);
+      setError("");
+
+      try {
+        const thumbnailId = await uploadThumbnail(file);
+        setThumbnailImage(file);
+        setFormData((prev) => ({
+          ...prev,
+          thumbnail: thumbnailId,
+        }));
+      } catch (error) {
+        console.error("Thumbnail upload failed:", error);
+        setError("Failed to upload thumbnail. Please try again.");
+      } finally {
+        setIsThumbnailUploading(false);
+      }
     }
   };
 
-  const handleBarcodeSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBarcodeSelect = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
@@ -684,12 +1434,33 @@ const ProductCreate = () => {
         setError("Barcode must be an image file");
         return;
       }
-      setBarcodeImage(file);
+
+      setIsBarcodeUploading(true);
+      setError("");
+
+      try {
+        const barcodeId = await uploadBarcode(file);
+        setBarcodeImage(file);
+        setFormData((prev) => ({
+          ...prev,
+          barcodeImage: barcodeId,
+        }));
+      } catch (error) {
+        console.error("Barcode upload failed:", error);
+        setError("Failed to upload barcode. Please try again.");
+      } finally {
+        setIsBarcodeUploading(false);
+      }
     }
   };
 
   const removeThumbnail = () => {
     setThumbnailImage(null);
+    setExistingThumbnailUrl("");
+    setFormData((prev) => ({
+      ...prev,
+      thumbnail: "",
+    }));
     if (thumbnailInputRef.current) {
       thumbnailInputRef.current.value = "";
     }
@@ -697,6 +1468,11 @@ const ProductCreate = () => {
 
   const removeBarcode = () => {
     setBarcodeImage(null);
+    setExistingBarcodeUrl("");
+    setFormData((prev) => ({
+      ...prev,
+      barcodeImage: "",
+    }));
     if (barcodeInputRef.current) {
       barcodeInputRef.current.value = "";
     }
@@ -711,6 +1487,72 @@ const ProductCreate = () => {
       .trim();
     setFormData((prev) => ({ ...prev, slug }));
   };
+
+  // Function to upload files separately
+  // const uploadFiles = async (productId: string) => {
+  //   const fileUploadPromises = [];
+
+  //   // Upload main images
+  //   if (uploadedImages.length > 0) {
+  //     const imageFormData = new FormData();
+  //     uploadedImages.forEach((file) => {
+  //       imageFormData.append("images", file);
+  //     });
+
+  //     fileUploadPromises.push(
+  //       api.post(
+  //         `${ENDPOINTS.PRODUCT.MAIN}/${productId}/images`,
+  //         imageFormData,
+  //         {
+  //           headers: {
+  //             "Content-Type": "multipart/form-data",
+  //           },
+  //         },
+  //       ),
+  //     );
+  //   }
+
+  //   // Upload thumbnail
+  //   if (thumbnailImage) {
+  //     const thumbnailFormData = new FormData();
+  //     thumbnailFormData.append("thumbnail", thumbnailImage);
+
+  //     fileUploadPromises.push(
+  //       api.post(
+  //         `${ENDPOINTS.PRODUCT.MAIN}/${productId}/thumbnail`,
+  //         thumbnailFormData,
+  //         {
+  //           headers: {
+  //             "Content-Type": "multipart/form-data",
+  //           },
+  //         },
+  //       ),
+  //     );
+  //   }
+
+  //   // Upload barcode image
+  //   if (barcodeImage) {
+  //     const barcodeFormData = new FormData();
+  //     barcodeFormData.append("barcodeImage", barcodeImage);
+
+  //     fileUploadPromises.push(
+  //       api.post(
+  //         `${ENDPOINTS.PRODUCT.MAIN}/${productId}/barcode`,
+  //         barcodeFormData,
+  //         {
+  //           headers: {
+  //             "Content-Type": "multipart/form-data",
+  //           },
+  //         },
+  //       ),
+  //     );
+  //   }
+
+  //   // Execute all file uploads in parallel
+  //   if (fileUploadPromises.length > 0) {
+  //     await Promise.all(fileUploadPromises);
+  //   }
+  // };
 
   // Dynamic title and description based on mode
   const getPageTitle = () => {
@@ -837,11 +1679,16 @@ const ProductCreate = () => {
                 </div>
               </div>
 
-              {/* Pricing */}
-              <div className="space-y-4">
-                <h3 className="border-b border-gray-200 pb-2 text-lg font-semibold text-gray-900">
-                  Pricing & Inventory
-                </h3>
+              {/* Pricing - Only show for simple products */}
+              {(() => {
+                // Check if product type is simple (not variable)
+                const SIMPLE_PRODUCT_ID = "685a4f3f2d20439677a5e89d";
+                return formData.productVariationType && formData.productVariationType === SIMPLE_PRODUCT_ID;
+              })() && (
+                <div className="space-y-4">
+                  <h3 className="border-b border-gray-200 pb-2 text-lg font-semibold text-gray-900">
+                    Pricing & Inventory
+                  </h3>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                   <div className="space-y-2">
                     <Label
@@ -916,7 +1763,8 @@ const ProductCreate = () => {
                     />
                   </div>
                 </div>
-              </div>
+                </div>
+              )}
 
               {/* Product Details */}
               <div className="space-y-4">
@@ -931,24 +1779,22 @@ const ProductCreate = () => {
                     >
                       Brand *
                     </Label>
-                    <SelectRoot
-                      value={formData.brand}
-                      onValueChange={(value) =>
-                        handleInputChange("brand", value)
-                      }
+                    <PaginationComboBox
+                      apiFunction={createBrandsFetcher(companyId)}
+                      transform={(brand: { _id: string; name: string }) => ({
+                        label: brand.name,
+                        value: brand._id,
+                      })}
+                      placeholder="Select a brand"
+                      value={formData.brand || ""}
+                      onChange={(value: string | string[]) => {
+                        const stringValue = Array.isArray(value) ? value[0] : value;
+                        handleInputChange("brand", stringValue);
+                      }}
+                      className="w-full"
                       disabled={isViewMode}
-                    >
-                      <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Select a brand" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {brands.map((brand) => (
-                          <SelectItem key={brand._id} value={brand._id}>
-                            {brand.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </SelectRoot>
+                      queryKey={["brands-dropdown", companyId]}
+                    />
                   </div>
 
                   <div className="space-y-2">
@@ -956,28 +1802,152 @@ const ProductCreate = () => {
                       htmlFor="productVariationType"
                       className="text-sm font-medium text-gray-700"
                     >
-                      Variation Type *
+                      Product Type *
                     </Label>
-                    <SelectRoot
-                      value={formData.productVariationType}
-                      onValueChange={(value) =>
-                        handleInputChange("productVariationType", value)
-                      }
+                    <PaginationComboBox
+                      apiFunction={variationTypesFetcher}
+                      transform={(type: { _id: string; name: string }) => ({
+                        label: type.name,
+                        value: type._id,
+                      })}
+                      placeholder="Select product type"
+                      value={formData.productVariationType || ""}
+                      onChange={(value: string | string[]) => {
+                        const stringValue = Array.isArray(value) ? value[0] : value;
+                        handleInputChange("productVariationType", stringValue);
+                      }}
+                      className="w-full"
                       disabled={isViewMode}
-                    >
-                      <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Select variation type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {variationTypes.map((type) => (
-                          <SelectItem key={type._id} value={type._id}>
-                            {type.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </SelectRoot>
+                      queryKey={["variation-types-dropdown"]}
+                    />
                   </div>
                 </div>
+
+                {/* Variant Section - Only show for variable products */}
+                {(() => {
+                  // Check if product type is variable (not simple product)
+                  const SIMPLE_PRODUCT_ID = "685a4f3f2d20439677a5e89d";
+                  return formData.productVariationType && formData.productVariationType !== SIMPLE_PRODUCT_ID;
+                })() && (
+                  <div className="space-y-4">
+                    <h3 className="border-b border-gray-200 pb-2 text-lg font-semibold text-gray-900">
+                      Variant
+                    </h3>
+                    
+                    {/* Add Variant Attribute Button */}
+                    <Button
+                      type="button"
+                      variant="outlined"
+                      onClick={() => {
+                        const newAttributes = [...(formData.attributes || []), { attributeId: null, attributeValueId: [] }];
+                        setFormData(prev => ({ ...prev, attributes: newAttributes }));
+                      }}
+                      className="flex items-center gap-2 mb-4"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Variant Attribute
+                    </Button>
+
+                    {/* Attribute List */}
+                    {formData.attributes?.map((attribute: { attributeId: { value: string; label: string } | null; attributeValueId: Array<{ value: string; label: string }> }, index: number) => (
+                      <div key={index} className="space-y-4 p-4 border border-gray-200 rounded-lg bg-white">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-sm font-medium text-gray-700">
+                            {attribute.attributeId?.label || "Select an Attribute"}
+                          </h4>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              const newAttributes = formData.attributes?.filter((_, i: number) => i !== index) || [];
+                              setFormData(prev => ({ ...prev, attributes: newAttributes }));
+                            }}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {/* Attribute Selection */}
+                          <div>
+                            <Label htmlFor={`attribute-${index}`} className="text-sm font-medium text-gray-700">
+                              Attribute
+                            </Label>
+                            <PaginationComboBox
+                              apiFunction={variantAttributesFetcher}
+                              transform={(attr: { _id: string; name: string }) => ({
+                                label: attr.name,
+                                value: attr._id,
+                              })}
+                              placeholder="Select Attribute"
+                              value={attribute.attributeId?.value || ""}
+                              onChange={(value: string | string[]) => {
+                                const attributeId = Array.isArray(value) ? value[0] : value;
+                                const selectedAttribute = variantAttributes.find(attr => attr._id === attributeId);
+                                const newAttributes = [...(formData.attributes || [])];
+                                newAttributes[index] = { 
+                                  ...newAttributes[index], 
+                                  attributeId: { value: attributeId, label: selectedAttribute?.name || "" }, 
+                                  attributeValueId: [] 
+                                };
+                                setFormData(prev => ({ ...prev, attributes: newAttributes }));
+                                // Fetch attribute values when attribute is selected
+                                if (attributeId) {
+                                  fetchAttributeValues(attributeId);
+                                }
+                              }}
+                              className="w-full"
+                              disabled={isViewMode}
+                              queryKey={["variant-attributes-dropdown"]}
+                            />
+                          </div>
+
+                          {/* Attribute Values Selection */}
+                          <div>
+                            <Label htmlFor={`values-${index}`} className="text-sm font-medium text-gray-700">
+                              Values
+                            </Label>
+                            <ComboBox
+                              options={
+                                attribute.attributeId?.value
+                                  ? (attributeValues[attribute.attributeId.value] || []).map((option) => ({
+                                      value: option._id,
+                                      label: option.name || "",
+                                    }))
+                                  : []
+                              }
+                              value={attribute.attributeValueId?.map((v: { value: string; label: string }) => v.value) || []}
+                              onChange={(_, selectedOptions) => {
+                                const newAttributes = [...(formData.attributes || [])];
+                                newAttributes[index] = { 
+                                  ...newAttributes[index], 
+                                  attributeValueId: (selectedOptions || []).map(option => ({
+                                    value: option.value,
+                                    label: typeof option.label === "string" ? option.label : String(option.label)
+                                  }))
+                                };
+                                setFormData(prev => ({ ...prev, attributes: newAttributes }));
+                              }}
+                              placeholder={
+                                !attribute.attributeId?.value 
+                                  ? "Select Attribute Value" 
+                                  : attributeValues[attribute.attributeId.value]?.length 
+                                    ? "Select values..." 
+                                    : "No options available"
+                              }
+                              multi={true}
+                              disabled={!attribute.attributeId?.value || isViewMode}
+                              className="w-full"
+                              emptyMessage="No options available"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 {/* Category */}
                 <div className="space-y-2">
@@ -987,24 +1957,22 @@ const ProductCreate = () => {
                   >
                     Category *
                   </Label>
-                  <SelectRoot
+                  <PaginationComboBox
+                    apiFunction={categoriesFetcher}
+                    transform={(category: { _id: string; name: string }) => ({
+                      label: category.name,
+                      value: category._id,
+                    })}
+                    placeholder="Select a category"
                     value={formData.productCategory[0] || ""}
-                    onValueChange={(value) =>
-                      handleInputChange("productCategory", [value])
-                    }
+                    onChange={(value: string | string[]) => {
+                      const stringValue = Array.isArray(value) ? value[0] : value;
+                      handleInputChange("productCategory", [stringValue]);
+                    }}
+                    className="w-full"
                     disabled={isViewMode}
-                  >
-                    <SelectTrigger className="h-10">
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category._id} value={category._id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </SelectRoot>
+                    queryKey={["categories-dropdown"]}
+                  />
                 </div>
 
                 <div className="space-y-2">
@@ -1014,24 +1982,22 @@ const ProductCreate = () => {
                   >
                     Tags
                   </Label>
-                  <SelectRoot
+                  <PaginationComboBox
+                    apiFunction={tagsFetcher}
+                    transform={(tag: { _id: string; name: string }) => ({
+                      label: tag.name,
+                      value: tag._id,
+                    })}
+                    placeholder="Select or create tags"
                     value={formData.tags?.[0] || ""}
-                    onValueChange={(value) =>
-                      handleInputChange("tags", [value])
-                    }
+                    onChange={(value: string | string[]) => {
+                      const stringValue = Array.isArray(value) ? value[0] : value;
+                      handleInputChange("tags", [stringValue]);
+                    }}
+                    className="w-full"
                     disabled={isViewMode}
-                  >
-                    <SelectTrigger className="h-10">
-                      <SelectValue placeholder="Select or create tags" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {tags.map((tag) => (
-                        <SelectItem key={tag._id} value={tag._id}>
-                          {tag.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </SelectRoot>
+                    queryKey={["tags-dropdown"]}
+                  />
                 </div>
 
                 {/* Status */}
@@ -1042,21 +2008,16 @@ const ProductCreate = () => {
                   >
                     Status *
                   </Label>
-                  <SelectRoot
+                  <ComboBox
+                    options={statusOptions}
+                    placeholder="Select status"
                     value={formData.status}
-                    onValueChange={(value) =>
-                      handleInputChange("status", value)
-                    }
+                    onChange={(value: string) => {
+                      handleInputChange("status", value);
+                    }}
+                    className="w-full"
                     disabled={isViewMode}
-                  >
-                    <SelectTrigger className="h-10">
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="draft">Draft</SelectItem>
-                      <SelectItem value="publish">Publish</SelectItem>
-                    </SelectContent>
-                  </SelectRoot>
+                  />
                 </div>
               </div>
 
@@ -1073,24 +2034,22 @@ const ProductCreate = () => {
                     >
                       Marketed By
                     </Label>
-                    <SelectRoot
+                    <PaginationComboBox
+                      apiFunction={marketedByFetcher}
+                      transform={(item: { _id: string; name: string }) => ({
+                        label: item.name,
+                        value: item._id,
+                      })}
+                      placeholder="Select Market By"
                       value={formData.marketedBy || ""}
-                      onValueChange={(value) =>
-                        handleInputChange("marketedBy", value)
-                      }
+                      onChange={(value: string | string[]) => {
+                        const stringValue = Array.isArray(value) ? value[0] : value;
+                        handleInputChange("marketedBy", stringValue);
+                      }}
+                      className="w-full"
                       disabled={isViewMode}
-                    >
-                      <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Select Market By" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {marketedBy.map((item) => (
-                          <SelectItem key={item._id} value={item._id}>
-                            {item.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </SelectRoot>
+                      queryKey={["marketed-by-dropdown"]}
+                    />
                   </div>
 
                   <div className="space-y-2">
@@ -1100,24 +2059,22 @@ const ProductCreate = () => {
                     >
                       Manufacture By
                     </Label>
-                    <SelectRoot
+                    <PaginationComboBox
+                      apiFunction={manufacturedByFetcher}
+                      transform={(item: { _id: string; name: string }) => ({
+                        label: item.name,
+                        value: item._id,
+                      })}
+                      placeholder="Select Manufacture By"
                       value={formData.manufacturedBy || ""}
-                      onValueChange={(value) =>
-                        handleInputChange("manufacturedBy", value)
-                      }
+                      onChange={(value: string | string[]) => {
+                        const stringValue = Array.isArray(value) ? value[0] : value;
+                        handleInputChange("manufacturedBy", stringValue);
+                      }}
+                      className="w-full"
                       disabled={isViewMode}
-                    >
-                      <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Select Manufacture By" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {manufacturedBy.map((item) => (
-                          <SelectItem key={item._id} value={item._id}>
-                            {item.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </SelectRoot>
+                      queryKey={["manufactured-by-dropdown"]}
+                    />
                   </div>
                 </div>
 
@@ -1128,24 +2085,22 @@ const ProductCreate = () => {
                   >
                     Import By
                   </Label>
-                  <SelectRoot
+                  <PaginationComboBox
+                    apiFunction={importedByFetcher}
+                    transform={(item: { _id: string; name: string }) => ({
+                      label: item.name,
+                      value: item._id,
+                    })}
+                    placeholder="Select Import By"
                     value={formData.importedBy || ""}
-                    onValueChange={(value) =>
-                      handleInputChange("importedBy", value)
-                    }
+                    onChange={(value: string | string[]) => {
+                      const stringValue = Array.isArray(value) ? value[0] : value;
+                      handleInputChange("importedBy", stringValue);
+                    }}
+                    className="w-full"
                     disabled={isViewMode}
-                  >
-                    <SelectTrigger className="h-10">
-                      <SelectValue placeholder="Select Import By" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {importedBy.map((item) => (
-                        <SelectItem key={item._id} value={item._id}>
-                          {item.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </SelectRoot>
+                    queryKey={["imported-by-dropdown"]}
+                  />
                 </div>
 
                 {/* Address Fields */}
@@ -1404,7 +2359,7 @@ const ProductCreate = () => {
                 </div>
 
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <div className="space-y-2">
+                  {/* <div className="space-y-2">
                     <Label
                       htmlFor="customerCareEmail"
                       className="text-sm font-medium text-gray-700"
@@ -1422,9 +2377,9 @@ const ProductCreate = () => {
                       className="h-10"
                       disabled={isViewMode}
                     />
-                  </div>
+                  </div> */}
 
-                  <div className="space-y-2">
+                  {/* <div className="space-y-2">
                     <Label
                       htmlFor="customerCareNumber"
                       className="text-sm font-medium text-gray-700"
@@ -1441,7 +2396,7 @@ const ProductCreate = () => {
                       className="h-10"
                       disabled={isViewMode}
                     />
-                  </div>
+                  </div> */}
                 </div>
               </div>
 
@@ -1458,27 +2413,22 @@ const ProductCreate = () => {
                     >
                       Ingredient
                     </Label>
-                    <SelectRoot
+                    <PaginationComboBox
+                      apiFunction={ingredientsFetcher}
+                      transform={(ingredient: { _id: string; name: string }) => ({
+                        label: ingredient.name,
+                        value: ingredient._id,
+                      })}
+                      placeholder="Select an Ingredient"
                       value={formData.ingredient || ""}
-                      onValueChange={(value) =>
-                        handleInputChange("ingredient", value)
-                      }
+                      onChange={(value: string | string[]) => {
+                        const stringValue = Array.isArray(value) ? value[0] : value;
+                        handleInputChange("ingredient", stringValue);
+                      }}
+                      className="w-full"
                       disabled={isViewMode}
-                    >
-                      <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Select an Ingredient" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {ingredients.map((ingredient) => (
-                          <SelectItem
-                            key={ingredient._id}
-                            value={ingredient._id}
-                          >
-                            {ingredient.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </SelectRoot>
+                      queryKey={["ingredients-dropdown"]}
+                    />
                   </div>
 
                   <div className="space-y-2">
@@ -1488,27 +2438,22 @@ const ProductCreate = () => {
                     >
                       Key Ingredients
                     </Label>
-                    <SelectRoot
+                    <PaginationComboBox
+                      apiFunction={keyIngredientFetcher}
+                      transform={(ingredient: { _id: string; name: string }) => ({
+                        label: ingredient.name,
+                        value: ingredient._id,
+                      })}
+                      placeholder="Select a Key Ingredient"
                       value={formData.keyIngredients || ""}
-                      onValueChange={(value) =>
-                        handleInputChange("keyIngredients", value)
-                      }
+                      onChange={(value: string | string[]) => {
+                        const stringValue = Array.isArray(value) ? value[0] : value;
+                        handleInputChange("keyIngredients", stringValue);
+                      }}
+                      className="w-full"
                       disabled={isViewMode}
-                    >
-                      <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Select a Key Ingredient" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {ingredients.map((ingredient) => (
-                          <SelectItem
-                            key={ingredient._id}
-                            value={ingredient._id}
-                          >
-                            {ingredient.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </SelectRoot>
+                      queryKey={["key-ingredients-dropdown"]}
+                    />
                   </div>
                 </div>
 
@@ -1519,29 +2464,27 @@ const ProductCreate = () => {
                   >
                     Benefits
                   </Label>
-                  <SelectRoot
+                  <PaginationComboBox
+                    apiFunction={benefitsFetcher}
+                    transform={(benefit: { _id: string; name: string }) => ({
+                      label: benefit.name,
+                      value: benefit._id,
+                    })}
+                    placeholder="Select a benefit"
                     value={formData.benefitsSingle || ""}
-                    onValueChange={(value) =>
-                      handleInputChange("benefitsSingle", value)
-                    }
+                    onChange={(value: string | string[]) => {
+                      const stringValue = Array.isArray(value) ? value[0] : value;
+                      handleInputChange("benefitsSingle", stringValue);
+                    }}
+                    className="w-full"
                     disabled={isViewMode}
-                  >
-                    <SelectTrigger className="h-10">
-                      <SelectValue placeholder="Select a benefit" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {benefitsOptions.map((benefit) => (
-                        <SelectItem key={benefit._id} value={benefit._id}>
-                          {benefit.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </SelectRoot>
+                    queryKey={["benefits-dropdown"]}
+                  />
                 </div>
               </div>
 
               {/* Capture Details */}
-              <div className="space-y-4">
+              {/* <div className="space-y-4">
                 <h3 className="border-b border-gray-200 pb-2 text-lg font-semibold text-gray-900">
                   Capture Details
                 </h3>
@@ -1553,21 +2496,17 @@ const ProductCreate = () => {
                     >
                       Capture By
                     </Label>
-                    <SelectRoot
+                    <Input
+                      id="customerCareNumber"
                       value={formData.captureBy || "admin"}
-                      onValueChange={(value) =>
-                        handleInputChange("captureBy", value)
+                      onChange={(e) =>
+                        handleInputChange("captureBy", e.target.value)
                       }
-                      disabled={isViewMode}
-                    >
-                      <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Select capture by" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="user">User</SelectItem>
-                      </SelectContent>
-                    </SelectRoot>
+                      placeholder="Select capture by"
+                      className="h-10"
+                      disabled={true}
+                    />
+                    
                   </div>
 
                   <div className="space-y-2">
@@ -1596,7 +2535,7 @@ const ProductCreate = () => {
                     />
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               {/* Product Attributes Section */}
               <div className="space-y-4">
@@ -1607,200 +2546,182 @@ const ProductCreate = () => {
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div>
                     <Label htmlFor="countryOfOrigin">Country of Origin</Label>
-                    <SelectRoot
+                    <PaginationComboBox
+                      apiFunction={countryOfOriginFetcher}
+                      transform={(item: { _id: string; label: string }) => ({
+                        label: item.label,
+                        value: item._id,
+                      })}
+                      placeholder="Select country of origin"
                       value={formData.countryOfOrigin || ""}
-                      onValueChange={(value) =>
-                        handleInputChange("countryOfOrigin", value)
-                      }
+                      onChange={(value: string | string[]) => {
+                        const stringValue = Array.isArray(value) ? value[0] : value;
+                        handleInputChange("countryOfOrigin", stringValue);
+                      }}
+                      className="w-full"
                       disabled={isViewMode}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select country of origin" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {countryOfOrigin.map((item) => (
-                          <SelectItem key={item._id} value={item._id}>
-                            {item.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </SelectRoot>
+                      queryKey={["country-of-origin-dropdown"]}
+                    />
                   </div>
 
                   <div>
                     <Label htmlFor="productForm">Product Form</Label>
-                    <SelectRoot
+                    <PaginationComboBox
+                      apiFunction={productFormFetcher}
+                      transform={(item: { _id: string; label: string }) => ({
+                        label: item.label,
+                        value: item._id,
+                      })}
+                      placeholder="Select product form"
                       value={formData.productForm || ""}
-                      onValueChange={(value) =>
-                        handleInputChange("productForm", value)
-                      }
+                      onChange={(value: string | string[]) => {
+                        const stringValue = Array.isArray(value) ? value[0] : value;
+                        handleInputChange("productForm", stringValue);
+                      }}
+                      className="w-full"
                       disabled={isViewMode}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select product form" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {productForm.map((item) => (
-                          <SelectItem key={item._id} value={item._id}>
-                            {item.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </SelectRoot>
+                      queryKey={["product-form-dropdown"]}
+                    />
                   </div>
 
                   <div>
                     <Label htmlFor="gender">Gender</Label>
-                    <SelectRoot
+                    <PaginationComboBox
+                      apiFunction={genderFetcher}
+                      transform={(item: { _id: string; label: string }) => ({
+                        label: item.label,
+                        value: item._id,
+                      })}
+                      placeholder="Select gender"
                       value={formData.gender || ""}
-                      onValueChange={(value) =>
-                        handleInputChange("gender", value)
-                      }
+                      onChange={(value: string | string[]) => {
+                        const stringValue = Array.isArray(value) ? value[0] : value;
+                        handleInputChange("gender", stringValue);
+                      }}
+                      className="w-full"
                       disabled={isViewMode}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select gender" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {gender.map((item) => (
-                          <SelectItem key={item._id} value={item._id}>
-                            {item.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </SelectRoot>
+                      queryKey={["gender-dropdown"]}
+                    />
                   </div>
 
                   <div>
                     <Label htmlFor="productType">Product Type</Label>
-                    <SelectRoot
+                    <PaginationComboBox
+                      apiFunction={productTypeFetcher}
+                      transform={(item: { _id: string; label: string }) => ({
+                        label: item.label,
+                        value: item._id,
+                      })}
+                      placeholder="Select product type"
                       value={formData.productType || ""}
-                      onValueChange={(value) =>
-                        handleInputChange("productType", value)
-                      }
+                      onChange={(value: string | string[]) => {
+                        const stringValue = Array.isArray(value) ? value[0] : value;
+                        handleInputChange("productType", stringValue);
+                      }}
+                      className="w-full"
                       disabled={isViewMode}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select product type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {productType.map((item) => (
-                          <SelectItem key={item._id} value={item._id}>
-                            {item.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </SelectRoot>
+                      queryKey={["product-type-dropdown"]}
+                    />
                   </div>
 
                   <div>
                     <Label htmlFor="targetArea">Target Area</Label>
-                    <SelectRoot
+                    <PaginationComboBox
+                      apiFunction={targetAreaFetcher}
+                      transform={(item: { _id: string; label: string }) => ({
+                        label: item.label,
+                        value: item._id,
+                      })}
+                      placeholder="Select target area"
                       value={formData.targetArea || ""}
-                      onValueChange={(value) =>
-                        handleInputChange("targetArea", value)
-                      }
+                      onChange={(value: string | string[]) => {
+                        const stringValue = Array.isArray(value) ? value[0] : value;
+                        handleInputChange("targetArea", stringValue);
+                      }}
+                      className="w-full"
                       disabled={isViewMode}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select target area" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {targetArea.map((item) => (
-                          <SelectItem key={item._id} value={item._id}>
-                            {item.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </SelectRoot>
+                      queryKey={["target-area-dropdown"]}
+                    />
                   </div>
 
                   <div>
                     <Label htmlFor="finish">Finish</Label>
-                    <SelectRoot
+                    <PaginationComboBox
+                      apiFunction={finishFetcher}
+                      transform={(item: { _id: string; label: string }) => ({
+                        label: item.label,
+                        value: item._id,
+                      })}
+                      placeholder="Select finish"
                       value={formData.finish || ""}
-                      onValueChange={(value) =>
-                        handleInputChange("finish", value)
-                      }
+                      onChange={(value: string | string[]) => {
+                        const stringValue = Array.isArray(value) ? value[0] : value;
+                        handleInputChange("finish", stringValue);
+                      }}
+                      className="w-full"
                       disabled={isViewMode}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select finish" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {finish.map((item) => (
-                          <SelectItem key={item._id} value={item._id}>
-                            {item.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </SelectRoot>
+                      queryKey={["finish-dropdown"]}
+                    />
                   </div>
 
                   <div>
                     <Label htmlFor="fragrance">Fragrance</Label>
-                    <SelectRoot
+                    <PaginationComboBox
+                      apiFunction={fragranceFetcher}
+                      transform={(item: { _id: string; label: string }) => ({
+                        label: item.label,
+                        value: item._id,
+                      })}
+                      placeholder="Select fragrance"
                       value={formData.fragrance || ""}
-                      onValueChange={(value) =>
-                        handleInputChange("fragrance", value)
-                      }
+                      onChange={(value: string | string[]) => {
+                        const stringValue = Array.isArray(value) ? value[0] : value;
+                        handleInputChange("fragrance", stringValue);
+                      }}
+                      className="w-full"
                       disabled={isViewMode}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select fragrance" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {fragrance.map((item) => (
-                          <SelectItem key={item._id} value={item._id}>
-                            {item.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </SelectRoot>
+                      queryKey={["fragrance-dropdown"]}
+                    />
                   </div>
 
                   <div>
                     <Label htmlFor="hairType">Hair Type</Label>
-                    <SelectRoot
+                    <PaginationComboBox
+                      apiFunction={hairTypeFetcher}
+                      transform={(item: { _id: string; label: string }) => ({
+                        label: item.label,
+                        value: item._id,
+                      })}
+                      placeholder="Select hair type"
                       value={formData.hairType || ""}
-                      onValueChange={(value) =>
-                        handleInputChange("hairType", value)
-                      }
+                      onChange={(value: string | string[]) => {
+                        const stringValue = Array.isArray(value) ? value[0] : value;
+                        handleInputChange("hairType", stringValue);
+                      }}
+                      className="w-full"
                       disabled={isViewMode}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select hair type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {hairType.map((item) => (
-                          <SelectItem key={item._id} value={item._id}>
-                            {item.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </SelectRoot>
+                      queryKey={["hair-type-dropdown"]}
+                    />
                   </div>
 
                   <div>
                     <Label htmlFor="skinType">Skin Type</Label>
-                    <SelectRoot
+                    <PaginationComboBox
+                      apiFunction={skinTypeFetcher}
+                      transform={(item: { _id: string; label: string }) => ({
+                        label: item.label,
+                        value: item._id,
+                      })}
+                      placeholder="Select skin type"
                       value={formData.skinType || ""}
-                      onValueChange={(value) =>
-                        handleInputChange("skinType", value)
-                      }
+                      onChange={(value: string | string[]) => {
+                        const stringValue = Array.isArray(value) ? value[0] : value;
+                        handleInputChange("skinType", stringValue);
+                      }}
+                      className="w-full"
                       disabled={isViewMode}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select skin type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {skinType.map((item) => (
-                          <SelectItem key={item._id} value={item._id}>
-                            {item.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </SelectRoot>
+                      queryKey={["skin-type-dropdown"]}
+                    />
                   </div>
                 </div>
 
@@ -1808,186 +2729,102 @@ const ProductCreate = () => {
                 <div className="mt-6 space-y-4">
                   <div>
                     <Label>Target Concerns</Label>
-                    <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-3">
-                      {targetConcerns.map((concern) => (
-                        <label
-                          key={concern._id}
-                          className="flex items-center space-x-2"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={
-                              formData.targetConcerns?.includes(concern._id) ||
-                              false
-                            }
-                            onChange={(e) => {
-                              const current = formData.targetConcerns || [];
-                              if (e.target.checked) {
-                                handleInputChange("targetConcerns", [
-                                  ...current,
-                                  concern._id,
-                                ]);
-                              } else {
-                                handleInputChange(
-                                  "targetConcerns",
-                                  current.filter((id) => id !== concern._id),
-                                );
-                              }
-                            }}
-                            className="rounded"
+                    <PaginationComboBox
+                      apiFunction={targetConcernsFetcher}
+                      transform={(concern: { _id: string; label: string }) => ({
+                        label: concern.label,
+                        value: concern._id,
+                      })}
+                      placeholder="Select target concerns"
+                      value={formData.targetConcerns || []}
+                      onChange={(value: string | string[]) => {
+                        const arrayValue = Array.isArray(value) ? value : [value];
+                        handleInputChange("targetConcerns", arrayValue);
+                      }}
+                      className="w-full"
                             disabled={isViewMode}
+                      queryKey={["target-concerns-dropdown"]}
                           />
-                          <span className="text-sm">{concern.label}</span>
-                        </label>
-                      ))}
-                    </div>
                   </div>
 
                   <div>
                     <Label>Product Features</Label>
-                    <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-3">
-                      {productFeatures.map((feature) => (
-                        <label
-                          key={feature._id}
-                          className="flex items-center space-x-2"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={
-                              formData.productFeatures?.includes(feature._id) ||
-                              false
-                            }
-                            onChange={(e) => {
-                              const current = formData.productFeatures || [];
-                              if (e.target.checked) {
-                                handleInputChange("productFeatures", [
-                                  ...current,
-                                  feature._id,
-                                ]);
-                              } else {
-                                handleInputChange(
-                                  "productFeatures",
-                                  current.filter((id) => id !== feature._id),
-                                );
-                              }
-                            }}
-                            className="rounded"
+                    <PaginationComboBox
+                      apiFunction={productFeaturesFetcher}
+                      transform={(feature: { _id: string; label: string }) => ({
+                        label: feature.label,
+                        value: feature._id,
+                      })}
+                      placeholder="Select product features"
+                      value={formData.productFeatures || []}
+                      onChange={(value: string | string[]) => {
+                        const arrayValue = Array.isArray(value) ? value : [value];
+                        handleInputChange("productFeatures", arrayValue);
+                      }}
+                      className="w-full"
                             disabled={isViewMode}
+                      queryKey={["product-features-dropdown"]}
                           />
-                          <span className="text-sm">{feature.label}</span>
-                        </label>
-                      ))}
-                    </div>
                   </div>
 
                   <div>
                     <Label>Benefits</Label>
-                    <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-3">
-                      {benefitsAttribute.map((benefit) => (
-                        <label
-                          key={benefit._id}
-                          className="flex items-center space-x-2"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={
-                              formData.benefits?.includes(benefit._id) || false
-                            }
-                            onChange={(e) => {
-                              const current = formData.benefits || [];
-                              if (e.target.checked) {
-                                handleInputChange("benefits", [
-                                  ...current,
-                                  benefit._id,
-                                ]);
-                              } else {
-                                handleInputChange(
-                                  "benefits",
-                                  current.filter((id) => id !== benefit._id),
-                                );
-                              }
-                            }}
-                            className="rounded"
+                    <PaginationComboBox
+                      apiFunction={benefitsAttributeFetcher}
+                      transform={(benefit: { _id: string; label: string }) => ({
+                        label: benefit.label,
+                        value: benefit._id,
+                      })}
+                      placeholder="Select benefits"
+                      value={formData.benefits || []}
+                      onChange={(value: string | string[]) => {
+                        const arrayValue = Array.isArray(value) ? value : [value];
+                        handleInputChange("benefits", arrayValue);
+                      }}
+                      className="w-full"
                             disabled={isViewMode}
+                      queryKey={["benefits-attribute-dropdown"]}
                           />
-                          <span className="text-sm">{benefit.label}</span>
-                        </label>
-                      ))}
-                    </div>
                   </div>
 
                   <div>
                     <Label>Certifications</Label>
-                    <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-3">
-                      {certifications.map((cert) => (
-                        <label
-                          key={cert._id}
-                          className="flex items-center space-x-2"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={
-                              formData.certifications?.includes(cert._id) ||
-                              false
-                            }
-                            onChange={(e) => {
-                              const current = formData.certifications || [];
-                              if (e.target.checked) {
-                                handleInputChange("certifications", [
-                                  ...current,
-                                  cert._id,
-                                ]);
-                              } else {
-                                handleInputChange(
-                                  "certifications",
-                                  current.filter((id) => id !== cert._id),
-                                );
-                              }
-                            }}
-                            className="rounded"
+                    <PaginationComboBox
+                      apiFunction={certificationsFetcher}
+                      transform={(cert: { _id: string; label: string }) => ({
+                        label: cert.label,
+                        value: cert._id,
+                      })}
+                      placeholder="Select certifications"
+                      value={formData.certifications || []}
+                      onChange={(value: string | string[]) => {
+                        const arrayValue = Array.isArray(value) ? value : [value];
+                        handleInputChange("certifications", arrayValue);
+                      }}
+                      className="w-full"
                             disabled={isViewMode}
+                      queryKey={["certifications-dropdown"]}
                           />
-                          <span className="text-sm">{cert.label}</span>
-                        </label>
-                      ))}
-                    </div>
                   </div>
 
                   <div>
                     <Label>Skin Concerns</Label>
-                    <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-3">
-                      {skinConcerns.map((concern) => (
-                        <label
-                          key={concern._id}
-                          className="flex items-center space-x-2"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={
-                              formData.skinConcerns?.includes(concern._id) ||
-                              false
-                            }
-                            onChange={(e) => {
-                              const current = formData.skinConcerns || [];
-                              if (e.target.checked) {
-                                handleInputChange("skinConcerns", [
-                                  ...current,
-                                  concern._id,
-                                ]);
-                              } else {
-                                handleInputChange(
-                                  "skinConcerns",
-                                  current.filter((id) => id !== concern._id),
-                                );
-                              }
-                            }}
-                            className="rounded"
+                    <PaginationComboBox
+                      apiFunction={skinConcernsFetcher}
+                      transform={(concern: { _id: string; label: string }) => ({
+                        label: concern.label,
+                        value: concern._id,
+                      })}
+                      placeholder="Select skin concerns"
+                      value={formData.skinConcerns || []}
+                      onChange={(value: string | string[]) => {
+                        const arrayValue = Array.isArray(value) ? value : [value];
+                        handleInputChange("skinConcerns", arrayValue);
+                      }}
+                      className="w-full"
                             disabled={isViewMode}
+                      queryKey={["skin-concerns-dropdown"]}
                           />
-                          <span className="text-sm">{concern.label}</span>
-                        </label>
-                      ))}
-                    </div>
                   </div>
                 </div>
               </div>
@@ -2008,11 +2845,75 @@ const ProductCreate = () => {
                   className={`rounded-lg border-2 border-dashed border-gray-300 p-8 text-center transition-colors ${
                     isViewMode
                       ? "cursor-default"
-                      : "cursor-pointer hover:border-gray-400"
+                      : isThumbnailUploading
+                        ? "cursor-not-allowed opacity-50"
+                        : isDragOver
+                          ? "border-blue-400 bg-blue-50"
+                          : "cursor-pointer hover:border-gray-400"
                   }`}
-                  onClick={isViewMode ? undefined : openThumbnailDialog}
+                  onClick={
+                    isViewMode || isThumbnailUploading
+                      ? undefined
+                      : openThumbnailDialog
+                  }
+                  onKeyDown={
+                    isViewMode || isThumbnailUploading
+                      ? undefined
+                      : (e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            openThumbnailDialog();
+                          }
+                        }
+                  }
+                  onDragOver={
+                    isViewMode || isThumbnailUploading
+                      ? undefined
+                      : handleThumbnailDragOver
+                  }
+                  onDragLeave={
+                    isViewMode || isThumbnailUploading
+                      ? undefined
+                      : handleThumbnailDragLeave
+                  }
+                  onDrop={
+                    isViewMode || isThumbnailUploading
+                      ? undefined
+                      : handleThumbnailDrop
+                  }
+                  tabIndex={isViewMode || isThumbnailUploading ? -1 : 0}
+                  role={
+                    isViewMode || isThumbnailUploading ? undefined : "button"
+                  }
                 >
-                  {thumbnailImage ? (
+                  {isThumbnailUploading ? (
+                    <div className="space-y-4">
+                      <div className="mx-auto h-16 w-16 text-blue-500">
+                        <svg
+                          className="animate-spin"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-blue-600">Uploading thumbnail...</p>
+                      </div>
+                    </div>
+                  ) : thumbnailImage ? (
                     <div className="space-y-4">
                       <div className="mx-auto aspect-square w-32 overflow-hidden rounded-lg bg-gray-100">
                         <img
@@ -2037,6 +2938,34 @@ const ProductCreate = () => {
                         >
                           Remove
                         </Button>
+                      </div>
+                    </div>
+                  ) : existingThumbnailUrl ? (
+                    <div className="space-y-4">
+                      <div className="mx-auto aspect-square w-32 overflow-hidden rounded-lg bg-gray-100">
+                        <img
+                          src={existingThumbnailUrl}
+                          alt="Existing thumbnail"
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-600">
+                          Existing thumbnail
+                        </p>
+                        {!isViewMode && (
+                          <Button
+                            type="button"
+                            variant="outlined"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeThumbnail();
+                            }}
+                          >
+                            Remove
+                          </Button>
+                        )}
                       </div>
                     </div>
                   ) : (
@@ -2096,11 +3025,73 @@ const ProductCreate = () => {
                   className={`rounded-lg border-2 border-dashed border-gray-300 p-8 text-center transition-colors ${
                     isViewMode
                       ? "cursor-default"
-                      : "cursor-pointer hover:border-gray-400"
+                      : isBarcodeUploading
+                        ? "cursor-not-allowed opacity-50"
+                        : isDragOver
+                          ? "border-blue-400 bg-blue-50"
+                          : "cursor-pointer hover:border-gray-400"
                   }`}
-                  onClick={isViewMode ? undefined : openBarcodeDialog}
+                  onClick={
+                    isViewMode || isBarcodeUploading
+                      ? undefined
+                      : openBarcodeDialog
+                  }
+                  onKeyDown={
+                    isViewMode || isBarcodeUploading
+                      ? undefined
+                      : (e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            openBarcodeDialog();
+                          }
+                        }
+                  }
+                  onDragOver={
+                    isViewMode || isBarcodeUploading
+                      ? undefined
+                      : handleBarcodeDragOver
+                  }
+                  onDragLeave={
+                    isViewMode || isBarcodeUploading
+                      ? undefined
+                      : handleBarcodeDragLeave
+                  }
+                  onDrop={
+                    isViewMode || isBarcodeUploading
+                      ? undefined
+                      : handleBarcodeDrop
+                  }
+                  tabIndex={isViewMode || isBarcodeUploading ? -1 : 0}
+                  role={isViewMode || isBarcodeUploading ? undefined : "button"}
                 >
-                  {barcodeImage ? (
+                  {isBarcodeUploading ? (
+                    <div className="space-y-4">
+                      <div className="mx-auto h-16 w-16 text-blue-500">
+                        <svg
+                          className="animate-spin"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-blue-600">Uploading barcode...</p>
+                      </div>
+                    </div>
+                  ) : barcodeImage ? (
                     <div className="space-y-4">
                       <div className="mx-auto aspect-square w-32 overflow-hidden rounded-lg bg-gray-100">
                         <img
@@ -2125,6 +3116,34 @@ const ProductCreate = () => {
                         >
                           Remove
                         </Button>
+                      </div>
+                    </div>
+                  ) : existingBarcodeUrl ? (
+                    <div className="space-y-4">
+                      <div className="mx-auto aspect-square w-32 overflow-hidden rounded-lg bg-gray-100">
+                        <img
+                          src={existingBarcodeUrl}
+                          alt="Existing barcode"
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-600">
+                          Existing barcode
+                        </p>
+                        {!isViewMode && (
+                          <Button
+                            type="button"
+                            variant="outlined"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeBarcode();
+                            }}
+                          >
+                            Remove
+                          </Button>
+                        )}
                       </div>
                     </div>
                   ) : (
@@ -2177,58 +3196,97 @@ const ProductCreate = () => {
                 {/* Upload Area */}
                 <div
                   className={`rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
-                    isDragOver
-                      ? "border-blue-400 bg-blue-50"
-                      : isViewMode
-                        ? "cursor-default border-gray-300"
-                        : "cursor-pointer border-gray-300 hover:border-gray-400"
+                    isImagesUploading
+                      ? "cursor-not-allowed opacity-50"
+                      : isDragOver
+                        ? "border-blue-400 bg-blue-50"
+                        : isViewMode
+                          ? "cursor-default border-gray-300"
+                          : "cursor-pointer border-gray-300 hover:border-gray-400"
                   }`}
-                  onDragOver={isViewMode ? undefined : handleDragOver}
-                  onDragLeave={isViewMode ? undefined : handleDragLeave}
-                  onDrop={isViewMode ? undefined : handleDrop}
+                  onDragOver={
+                    isViewMode || isImagesUploading ? undefined : handleDragOver
+                  }
+                  onDragLeave={
+                    isViewMode || isImagesUploading
+                      ? undefined
+                      : handleDragLeave
+                  }
+                  onDrop={
+                    isViewMode || isImagesUploading ? undefined : handleDrop
+                  }
                 >
-                  <div className="flex flex-col items-center space-y-4">
-                    {/* Upload Icon */}
-                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-                      <svg
-                        className="h-8 w-8 text-gray-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                        />
-                      </svg>
+                  {isImagesUploading ? (
+                    <div className="flex flex-col items-center space-y-4">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-50">
+                        <svg
+                          className="h-8 w-8 animate-spin text-blue-500"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-blue-600">Uploading images...</p>
+                      </div>
                     </div>
+                  ) : (
+                    <div className="flex flex-col items-center space-y-4">
+                      {/* Upload Icon */}
+                      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+                        <svg
+                          className="h-8 w-8 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
+                      </div>
 
-                    {/* Upload Text */}
-                    <div className="space-y-2">
-                      <p className="text-gray-600">
-                        {isViewMode
-                          ? "No images uploaded"
-                          : "Drop image here or "}
-                        {!isViewMode && (
-                          <button
-                            type="button"
-                            onClick={openFileDialog}
-                            className="text-blue-600 underline hover:text-blue-700"
-                          >
-                            Click to browse
-                          </button>
-                        )}
-                      </p>
-                      {!isViewMode && (
-                        <p className="text-sm text-gray-500">
-                          Max 10 image(s) • up to 10MB each • Allowed:
-                          image/jpeg, image/png
+                      {/* Upload Text */}
+                      <div className="space-y-2">
+                        <p className="text-gray-600">
+                          {isViewMode
+                            ? "No images uploaded"
+                            : "Drop image here or "}
+                          {!isViewMode && (
+                            <button
+                              type="button"
+                              onClick={openFileDialog}
+                              className="text-blue-600 underline hover:text-blue-700"
+                            >
+                              Click to browse
+                            </button>
+                          )}
                         </p>
-                      )}
+                        {!isViewMode && (
+                          <p className="text-sm text-gray-500">
+                            Max 10 image(s) • up to 10MB each • Allowed:
+                            image/jpeg, image/png
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Hidden File Input */}
                   <input
@@ -2242,14 +3300,56 @@ const ProductCreate = () => {
                 </div>
 
                 {/* Uploaded Images Preview */}
-                {uploadedImages.length > 0 && (
+                {(uploadedImages.length > 0 ||
+                  existingImagesUrls.length > 0) && (
                   <div className="space-y-4">
                     <h4 className="text-sm font-medium text-gray-700">
-                      Uploaded Images ({uploadedImages.length}/10)
+                      Images (
+                      {uploadedImages.length + existingImagesUrls.length}/10)
                     </h4>
                     <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
+                      {/* Existing Images */}
+                      {existingImagesUrls.map((url, index) => (
+                        <div
+                          key={`existing-${index}`}
+                          className="group relative"
+                        >
+                          <div className="aspect-square overflow-hidden rounded-lg bg-gray-100">
+                            <img
+                              src={url}
+                              alt={`Existing ${index + 1}`}
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                          {!isViewMode && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newUrls = existingImagesUrls.filter(
+                                  (_, i) => i !== index,
+                                );
+                                setExistingImagesUrls(newUrls);
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  images:
+                                    prev.images?.filter(
+                                      (_, i) => i !== index,
+                                    ) || [],
+                                }));
+                              }}
+                              className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs text-white transition-colors hover:bg-red-600"
+                            >
+                              ×
+                            </button>
+                          )}
+                          <div className="mt-1 truncate text-xs text-gray-500">
+                            Existing image {index + 1}
+                          </div>
+                        </div>
+                      ))}
+                      {/* New Uploaded Images */}
                       {uploadedImages.map((file, index) => (
-                        <div key={index} className="group relative">
+                        <div key={`new-${index}`} className="group relative">
                           <div className="aspect-square overflow-hidden rounded-lg bg-gray-100">
                             <img
                               src={URL.createObjectURL(file)}
