@@ -1,5 +1,5 @@
 export const INFO_ROUTES = {
   INTRO: {
-    BASE: "/intro",
+    BASE: "/info",
   },
 } as const;
