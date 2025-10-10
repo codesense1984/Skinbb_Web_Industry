@@ -1,6 +1,5 @@
 import { MODE } from "@/core/types";
 import { formatDateForApi } from "@/core/utils";
-import { apiUploadMedia } from "@/modules/panel/services/http/media.service";
 import type {
   CompanyOnboading,
   CompanyOnboardingSubmitRequest,
@@ -159,38 +158,38 @@ export function getCompanySchema(
  * @throws Error if formData is not provided
  */
 // Function to upload files and get URLs
-export async function uploadFormFiles(formData: FullCompanyFormType): Promise<{
-  logoUrl?: string;
-  brandLogoUrl?: string;
-}> {
-  const uploadResults: { logoUrl?: string; brandLogoUrl?: string } = {};
+// export async function uploadFormFiles(formData: FullCompanyFormType): Promise<{
+//   logoUrl?: string;
+//   brandLogoUrl?: string;
+// }> {
+//   const uploadResults: { logoUrl?: string; brandLogoUrl?: string } = {};
 
-  try {
-    // Upload company logo
-    if (formData.logo_files && formData.logo_files.length > 0) {
-      const logoFile = formData.logo_files[0];
-      const logoResponse = await apiUploadMedia(logoFile);
-      uploadResults.logoUrl = logoResponse.data.url;
-    }
+//   try {
+//     // Upload company logo
+//     if (formData.logo_files && formData.logo_files.length > 0) {
+//       const logoFile = formData.logo_files[0];
+//       const logoResponse = await apiUploadMedia(logoFile);
+//       uploadResults.logoUrl = logoResponse.data.url;
+//     }
 
-    // Upload brand logo
-    if (formData.brand_logo_files && formData.brand_logo_files.length > 0) {
-      const brandLogoFile = formData.brand_logo_files[0];
-      const brandLogoResponse = await apiUploadMedia(brandLogoFile);
-      uploadResults.brandLogoUrl = brandLogoResponse.data.url;
-    }
-  } catch (error) {
-    console.error("Error uploading files:", error);
-    throw new Error("Failed to upload files. Please try again.");
-  }
+//     // Upload brand logo
+//     if (formData.brand_logo_files && formData.brand_logo_files.length > 0) {
+//       const brandLogoFile = formData.brand_logo_files[0];
+//       const brandLogoResponse = await apiUploadMedia(brandLogoFile);
+//       uploadResults.brandLogoUrl = brandLogoResponse.data.url;
+//     }
+//   } catch (error) {
+//     console.error("Error uploading files:", error);
+//     throw new Error("Failed to upload files. Please try again.");
+//   }
 
-  return uploadResults;
-}
+//   return uploadResults;
+// }
 
 export function transformFormDataToApiRequest(
   formData: FullCompanyFormType,
-  roleId: string = DEFAULT_ROLE_ID,
-  uploadedFiles?: { logoUrl?: string; brandLogoUrl?: string },
+  // roleId: string = DEFAULT_ROLE_ID,
+  // uploadedFiles?: { logoUrl?: string; brandLogoUrl?: string },
 ): CompanyOnboardingSubmitRequest {
   if (!formData) {
     throw new Error("Form data is required");
@@ -232,7 +231,7 @@ export function transformFormDataToApiRequest(
     ownerEmail: safeString(formData.email),
     phoneNumber: safeString(formData.phoneNumber),
     designation: safeString(formData.designation),
-    roleId,
+    // roleId,
     companyName: safeString(formData.companyName),
     companyDescription: safeString(formData.description),
     businessType: safeString(formData.businessType),
@@ -302,18 +301,28 @@ export function transformFormDataToApiRequest(
     apiData.password = password;
   }
 
-  // Use uploaded file URLs if available, otherwise use form data
-  if (uploadedFiles?.logoUrl) {
-    apiData.logo = uploadedFiles.logoUrl;
-  } else if (formData?.logo) {
-    apiData.logo = formData.logo;
+  if (formData?.logo_files) {
+    // For now, we'll use the first file's name as a placeholder
+    // In a real implementation, you'd upload the file and get a URL
+    apiData.logo = formData?.logo_files;
   }
 
-  if (uploadedFiles?.brandLogoUrl) {
-    apiData.brandLogo = uploadedFiles.brandLogoUrl;
-  } else if (formData.brand_logo) {
-    apiData.brandLogo = formData.brand_logo;
+  if (formData.brand_logo_files) {
+    apiData.brandLogo = formData.brand_logo_files || "";
   }
+
+  // Use uploaded file URLs if available, otherwise use form data
+  // if (uploadedFiles?.logoUrl) {
+  //   apiData.logo = uploadedFiles.logoUrl;
+  // } else if (formData?.logo) {
+  //   apiData.logo = formData.logo;
+  // }
+
+  // if (uploadedFiles?.brandLogoUrl) {
+  //   apiData.brandLogo = uploadedFiles.brandLogoUrl;
+  // } else if (formData.brand_logo) {
+  //   apiData.brandLogo = formData.brand_logo;
+  // }
 
   // Document files - API expects single File objects
   if (gstDoc?.url_files) {

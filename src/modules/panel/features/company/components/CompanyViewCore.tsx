@@ -230,29 +230,32 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                       },
                     ]
                   : []),
-                // ...(onViewProducts
-                //   ? [
-                //       {
-                //         type: "item" as const,
-                //         onClick: () => {
-                //           onViewProducts(companyId, locationId || "");
-                //         },
-                //         children: (
-                //           <>
-                //             <DocumentTextIcon />
-                //             View Products
-                //           </>
-                //         ),
-                //       },
-                //     ]
-                //   : []),
+                ...(![
+                  STATUS_MAP.company.pending.value,
+                  STATUS_MAP.company.rejected.value,
+                ].includes(address.status || "") && onViewProducts
+                  ? [
+                      {
+                        type: "item" as const,
+                        onClick: () => {
+                          onViewProducts(companyId, locationId || "");
+                        },
+                        children: (
+                          <>
+                            <DocumentTextIcon />
+                            View Products
+                          </>
+                        ),
+                      },
+                    ]
+                  : []),
               ]}
             >
               <Button variant="ghost" size="icon">
                 <EllipsisVerticalIcon />
               </Button>
             </DropdownMenu>
-            {onViewLocation && address.status === "pending" && (
+            {/* {onViewLocation && address.status === "pending" && (
               <Button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -303,7 +306,7 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
             >
               <DocumentTextIcon className="mr-1 h-3 w-3" />
               <span className="hidden sm:inline">View Products</span>
-            </Button>
+            </Button> */}
           </div>
         </div>
       </AccordionTrigger>
@@ -556,21 +559,27 @@ export const CompanyViewCore: React.FC<CompanyViewCoreProps> = ({
     title: "Company Details",
     description: "View comprehensive company information and addresses",
     actions: showViewUsersAction && (
-      <div className="ml-6 flex-shrink-0 flex gap-3">
+      <div className="ml-6 flex flex-shrink-0 gap-3">
         <Button
           onClick={() => {
             // Get the primary location ID from company data
-            const primaryLocation = company?.addresses?.find(addr => addr.isPrimary);
+            const primaryLocation = company?.addresses?.find(
+              (addr) => addr.isPrimary,
+            );
             if (primaryLocation) {
               const locationId = primaryLocation.addressId;
               // Navigate to company-location-brand route
-              navigate(PANEL_ROUTES.COMPANY_LOCATION.BRANDS(companyId, locationId));
+              navigate(
+                PANEL_ROUTES.COMPANY_LOCATION.BRANDS(companyId, locationId),
+              );
             } else {
               // Fallback to general brand list with company and location context
               const firstLocation = company?.addresses?.[0];
               const locationId = firstLocation?.addressId;
               if (locationId) {
-                navigate(`${PANEL_ROUTES.BRAND.LIST}?companyId=${companyId}&locationId=${locationId}`);
+                navigate(
+                  `${PANEL_ROUTES.BRAND.LIST}?companyId=${companyId}&locationId=${locationId}`,
+                );
               } else {
                 navigate(`${PANEL_ROUTES.BRAND.LIST}?companyId=${companyId}`);
               }
@@ -592,7 +601,11 @@ export const CompanyViewCore: React.FC<CompanyViewCoreProps> = ({
               strokeLinejoin="round"
               d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z"
             />
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6Z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M6 6h.008v.008H6V6Z"
+            />
           </svg>
           View Brands
         </Button>

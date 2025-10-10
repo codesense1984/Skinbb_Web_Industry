@@ -74,7 +74,7 @@ export interface CompanyOnboardingSubmitRequest
   headquartersAddress: string;
   subsidiaryOfGlobalBusiness: boolean;
   password?: string;
-  roleId: string;
+  // roleId: string;
   companyName: string;
   companyDescription: string;
   businessType: string;

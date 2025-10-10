@@ -24,7 +24,6 @@ import {
   getCompanySchema,
   transformApiResponseToFormData,
   transformFormDataToApiRequest,
-  uploadFormFiles,
 } from "../../../../utils/onboarding.utils";
 
 interface UseOnboardingFormProps {
@@ -97,12 +96,12 @@ export const useOnboardingForm = ({
   const onboardingMutation = useMutation({
     mutationFn: async (data: FullCompanyFormType) => {
       // First upload files and get URLs
-      const uploadedFiles = await uploadFormFiles(data);
-      
+      // const uploadedFiles = await uploadFormFiles(data);
+
       // Then transform form data with uploaded file URLs
-      const apiData = transformFormDataToApiRequest(data, undefined, uploadedFiles);
+      const apiData = transformFormDataToApiRequest(data);
       console.log("🚀 ~ OnBoardForm ~ apiData:", apiData);
-      
+
       if (mode === MODE.EDIT) {
         const locationId = initialData?.addresses[0]?.addressId;
         if (!apiData?.companyId || !locationId) {
