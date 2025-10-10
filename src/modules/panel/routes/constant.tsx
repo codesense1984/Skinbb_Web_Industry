@@ -28,6 +28,7 @@ const PRODUCTS = "/products";
 const MASTER_BASE = "/master";
 const PRODUCT_CATEGORY_BASE = "/product-category";
 const PRODUCT_TAG_BASE = "/product-tag";
+const PRODUCT_ATTRIBUTE_BASE = "/product-attributes";
 const DISCOUNT_COUPON_BASE = "/discount-coupons";
 
 export const PANEL_ROUTES = {
@@ -287,6 +288,7 @@ export const PANEL_ROUTES = {
     BASE: LISTING_BASE, // /listing
     LIST: LISTING_BASE, // /listing
     CREATE: ROUTE.build(LISTING_BASE, ROUTE.seg.create), // /listing/create
+    CATALOG: ROUTE.build(LISTING_BASE, "catalog"), // /listing/catalog
     CREATE_WITH_PARAMS: (companyId: string, brandId: string) =>
       ROUTE.build(LISTING_BASE, ROUTE.seg.create) +
       `?companyId=${companyId}&brandId=${brandId}`, // /listing/create?companyId=:companyId&brandId=:brandId
@@ -336,6 +338,20 @@ export const PANEL_ROUTES = {
       ROUTE.build(MASTER_BASE, PRODUCT_TAG_BASE, id, ROUTE.seg.edit), // /master/product-tag/edit/:id
     PRODUCT_TAG_VIEW: (id: string = ROUTE.seg.id) =>
       ROUTE.build(MASTER_BASE, PRODUCT_TAG_BASE, id, ROUTE.seg.view), // /master/product-tag/view/:id
+    PRODUCT_ATTRIBUTE: ROUTE.build(MASTER_BASE, PRODUCT_ATTRIBUTE_BASE), // /master/product-attributes
+    PRODUCT_ATTRIBUTE_CREATE: ROUTE.build(
+      MASTER_BASE,
+      PRODUCT_ATTRIBUTE_BASE,
+      ROUTE.seg.create,
+    ), // /master/product-attributes/create
+    PRODUCT_ATTRIBUTE_EDIT: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(MASTER_BASE, PRODUCT_ATTRIBUTE_BASE, id, ROUTE.seg.edit), // /master/product-attributes/edit/:id
+    PRODUCT_ATTRIBUTE_VIEW: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(MASTER_BASE, PRODUCT_ATTRIBUTE_BASE, id, ROUTE.seg.view), // /master/product-attributes/view/:id
+    PRODUCT_ATTRIBUTE_VALUES: (id: string = ROUTE.seg.id, name: string = ":name") =>
+      ROUTE.build(MASTER_BASE, PRODUCT_ATTRIBUTE_BASE, id, "values", name), // /master/product-attributes/:id/values/:name
+    PRODUCT_ATTRIBUTE_VALUE_CREATE: (id: string = ROUTE.seg.id, name: string = ":name") =>
+      ROUTE.build(MASTER_BASE, PRODUCT_ATTRIBUTE_BASE, id, "values", name, ROUTE.seg.create), // /master/product-attributes/:id/values/:name/create
     DISCOUNT_COUPON: ROUTE.build(MASTER_BASE, DISCOUNT_COUPON_BASE), // /master/discount-coupons
     DISCOUNT_COUPON_CREATE: ROUTE.build(
       MASTER_BASE,

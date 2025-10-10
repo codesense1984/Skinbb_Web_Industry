@@ -1,11 +1,7 @@
+import React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Badge } from "@/core/components/ui/badge";
-import { StatusBadge } from "@/core/components/ui/badge";
-import {
-  AvatarRoot,
-  AvatarImage,
-  AvatarFallback,
-} from "@/core/components/ui/avatar";
+import { Badge, StatusBadge } from "@/core/components/ui/badge";
+import { AvatarRoot, AvatarImage, AvatarFallback } from "@/core/components/ui/avatar";
 import { Button } from "@/core/components/ui/button";
 import { DropdownMenu } from "@/core/components/ui/dropdown-menu";
 import { formatCurrency } from "@/core/utils";
@@ -14,6 +10,7 @@ import {
   EyeIcon,
   PencilIcon,
   EllipsisVerticalIcon,
+  CheckCircleIcon,
 } from "@heroicons/react/24/solid";
 
 // Product type - this should match the actual product type from your API
@@ -37,7 +34,7 @@ interface Product {
     min: number;
     max: number;
   };
-  variants?: Array<any>;
+  variants?: Array<Record<string, unknown>>;
   createdAt: string;
   updatedAt: string;
 }
@@ -45,7 +42,7 @@ interface Product {
 export const columns = (
   companyId: string,
   locationId: string,
-  brandId: string,
+  _brandId: string,
 ): ColumnDef<Product>[] => [
   {
     accessorKey: "productName",
@@ -92,9 +89,39 @@ export const columns = (
   {
     accessorKey: "status",
     header: "Status",
-    cell: ({ getValue }) => {
-      const status = getValue() as string;
-      return <StatusBadge module="product" status={status} variant="badge" />;
+    size: 200,
+    cell: ({ row }) => {
+      const product = row.original;
+      const status = product.status;
+      
+      // Get approval reason from statusFeedback or statusReason field for rejected products
+      const approvalReason = (product as unknown as Record<string, unknown>).statusFeedback || 
+                            (product as unknown as Record<string, unknown>).statusReason || 
+                            (product as unknown as Record<string, unknown>).status_feedback;
+      
+      return (
+        <div className="flex flex-col gap-1">
+          <StatusBadge 
+            module="product" 
+            status={status} 
+            variant="badge" 
+            showDot={true}
+          />
+          {status === "rejected" && (
+            <div className="text-xs text-red-600 max-w-40 truncate font-medium">
+              {approvalReason ? (
+                <span title={String(approvalReason)}>
+                  Reason: {String(approvalReason)}
+                </span>
+              ) : (
+                <span title="No rejection reason provided">
+                  Reason: No reason provided
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      );
     },
     filterFn: (row, id, value) => {
       return value.includes(row.getValue(id));
@@ -121,7 +148,7 @@ export const columns = (
     accessorKey: "variants",
     header: "Variants",
     cell: ({ getValue }) => {
-      const variants = (getValue() as Array<any>) || [];
+      const variants = (getValue() as Array<Record<string, unknown>>) || [];
       return (
         <div className="text-muted-foreground text-sm">
           {variants.length} variant{variants.length !== 1 ? "s" : ""}
@@ -146,7 +173,7 @@ export const columns = (
     accessorKey: "actions",
     enableSorting: false,
     enableHiding: false,
-    size: 80,
+    size: 100,
     cell: ({ row }) => {
       const items = [
         {
@@ -176,6 +203,24 @@ export const columns = (
           children: (
             <>
               <PencilIcon className="size-4" /> Edit
+            </>
+          ),
+        },
+        {
+          type: "link" as const,
+          to: "#",
+          onClick: (e: React.MouseEvent) => {
+            e.preventDefault();
+            // This will be handled by the parent component
+            const event = new CustomEvent("product-approval-request", {
+              detail: { product: row.original }
+            });
+            window.dispatchEvent(event);
+          },
+          title: "Manage approval status",
+          children: (
+            <>
+              <CheckCircleIcon className="size-4" /> Manage Approval
             </>
           ),
         },

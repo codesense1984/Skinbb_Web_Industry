@@ -6,41 +6,42 @@ import MainLayout from "@/core/layouts/main-layout";
 import { cn } from "@/core/utils";
 import { Link, NavLink } from "react-router";
 
-const NotFound = () => {
-  const { isLoggedIn } = useAuth();
-  const NotFoundComponent = ({ className }: { className?: string }) => (
-    <PageContent
-      className={cn(
-        "text-muted-foreground items-center justify-center gap-2",
-        className,
-      )}
-    >
-      <div className="grid-col-span-1 mx-auto grid max-w-3xl md:grid-cols-5">
-        <div className="order-2 col-span-2 mx-auto flex flex-col justify-center text-center md:order-1 md:text-left">
-          <NavLink
-            to="/"
-            className="data-[label=text]:text-primary mb-6 no-underline"
-          >
-            <HorizontalLogo className="w-40" />
-          </NavLink>
+export const NotFoundComponent = ({ className }: { className?: string }) => (
+  <PageContent
+    className={cn(
+      "text-muted-foreground items-center justify-center gap-2",
+      className,
+    )}
+  >
+    <div className="grid-col-span-1 mx-auto grid max-w-3xl md:grid-cols-5">
+      <div className="order-2 col-span-2 mx-auto flex flex-col justify-center text-center md:order-1 md:text-left">
+        <NavLink
+          to="/"
+          className="data-[label=text]:text-primary mb-6 no-underline"
+        >
+          <HorizontalLogo className="w-40" />
+        </NavLink>
 
-          <h2 className="text-foreground text-4xl">Page Not Found</h2>
-          <p className="mt-2 text-lg">
-            Sorry, we couldn&apos;t find the page you&apos;re looking for.
-          </p>
-          <Button
-            className="mx-auto mt-6 md:ml-0"
-            variant="contained"
-            color={"primary"}
-            asChild
-          >
-            <Link to={"/"}>Back to Home</Link>
-          </Button>
-        </div>
-        <div className="order-1 col-span-3 md:order-2">{NotFoundSVG}</div>
+        <h2 className="text-foreground text-4xl">Page Not Found</h2>
+        <p className="mt-2 text-lg">
+          Sorry, we couldn&apos;t find the page you&apos;re looking for.
+        </p>
+        <Button
+          className="mx-auto mt-6 md:ml-0"
+          variant="contained"
+          color={"primary"}
+          asChild
+        >
+          <Link to={"/"}>Back to Home</Link>
+        </Button>
       </div>
-    </PageContent>
-  );
+      <div className="order-1 col-span-3 md:order-2">{NotFoundSVG}</div>
+    </div>
+  </PageContent>
+);
+
+const PageNotFound = () => {
+  const { isLoggedIn } = useAuth();
 
   if (isLoggedIn) {
     return <MainLayout>{<NotFoundComponent />}</MainLayout>;
@@ -49,9 +50,9 @@ const NotFound = () => {
   return <NotFoundComponent className="min-h-dvh" />;
 };
 
-export default NotFound;
+export default PageNotFound;
 
-const NotFoundSVG = (
+export const NotFoundSVG = (
   <svg
     className="h-full w-full"
     viewBox="0 0 727 725"

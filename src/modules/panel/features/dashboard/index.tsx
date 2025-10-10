@@ -92,6 +92,30 @@ const cardData: CardConfig[] = [
     ),
   },
   {
+    title: "Companies",
+    description: "Manage company profiles, locations, and brand associations.",
+    buttons: [{ name: "View All", href: "/companies" }],
+    requiredPermissions: {
+      page: PAGE.COMPANIES,
+      action: [PERMISSION.VIEW, PERMISSION.CREATE],
+    },
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={0.7}
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3a3 3 0 0 1 3-3h3a3 3 0 0 1 3 3v3M6 3h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"
+        />
+      </svg>
+    ),
+  },
+  {
     title: "Survey",
     description:
       "Explore trends, ingredient interest, and competitive landscape analysis",
@@ -117,7 +141,7 @@ const cardData: CardConfig[] = [
     title: "Promotion",
     description:
       "Create targeted campaigns and track promotion performance in real-time",
-    buttons: [{ name: "Explore", href: "/brands" }],
+    buttons: [{ name: "Explore", href: "/" }],
     requiredRoles: [ROLE.ADMIN],
     icon: (
       <svg
@@ -143,7 +167,7 @@ const cardData: CardConfig[] = [
       page: PAGE.PRODUCTS,
       action: [PERMISSION.VIEW, PERMISSION.CREATE],
     },
-    buttons: [{ name: "Explore", href: "/brands" }],
+    buttons: [{ name: "Explore", href: "/listing" }],
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -164,7 +188,7 @@ const cardData: CardConfig[] = [
     title: "Sales & Revenue",
     description:
       "Overview of earnings generated from product or service sales.",
-    buttons: [{ name: "Explore", href: "/brands" }],
+    buttons: [{ name: "Explore", href: "/analytic/ecommerce" }],
     requiredRoles: [ROLE.ADMIN],
     icon: (
       <svg

@@ -1,5 +1,3 @@
-import { TableAction } from "@/core/components/data-table/components/table-action";
-import { Badge } from "@/core/components/ui/badge";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import type { ColumnDef } from "@tanstack/react-table";
 
@@ -22,18 +20,11 @@ export interface ProductCategory {
 export const columns = (): ColumnDef<ProductCategory>[] => [
   {
     accessorKey: "name",
-    header: "Category Name",
+    header: "Name",
     cell: ({ row }) => {
       const category = row.original;
       return (
-        <div className="flex items-center space-x-2">
-          <div className="font-medium">{category.name}</div>
-          {category.haveChild && (
-            <Badge variant="outline" className="text-xs">
-              Has Children
-            </Badge>
-          )}
-        </div>
+        <div className="font-medium">{category.name}</div>
       );
     },
   },
@@ -47,42 +38,29 @@ export const columns = (): ColumnDef<ProductCategory>[] => [
     ),
   },
   {
-    accessorKey: "haveChild",
-    header: "Has Children",
-    cell: ({ row }) => {
-      const haveChild = row.getValue("haveChild") as boolean;
-      return (
-        <Badge variant={haveChild ? "default" : "secondary"}>
-          {haveChild ? "Yes" : "No"}
-        </Badge>
-      );
-    },
-  },
-  {
     accessorKey: "totalProductCount",
-    header: "Products",
+    header: "Product Count",
     cell: ({ row }) => {
       const count = row.getValue("totalProductCount") as number;
       return (
-        <Badge variant="outline">
-          {count} {count === 1 ? "product" : "products"}
-        </Badge>
+        <button className="text-blue-600 hover:text-blue-800 text-sm font-medium underline">
+          {count}
+        </button>
       );
     },
   },
   {
-    accessorKey: "createdBy",
-    header: "Created By",
+    accessorKey: "createdAt",
+    header: "Created At",
     cell: ({ row }) => {
-      const createdBy = row.getValue(
-        "createdBy",
-      ) as ProductCategory["createdBy"];
+      const date = new Date(row.getValue("createdAt"));
       return (
         <div className="text-sm">
-          <div className="font-medium">
-            {createdBy.firstName} {createdBy.lastName}
-          </div>
-          <div className="text-gray-500">{createdBy.email}</div>
+          {date.toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          })}
         </div>
       );
     },
@@ -93,18 +71,37 @@ export const columns = (): ColumnDef<ProductCategory>[] => [
     cell: ({ row }) => {
       const isActive = row.getValue("isActive") as boolean;
       return (
-        <Badge variant={isActive ? "default" : "destructive"}>
-          {isActive ? "Active" : "Inactive"}
-        </Badge>
+        <div className="flex items-center">
+          <div className={`relative inline-flex h-6 w-11 items-center rounded-full ${isActive ? 'bg-blue-600' : 'bg-gray-200'}`}>
+            <div className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${isActive ? 'translate-x-6' : 'translate-x-1'}`} />
+          </div>
+        </div>
       );
     },
   },
   {
-    accessorKey: "createdAt",
-    header: "Created",
-    cell: ({ row }) => {
-      const date = new Date(row.getValue("createdAt"));
-      return date.toLocaleDateString();
+    id: "showChild",
+    header: "Sub Category",
+    cell: ({ row, table }) => {
+      const category = row.original;
+      const meta = table.options.meta as any;
+
+      if (!category.haveChild) {
+        return <span className="text-gray-400">-</span>;
+      }
+
+      return (
+        <button
+          onClick={() => {
+            if (meta?.onShowChild) {
+              meta.onShowChild(category._id, category.name);
+            }
+          }}
+          className="text-blue-600 hover:text-blue-800 text-sm font-medium underline"
+        >
+          Show Child
+        </button>
+      );
     },
   },
   {
@@ -115,23 +112,9 @@ export const columns = (): ColumnDef<ProductCategory>[] => [
       const meta = table.options.meta as any;
 
       return (
-        <TableAction
-          view={{
-            onClick: () => {
-              if (meta?.onView) {
-                meta.onView(category._id);
-              } else {
-                // Fallback to navigation
-                window.open(
-                  PANEL_ROUTES.MASTER.PRODUCT_CATEGORY_VIEW(category._id),
-                  "_blank",
-                );
-              }
-            },
-            title: "View category",
-          }}
-          edit={{
-            onClick: () => {
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => {
               if (meta?.onEdit) {
                 meta.onEdit(category._id);
               } else {
@@ -141,17 +124,31 @@ export const columns = (): ColumnDef<ProductCategory>[] => [
                   "_blank",
                 );
               }
-            },
-            title: "Edit category",
-          }}
-          delete={{
-            onClick: () => {
-              // TODO: Implement delete functionality
-              console.log("Delete category:", category._id);
-            },
-            title: "Delete category",
-          }}
-        />
+            }}
+            className="text-gray-600 hover:text-blue-600 p-1"
+            title="Edit category"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          </button>
+          <button
+            onClick={() => {
+              if (meta?.onDelete) {
+                meta.onDelete(category._id);
+              } else {
+                // TODO: Implement delete functionality
+                console.log("Delete category:", category._id);
+              }
+            }}
+            className="text-gray-600 hover:text-red-600 p-1"
+            title="Delete category"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        </div>
       );
     },
   },

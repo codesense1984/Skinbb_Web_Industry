@@ -8,10 +8,18 @@ import {
 } from "@/modules/auth/types/permission.type.";
 import { ANALYTICS_ROUTES } from "@/modules/analytics/routes/constants";
 import { SURVEY_ROUTES } from "@/modules/survey/routes/constant";
-import { BoltIcon, BuildingStorefrontIcon } from "@heroicons/react/24/outline";
+import {
+  BoltIcon,
+  BuildingStorefrontIcon,
+  ChartBarIcon,
+  HomeIcon,
+  ShoppingBagIcon,
+  UserIcon,
+} from "@heroicons/react/24/outline";
 import React from "react";
 import type { MatchMode } from "@/modules/auth/components/guard";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
+import { SELLER_ROUTES } from "@/modules/seller";
 
 export interface SidebarItem {
   name: string;
@@ -24,7 +32,7 @@ export interface SidebarItem {
   };
 }
 
-export const rawItems: Readonly<Record<string, SidebarItem>> = {
+export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
   sidebar: {
     name: "sidebar",
     children: [
@@ -130,7 +138,12 @@ export const rawItems: Readonly<Record<string, SidebarItem>> = {
         />
       </svg>
     ),
-    children: ["productCategories", "productTags", "discountCoupons"],
+    children: [
+      "productCategories",
+      "productTags",
+      "productAttributes",
+      "discountCoupons",
+    ],
   },
   productCategories: {
     name: "Product Categories",
@@ -140,6 +153,11 @@ export const rawItems: Readonly<Record<string, SidebarItem>> = {
   productTags: {
     name: "Product Tags",
     href: PANEL_ROUTES.MASTER.PRODUCT_TAG,
+    requiredRoles: [ROLE.ADMIN],
+  },
+  productAttributes: {
+    name: "Product Attributes",
+    href: PANEL_ROUTES.MASTER.PRODUCT_ATTRIBUTE,
     requiredRoles: [ROLE.ADMIN],
   },
   discountCoupons: {
@@ -327,5 +345,56 @@ export const rawItems: Readonly<Record<string, SidebarItem>> = {
     href: PANEL_ROUTES.INGREDIENT_DETAILS,
     requiredRoles: [ROLE.ADMIN],
     icon: <BuildingStorefrontIcon />,
+  },
+};
+
+export const sellerSidebarItems: Readonly<Record<string, SidebarItem>> = {
+  sidebar: {
+    name: "sidebar",
+    children: ["dashboard", "products", "orders", "brands", "analytics", "users"],
+  },
+  dashboard: {
+    name: "dashboard",
+    href: SELLER_ROUTES.DASHBOARD.HOME,
+    icon: <HomeIcon />,
+  },
+  products: {
+    name: "products",
+    href: SELLER_ROUTES.PRODUCTS.LIST,
+    icon: <ShoppingBagIcon />,
+  },
+  orders: {
+    name: "orders",
+    href: SELLER_ROUTES.ORDERS.LIST,
+    icon: <ShoppingBagIcon />,
+  },
+  brands: {
+    name: "brands",
+    href: SELLER_ROUTES.SELLER_BRANDS.LIST,
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={1.5}
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="m21 7.5-2.25-1.313M21 7.5v2.25m0-2.25-2.25 1.313M3 7.5l2.25-1.313M3 7.5l2.25 1.313M3 7.5v2.25m9 3 2.25-1.313M12 12.75l-2.25-1.313M12 12.75V15m0 6.75 2.25-1.313M12 21.75V19.5m0 2.25-2.25-1.313m0-16.875L12 2.25l2.25 1.313M21 14.25v2.25l-2.25 1.313m-13.5 0L3 16.5v-2.25"
+        />
+      </svg>
+    ),
+  },
+  analytics: {
+    name: "ecommerce analytics",
+    href: SELLER_ROUTES.ANALYTICS.ECOMMERCE.BASE,
+    icon: <ChartBarIcon />,
+  },
+  users: {
+    name: "users",
+    href: SELLER_ROUTES.USERS.LIST(),
+    icon: <UserIcon />,
   },
 };

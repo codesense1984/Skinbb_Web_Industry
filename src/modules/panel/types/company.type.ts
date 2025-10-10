@@ -74,7 +74,7 @@ export interface CompanyOnboardingSubmitRequest
   headquartersAddress: string;
   subsidiaryOfGlobalBusiness: boolean;
   password?: string;
-  roleId: string;
+  // roleId: string;
   companyName: string;
   companyDescription: string;
   businessType: string;
@@ -159,6 +159,7 @@ export interface CompanyBrandInfo {
 }
 
 export interface CompanyAddressInfo {
+  _id?: string;
   addressId: string;
   addressType: "registered" | "office";
   landmark?: string;

@@ -13,9 +13,50 @@ import {
 } from "@/core/components/ui/popover";
 import type { Option } from "@/core/types";
 import { cn } from "@/core/utils";
-import { CheckIcon, ChevronsUpDownIcon, XIcon } from "lucide-react";
+import { ChevronsUpDownIcon, XIcon } from "lucide-react";
 import * as React from "react";
 import { Badge } from "./badge";
+import { Checkbox } from "./checkbox";
+
+/**
+ * Reusable ComboBoxOptionItem component for rendering individual option items
+ */
+interface ComboBoxOptionItemProps {
+  option: Option;
+  isSelected: boolean;
+  multi?: boolean;
+  renderOption?: (option: Option, isSelected: boolean) => React.ReactNode;
+}
+
+export const ComboBoxOptionItem = ({
+  option,
+  isSelected,
+  multi = false,
+  renderOption,
+}: ComboBoxOptionItemProps) => {
+  if (renderOption) {
+    return <>{renderOption(option, isSelected)}</>;
+  }
+
+  return (
+    <>
+      {!multi ? (
+        <div className="border-input block flex min-h-5 min-w-5 items-center justify-center rounded-full border shadow-xs">
+          {isSelected && (
+            <span className="bg-primary block min-h-3 min-w-3 rounded-full"></span>
+          )}
+        </div>
+      ) : (
+        <Checkbox
+          className="mr-1 text-white"
+          id={`${option.value}`}
+          checked={isSelected}
+        />
+      )}
+      {option.label}
+    </>
+  );
+};
 
 /**
  * ComboBox component with conditional typing based on multi prop
@@ -50,6 +91,7 @@ interface ComboBoxProps<T extends boolean = false>
   renderOption?: (option: Option, isSelected: boolean) => React.ReactNode;
   commandProps?: React.ComponentProps<typeof Command>;
   commandInputProps?: React.ComponentProps<typeof CommandInput>;
+  commandListProps?: React.ComponentProps<typeof CommandList>;
   popoverContentProps?: React.ComponentProps<typeof PopoverContent>;
   emptyMessage?: string;
   flexWrap?: boolean;
@@ -71,6 +113,7 @@ export const ComboBox = <T extends boolean = false>({
   renderLabel,
   renderOption,
   commandProps,
+  commandListProps = {},
   emptyMessage = "No result found.",
   popoverContentProps = {},
   commandInputProps = {},
@@ -173,9 +216,19 @@ export const ComboBox = <T extends boolean = false>({
     }
   };
 
+  const handleClearValue = () => {
+    if (clearable) {
+      if (multi) {
+        setValue([]);
+      } else {
+        setValue("");
+      }
+    }
+  };
+
   const renderSelectedContent = () => {
-    if (loading)
-      return <span className="text-muted-foregound">Loading...</span>;
+    // if (loading)
+    //   return <span className="text-muted-foregound">Loading...</span>;
 
     if (
       multi &&
@@ -283,12 +336,12 @@ export const ComboBox = <T extends boolean = false>({
   };
 
   return (
-    <Popover open={open && !disabled && !loading} onOpenChange={setOpen}>
+    <Popover open={open && !disabled} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
           ref={buttonRef}
           aria-expanded={open}
-          disabled={disabled || loading}
+          disabled={disabled || (!open && loading)}
           onKeyDown={handleKeyDown}
           className={cn(
             "form-control flex items-center justify-between",
@@ -303,8 +356,32 @@ export const ComboBox = <T extends boolean = false>({
           <span className="flex-1 truncate text-left">
             {renderSelectedContent()}
           </span>
-          {loading ? (
+          {open && loading ? (
             <div className="border-border size-4 animate-spin rounded-full border-2 border-t-transparent" />
+          ) : !multi &&
+            selectedOption &&
+            !Array.isArray(selectedOption) &&
+            clearable ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleClearValue();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleClearValue();
+                }
+              }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              className="ring-offset-background focus:ring-ring hover:bg-muted/50 cursor-pointer rounded-full outline-none focus:ring-2 focus:ring-offset-2"
+              aria-label="Clear selection"
+            >
+              <XIcon className="size-5" />
+            </button>
           ) : (
             <ChevronsUpDownIcon className="size-4 opacity-50" />
           )}
@@ -333,15 +410,16 @@ export const ComboBox = <T extends boolean = false>({
           {searchable && (
             <CommandInput placeholder="Search..." {...commandInputProps} />
           )}
-          <CommandList>
-            <CommandEmpty>{emptyMessage}</CommandEmpty>
+          <CommandList {...commandListProps}>
+            {open && loading && <CommandEmpty>Loading...</CommandEmpty>}
+            {!loading && <CommandEmpty>{emptyMessage}</CommandEmpty>}
             <CommandGroup>
               {options.length === 0 ? (
                 <div className="text-muted-foreground px-2 py-6 text-center text-sm">
                   {loading && "Loading options..."}
                 </div>
               ) : (
-                options.map((option) => {
+                options?.map((option) => {
                   const isSelected = multi
                     ? Array.isArray(value) && value.includes(option.value)
                     : value === option.value;
@@ -370,19 +448,12 @@ export const ComboBox = <T extends boolean = false>({
                         }
                       }}
                     >
-                      {renderOption ? (
-                        renderOption(option, isSelected)
-                      ) : (
-                        <>
-                          {option.label}
-                          <CheckIcon
-                            className={cn(
-                              "ml-auto h-4 w-4",
-                              isSelected ? "opacity-100" : "opacity-0",
-                            )}
-                          />
-                        </>
-                      )}
+                      <ComboBoxOptionItem
+                        option={option}
+                        isSelected={isSelected}
+                        multi={multi}
+                        renderOption={renderOption}
+                      />
                     </CommandItem>
                   );
                 })
