@@ -15,7 +15,6 @@ import {
 import { DropdownMenu } from "@/core/components/ui/dropdown-menu";
 import { PageContent } from "@/core/components/ui/structure";
 import { STATUS_MAP } from "@/core/config/status";
-import { LocationService } from "@/core/services/location.service";
 import { formatDate } from "@/core/utils";
 import { hasAccess } from "@/modules/auth/components/guard";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
@@ -249,7 +248,6 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
               </Button>
             </DropdownMenu>
             {/* {onViewLocation && address.status === "pending" && (
-            {/* {onViewLocation && address.status === "pending" && (
               <Button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -301,7 +299,6 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
               <DocumentTextIcon className="mr-1 h-3 w-3" />
               <span className="hidden sm:inline">View Products</span>
             </Button> */}
-            </Button> */}
           </div>
         </div>
       </AccordionTrigger>
@@ -346,7 +343,11 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                 <InfoItem
                   icon={<PhoneIcon className="h-5 w-5" />}
                   label="Landline"
-                  value={location.landlineNumber || location.phoneNumber || "Not available"}
+                  value={
+                    location.landlineNumber ||
+                    location.phoneNumber ||
+                    "Not available"
+                  }
                 />
                 <InfoItem
                   icon={<MapPinIcon className="h-5 w-5" />}
@@ -400,7 +401,7 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                       <InfoItem
                         icon={<DocumentTextIcon className="h-5 w-5" />}
                         label="COI Certificate"
-                        value="Certificate Available"
+                        value={location.cinNumber ?? "-"}
                         className="rounded-lg border p-3"
                       >
                         <Link
@@ -418,7 +419,7 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                       <InfoItem
                         icon={<DocumentTextIcon className="h-5 w-5" />}
                         label="MSME Certificate"
-                        value={location.msmeNumber ?? "-"}
+                        value={location?.msmeNumber ?? "-"}
                         className="rounded-lg border p-3"
                       >
                         <Link
