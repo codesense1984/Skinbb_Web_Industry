@@ -8,6 +8,8 @@ import { DocumentTextIcon } from "@heroicons/react/24/outline";
 
 export const brandFormSchema = z.object({
   _id: z.string().optional(),
+  company_id: z.string().optional(),
+  location_id: z.string().optional(),
   name: z
     .string()
     .min(1, "Brand name is required")
@@ -39,6 +41,10 @@ export type BrandFormData = z.infer<typeof brandFormSchema>;
 
 // Field configuration types
 type ModeProps = { mode: MODE };
+type CompanyLocationProps = ModeProps & {
+  companyOptions?: Array<{ label: string; value: string }>;
+  locationOptions?: Array<{ label: string; value: string }>;
+};
 type SellingPlatformProps = ModeProps & {
   index: number;
   availableOptions?: Array<{ label: string; value: string }>;
@@ -48,6 +54,7 @@ const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/jpg"];
 
 export const brandSchema: {
   uploadbrandImage: (props: ModeProps) => FormFieldConfig<BrandFormData>[];
+  company_location: (props: CompanyLocationProps) => FormFieldConfig<BrandFormData>[];
   basic_information: (props: ModeProps) => FormFieldConfig<BrandFormData>[];
   selling_platforms: (
     props: SellingPlatformProps,
@@ -63,6 +70,26 @@ export const brandSchema: {
       inputProps: {
         accept: ACCEPTED_IMAGE_TYPES.join(", "),
       },
+    },
+  ],
+  company_location: ({ mode, companyOptions = [], locationOptions = [] }: CompanyLocationProps) => [
+    {
+      name: "company_id",
+      label: "Company",
+      type: INPUT_TYPES.SELECT,
+      placeholder: "Select company",
+      options: companyOptions,
+      disabled: true, // Always disabled in company-location context
+      className: "md:col-span-1",
+    },
+    {
+      name: "location_id",
+      label: "Location",
+      type: INPUT_TYPES.SELECT,
+      placeholder: "Select location",
+      options: locationOptions,
+      disabled: true, // Always disabled in company-location context
+      className: "md:col-span-1",
     },
   ],
   basic_information: ({ mode }: ModeProps) => [

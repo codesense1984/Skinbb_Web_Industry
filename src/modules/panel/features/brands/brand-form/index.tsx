@@ -273,7 +273,7 @@ const BrandForm = () => {
   // Fetch companies for dropdown
   const {
     data: companiesData,
-    isLoading: isLoadingCompanies,
+    isLoading: _isLoadingCompanies,
   } = useQuery({
     queryKey: ["companies-for-brand-form"],
     queryFn: () =>
@@ -304,7 +304,7 @@ const BrandForm = () => {
   // Fetch locations for selected company
   const {
     data: locationsData,
-    isLoading: isLoadingLocations,
+    isLoading: _isLoadingLocations,
   } = useQuery({
     queryKey: ["company-locations-for-brand-form", watchedCompanyId],
     queryFn: () =>
@@ -406,29 +406,29 @@ const BrandForm = () => {
         brand_logo_files: [],
         brand_logo:
           brand.logoImage?.url ||
-          (brand as any).brand_logo ||
-          (brand as any).logo ||
+          (brand as BrandApiResponse).brand_logo ||
+          (brand as BrandApiResponse).logo ||
           "",
-        brand_name: brand.name || (brand as any).brand_name || "",
-        description: brand.aboutTheBrand || (brand as any).description || "",
+        brand_name: brand.name || (brand as BrandApiResponse).brand_name || "",
+        description: brand.aboutTheBrand || (brand as BrandApiResponse).description || "",
         status: brand.isActive ? "active" : "inactive",
-        total_skus: (brand as any).total_skus || (brand as any).skus || "",
+        total_skus: (brand as BrandApiResponse).total_skus || (brand as BrandApiResponse).skus || "",
         marketing_budget:
-          (brand as any).marketing_budget || (brand as any).budget || "",
+          (brand as BrandApiResponse).marketing_budget || (brand as BrandApiResponse).budget || "",
         product_category:
-          (brand as any).product_category || (brand as any).category || "",
-        // average_selling_price: (brand as any).average_selling_price || (brand as any).asp || "2",
+          (brand as BrandApiResponse).product_category || (brand as BrandApiResponse).category || "",
+        // average_selling_price: (brand as BrandApiResponse).average_selling_price || (brand as BrandApiResponse).asp || "2",
         instagram_url:
-          (brand as any).instagram_url || (brand as any).instagram || "",
+          (brand as BrandApiResponse).instagram_url || (brand as BrandApiResponse).instagram || "",
         facebook_url:
-          (brand as any).facebook_url || (brand as any).facebook || "",
-        youtube_url: (brand as any).youtube_url || (brand as any).youtube || "",
-        sellingOn: (brand as any).sellingOn || (brand as any).platforms || [],
+          (brand as BrandApiResponse).facebook_url || (brand as BrandApiResponse).facebook || "",
+        youtube_url: (brand as BrandApiResponse).youtube_url || (brand as BrandApiResponse).youtube || "",
+        sellingOn: (brand as BrandApiResponse).sellingOn || (brand as BrandApiResponse).platforms || [],
         brand_authorization_letter_files: [],
         brand_authorization_letter:
           brand.authorizationLetter?.url ||
-          (brand as any).brand_authorization_letter ||
-          (brand as any).authorization_letter ||
+          (brand as BrandApiResponse).brand_authorization_letter ||
+          (brand as BrandApiResponse).authorization_letter ||
           "",
       };
 
@@ -567,21 +567,23 @@ const BrandForm = () => {
         
         // Add form fields to FormData
         Object.entries(data).forEach(([key, value]) => {
-          if (key === 'brand_logo_files' || key === 'brand_authorization_letter_files') {
+          if (key === "brand_logo_files" || key === "brand_authorization_letter_files") {
             // Handle file arrays
             if (Array.isArray(value) && value.length > 0) {
               value.forEach((file, index) => {
-                formData.append(`${key}[${index}]`, file);
+                if (file instanceof File) {
+                  formData.append(`${key}[${index}]`, file);
+                }
               });
             }
-          } else if (key === 'sellingOn') {
+          } else if (key === "sellingOn") {
             // Handle selling platforms array
             if (Array.isArray(value)) {
               formData.append(key, JSON.stringify(value));
             }
           } else {
             // Handle regular fields
-            formData.append(key, String(value || ''));
+            formData.append(key, String(value || ""));
           }
         });
 
@@ -725,12 +727,12 @@ const BrandForm = () => {
                         {
                           ...brandFormSchema.company_location[0],
                           options: companyOptions,
-                          disabled: mode === MODE.VIEW,
+                          disabled: mode === MODE.VIEW || !!searchParams.get("companyId"),
                         },
                         {
                           ...brandFormSchema.company_location[1],
                           options: locationOptions,
-                          disabled: mode === MODE.VIEW || !watchedCompanyId,
+                          disabled: mode === MODE.VIEW || !watchedCompanyId || !!searchParams.get("companyId"),
                         },
                       ] as FormFieldConfig<BrandFormData>[]}
                       className="contents"
