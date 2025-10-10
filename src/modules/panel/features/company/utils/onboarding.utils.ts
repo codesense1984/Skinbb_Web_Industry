@@ -9,7 +9,7 @@ import { createCompanySchema } from "../schema/fullCompany.schema";
 import { LocationService } from "@/core/services/location.service";
 
 // Constants
-const DEFAULT_ROLE_ID = "6875fc068683bb026013181b";
+// const DEFAULT_ROLE_ID = "6875fc068683bb026013181b";
 // const DEFAULT_MONTH = "01";
 
 const ADDRESS_TYPES = {
@@ -188,7 +188,7 @@ export function getCompanySchema(
 
 export function transformFormDataToApiRequest(
   formData: FullCompanyFormType,
-  roleId: string = DEFAULT_ROLE_ID,
+  // roleId: string = DEFAULT_ROLE_ID,
 ): CompanyOnboardingSubmitRequest {
   if (!formData) {
     throw new Error("Form data is required");
@@ -232,10 +232,7 @@ export function transformFormDataToApiRequest(
     designation: safeString(formData.designation),
     // roleId,
     companyName: safeString(formData.companyName),
-    companyDescription:
-      safeString(formData.description) || "Company description not provided",
-    companyDescription:
-      safeString(formData.description) || "Company description not provided",
+    companyDescription: safeString(formData.description) || "",
     businessType: safeString(formData.businessType),
     headquartersAddress: safeString(formData.headquarterLocation),
     establishedIn: formData.establishedIn
@@ -303,16 +300,6 @@ export function transformFormDataToApiRequest(
     apiData.password = password;
   }
 
-  // Merge files directly into the data object
-  // Company logo files - API expects string URL, not File array
-  if (formData?.logo_files) {
-    // For now, we'll use the first file's name as a placeholder
-    // In a real implementation, you'd upload the file and get a URL
-    apiData.logo = formData?.logo_files;
-  }
-
-  if (formData.brand_logo_files) {
-    apiData.brandLogo = formData.brand_logo_files || "";
   // Merge files directly into the data object
   // Company logo files - API expects string URL, not File array
   if (formData?.logo_files) {
