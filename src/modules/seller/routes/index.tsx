@@ -100,11 +100,11 @@ export const sellerRoutes: RouteObject = {
       ),
     },
 
-    // users - using existing panel components
+    // users - using seller-specific components
     {
       path: "/company/:id/users",
       Component: lazy(
-        () => import("@/modules/panel/features/company/users/list"),
+        () => import("@/modules/seller/features/users/SellerUsersList"),
       ),
     },
     {
