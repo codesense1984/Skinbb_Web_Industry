@@ -10,8 +10,6 @@ export interface CompanyLocation {
   addressType: "office" | "warehouse" | "registered";
   gstNumber: string;
   panNumber: string;
-  cinNumber: string;
-  msmeNumber: string;
   panDocument: string;
   gstDocument: string;
   coiCertificate: string;

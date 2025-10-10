@@ -234,6 +234,8 @@ export function transformFormDataToApiRequest(
     companyName: safeString(formData.companyName),
     companyDescription:
       safeString(formData.description) || "Company description not provided",
+    companyDescription:
+      safeString(formData.description) || "Company description not provided",
     businessType: safeString(formData.businessType),
     headquartersAddress: safeString(formData.headquarterLocation),
     establishedIn: formData.establishedIn
@@ -301,6 +303,16 @@ export function transformFormDataToApiRequest(
     apiData.password = password;
   }
 
+  // Merge files directly into the data object
+  // Company logo files - API expects string URL, not File array
+  if (formData?.logo_files) {
+    // For now, we'll use the first file's name as a placeholder
+    // In a real implementation, you'd upload the file and get a URL
+    apiData.logo = formData?.logo_files;
+  }
+
+  if (formData.brand_logo_files) {
+    apiData.brandLogo = formData.brand_logo_files || "";
   // Merge files directly into the data object
   // Company logo files - API expects string URL, not File array
   if (formData?.logo_files) {

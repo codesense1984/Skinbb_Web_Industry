@@ -15,6 +15,7 @@ import {
 import { DropdownMenu } from "@/core/components/ui/dropdown-menu";
 import { PageContent } from "@/core/components/ui/structure";
 import { STATUS_MAP } from "@/core/config/status";
+import { LocationService } from "@/core/services/location.service";
 import { formatDate } from "@/core/utils";
 import { hasAccess } from "@/modules/auth/components/guard";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
@@ -300,6 +301,7 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
               <DocumentTextIcon className="mr-1 h-3 w-3" />
               <span className="hidden sm:inline">View Products</span>
             </Button> */}
+            </Button> */}
           </div>
         </div>
       </AccordionTrigger>
@@ -398,7 +400,7 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                       <InfoItem
                         icon={<DocumentTextIcon className="h-5 w-5" />}
                         label="COI Certificate"
-                        value={location.cinNumber ?? "-"}
+                        value="Certificate Available"
                         className="rounded-lg border p-3"
                       >
                         <Link
