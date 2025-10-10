@@ -10,6 +10,8 @@ export interface CompanyLocation {
   addressType: "office" | "warehouse" | "registered";
   gstNumber: string;
   panNumber: string;
+  cinNumber: string;
+  msmeNumber: string;
   panDocument: string;
   gstDocument: string;
   coiCertificate: string;
@@ -21,6 +23,7 @@ export interface CompanyLocation {
   postalCode: string;
   country: string;
   phoneNumber?: string;
+  landlineNumber?: string;
   isPrimary: boolean;
   status: CompanyLocationStatus;
   brands?: unknown[]; // Brands associated with this location

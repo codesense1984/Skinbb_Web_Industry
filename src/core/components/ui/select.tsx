@@ -240,7 +240,7 @@ interface SelectProps<T = BaseSelectOption>
 }
 
 const Select: React.FC<SelectProps> = ({
-  options,
+  options = [],
   optionLabel = "label",
   optionValue = "value",
   optionHeading = "",

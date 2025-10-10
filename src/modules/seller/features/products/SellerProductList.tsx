@@ -19,7 +19,7 @@ import { NavLink } from "react-router";
 import { useCallback, useEffect, useState } from "react";
 import { apiGetProducts } from "@/modules/panel/services/http/product.service";
 import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth";
-import { LocationFilter } from "@/modules/panel/features/listing/components/LocationFilter";
+import { LocationFilter } from "@/modules/panel/features/brands/components/LocationFilter";
 import { BrandFilter } from "@/modules/panel/features/listing/components/BrandFilter";
 import CatalogList from "@/modules/panel/features/listing/CatalogList";
 import { Package, FileText } from "lucide-react";
@@ -322,7 +322,7 @@ const SellerProductList = () => {
         actions: (
           <div className="flex gap-2">
             <Button color={"primary"} asChild>
-              <NavLink to={SELLER_ROUTES.SELLER_PRODUCTS.CREATE}>Add Product</NavLink>
+              <NavLink to={SELLER_ROUTES.PRODUCTS.CREATE}>Add Product</NavLink>
             </Button>
             <Button color={"secondary"} asChild>
               <NavLink to={SELLER_ROUTES.SELLER_LISTINGS.CREATE}>Add Catalog</NavLink>

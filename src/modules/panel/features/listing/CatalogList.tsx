@@ -595,3 +595,4 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
 };
 
 export default CatalogList;
+

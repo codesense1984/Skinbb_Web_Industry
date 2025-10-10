@@ -251,6 +251,12 @@ export const STATUS_MAP: Record<ModuleType, Record<string, StatusStyle>> = {
       textColor: "text-red-700",
       bgColor: "bg-red-100",
     },
+    pending: {
+      label: "Pending",
+      value: "pending",
+      textColor: "text-yellow-700",
+      bgColor: "bg-yellow-100",
+    },
   },
   product: {
     draft: {

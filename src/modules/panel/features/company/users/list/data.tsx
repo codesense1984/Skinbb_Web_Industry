@@ -3,9 +3,7 @@ import { formatDate } from "@/core/utils";
 import type { CompanyUserResponse } from "@/modules/panel/services/http/company.service";
 import type { ColumnDef } from "@tanstack/react-table";
 
-export const columns = (
-  companyId: string,
-): ColumnDef<CompanyUserResponse>[] => [
+export const columns: ColumnDef<CompanyUserResponse>[] = [
   {
     header: "User",
     accessorKey: "firstName",
@@ -56,7 +54,7 @@ export const columns = (
     },
   },
   {
-    accessorKey: "active",
+    accessorKey: "status",
     header: "Status",
     size: 100,
     cell: ({ row }) => {

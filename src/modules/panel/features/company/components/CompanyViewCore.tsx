@@ -15,7 +15,6 @@ import {
 import { DropdownMenu } from "@/core/components/ui/dropdown-menu";
 import { PageContent } from "@/core/components/ui/structure";
 import { STATUS_MAP } from "@/core/config/status";
-import { LocationService } from "@/core/services/location.service";
 import { formatDate } from "@/core/utils";
 import { hasAccess } from "@/modules/auth/components/guard";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
@@ -344,8 +343,8 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                 />
                 <InfoItem
                   icon={<PhoneIcon className="h-5 w-5" />}
-                  label="Phone"
-                  value={location.phoneNumber || "-"}
+                  label="Landline"
+                  value={location.landlineNumber || location.phoneNumber || "Not available"}
                 />
                 <InfoItem
                   icon={<MapPinIcon className="h-5 w-5" />}
@@ -399,7 +398,7 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                       <InfoItem
                         icon={<DocumentTextIcon className="h-5 w-5" />}
                         label="COI Certificate"
-                        value="Certificate Available"
+                        value={location.cinNumber ?? "-"}
                         className="rounded-lg border p-3"
                       >
                         <Link
@@ -417,7 +416,7 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                       <InfoItem
                         icon={<DocumentTextIcon className="h-5 w-5" />}
                         label="MSME Certificate"
-                        value="Certificate Available"
+                        value={location.msmeNumber ?? "-"}
                         className="rounded-lg border p-3"
                       >
                         <Link
@@ -643,7 +642,7 @@ export const CompanyViewCore: React.FC<CompanyViewCoreProps> = ({
                   <div className="min-w-0 flex-1">
                     <div className="mb-4 flex items-center gap-3">
                       <h1 className="text-foreground text-3xl font-bold">
-                        {company.companyName}
+                        {company.companyName.toUpperCase()}
                       </h1>
                     </div>
                     <div className="grid grid-cols-1 gap-6 text-sm md:grid-cols-2 lg:grid-cols-4">

@@ -100,7 +100,7 @@ export const sellerRoutes: RouteObject = {
     // Analytics - Ecommerce Only
     {
       path: SELLER_ROUTES.ANALYTICS.ECOMMERCE.BASE,
-      Component: lazy(() => import("@/modules/analytics/features/ecommerce")),
+      Component: lazy(() => import("@/modules/seller/features/analytics/SellerAnalyticsDashboard")),
     },
     // Listing/Product Management
     {

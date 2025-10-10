@@ -425,7 +425,26 @@ export interface CompanyUserResponse {
   isActive: boolean;
   roleId: string;
   roleValue: string;
+  companyId: string;
+  orgType: string;
   createdAt: string;
+  allowedBrands: Array<{
+    _id: string;
+    name: string;
+    slug: string;
+  }>;
+  allowedAddresses: Array<{
+    _id: string;
+    addressLine1: string;
+    city: string;
+    state: string;
+  }>;
+}
+
+export interface CompanyUsersParams extends PaginationParams {
+  locationId?: string;
+  brandId?: string;
+  search?: string;
 }
 
 // Get company users
@@ -436,7 +455,7 @@ export async function apiGetCompanyUsers<
     limit: number;
     total: number;
   }>,
->(companyId: string, params?: PaginationParams, signal?: AbortSignal) {
+>(companyId: string, params?: CompanyUsersParams, signal?: AbortSignal) {
   return api.get<T>(ENDPOINTS.COMPANY.USERS(companyId), { params, signal });
 }
 
