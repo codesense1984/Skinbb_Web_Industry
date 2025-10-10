@@ -313,7 +313,7 @@ export const CompanyLocationViewCore: React.FC<
             <div className="flex-1">
               <div className="mb-2 flex items-center gap-3">
                 <h1 className="text-foreground text-2xl font-bold">
-                  {company.companyName}
+                  {company.companyName.toUpperCase()}
                 </h1>
                 <StatusBadge
                   module={"company"}
@@ -750,7 +750,7 @@ export const CompanyLocationViewCore: React.FC<
             <InfoItem
               icon={<BuildingOfficeIcon className="h-5 w-5" />}
               label="Company Name"
-              value={company.companyName}
+              value={company.companyName.toUpperCase()}
             />
             <InfoItem
               icon={<TagIcon className="h-5 w-5" />}

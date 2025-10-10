@@ -240,7 +240,7 @@ interface SelectProps<T = BaseSelectOption>
 }
 
 const Select: React.FC<SelectProps> = ({
-  options,
+  options = [],
   optionLabel = "label",
   optionValue = "value",
   optionHeading = "",
@@ -257,7 +257,7 @@ const Select: React.FC<SelectProps> = ({
       <SelectContent>
         <SelectGroup>
           {optionHeading && <SelectLabel>{optionHeading}</SelectLabel>}
-          {options.map((option) => (
+          {options?.map((option) => (
             <SelectItem key={option[optionValue]} value={option[optionValue]}>
               {option[optionLabel]}
             </SelectItem>
