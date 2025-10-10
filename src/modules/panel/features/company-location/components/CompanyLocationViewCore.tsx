@@ -25,7 +25,6 @@ import {
   LinkIcon,
   MapPinIcon,
   PhoneIcon,
-  ShoppingBagIcon,
   TagIcon,
   UserIcon,
   XCircleIcon,
@@ -39,10 +38,7 @@ import { apiGetCompanyLocationDetail } from "../../../services/http/company-loca
 import { CompanyApprovalDialog } from "../../company/components/approval/CompanyApprovalDialog";
 import type { CompanyOnboardingAddressDetail } from "@/modules/panel/types";
 import { formatCurrency, formatDate } from "@/core/utils";
-import { LocationService } from "@/core/services/location.service";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
-import { BrandDropdown } from "./BrandDropdown";
-import { ProductDropdown } from "./ProductDropdown";
 
 // Type definitions for brand data
 interface BrandOwner {
@@ -134,7 +130,6 @@ export const CompanyLocationViewCore: React.FC<
   const queryClient = useQueryClient();
   const { userId, isLoading: isAuthLoading } = useAuth();
   const [isApprovalDialogOpen, setIsApprovalDialogOpen] = useState(false);
-  const [selectedBrandId, setSelectedBrandId] = useState<string | undefined>();
 
   // Fetch company location detail data
   const {
@@ -260,7 +255,6 @@ export const CompanyLocationViewCore: React.FC<
     company.addresses?.find(
       (addr: CompanyOnboardingAddressDetail) => addr.addressId === locationId,
     );
-  const owner = company.owner;
 
   if (!currentLocation) {
     return (
@@ -405,8 +399,8 @@ export const CompanyLocationViewCore: React.FC<
           {/* Documents Section */}
           {(currentLocation.coiCertificate ||
             currentLocation.msmeCertificate ||
-            currentLocation.panCertificate ||
-            currentLocation.gstCertificate) && (
+            currentLocation.panDocument ||
+            currentLocation.gstDocument) && (
             <Card className="mt-6 shadow-none">
               <CardHeader className="border-b">
                 <CardTitle>Documents</CardTitle>
@@ -448,7 +442,7 @@ export const CompanyLocationViewCore: React.FC<
                   </InfoItem>
                 )}
 
-                {currentLocation.panCertificate && (
+                {currentLocation.panDocument && (
                   <InfoItem
                     icon={<DocumentTextIcon className="h-5 w-5" />}
                     label="PAN Document"
@@ -456,7 +450,7 @@ export const CompanyLocationViewCore: React.FC<
                     className="rounded-lg border p-3"
                   >
                     <Link
-                      to={currentLocation.panCertificate}
+                      to={currentLocation.panDocument}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-xs break-all text-blue-500"
@@ -466,7 +460,7 @@ export const CompanyLocationViewCore: React.FC<
                   </InfoItem>
                 )}
 
-                {currentLocation.gstCertificate && (
+                {currentLocation.gstDocument && (
                   <InfoItem
                     icon={<DocumentTextIcon className="h-5 w-5" />}
                     label="GST Document"
@@ -474,7 +468,7 @@ export const CompanyLocationViewCore: React.FC<
                     className="rounded-lg border p-3"
                   >
                     <Link
-                      to={currentLocation.gstCertificate}
+                      to={currentLocation.gstDocument}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-xs break-all text-blue-500"

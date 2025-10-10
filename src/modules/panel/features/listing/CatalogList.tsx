@@ -427,7 +427,7 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
         const companyName = companyMap.get(row.original.sellerId) || row.original.sellerId;
         return (
           <div className="text-sm text-gray-600 truncate max-w-[120px]" title={companyName}>
-            {companyName.toUpperCase()}
+            {companyName}
           </div>
         );
       },
@@ -595,3 +595,4 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
 };
 
 export default CatalogList;
+

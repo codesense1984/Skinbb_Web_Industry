@@ -174,11 +174,12 @@ import { PageContent } from "@/core/components/ui/structure";
 import { useImagePreview } from "@/core/hooks/useImagePreview";
 import { MODE } from "@/core/types/base.type";
 // import { apiGetAllProductCategories } from "@/modules/panel/services/http/master.service";
-import { apiGetBrandById } from "@/modules/panel/services/http/company.service";
+import { apiGetBrandById, apiCreateBrand, apiUpdateBrandById } from "@/modules/panel/services/http/brand.service";
+import { apiGetCompaniesForFilter, apiGetCompanyLocations } from "@/modules/panel/services/http/company.service";
 import { useQuery } from "@tanstack/react-query";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
-import { useParams, useLocation } from "react-router";
-import { useEffect } from "react";
+import { useParams, useLocation, useSearchParams } from "react-router";
+import { useEffect, useState } from "react";
 import {
   brandFormSchema,
   defaultValues,
@@ -215,9 +216,10 @@ interface BrandApiResponse {
 }
 
 const BrandForm = () => {
-  const { id } = useParams();
+  const { id, companyId, locationId } = useParams();
   const location = useLocation();
   const pathname = location.pathname;
+  const [searchParams] = useSearchParams();
 
   // Force re-render debugging
   console.log("=== BRAND FORM COMPONENT MOUNTED/RE-RENDERED ===");
@@ -254,11 +256,75 @@ const BrandForm = () => {
     MODE_VALUES: { ADD: MODE.ADD, EDIT: MODE.EDIT, VIEW: MODE.VIEW },
   });
 
+  // State for company and location options
+  const [companyOptions, setCompanyOptions] = useState<Array<{ label: string; value: string }>>([]);
+  const [locationOptions, setLocationOptions] = useState<Array<{ label: string; value: string }>>([]);
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
+
   const form = useForm<BrandFormData>({
     defaultValues: defaultValues,
   });
 
-  const { control, setValue, handleSubmit, reset } = form;
+  const { control, setValue, handleSubmit, reset, watch } = form;
+
+  // Watch company_id to update location options
+  const watchedCompanyId = watch("company_id");
+
+  // Fetch companies for dropdown
+  const {
+    data: companiesData,
+    isLoading: isLoadingCompanies,
+  } = useQuery({
+    queryKey: ["companies-for-brand-form"],
+    queryFn: () =>
+      apiGetCompaniesForFilter<
+        {
+          statusCode: number;
+          data: {
+            items: Array<{ _id: string; companyName: string }>;
+            page: number;
+            limit: number;
+            total: number;
+          };
+          message: string;
+        },
+        {
+          page: number;
+          limit: number;
+          search?: string;
+        }
+      >({
+        page: 1,
+        limit: 100,
+      }),
+    select: (data) => data?.data?.items || [],
+    retry: 1,
+  });
+
+  // Fetch locations for selected company
+  const {
+    data: locationsData,
+    isLoading: isLoadingLocations,
+  } = useQuery({
+    queryKey: ["company-locations-for-brand-form", watchedCompanyId],
+    queryFn: () =>
+      apiGetCompanyLocations<{
+        statusCode: number;
+        data: {
+          items: Array<{ _id: string; addressLine1: string; city: string }>;
+          page: number;
+          limit: number;
+          total: number;
+        };
+        message: string;
+      }>(watchedCompanyId!, {
+        page: 1,
+        limit: 100,
+      }),
+    select: (data) => data?.data?.items || [],
+    enabled: !!watchedCompanyId,
+    retry: 1,
+  });
 
   // Fetch brand data for edit and view modes
   const {
@@ -274,6 +340,53 @@ const BrandForm = () => {
     enabled: !!id && (mode === MODE.EDIT || mode === MODE.VIEW),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
+
+  // Populate company options
+  useEffect(() => {
+    if (companiesData) {
+      const options = companiesData.map((company) => ({
+        label: company.companyName,
+        value: company._id,
+      }));
+      setCompanyOptions(options);
+    }
+  }, [companiesData]);
+
+  // Populate location options when company changes
+  useEffect(() => {
+    if (locationsData) {
+      const options = locationsData.map((location) => ({
+        label: `${location.addressLine1} - ${location.city}`,
+        value: location._id,
+      }));
+      setLocationOptions(options);
+    } else {
+      setLocationOptions([]);
+    }
+  }, [locationsData]);
+
+  // Auto-fill company and location from URL parameters
+  useEffect(() => {
+    const urlCompanyId = companyId || searchParams.get("companyId");
+    const urlLocationId = locationId || searchParams.get("locationId");
+    
+    if (urlCompanyId && companyOptions.length > 0) {
+      setValue("company_id", urlCompanyId);
+      setSelectedCompanyId(urlCompanyId);
+    }
+    
+    if (urlLocationId && locationOptions.length > 0) {
+      setValue("location_id", urlLocationId);
+    }
+  }, [companyId, locationId, searchParams, companyOptions, locationOptions, setValue]);
+
+  // Reset location when company changes
+  useEffect(() => {
+    if (watchedCompanyId !== selectedCompanyId) {
+      setValue("location_id", "");
+      setSelectedCompanyId(watchedCompanyId);
+    }
+  }, [watchedCompanyId, selectedCompanyId, setValue]);
 
   // Populate form with existing data when in edit or view mode
   useEffect(() => {
@@ -444,9 +557,47 @@ const BrandForm = () => {
     return new Set(platforms).size !== platforms.length;
   };
 
-  const onSubmit = (data: BrandFormData) => {
+  const onSubmit = async (data: BrandFormData) => {
     console.log("Brand form data:", data);
-    // Handle form submission here
+    
+    try {
+      if (mode === MODE.ADD) {
+        // Create new brand
+        const formData = new FormData();
+        
+        // Add form fields to FormData
+        Object.entries(data).forEach(([key, value]) => {
+          if (key === 'brand_logo_files' || key === 'brand_authorization_letter_files') {
+            // Handle file arrays
+            if (Array.isArray(value) && value.length > 0) {
+              value.forEach((file, index) => {
+                formData.append(`${key}[${index}]`, file);
+              });
+            }
+          } else if (key === 'sellingOn') {
+            // Handle selling platforms array
+            if (Array.isArray(value)) {
+              formData.append(key, JSON.stringify(value));
+            }
+          } else {
+            // Handle regular fields
+            formData.append(key, String(value || ''));
+          }
+        });
+
+        const response = await apiCreateBrand(formData);
+        console.log("Brand created successfully:", response);
+        // Handle success (e.g., redirect, show success message)
+      } else if (mode === MODE.EDIT && id) {
+        // Update existing brand
+        const response = await apiUpdateBrandById(id, data);
+        console.log("Brand updated successfully:", response);
+        // Handle success (e.g., redirect, show success message)
+      }
+    } catch (error) {
+      console.error("Error submitting brand form:", error);
+      // Handle error (e.g., show error message)
+    }
   };
 
   // Force re-render when pathname changes
@@ -559,6 +710,31 @@ const BrandForm = () => {
                         }
                       />
                     </div>
+                  </div>
+                </div>
+
+                {/* Company and Location Section */}
+                <div className="space-y-4">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Company & Location
+                  </h2>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <FormFieldsRenderer<BrandFormData>
+                      control={control}
+                      fieldConfigs={[
+                        {
+                          ...brandFormSchema.company_location[0],
+                          options: companyOptions,
+                          disabled: mode === MODE.VIEW,
+                        },
+                        {
+                          ...brandFormSchema.company_location[1],
+                          options: locationOptions,
+                          disabled: mode === MODE.VIEW || !watchedCompanyId,
+                        },
+                      ] as FormFieldConfig<BrandFormData>[]}
+                      className="contents"
+                    />
                   </div>
                 </div>
 

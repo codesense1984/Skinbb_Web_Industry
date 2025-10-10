@@ -21,6 +21,7 @@ export interface SellerAddress {
 export interface SellerInfo {
   companyId: string;
   companyName: string;
+  companyStatus: string;
   addresses: SellerAddress[];
 }
 

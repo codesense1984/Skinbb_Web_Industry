@@ -1,22 +1,31 @@
 import { createSimpleFetcher, DataTable } from "@/core/components/data-table";
-import { StatusFilter } from "@/core/components/data-table/components/table-filter";
 import { TableAction } from "@/core/components/data-table/components/table-action";
 import {
-  AvatarRoot,
   AvatarFallback,
   AvatarImage,
+  AvatarRoot,
 } from "@/core/components/ui/avatar";
 import { StatusBadge } from "@/core/components/ui/badge";
 import { Button } from "@/core/components/ui/button";
-import { StatCard } from "@/core/components/ui/stat";
 import { PageContent } from "@/core/components/ui/structure";
-import { formatNumber, formatDate } from "@/core/utils";
+import { formatDate } from "@/core/utils";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
+import { apiGetBrands } from "@/modules/panel/services/http/brand.service";
+import {
+  apiGetCompanyList,
+  apiGetCompanyLocations,
+} from "@/modules/panel/services/http/company.service";
 import type { Brand } from "@/modules/panel/types/brand.type";
+import type {
+  CompanyAddressInfo,
+  CompanyListItem,
+} from "@/modules/panel/types/company.type";
 import type { ColumnDef } from "@tanstack/react-table";
 import { NavLink } from "react-router";
-import { useCallback, useEffect, useState } from "react";
-import { apiGetBrands } from "@/modules/panel/services/http/brand.service";
+import { useUrlFilters } from "@/core/hooks/use-url-filters";
+import { FilterDropdown } from "@/core/components/filters/FilterDropdown";
+import { useCallback, useEffect, useRef, useMemo } from "react";
+import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
 
 // Legacy static data - commented out
 // const statsData = [
@@ -61,34 +70,6 @@ import { apiGetBrands } from "@/modules/panel/services/http/brand.service";
 //   // ... other static data
 // ];
 
-// New dynamic stats data
-const initialStatsData = [
-  {
-    title: "Total Brands",
-    value: 0, // Will be updated from API
-    barColor: "bg-primary",
-    icon: true,
-  },
-  {
-    title: "Active Brands",
-    value: 0, // Will be updated from API
-    barColor: "bg-blue-300",
-    icon: false,
-  },
-  {
-    title: "Total Products",
-    value: 0, // Will be updated from API
-    barColor: "bg-violet-300",
-    icon: false,
-  },
-  {
-    title: "Associated Users",
-    value: 0, // Will be updated from API
-    barColor: "bg-red-300",
-    icon: true,
-  },
-];
-
 const columns: ColumnDef<Brand>[] = [
   {
     accessorKey: "name",
@@ -114,19 +95,19 @@ const columns: ColumnDef<Brand>[] = [
       </ul>
     ),
   },
-  {
-    accessorKey: "aboutTheBrand",
-    header: "Description",
-    cell: ({ getValue }) => {
-      const description = getValue() as string;
-      const cleanDescription = description.replace(/<[^>]*>/g, ""); // Remove HTML tags
-      return (
-        <div className="w-max max-w-xs truncate" title={cleanDescription}>
-          {cleanDescription || "No description"}
-        </div>
-      );
-    },
-  },
+  // {
+  //   accessorKey: "aboutTheBrand",
+  //   header: "Description",
+  //   cell: ({ getValue }) => {
+  //     const description = getValue() as string;
+  //     const cleanDescription = description.replace(/<[^>]*>/g, ""); // Remove HTML tags
+  //     return (
+  //       <div className="w-max max-w-xs truncate" title={cleanDescription}>
+  //         {cleanDescription || "No description"}
+  //       </div>
+  //     );
+  //   },
+  // },
   {
     accessorKey: "isActive",
     header: "Status",
@@ -144,22 +125,22 @@ const columns: ColumnDef<Brand>[] = [
       return value.includes(row.getValue(id));
     },
   },
-  {
-    accessorKey: "associatedProductsCount",
-    header: "Products",
-    cell: ({ getValue }) => {
-      const count = getValue() as number;
-      return <div className="w-max font-medium">{count}</div>;
-    },
-  },
-  {
-    accessorKey: "associatedUsers",
-    header: "Users",
-    cell: ({ getValue }) => {
-      const count = getValue() as number;
-      return <div className="w-max font-medium">{count}</div>;
-    },
-  },
+  // {
+  //   accessorKey: "associatedProductsCount",
+  //   header: "Products",
+  //   cell: ({ getValue }) => {
+  //     const count = getValue() as number;
+  //     return <div className="w-max font-medium">{count}</div>;
+  //   },
+  // },
+  // {
+  //   accessorKey: "associatedUsers",
+  //   header: "Users",
+  //   cell: ({ getValue }) => {
+  //     const count = getValue() as number;
+  //     return <div className="w-max font-medium">{count}</div>;
+  //   },
+  // },
   {
     accessorKey: "createdAt",
     header: "Created",
@@ -173,6 +154,7 @@ const columns: ColumnDef<Brand>[] = [
     accessorKey: "actions",
     enableSorting: false,
     enableHiding: false,
+    size: 50,
     cell: ({ row }) => {
       return (
         <TableAction
@@ -191,72 +173,96 @@ const columns: ColumnDef<Brand>[] = [
 ];
 
 // Create fetcher for server-side data
-const fetcher = () =>
-  createSimpleFetcher(apiGetBrands, {
-    dataPath: "data.brands",
-    totalPath: "data.totalRecords",
-    filterMapping: {
-      isActive: "isActive",
-      status: "status", // Map the status column filter to the status API parameter
+const createBrandFetcher = () => {
+  return createSimpleFetcher(
+    (params: Record<string, unknown>) => {
+      return apiGetBrands(params);
     },
-  });
+    {
+      dataPath: "data.brands",
+      totalPath: "data.totalRecords",
+      filterMapping: {
+        isActive: "isActive",
+        status: "status", // Map the status column filter to the status API parameter
+        companyId: "companyId",
+        locationId: "locationId",
+      },
+    },
+  );
+};
 
 const BrandList = () => {
-  const [stats, setStats] = useState(initialStatsData);
+  // Simple URL-based filter management
+  const { filters, updateFilter, updateFilters } = useUrlFilters([
+    "companyId",
+    "locationId",
+  ]);
+  const tableRef = useRef<any>(null);
 
-  // Fetch stats separately since we need them for the summary cards
-  const fetchStats = useCallback(async () => {
-    try {
-      const response = await apiGetBrands({ page: 1, limit: 1000 }); // Get all for stats
+  // Memoize API functions to prevent recreation
+  const companyApi = useMemo(
+    () =>
+      createSimpleFetcher((params) => apiGetCompanyList(params), {
+        dataPath: "data.items",
+        totalPath: "data.total",
+      }),
+    [],
+  );
 
-      if (response.success) {
-        const totalProducts = response.data.brands.reduce(
-          (sum, brand) => sum + brand.associatedProductsCount,
-          0,
-        );
-        const totalUsers = response.data.brands.reduce(
-          (sum, brand) => sum + brand.associatedUsers,
-          0,
-        );
-        const activeBrands = response.data.brands.filter(
-          (brand) => brand.isActive,
-        ).length;
+  const locationApi = useMemo(
+    () =>
+      createSimpleFetcher(
+        (params) => {
+          // Return empty result if no company selected
+          if (!filters.companyId) {
+            return Promise.resolve({ rows: [], total: 0 });
+          }
+          return apiGetCompanyLocations(filters.companyId, params);
+        },
+        { dataPath: "data.items", totalPath: "data.totalPages" },
+      ),
+    [filters.companyId],
+  );
 
-        setStats([
-          {
-            title: "Total Brands",
-            value: response.data.totalRecords,
-            barColor: "bg-primary",
-            icon: true,
-          },
-          {
-            title: "Active Brands",
-            value: activeBrands,
-            barColor: "bg-blue-300",
-            icon: false,
-          },
-          {
-            title: "Total Products",
-            value: totalProducts,
-            barColor: "bg-violet-300",
-            icon: false,
-          },
-          {
-            title: "Associated Users",
-            value: totalUsers,
-            barColor: "bg-red-300",
-            icon: true,
-          },
-        ]);
-      }
-    } catch (error) {
-      console.error("Failed to fetch brand stats:", error);
-    }
-  }, []);
+  // Handle company change - clear location when company changes
+  const handleCompanyChange = useCallback(
+    (companyId: string) => {
+      // Use batch update to ensure both filters are updated together
+      updateFilters({
+        companyId: companyId,
+        locationId: "", // Always clear location when company changes
+      });
+    },
+    [updateFilters, filters.locationId],
+  );
 
+  // Handle location change
+  const handleLocationChange = useCallback(
+    (locationId: string) => {
+      // Only update location, don't touch company
+      updateFilter("locationId", locationId);
+    },
+    [updateFilter, filters.companyId],
+  );
+
+  // Sync table filters with URL state - debounced
   useEffect(() => {
-    fetchStats();
-  }, [fetchStats]);
+    if (tableRef.current) {
+      const timeoutId = setTimeout(() => {
+        const tableFilters = [];
+        if (filters.companyId) {
+          tableFilters.push({ id: "companyId", value: filters.companyId });
+        }
+        if (filters.locationId) {
+          tableFilters.push({ id: "locationId", value: filters.locationId });
+        }
+        console.log("Setting table filters:", tableFilters);
+        tableRef.current.table.setColumnFilters(tableFilters);
+      }, 100);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [filters.companyId, filters.locationId]);
 
   return (
     <PageContent
@@ -270,7 +276,8 @@ const BrandList = () => {
         ),
       }}
     >
-      <section className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:gap-5 lg:grid-cols-4">
+      {/* Stats tiles commented out as requested */}
+      {/* <section className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:gap-5 lg:grid-cols-4">
         {stats.map((item) => (
           <StatCard
             key={item.title}
@@ -279,22 +286,71 @@ const BrandList = () => {
             barColor={item.barColor}
           />
         ))}
-      </section>
+      </section> */}
 
       <DataTable
         columns={columns}
         isServerSide
-        fetcher={fetcher()}
-        queryKeyPrefix={PANEL_ROUTES.BRAND.LIST}
-        actionProps={(tableState) => ({
-          children: (
-            <StatusFilter
-              tableState={tableState}
-              module="brand"
-              multi={false} // Single selection mode
-            />
-          ),
-        })}
+        fetcher={createBrandFetcher()}
+        queryKeyPrefix={`${PANEL_ROUTES.BRAND.LIST}`}
+        initialColumnFilters={[
+          ...(filters.companyId
+            ? [{ id: "companyId", value: filters.companyId }]
+            : []),
+          ...(filters.locationId
+            ? [{ id: "locationId", value: filters.locationId }]
+            : []),
+        ]}
+        actionProps={(tableState) => {
+          // Store table reference for filter updates
+          tableRef.current = tableState;
+
+          return {
+            children: (
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="hidden text-sm font-medium md:block">
+                    Company:
+                  </span>
+                  <FilterDropdown<CompanyListItem>
+                    apiFunction={companyApi}
+                    transform={(val) => ({
+                      value: val._id,
+                      label: val.companyName,
+                    })}
+                    value={filters.companyId || ""}
+                    onChange={handleCompanyChange}
+                    placeholder="Filter by company..."
+                    queryKey={[ENDPOINTS.COMPANY.MAIN]}
+                    enabled={true}
+                    componentEnabled={true}
+                  />
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="hidden text-sm font-medium md:block">
+                    Location:
+                  </span>
+                  <FilterDropdown<CompanyAddressInfo>
+                    key={`location-${filters.companyId}`}
+                    apiFunction={locationApi}
+                    transform={(val) => ({
+                      value: val._id ?? val.addressId ?? "",
+                      label: `${val.city}, ${val.state}`,
+                    })}
+                    value={filters.locationId || ""}
+                    onChange={handleLocationChange}
+                    placeholder={"Filter by location..."}
+                    disabled={!filters.companyId}
+                    enabled={!!filters.companyId}
+                    componentEnabled={!!filters.companyId}
+                    queryKey={[ENDPOINTS.COMPANY.LOCATION(filters.companyId)]}
+                  />
+                </div>
+              </div>
+            ),
+          };
+        }}
       />
     </PageContent>
   );

@@ -3,10 +3,12 @@ import { STATUS_MAP, type ModuleType } from "@/core/config/status";
 import { cn } from "@/core/utils";
 import { FunnelIcon } from "@heroicons/react/24/outline";
 import type { ComponentType } from "react";
+import { useMemo, useCallback } from "react";
 import { Checkbox } from "../../ui/checkbox";
 import { Label } from "../../ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover";
-import type { UseTableResponse } from "../types";
+import PaginationComboBox from "../../ui/pagination-combo-box";
+import type { UseTableResponse, ServerTableFetcher } from "../types";
 
 // Constants
 const DEFAULT_FILTER_LABEL = "Filter";
@@ -301,6 +303,155 @@ export function StatusFilter<T>({
       options={optionsWithState}
       label={DEFAULT_STATUS_LABEL}
       icon={icon}
+    />
+  );
+}
+
+/**
+ * Props for the PaginationComboBoxFilter component
+ */
+interface PaginationComboBoxFilterProps<TData = unknown, TFilter = unknown> {
+  /** Table state from useTable hook */
+  tableState: UseTableResponse<TData>;
+  /** API function that returns paginated data */
+  apiFunction: ServerTableFetcher<TFilter>;
+  /** Transform API data to Option format */
+  transform: (item: TFilter) => { value: string; label: string };
+  /** Filter key for column filtering */
+  filterKey: string;
+  /** Placeholder text for the input */
+  placeholder?: string;
+  /** Additional CSS classes */
+  className?: string;
+  /** Whether to use global filter instead of column filter */
+  useGlobalFilter?: boolean;
+  /** Whether multiple selection is enabled */
+  multi?: boolean;
+  /** Maximum number of visible items in multi-select mode */
+  maxVisibleItems?: number;
+  /** Number of items per page */
+  pageSize?: number;
+  /** React Query cache key */
+  queryKey?: string[];
+  /** Additional filter parameters to pass to the API */
+  additionalFilters?: Record<string, unknown>;
+  /** Whether the component is disabled */
+  disabled?: boolean;
+  /** Custom callback when value changes (overrides default table state update) */
+  onValueChange?: (value: string | string[]) => void;
+}
+
+/**
+ * A paginated combo box filter component that integrates with table state
+ *
+ * This component provides a searchable dropdown with pagination support
+ * that automatically syncs with table filtering state.
+ *
+ * @template TData - The type of data in the table
+ * @template TFilter - The type of data items returned by the API
+ *
+ * @example
+ * ```tsx
+ * <PaginationComboBoxFilter<Brand, CompanyListItem>
+ *   tableState={tableState}
+ *   apiFunction={companyFilter}
+ *   transform={(val) => ({ value: val._id, label: val.companyName })}
+ *   filterKey="companyId"
+ *   placeholder="Filter by company..."
+ * />
+ * ```
+ */
+export function PaginationComboBoxFilter<TData = unknown, TFilter = unknown>({
+  tableState,
+  apiFunction,
+  transform,
+  filterKey,
+  placeholder = "Search and select...",
+  className,
+  useGlobalFilter = false,
+  multi = false,
+  maxVisibleItems = 3,
+  pageSize = 10,
+  queryKey = ["pagination-combo-filter"],
+  additionalFilters = {},
+  disabled = false,
+  onValueChange,
+}: PaginationComboBoxFilterProps<TData, TFilter>) {
+  // Get current filter value from table state
+  const currentValue = useMemo(() => {
+    const table = tableState.table;
+    const currentState = table.getState();
+
+    if (useGlobalFilter) {
+      return currentState.globalFilter || "";
+    } else {
+      const columnFilter = currentState.columnFilters.find(
+        (f) => f.id === filterKey,
+      );
+      const filterValue = columnFilter?.value;
+      // Ensure the value is the correct type
+      if (typeof filterValue === "string" || Array.isArray(filterValue)) {
+        return filterValue;
+      }
+      return multi ? [] : "";
+    }
+  }, [tableState, useGlobalFilter, filterKey, multi]);
+
+  // Handle value change and update table state
+  const handleValueChange = useCallback(
+    (newValue: string | string[]) => {
+      // If custom onValueChange is provided, use it instead of default table state update
+      // if (onValueChange) {
+      //   onValueChange(newValue);
+      //   return;
+      // }
+
+      // Default behavior: update table state
+      if (useGlobalFilter) {
+        // Use global filter
+        const filterValue = Array.isArray(newValue)
+          ? newValue.join(" ")
+          : newValue;
+        tableState.setGlobalFilter(filterValue);
+      } else {
+        // Use column filter
+        const table = tableState.table;
+        const currentState = table.getState();
+        const existingFilters = currentState.columnFilters.filter(
+          (f) => f.id !== filterKey,
+        );
+
+        const newFilters = [
+          ...existingFilters,
+          ...(newValue ? [{ id: filterKey, value: newValue }] : []),
+        ];
+
+        // Update column filters
+        table.setColumnFilters(newFilters);
+      }
+
+      console.log(tableState.table.getState(), "onvalue  change");
+
+      onValueChange?.(newValue);
+    },
+    [tableState, useGlobalFilter, filterKey, onValueChange],
+  );
+
+  return (
+    <PaginationComboBox<TFilter>
+      apiFunction={apiFunction}
+      transform={transform}
+      placeholder={placeholder}
+      value={currentValue}
+      onChange={handleValueChange}
+      className={className}
+      multi={multi}
+      maxVisibleItems={maxVisibleItems}
+      pageSize={pageSize}
+      queryKey={queryKey}
+      additionalFilters={additionalFilters}
+      disabled={disabled}
+      enabled={!disabled}
     />
   );
 }

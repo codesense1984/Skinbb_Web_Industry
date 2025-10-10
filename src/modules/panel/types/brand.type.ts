@@ -38,11 +38,8 @@ export interface CompanyLocationBrand {
   deletedBy: string | null;
   createdAt: string;
   updatedAt: string;
-  // Approval status fields
-  status?: string;
+  // Additional optional fields
   brandStatus?: string;
-  statusChangeReason?: string;
-  statusChangedAt?: string;
 }
 
 export interface CompanyLocationBrandsResponse {
@@ -89,6 +86,8 @@ export interface BrandListParams {
   sortBy?: string;
   order?: string;
   search?: string;
+  companyId?: string;
+  locationId?: string;
 }
 
 // Legacy interface for backward compatibility

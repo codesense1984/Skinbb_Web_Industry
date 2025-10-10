@@ -6,9 +6,14 @@ export type BrandFormData = {
   brand_logo_files: File[];
   brand_logo: string;
 
+  // Company and Location
+  company_id: string;
+  location_id: string;
+
   // Brand Information
   brand_name: string;
   description: string;
+  status: string;
   total_skus: string;
   marketing_budget: string;
   product_category: string;
@@ -70,9 +75,14 @@ export const defaultValues: BrandFormData = {
   brand_logo_files: [],
   brand_logo: "",
 
+  // Company and Location
+  company_id: "",
+  location_id: "",
+
   // Brand Information
   brand_name: "",
   description: "",
+  status: "active",
   total_skus: "",
   marketing_budget: "",
   product_category: "",
@@ -134,6 +144,29 @@ export const brandFormSchema: BrandFormSchema = {
     },
   ],
 
+  company_location: [
+    {
+      type: "select",
+      name: "company_id",
+      label: "Company",
+      placeholder: "Select company",
+      options: [], // Will be populated dynamically
+      rules: {
+        required: "Company is required",
+      },
+    },
+    {
+      type: "select",
+      name: "location_id",
+      label: "Location",
+      placeholder: "Select location",
+      options: [], // Will be populated dynamically
+      rules: {
+        required: "Location is required",
+      },
+    },
+  ],
+
   brand_information: [
     {
       type: "text",
@@ -150,6 +183,16 @@ export const brandFormSchema: BrandFormSchema = {
       label: "Description",
       placeholder: "Enter brand description",
       className: "col-span-full",
+    },
+    {
+      type: "select",
+      name: "status",
+      label: "Status",
+      placeholder: "Select status",
+      options: [
+        { label: "Active", value: "active" },
+        { label: "Inactive", value: "inactive" },
+      ],
     },
     {
       type: "text",

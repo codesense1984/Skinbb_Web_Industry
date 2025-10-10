@@ -232,6 +232,44 @@ export const panelRoutes: RouteObject = {
       ),
     },
 
+    // master data - product attributes
+    {
+      path: PANEL_ROUTES.MASTER.PRODUCT_ATTRIBUTE,
+      Component: lazy(
+        () => import("@/modules/panel/features/master/product_attributes/list/index"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.MASTER.PRODUCT_ATTRIBUTE_CREATE,
+      Component: lazy(
+        () => import("@/modules/panel/features/master/product_attributes/create/index"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.MASTER.PRODUCT_ATTRIBUTE_EDIT(),
+      Component: lazy(
+        () => import("@/modules/panel/features/master/product_attributes/edit/index"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.MASTER.PRODUCT_ATTRIBUTE_VIEW(),
+      Component: lazy(
+        () => import("@/modules/panel/features/master/product_attributes/view/index"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.MASTER.PRODUCT_ATTRIBUTE_VALUES(),
+      Component: lazy(
+        () => import("@/modules/panel/features/master/product_attributes/values/list"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.MASTER.PRODUCT_ATTRIBUTE_VALUE_CREATE(),
+      Component: lazy(
+        () => import("@/modules/panel/features/master/product_attributes/values/create/index"),
+      ),
+    },
+
     // master data - discount coupons
     {
       path: PANEL_ROUTES.MASTER.DISCOUNT_COUPON,
@@ -315,6 +353,12 @@ export const panelRoutes: RouteObject = {
       path: PANEL_ROUTES.LISTING.CREATE,
       Component: lazy(
         () => import("@/modules/panel/features/listing/ProductCreate"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.LISTING.CATALOG,
+      Component: lazy(
+        () => import("@/modules/panel/features/listing/AddCatalog"),
       ),
     },
 

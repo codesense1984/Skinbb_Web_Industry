@@ -3,9 +3,9 @@ import { Button } from "@/core/components/ui/button";
 import { StatusBadge } from "@/core/components/ui/badge";
 import { formatDate } from "@/core/utils";
 import { SELLER_ROUTES } from "@/modules/seller/routes/constant";
-import { CompanyUserResponse } from "@/modules/panel/services/http/company.service";
+import type { CompanyUserResponse } from "@/modules/panel/services/http/company.service";
 import { EyeIcon, PencilIcon } from "@heroicons/react/24/outline";
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { NavLink } from "react-router";
 
 // Avatar component for user initials
@@ -108,13 +108,13 @@ export const columns: ColumnDef<CompanyUserResponse>[] = [
     },
   },
   {
-    accessorKey: "isActive",
+    accessorKey: "status",
     header: "Status",
     cell: ({ row }) => {
-      const isActive = row.original.isActive;
+      const status = row.original.status;
       return (
-        <StatusBadge status={isActive ? "active" : "inactive"}>
-          {isActive ? "Active" : "Inactive"}
+        <StatusBadge status={status || ""} module="company_user">
+          {status || "Unknown"}
         </StatusBadge>
       );
     },

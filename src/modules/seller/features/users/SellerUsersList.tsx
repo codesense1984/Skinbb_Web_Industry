@@ -4,11 +4,12 @@ import { Card, CardContent } from "@/core/components/ui/card";
 import { Input } from "@/core/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/components/ui/select";
 import { PageContent } from "@/core/components/ui/structure";
-import { formatDate, formatNumber } from "@/core/utils";
+import { formatNumber } from "@/core/utils";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
+import { hasAccess } from "@/modules/auth/components/guard";
 import { SELLER_ROUTES } from "@/modules/seller/routes/constant";
 import { apiGetCompanyUsers, type CompanyUsersParams } from "@/modules/panel/services/http/company.service";
-import { PlusIcon, UserGroupIcon, CheckCircleIcon, XCircleIcon, CalendarIcon } from "@heroicons/react/24/outline";
+import { PlusIcon, UserGroupIcon, CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/outline";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { columns } from "./data";
@@ -38,7 +39,7 @@ interface UserStats {
 const SellerUsersList: React.FC = () => {
   const navigate = useNavigate();
   const { id: companyId } = useParams();
-  const { hasAccess } = useAuth();
+  const { role, permissions } = useAuth();
 
   // State for filters
   const [filters, setFilters] = useState({
@@ -71,8 +72,8 @@ const SellerUsersList: React.FC = () => {
       const response = await apiGetCompanyUsers(companyId, {});
       const users = response.data.items || [];
       
-      const activeUsers = users.filter(user => user.isActive).length;
-      const inactiveUsers = users.filter(user => !user.isActive).length;
+      const activeUsers = users.filter(user => user.status === "active").length;
+      const inactiveUsers = users.filter(user => user.status === "inactive").length;
       const totalUsers = users.length;
 
       setStats([
@@ -116,8 +117,8 @@ const SellerUsersList: React.FC = () => {
   };
 
   // Check permissions
-  const canCreate = hasAccess({ page: "USERS", action: ["CREATE"] });
-  const canView = hasAccess({ page: "USERS", action: ["VIEW"] });
+  const canCreate = hasAccess({ userRole: role, userPermissions: permissions, page: "USERS", actions: ["CREATE"] });
+  const canView = hasAccess({ userRole: role, userPermissions: permissions, page: "USERS", actions: ["VIEW"] });
 
   if (!canView) {
     return (
@@ -190,6 +191,7 @@ const SellerUsersList: React.FC = () => {
                 <Select
                   value={filters.status}
                   onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}
+                  options={[]}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="All Status" />
@@ -208,6 +210,7 @@ const SellerUsersList: React.FC = () => {
                 <Select
                   value={filters.roleId}
                   onValueChange={(value) => setFilters(prev => ({ ...prev, roleId: value }))}
+                  options={[]}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="All Roles" />
@@ -227,6 +230,7 @@ const SellerUsersList: React.FC = () => {
                 <Select
                   value={filters.locationId}
                   onValueChange={(value) => setFilters(prev => ({ ...prev, locationId: value }))}
+                  options={[]}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="All Locations" />
@@ -244,6 +248,7 @@ const SellerUsersList: React.FC = () => {
                 <Select
                   value={filters.brandId}
                   onValueChange={(value) => setFilters(prev => ({ ...prev, brandId: value }))}
+                  options={[]}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="All Brands" />
@@ -258,7 +263,7 @@ const SellerUsersList: React.FC = () => {
 
             {/* Filter Actions */}
             <div className="mt-4 flex justify-end">
-              <Button variant="outline" onClick={clearFilters}>
+              <Button variant="outlined" onClick={clearFilters}>
                 Clear Filters
               </Button>
             </div>
@@ -271,11 +276,7 @@ const SellerUsersList: React.FC = () => {
             <DataTable
               fetcher={fetcher(companyId)}
               columns={columns}
-              filters={filters}
-              searchKey="search"
-              enablePagination
-              enableSorting
-              enableColumnFilters
+              isServerSide={true}
             />
           </CardContent>
         </Card>

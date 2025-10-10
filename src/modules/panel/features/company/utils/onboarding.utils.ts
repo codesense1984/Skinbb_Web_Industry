@@ -157,6 +157,35 @@ export function getCompanySchema(
  * @returns The transformed data in the format expected by the API
  * @throws Error if formData is not provided
  */
+// Function to upload files and get URLs
+// export async function uploadFormFiles(formData: FullCompanyFormType): Promise<{
+//   logoUrl?: string;
+//   brandLogoUrl?: string;
+// }> {
+//   const uploadResults: { logoUrl?: string; brandLogoUrl?: string } = {};
+
+//   try {
+//     // Upload company logo
+//     if (formData.logo_files && formData.logo_files.length > 0) {
+//       const logoFile = formData.logo_files[0];
+//       const logoResponse = await apiUploadMedia(logoFile);
+//       uploadResults.logoUrl = logoResponse.data.url;
+//     }
+
+//     // Upload brand logo
+//     if (formData.brand_logo_files && formData.brand_logo_files.length > 0) {
+//       const brandLogoFile = formData.brand_logo_files[0];
+//       const brandLogoResponse = await apiUploadMedia(brandLogoFile);
+//       uploadResults.brandLogoUrl = brandLogoResponse.data.url;
+//     }
+//   } catch (error) {
+//     console.error("Error uploading files:", error);
+//     throw new Error("Failed to upload files. Please try again.");
+//   }
+
+//   return uploadResults;
+// }
+
 export function transformFormDataToApiRequest(
   formData: FullCompanyFormType,
   roleId: string = DEFAULT_ROLE_ID,
@@ -201,7 +230,7 @@ export function transformFormDataToApiRequest(
     ownerEmail: safeString(formData.email),
     phoneNumber: safeString(formData.phoneNumber),
     designation: safeString(formData.designation),
-    roleId,
+    // roleId,
     companyName: safeString(formData.companyName),
     companyDescription:
       safeString(formData.description) || "Company description not provided",

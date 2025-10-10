@@ -107,7 +107,7 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
   index,
   isExpanded,
   onViewBrands,
-  onViewProducts: _onViewProducts,
+  onViewProducts,
   onViewLocation,
   onEditLocation,
 }) => {
@@ -222,28 +222,32 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                       },
                     ]
                   : []),
-                // ...(onViewProducts
-                //   ? [
-                //       {
-                //         type: "item" as const,
-                //         onClick: () => {
-                //           onViewProducts(companyId, locationId || "");
-                //         },
-                //         children: (
-                //           <>
-                //             <DocumentTextIcon />
-                //             View Products
-                //           </>
-                //         ),
-                //       },
-                //     ]
-                //   : []),
+                ...(![
+                  STATUS_MAP.company.pending.value,
+                  STATUS_MAP.company.rejected.value,
+                ].includes(address.status || "") && onViewProducts
+                  ? [
+                      {
+                        type: "item" as const,
+                        onClick: () => {
+                          onViewProducts(companyId, locationId || "");
+                        },
+                        children: (
+                          <>
+                            <DocumentTextIcon />
+                            View Products
+                          </>
+                        ),
+                      },
+                    ]
+                  : []),
               ]}
             >
               <Button variant="ghost" size="icon">
                 <EllipsisVerticalIcon />
               </Button>
             </DropdownMenu>
+            {/* {onViewLocation && address.status === "pending" && (
             {/* {onViewLocation && address.status === "pending" && (
               <Button
                 onClick={(e) => {
@@ -345,12 +349,12 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                 <InfoItem
                   icon={<MapPinIcon className="h-5 w-5" />}
                   label="Country"
-                  value={location.country}
+                  value={location.country || "-"}
                 />
                 <InfoItem
                   icon={<MapPinIcon className="h-5 w-5" />}
                   label="State"
-                  value={location.state}
+                  value={location.state || "-"}
                 />
                 <InfoItem
                   icon={<MapPinIcon className="h-5 w-5" />}
@@ -548,7 +552,56 @@ export const CompanyViewCore: React.FC<CompanyViewCoreProps> = ({
     title: "Company Details",
     description: "View comprehensive company information and addresses",
     actions: showViewUsersAction && (
-      <div className="ml-6 flex-shrink-0">
+      <div className="ml-6 flex flex-shrink-0 gap-3">
+        <Button
+          onClick={() => {
+            // Get the primary location ID from company data
+            const primaryLocation = company?.addresses?.find(
+              (addr) => addr.isPrimary,
+            );
+            if (primaryLocation) {
+              const locationId = primaryLocation.addressId;
+              // Navigate to company-location-brand route
+              navigate(
+                PANEL_ROUTES.COMPANY_LOCATION.BRANDS(companyId, locationId),
+              );
+            } else {
+              // Fallback to general brand list with company and location context
+              const firstLocation = company?.addresses?.[0];
+              const locationId = firstLocation?.addressId;
+              if (locationId) {
+                navigate(
+                  `${PANEL_ROUTES.BRAND.LIST}?companyId=${companyId}&locationId=${locationId}`,
+                );
+              } else {
+                navigate(`${PANEL_ROUTES.BRAND.LIST}?companyId=${companyId}`);
+              }
+            }
+          }}
+          variant="outlined"
+          className="border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="mr-2 h-4 w-4"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z"
+            />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M6 6h.008v.008H6V6Z"
+            />
+          </svg>
+          View Brands
+        </Button>
         <Button
           onClick={() => handleViewUsers(companyId)}
           variant="outlined"

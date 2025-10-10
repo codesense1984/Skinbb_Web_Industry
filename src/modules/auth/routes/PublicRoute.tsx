@@ -5,7 +5,6 @@ import { useAuth } from "../hooks/useAuth";
 
 const PublicRoute = () => {
   const { isLoggedIn } = useAuth();
-  console.log("public route run");
 
   if (isLoggedIn) {
     return <Navigate to={ROUTES.DASHBOARD} replace />;

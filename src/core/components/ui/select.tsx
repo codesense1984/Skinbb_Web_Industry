@@ -261,7 +261,7 @@ const Select: React.FC<SelectProps> = ({
             <SelectItem key={option[optionValue]} value={option[optionValue]}>
               {option[optionLabel]}
             </SelectItem>
-          ))}
+          )) || []}
         </SelectGroup>
       </SelectContent>
     </SelectRoot>

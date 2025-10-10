@@ -106,6 +106,27 @@ export async function apiGetBrandList<T, U extends Record<string, unknown>>(
   return api.get<T>(ENDPOINTS.BRAND.MAIN_ALL, { params });
 }
 
+// Get companies for dropdown filter
+export async function apiGetCompaniesForFilter<
+  T,
+  U extends Record<string, unknown>,
+>(params: U) {
+  return api.get<T>(ENDPOINTS.COMPANY.MAIN, { params });
+}
+
+// Get locations for a specific company
+export async function apiGetCompanyLocations<T>(
+  companyId: string,
+  params?: {
+    userId?: string;
+    page?: number;
+    limit?: number;
+  },
+  signal?: AbortSignal,
+) {
+  return api.get<T>(ENDPOINTS.COMPANY.LOCATION(companyId), { params, signal });
+}
+
 // export async function apiCreateBrand(data: BrandReqData) {
 //   return api.post<BrandResData>(endpointConfig.brand, data);
 //     url: endpointConfig.brand,
