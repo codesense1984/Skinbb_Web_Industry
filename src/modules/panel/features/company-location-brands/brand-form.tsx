@@ -29,13 +29,9 @@ import {
 // Default values function with parameters
 export const getDefaultValues = (
   brandData?: CompanyLocationBrand | null,
-  companyId?: string,
-  locationId?: string,
 ): BrandFormData => {
   return {
     _id: brandData?._id || "",
-    company_id: companyId || "",
-    location_id: locationId || "",
     name: brandData?.name || "",
     aboutTheBrand: brandData?.aboutTheBrand || "",
     websiteUrl: brandData?.websiteUrl || "",
@@ -62,8 +58,6 @@ interface BrandFormProps {
   defaultValues?: BrandFormData;
   onSubmit: (data: BrandFormData) => void;
   submitting?: boolean;
-  companyOptions?: Array<{ label: string; value: string }>;
-  locationOptions?: Array<{ label: string; value: string }>;
 }
 
 const BrandForm = ({
@@ -71,8 +65,6 @@ const BrandForm = ({
   defaultValues,
   onSubmit,
   submitting = false,
-  companyOptions = [],
-  locationOptions = [],
 }: BrandFormProps) => {
   const form = useForm<BrandFormData>({
     resolver: zodResolver(brandFormSchema),
@@ -189,11 +181,6 @@ const BrandForm = ({
                     })}
                   />
                 </div>
-                <FormFieldsRenderer<BrandFormData>
-                  control={control}
-                  fieldConfigs={brandSchema.company_location({ mode, companyOptions, locationOptions })}
-                  className="lg:grid-cols-2"
-                />
                 <FormFieldsRenderer<BrandFormData>
                   control={control}
                   fieldConfigs={brandSchema.basic_information({ mode })}

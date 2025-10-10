@@ -188,8 +188,7 @@ export function getCompanySchema(
 
 export function transformFormDataToApiRequest(
   formData: FullCompanyFormType,
-  // roleId: string = DEFAULT_ROLE_ID,
-  // uploadedFiles?: { logoUrl?: string; brandLogoUrl?: string },
+  roleId: string = DEFAULT_ROLE_ID,
 ): CompanyOnboardingSubmitRequest {
   if (!formData) {
     throw new Error("Form data is required");
@@ -233,7 +232,8 @@ export function transformFormDataToApiRequest(
     designation: safeString(formData.designation),
     // roleId,
     companyName: safeString(formData.companyName),
-    companyDescription: safeString(formData.description),
+    companyDescription:
+      safeString(formData.description) || "Company description not provided",
     businessType: safeString(formData.businessType),
     headquartersAddress: safeString(formData.headquarterLocation),
     establishedIn: formData.establishedIn
@@ -301,6 +301,8 @@ export function transformFormDataToApiRequest(
     apiData.password = password;
   }
 
+  // Merge files directly into the data object
+  // Company logo files - API expects string URL, not File array
   if (formData?.logo_files) {
     // For now, we'll use the first file's name as a placeholder
     // In a real implementation, you'd upload the file and get a URL
@@ -310,19 +312,6 @@ export function transformFormDataToApiRequest(
   if (formData.brand_logo_files) {
     apiData.brandLogo = formData.brand_logo_files || "";
   }
-
-  // Use uploaded file URLs if available, otherwise use form data
-  // if (uploadedFiles?.logoUrl) {
-  //   apiData.logo = uploadedFiles.logoUrl;
-  // } else if (formData?.logo) {
-  //   apiData.logo = formData.logo;
-  // }
-
-  // if (uploadedFiles?.brandLogoUrl) {
-  //   apiData.brandLogo = uploadedFiles.brandLogoUrl;
-  // } else if (formData.brand_logo) {
-  //   apiData.brandLogo = formData.brand_logo;
-  // }
 
   // Document files - API expects single File objects
   if (gstDoc?.url_files) {

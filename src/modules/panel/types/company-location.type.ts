@@ -10,14 +10,11 @@ export interface CompanyLocation {
   addressType: "office" | "warehouse" | "registered";
   gstNumber: string;
   panNumber: string;
-  cinNumber: string;
-  msmeNumber: string;
   panDocument: string;
   gstDocument: string;
   coiCertificate: string;
   msmeCertificate: string;
   addressLine1: string;
-  addressLine2?: string;
   landmark: string;
   city: string;
   state: string;
@@ -26,10 +23,6 @@ export interface CompanyLocation {
   phoneNumber?: string;
   isPrimary: boolean;
   status: CompanyLocationStatus;
-  statusChangeReason?: string;
-  statusChangedAt?: string;
-  lat?: number;
-  lng?: number;
   brands?: unknown[]; // Brands associated with this location
   createdAt: string;
   updatedAt: string;

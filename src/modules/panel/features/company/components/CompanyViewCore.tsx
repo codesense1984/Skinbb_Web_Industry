@@ -15,6 +15,7 @@ import {
 import { DropdownMenu } from "@/core/components/ui/dropdown-menu";
 import { PageContent } from "@/core/components/ui/structure";
 import { STATUS_MAP } from "@/core/config/status";
+import { LocationService } from "@/core/services/location.service";
 import { formatDate } from "@/core/utils";
 import { hasAccess } from "@/modules/auth/components/guard";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
@@ -91,14 +92,6 @@ interface LocationAccordionItemProps {
     landmark?: string;
     isPrimary: boolean;
     status?: string;
-    cinNumber?: string;
-    coiCertificate?: string;
-    panDocument?: string;
-    gstDocument?: string;
-    msmeCertificate?: string;
-    msmeNumber?: string;
-    panNumber?: string;
-    gstNumber?: string;
   };
   companyId: string;
   index: number;
@@ -256,6 +249,7 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
               </Button>
             </DropdownMenu>
             {/* {onViewLocation && address.status === "pending" && (
+            {/* {onViewLocation && address.status === "pending" && (
               <Button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -405,7 +399,7 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                       <InfoItem
                         icon={<DocumentTextIcon className="h-5 w-5" />}
                         label="COI Certificate"
-                        value={location.cinNumber ?? "-"}
+                        value="Certificate Available"
                         className="rounded-lg border p-3"
                       >
                         <Link

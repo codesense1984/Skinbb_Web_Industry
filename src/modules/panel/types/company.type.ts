@@ -198,7 +198,6 @@ export interface CompanyDetailResponse {
   _id: string;
   ownerUserId: string;
   companyName: string;
-  logo?: string; // Company logo
   establishedIn: string;
   businessType: "public" | "private";
   companyCategory: "principal" | "subsidiary";
