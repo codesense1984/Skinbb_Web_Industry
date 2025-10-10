@@ -340,8 +340,8 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                 />
                 <InfoItem
                   icon={<PhoneIcon className="h-5 w-5" />}
-                  label="Phone"
-                  value={location.phoneNumber || "-"}
+                  label="Landline"
+                  value={location.landlineNumber || location.phoneNumber || "Not available"}
                 />
                 <InfoItem
                   icon={<MapPinIcon className="h-5 w-5" />}

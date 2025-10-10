@@ -1,6 +1,6 @@
 import { Avatar } from "@/core/components/ui/avatar";
 import { Badge, StatusBadge } from "@/core/components/ui/badge";
-import { capitalize, formatDate } from "@/core/utils";
+import { formatDate } from "@/core/utils";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import type {
   CompanyList,
@@ -153,7 +153,7 @@ export const columns: ColumnDef<CompanyListItem>[] = [
           />
         }
         <span className="break-all">
-          {capitalize(row.original.companyName)}
+          {row.original.companyName.toUpperCase()}
         </span>
       </div>
     ),

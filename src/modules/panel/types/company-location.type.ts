@@ -21,6 +21,7 @@ export interface CompanyLocation {
   postalCode: string;
   country: string;
   phoneNumber?: string;
+  landlineNumber?: string;
   isPrimary: boolean;
   status: CompanyLocationStatus;
   brands?: unknown[]; // Brands associated with this location
