@@ -5,9 +5,7 @@ import {
   apiGetCompanyLocationBrandById,
   apiUpdateBrandStatus,
   type BrandStatusUpdateRequest,
-  apiGetCompanyDetailById,
 } from "@/modules/panel/services/http/company.service";
-import { apiGetCompanyLocationById } from "@/modules/panel/services/http/company-location.service";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import BrandForm, { getDefaultValues } from "./brand-form";
@@ -54,26 +52,6 @@ export const BrandPageWrapper = ({
 
   const { userId } = useAuth();
   const [isApprovalDialogOpen, setIsApprovalDialogOpen] = useState(false);
-
-  // Fetch company data
-  const {
-    data: companyData,
-    isLoading: isLoadingCompany,
-  } = useQuery({
-    queryKey: [ENDPOINTS.COMPANY.DETAIL(companyId!)],
-    queryFn: () => apiGetCompanyDetailById(companyId!, userId!),
-    enabled: !!companyId && !!userId,
-  });
-
-  // Fetch location data
-  const {
-    data: locationData,
-    isLoading: isLoadingLocation,
-  } = useQuery({
-    queryKey: [ENDPOINTS.COMPANY.LOCATION_DETAILS(companyId!, locationId!)],
-    queryFn: () => apiGetCompanyLocationById(companyId!, locationId!),
-    enabled: !!companyId && !!locationId,
-  });
 
   // Fetch brand data for edit mode
   const {
@@ -125,9 +103,7 @@ export const BrandPageWrapper = ({
   }
 
   const defaultValues =
-    mode !== MODE.ADD 
-      ? getDefaultValues(brandData?.data, companyId, locationId) 
-      : getDefaultValues(undefined, companyId, locationId);
+    mode !== MODE.ADD ? getDefaultValues(brandData?.data) : undefined;
 
   return (
     <PageContent
@@ -168,8 +144,6 @@ export const BrandPageWrapper = ({
         defaultValues={defaultValues}
         onSubmit={onSubmit || (() => {})}
         submitting={submitting}
-        companyOptions={companyData?.data ? [{ label: companyData.data.companyName, value: companyId! }] : []}
-        locationOptions={locationData?.data ? [{ label: `${locationData.data.city}, ${locationData.data.state}`, value: locationId! }] : []}
       />
       <BrandApprovalDialog
         isOpen={isApprovalDialogOpen}

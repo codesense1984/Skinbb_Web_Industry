@@ -1,6 +1,5 @@
 import { MODE } from "@/core/types";
 import { formatDateForApi } from "@/core/utils";
-import { apiUploadMedia } from "@/modules/panel/services/http/media.service";
 import type {
   CompanyOnboading,
   CompanyOnboardingSubmitRequest,
@@ -158,39 +157,9 @@ export function getCompanySchema(
  * @returns The transformed data in the format expected by the API
  * @throws Error if formData is not provided
  */
-// Function to upload files and get URLs
-export async function uploadFormFiles(formData: FullCompanyFormType): Promise<{
-  logoUrl?: string;
-  brandLogoUrl?: string;
-}> {
-  const uploadResults: { logoUrl?: string; brandLogoUrl?: string } = {};
-
-  try {
-    // Upload company logo
-    if (formData.logo_files && formData.logo_files.length > 0) {
-      const logoFile = formData.logo_files[0];
-      const logoResponse = await apiUploadMedia(logoFile);
-      uploadResults.logoUrl = logoResponse.data.url;
-    }
-
-    // Upload brand logo
-    if (formData.brand_logo_files && formData.brand_logo_files.length > 0) {
-      const brandLogoFile = formData.brand_logo_files[0];
-      const brandLogoResponse = await apiUploadMedia(brandLogoFile);
-      uploadResults.brandLogoUrl = brandLogoResponse.data.url;
-    }
-  } catch (error) {
-    console.error("Error uploading files:", error);
-    throw new Error("Failed to upload files. Please try again.");
-  }
-
-  return uploadResults;
-}
-
 export function transformFormDataToApiRequest(
   formData: FullCompanyFormType,
   roleId: string = DEFAULT_ROLE_ID,
-  uploadedFiles?: { logoUrl?: string; brandLogoUrl?: string },
 ): CompanyOnboardingSubmitRequest {
   if (!formData) {
     throw new Error("Form data is required");
@@ -234,7 +203,8 @@ export function transformFormDataToApiRequest(
     designation: safeString(formData.designation),
     roleId,
     companyName: safeString(formData.companyName),
-    companyDescription: safeString(formData.description),
+    companyDescription:
+      safeString(formData.description) || "Company description not provided",
     businessType: safeString(formData.businessType),
     headquartersAddress: safeString(formData.headquarterLocation),
     establishedIn: formData.establishedIn
@@ -302,17 +272,16 @@ export function transformFormDataToApiRequest(
     apiData.password = password;
   }
 
-  // Use uploaded file URLs if available, otherwise use form data
-  if (uploadedFiles?.logoUrl) {
-    apiData.logo = uploadedFiles.logoUrl;
-  } else if (formData?.logo) {
-    apiData.logo = formData.logo;
+  // Merge files directly into the data object
+  // Company logo files - API expects string URL, not File array
+  if (formData?.logo_files) {
+    // For now, we'll use the first file's name as a placeholder
+    // In a real implementation, you'd upload the file and get a URL
+    apiData.logo = formData?.logo_files;
   }
 
-  if (uploadedFiles?.brandLogoUrl) {
-    apiData.brandLogo = uploadedFiles.brandLogoUrl;
-  } else if (formData.brand_logo) {
-    apiData.brandLogo = formData.brand_logo;
+  if (formData.brand_logo_files) {
+    apiData.brandLogo = formData.brand_logo_files || "";
   }
 
   // Document files - API expects single File objects

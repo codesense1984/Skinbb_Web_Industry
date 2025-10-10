@@ -25,6 +25,12 @@ export const panelRoutes: RouteObject = {
       ),
     },
     {
+      path: PANEL_ROUTES.BRAND.VIEW(),
+      Component: lazy(
+        () => import("@/modules/panel/features/brands/brand-form"),
+      ),
+    },
+    {
       path: PANEL_ROUTES.BRAND.EDIT(),
       Component: lazy(
         () => import("@/modules/panel/features/brands/brand-form"),
@@ -82,12 +88,6 @@ export const panelRoutes: RouteObject = {
       path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_VIEW(),
       Component: lazy(
         () => import("@/modules/panel/features/company-location-brands/view"),
-      ),
-    },
-    {
-      path: PANEL_ROUTES.BRAND.VIEW(),
-      Component: lazy(
-        () => import("@/modules/panel/features/brands/brand-form"),
       ),
     },
     {
