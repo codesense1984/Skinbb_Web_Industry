@@ -453,37 +453,26 @@ export function DataTableAction<TData>({
   return (
     <div
       className={cn(
-        "flex w-full flex-wrap items-center gap-2 md:gap-4",
+        "flex w-full items-center justify-between gap-4 p-4",
         className,
       )}
       {...props}
     >
-      {tableHeading && <h5 className="table-heading flex-1">{tableHeading}</h5>}
-      {/* <div className="flex flex-wrap gap-2 md:gap-4"> */}
-      <Input
-        startIcon={<MagnifyingGlassIcon />}
-        placeholder="Search by..."
-        onChange={(event) => table?.setGlobalFilter(event.target.value)}
-        className="max-w-72"
-        containerProps={{
-          className: !tableHeading ? "flex-1" : "",
-        }}
-        aria-label="Search table content"
-      />
-
-      {children}
-      {showColumnsFilter && columnFilter()}
-      {/* {viewMode === DataViewMode.list && } */}
-      {/* {showViewToggle && (
-          <Button variant={"outlined"} size={"icon"} onClick={toggleViewMode}>
-            {viewMode !== DataViewMode.grid ? (
-              <TableCellsIcon />
-            ) : (
-              <Squares2X2Icon />
-            )}
-          </Button>
-        )} */}
-      {/* </div> */}
+      <div className="flex items-center gap-4">
+        {tableHeading && <h5 className="table-heading">{tableHeading}</h5>}
+        <Input
+          startIcon={<MagnifyingGlassIcon />}
+          placeholder="Search by..."
+          onChange={(event) => table?.setGlobalFilter(event.target.value)}
+          className="max-w-72"
+          aria-label="Search table content"
+        />
+        {children}
+      </div>
+      
+      <div className="flex items-center gap-2">
+        {showColumnsFilter && columnFilter()}
+      </div>
     </div>
   );
 }

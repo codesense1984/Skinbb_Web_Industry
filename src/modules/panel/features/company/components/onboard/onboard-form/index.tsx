@@ -108,9 +108,11 @@ export const useOnBoardContext = () => {
 const OnBoardForm = ({
   mode = MODE.ADD,
   initialData,
+  isLocationEdit = false,
 }: {
   mode?: MODE;
   initialData?: CompanyOnboading;
+  isLocationEdit?: boolean;
 }) => {
   const navigate = useNavigate();
 
@@ -129,7 +131,7 @@ const OnBoardForm = ({
     areAllStepsCompleted,
     onFinish,
     onConfirm,
-  } = useOnboardingForm({ mode, initialData });
+  } = useOnboardingForm({ mode, initialData, isLocationEdit });
 
   const currentItem = useMemo(
     () =>

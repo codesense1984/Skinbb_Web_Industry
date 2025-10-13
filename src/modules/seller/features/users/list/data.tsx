@@ -53,19 +53,19 @@ export const columns: ColumnDef<CompanyUserResponse>[] = [
       );
     },
   },
-  {
-    accessorKey: "status",
-    header: "Status",
-    size: 100,
-    cell: ({ row }) => {
-      return (
-        <StatusBadge
-          status={row.original?.status || ""}
-          module="company_user"
-        />
-      );
-    },
-  },
+  // {
+  //   accessorKey: "status",
+  //   header: "Status",
+  //   size: 100,
+  //   cell: ({ row }) => {
+  //     return (
+  //       <StatusBadge
+  //         status={row.original?.status || ""}
+  //         module="company_user"
+  //       />
+  //     );
+  //   },
+  // },
   {
     accessorKey: "createdAt",
     header: "Joined",

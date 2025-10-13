@@ -8,20 +8,21 @@ import { apiGetOrderList } from "@/modules/panel/services/http/order.service";
 import type { Order } from "@/modules/panel/types/order.type";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
-import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
+import { SELLER_ROUTES } from "../../routes/constant";
+import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth";
 import { BrandFilter } from "@/modules/panel/features/listing/components/BrandFilter";
-import { CompanyFilter } from "@/modules/panel/features/listing/components/CompanyFilter";
 
-// Create fetcher with company and brand filtering
-const createOrderFetcher = (companyId?: string, brandId?: string) => {
+// Create fetcher for server-side data with seller's company ID and brand filtering
+const createSellerOrderFetcher = (companyId: string, brandId?: string) => {
   return createSimpleFetcher(
     (params: Record<string, unknown>) => {
+      // Always filter by seller's company ID
       const filterParams = {
         ...params,
-        ...(companyId && companyId !== "all" && { companyId }),
+        companyId, // Always include seller's company ID
         ...(brandId && brandId !== "all" && { brandId: brandId }),
       };
-      console.log("🔍 Admin Order Filter Params:", filterParams);
+      console.log("🔍 Seller Order Filter Params:", filterParams);
       return apiGetOrderList(filterParams);
     },
     {
@@ -31,25 +32,18 @@ const createOrderFetcher = (companyId?: string, brandId?: string) => {
         status: "status",
         paymentMethod: "paymentMethod",
         brand: "brandId",
-        companyId: "companyId",
       },
     }
   );
 };
 
-const OrderList = () => {
+const SellerOrderList = () => {
   const navigate = useNavigate();
-  const [selectedCompanyId, setSelectedCompanyId] = useState<string>("all");
+  const { sellerInfo } = useSellerAuth();
   const [selectedBrandId, setSelectedBrandId] = useState<string>("all");
 
   const handleViewOrder = (id: string) => {
-    navigate(PANEL_ROUTES.ORDER.VIEW(id));
-  };
-
-  const handleCompanyChange = (companyId: string) => {
-    setSelectedCompanyId(companyId);
-    // Reset brand filter when company changes
-    setSelectedBrandId("all");
+    navigate(SELLER_ROUTES.ORDERS.VIEW(id));
   };
 
   const handleBrandChange = (brandId: string) => {
@@ -166,40 +160,48 @@ const OrderList = () => {
     [handleViewOrder, handleDeleteOrder],
   );
 
+  // Don't render if seller info is not available
+  if (!sellerInfo?.companyId) {
+    return (
+      <PageContent
+        header={{
+          title: "Orders",
+          description: "Manage and track your customer orders",
+        }}
+      >
+        <div className="text-center py-8">
+          <p className="text-gray-500">Loading seller information...</p>
+        </div>
+      </PageContent>
+    );
+  }
+
   return (
     <PageContent
       header={{
         title: "Orders",
-        description: "Manage and track all customer orders",
+        description: "Manage and track your customer orders",
       }}
     >
       <div className="w-full">
         <DataTable
           columns={columns}
           isServerSide
-          fetcher={createOrderFetcher(
-            selectedCompanyId === "all" ? undefined : selectedCompanyId,
+          fetcher={createSellerOrderFetcher(
+            sellerInfo.companyId,
             selectedBrandId === "all" ? undefined : selectedBrandId
           )}
-          queryKeyPrefix={`order-list-table-${selectedCompanyId}-${selectedBrandId}`}
+          queryKeyPrefix={`seller-order-list-table-${selectedBrandId}`}
           actionProps={() => ({
             children: (
               <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">Company:</span>
-                  <CompanyFilter
-                    value={selectedCompanyId}
-                    onValueChange={handleCompanyChange}
-                    placeholder="All Companies"
-                  />
-                </div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium">Brand:</span>
                   <BrandFilter
                     value={selectedBrandId}
                     onValueChange={handleBrandChange}
                     placeholder="All Brands"
-                    companyId={selectedCompanyId === "all" ? undefined : selectedCompanyId}
+                    companyId={sellerInfo.companyId}
                   />
                 </div>
               </div>
@@ -211,4 +213,4 @@ const OrderList = () => {
   );
 };
 
-export default OrderList;
+export default SellerOrderList;

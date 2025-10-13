@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/core/components/ui/button";
 import { PageContent } from "@/core/components/ui/structure";
@@ -91,18 +91,13 @@ const AddCatalog: React.FC<AddCatalogProps> = ({ isAdminPanel = false }) => {
     // If we have a user but no seller info, we're likely in admin panel
     (user && !sellerInfo);
 
-  // Debug logging
-  console.log("AddCatalog Debug:", {
-    isAdminPanel,
-    pathname: location.pathname,
-    user: !!user,
-    sellerInfo: !!sellerInfo,
-    isAdminContext,
-    includesPanel: location.pathname.includes("/panel/"),
-    includesAdmin: location.pathname.includes("/admin/"),
-    includesSeller: location.pathname.includes("/seller"),
-    includesCompany: location.pathname.includes("/company/"),
-  });
+  // Get seller's primary address and first brand for seller context
+  const getSellerBrandId = useCallback(() => {
+    if (isAdminContext || !sellerInfo) return "";
+    const primaryAddress = sellerInfo.addresses?.find(addr => addr.isPrimary) || sellerInfo.addresses?.[0];
+    return primaryAddress?.brands?.[0]?._id || "";
+  }, [isAdminContext, sellerInfo]);
+
   
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
@@ -110,7 +105,7 @@ const AddCatalog: React.FC<AddCatalogProps> = ({ isAdminPanel = false }) => {
     defaultValues: {
       category: "",
       companyId: isAdminContext ? "" : (params.companyId || sellerInfo?.companyId || ""),
-      brandId: isAdminContext ? "" : (params.brandId || ""),
+      brandId: isAdminContext ? "" : (params.brandId || getSellerBrandId()),
     },
   });
 
@@ -118,6 +113,15 @@ const AddCatalog: React.FC<AddCatalogProps> = ({ isAdminPanel = false }) => {
 
   const watchedCategory = watch("category");
   const watchedCompanyId = watch("companyId");
+
+  // Update form values when sellerInfo changes (for seller context)
+  useEffect(() => {
+    if (!isAdminContext && sellerInfo) {
+      const brandId = getSellerBrandId();
+      setValue("companyId", params.companyId || sellerInfo.companyId || "");
+      setValue("brandId", params.brandId || brandId);
+    }
+  }, [sellerInfo, isAdminContext, params.companyId, params.brandId, setValue, getSellerBrandId]);
 
   // Create fetchers for PaginationComboBox
   const companiesFetcher = createSimpleFetcher(apiGetCompanyList, {

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient, type UseMutationResult } from "@tanstack/react-query";
 import { Button } from "@/core/components/ui/button";
 import { DataTable } from "@/core/components/data-table";
@@ -8,6 +8,7 @@ import { ComboBox } from "@/core/components/ui/combo-box";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/core/components/ui/dialog";
 import { Textarea } from "@/core/components/ui/textarea";
 import { Label } from "@/core/components/ui/label";
+import { PageContent } from "@/core/components/ui/structure";
 import { createSimpleFetcher } from "@/core/components/data-table";
 import { apiGetCatalogList, apiApproveCatalog, apiDownloadCatalog, apiRejectCatalog, type CatalogListParams, type CatalogJob, type CatalogApprovalResponse } from "@/modules/panel/services/http/product.service";
 import { api } from "@/core/services/http";
@@ -16,8 +17,10 @@ import { apiGetBrands } from "@/modules/panel/services/http/brand.service";
 import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
 import { useParams, useLocation } from "react-router";
-import { Download, CheckCircle, XCircle, Settings } from "lucide-react";
+import { Download, CheckCircle, XCircle, Settings, Plus } from "lucide-react";
 import { toast } from "sonner";
+import { NavLink } from "react-router";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 
 interface CatalogListProps {
   isAdminPanel?: boolean;
@@ -187,18 +190,37 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
     location.pathname.includes("/admin/") ||
     (user && !sellerInfo);
 
+  // Get seller's primary address and first brand for seller context
+  const getSellerBrandId = () => {
+    if (isAdminContext || !sellerInfo) return "";
+    const primaryAddress = sellerInfo.addresses?.find(addr => addr.isPrimary) || sellerInfo.addresses?.[0];
+    return primaryAddress?.brands?.[0]?._id || "";
+  };
+
   // Filter states
   const [filters, setFilters] = useState<CatalogListParams>({
     page: 1,
     limit: 10,
     companyId: isAdminContext ? "" : (params.companyId || sellerInfo?.companyId || ""),
-    brandId: isAdminContext ? "" : (params.brandId || ""),
+    brandId: isAdminContext ? "" : (params.brandId || getSellerBrandId()),
     categoryId: "",
     status: undefined,
     validationStatus: undefined,
     sortBy: "createdAt",
     order: "desc",
   });
+
+  // Update filters when sellerInfo changes (for seller context)
+  useEffect(() => {
+    if (!isAdminContext && sellerInfo) {
+      const brandId = getSellerBrandId();
+      setFilters(prev => ({
+        ...prev,
+        companyId: params.companyId || sellerInfo.companyId || "",
+        brandId: params.brandId || brandId,
+      }));
+    }
+  }, [sellerInfo, isAdminContext, params.companyId, params.brandId]);
 
   // Create fetchers for dropdowns (admin only)
   const companiesFetcher = createSimpleFetcher(apiGetCompanyList, {
@@ -493,9 +515,24 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
   // Handle pagination - now handled by DataTable
 
   return (
-    <div className="space-y-4">
+    <PageContent
+      header={{
+        title: "Catalog Management",
+        description: "Manage your product catalogs and bulk uploads",
+        actions: (
+          <div className="flex gap-2">
+            <Button color={"primary"} asChild>
+              <NavLink to={PANEL_ROUTES.LISTING.CATALOG}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Catalog
+              </NavLink>
+            </Button>
+          </div>
+        ),
+      }}
+    >
       {/* Filters */}
-      <div className="bg-muted/30 p-4 rounded-lg">
+      <div className="bg-white p-4 rounded-lg border mb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
             {/* Company Filter (Admin Only) */}
@@ -572,8 +609,8 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
                 <option value="approved">Approved</option>
               </select>
             </div>
-          </div>
         </div>
+      </div>
 
       {/* Data Table */}
       <div className="bg-white rounded-lg border">
@@ -590,7 +627,7 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
           queryKeyPrefix={`catalog-list-${JSON.stringify(filters)}`}
         />
       </div>
-    </div>
+    </PageContent>
   );
 };
 

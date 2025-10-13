@@ -22,7 +22,9 @@ import { PAGE, PERMISSION } from "@/modules/auth/types/permission.type.";
 import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { apiGetCompanyLocationById } from "@/modules/panel/services/http/company-location.service";
-import { apiGetCompanyDetailById } from "@/modules/panel/services/http/company.service";
+import { 
+  apiGetCompanyDetailById,
+} from "@/modules/panel/services/http/company.service";
 import {
   BuildingOfficeIcon,
   CalendarIcon,
@@ -30,6 +32,7 @@ import {
   DocumentTextIcon,
   EllipsisVerticalIcon,
   ExclamationTriangleIcon,
+  GlobeAltIcon,
   LinkIcon,
   MapPinIcon,
   PencilIcon,
@@ -95,6 +98,16 @@ interface LocationAccordionItemProps {
   companyId: string;
   index: number;
   isExpanded: boolean;
+  companyData?: {
+    companyName?: string;
+    businessType?: string;
+    companyCategory?: string;
+    subsidiaryOfGlobalBusiness?: boolean;
+    headquaterLocation?: string;
+    headquartersAddress?: string;
+    website?: string;
+    companyDescription?: string;
+  }; // Add company data prop
   onViewBrands: (companyId: string, locationId: string) => void;
   onViewProducts: (companyId: string, locationId: string) => void;
   onViewLocation?: (companyId: string, locationId: string) => void;
@@ -106,6 +119,7 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
   companyId,
   index,
   isExpanded,
+  companyData,
   onViewBrands,
   onViewProducts,
   onViewLocation,
@@ -129,6 +143,7 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
   });
 
   const location = companyLocationData?.data;
+  const companyDetails = companyData;
 
   return (
     <AccordionItem value={`address-${index}`}>
@@ -386,6 +401,70 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                   value={formatDate(location.createdAt)}
                 />
               </div>
+
+
+              {/* Company Details Section */}
+              {companyDetails && (
+                <Card className="mt-6 shadow-none">
+                  <CardHeader className="border-b">
+                    <CardTitle className="flex items-center gap-2">
+                      <BuildingOfficeIcon className="h-5 w-5" />
+                      Company Details
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                      <InfoItem
+                        icon={<BuildingOfficeIcon className="h-5 w-5" />}
+                        label="Company Name"
+                        value={companyDetails.companyName?.toUpperCase() || "-"}
+                      />
+                      <InfoItem
+                        icon={<TagIcon className="h-5 w-5" />}
+                        label="Business Type"
+                        value={companyDetails.businessType || "-"}
+                      />
+                      <InfoItem
+                        icon={<TagIcon className="h-5 w-5" />}
+                        label="Company Category"
+                        value={companyDetails.companyCategory || "-"}
+                      />
+                      <InfoItem
+                        icon={
+                          companyDetails.subsidiaryOfGlobalBusiness ? (
+                            <CheckCircleIcon className="h-5 w-5" />
+                          ) : (
+                            <XCircleIcon className="h-5 w-5" />
+                          )
+                        }
+                        label="Subsidiary of Global Business"
+                        value={companyDetails.subsidiaryOfGlobalBusiness ? "Yes" : "No"}
+                      />
+                      <InfoItem
+                        icon={<MapPinIcon className="h-5 w-5" />}
+                        label="Headquarters"
+                        value={companyDetails.headquaterLocation || companyDetails.headquartersAddress || "-"}
+                      />
+                      {companyDetails.website && (
+                        <InfoItem
+                          icon={<GlobeAltIcon className="h-5 w-5" />}
+                          label="Company Website"
+                          value={
+                            <a
+                              href={companyDetails.website}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm break-all text-blue-600 hover:text-blue-800"
+                            >
+                              {companyDetails.website}
+                            </a>
+                          }
+                        />
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Documents Section */}
               {(location.coiCertificate ||
@@ -737,6 +816,7 @@ export const CompanyViewCore: React.FC<CompanyViewCoreProps> = ({
                         companyId={companyId}
                         index={index}
                         isExpanded={expandedAddress === `address-${index}`}
+                        companyData={company}
                         onViewBrands={handleViewBrands}
                         onViewProducts={handleViewProducts}
                         onViewLocation={onViewLocation}

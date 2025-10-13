@@ -5,6 +5,7 @@ import { MODE } from "@/core/types";
 import OnboardForm from "../../components/onboard/onboard-form";
 import { apiGetCompanyDetailData } from "@/modules/panel/services/http/company.service";
 import { apiGetCompanyLocationDetail } from "@/modules/panel/services/http/company-location.service";
+import { useAuth } from "@/modules/auth/hooks/useAuth";
 
 /**
  * OnboardEdit Component
@@ -17,6 +18,7 @@ import { apiGetCompanyLocationDetail } from "@/modules/panel/services/http/compa
  */
 const OnboardEdit = () => {
   const { id, locationId } = useParams<{ id: string; locationId: string }>();
+  const { userId } = useAuth();
 
   // Fetch company data for editing
   const {
@@ -25,8 +27,8 @@ const OnboardEdit = () => {
     error,
   } = useQuery({
     queryKey: [PANEL_ROUTES.ONBOARD.COMPANY_EDIT(id!, locationId!)],
-    queryFn: () => apiGetCompanyLocationDetail(id!, locationId!),
-    enabled: !!id && !!locationId,
+    queryFn: () => apiGetCompanyLocationDetail(id!, locationId!, userId!),
+    enabled: !!id && !!locationId && !!userId,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
@@ -79,7 +81,7 @@ const OnboardEdit = () => {
     );
   }
 
-  return <OnboardForm mode={MODE.EDIT} initialData={companyData.company} />;
+  return <OnboardForm mode={MODE.EDIT} initialData={companyData.company} isLocationEdit={true} />;
 };
 
 export default OnboardEdit;

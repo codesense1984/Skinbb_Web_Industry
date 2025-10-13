@@ -361,6 +361,12 @@ export const panelRoutes: RouteObject = {
         () => import("@/modules/panel/features/listing/AddCatalog"),
       ),
     },
+    {
+      path: PANEL_ROUTES.LISTING.CATALOG_LIST,
+      Component: lazy(
+        () => import("@/modules/panel/features/listing/CatalogList"),
+      ),
+    },
 
     // products
     {

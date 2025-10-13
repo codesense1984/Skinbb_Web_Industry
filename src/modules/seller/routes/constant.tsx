@@ -117,6 +117,13 @@ export const SELLER_ROUTES = {
     CREATE: "/listing/create", // /listing/create
   },
 
+  // ---- Seller Catalog Routes (using admin components) ----
+  CATALOG: {
+    BASE: "/catalog", // /catalog (dedicated catalog list)
+    LIST: "/catalog", // /catalog (dedicated catalog list)
+    ADD: "/listing/catalog", // /listing/catalog (admin catalog add)
+  },
+
   // ---- Company Location Products ----
   COMPANY_LOCATION_PRODUCTS: {
     BASE: PRODUCTS_BASE, // /products
@@ -145,7 +152,7 @@ export const SELLER_ROUTES = {
   // ---- Users ----
   USERS: {
     BASE: USERS_BASE, // /company-users
-    LIST: () => `/users`, // /company/:id/users
+    LIST: () => "/users", // /company/:id/users
     VIEW: (companyId: string = ROUTE.seg.id, userId: string = ROUTE.seg.id) =>
       `/company/${companyId}/users/${userId}/view`, // /company/:id/users/:userId/view
     CREATE: (companyId: string = ROUTE.seg.id) =>
@@ -154,11 +161,66 @@ export const SELLER_ROUTES = {
       `/company/${companyId}/users/${userId}/edit`, // /company/:id/users/:userId/edit
   },
 
-  // ---- Analytics - Ecommerce Only ----
+  // ---- Marketing ----
+  MARKETING: {
+    BASE: "/marketing",
+    DISCOUNT_COUPONS: {
+      BASE: "/marketing/discount-coupons",
+      LIST: "/marketing/discount-coupons",
+      CREATE: "/marketing/discount-coupons/create",
+      VIEW: (id: string = ROUTE.seg.id) => `/marketing/discount-coupons/${id}/view`,
+      EDIT: (id: string = ROUTE.seg.id) => `/marketing/discount-coupons/${id}/edit`,
+    },
+    SURVEYS: {
+      BASE: "/marketing/surveys",
+      LIST: "/marketing/surveys",
+      CREATE: "/marketing/surveys/create",
+      VIEW: (id: string = ROUTE.seg.id) => `/marketing/surveys/${id}/view`,
+      EDIT: (id: string = ROUTE.seg.id) => `/marketing/surveys/${id}/edit`,
+    },
+    PROMOTIONS: {
+      BASE: "/marketing/promotions",
+      LIST: "/marketing/promotions",
+      CREATE: "/marketing/promotions/create",
+      VIEW: (id: string = ROUTE.seg.id) => `/marketing/promotions/${id}/view`,
+      EDIT: (id: string = ROUTE.seg.id) => `/marketing/promotions/${id}/edit`,
+    },
+  },
+
+  // ---- Analytics ----
   ANALYTICS: {
-    BASE: "/analytic",
+    BASE: "/analytics",
+    SALES_INSIGHTS: {
+      BASE: "/analytics/sales-insights",
+    },
+    INGREDIENT_INSIGHTS: {
+      BASE: "/analytics/ingredient-insights",
+    },
+    BRAND_INSIGHTS: {
+      BASE: "/analytics/brand-insights",
+    },
+    CUSTOMER_INSIGHTS: {
+      BASE: "/analytics/customer-insights",
+    },
+    MARKET_TRENDS: {
+      BASE: "/analytics/market-trends",
+    },
     ECOMMERCE: {
       BASE: "/analytic/ecommerce",
+    },
+  },
+
+  // ---- User Settings ----
+  USER_SETTINGS: {
+    BASE: "/settings",
+    PROFILE: {
+      BASE: "/settings/profile",
+    },
+    PERMISSIONS: {
+      BASE: "/settings/permissions",
+    },
+    PREFERENCES: {
+      BASE: "/settings/preferences",
     },
   },
 } as const;
