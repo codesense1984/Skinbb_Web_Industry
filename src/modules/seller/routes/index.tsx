@@ -81,7 +81,7 @@ export const sellerRoutes: RouteObject = {
     {
       path: "/orders",
       Component: lazy(
-        () => import("@/modules/panel/features/orders/list"),
+        () => import("@/modules/seller/features/orders/SellerOrderList"),
       ),
     },
     {
@@ -97,10 +97,92 @@ export const sellerRoutes: RouteObject = {
       Component: lazy(() => import("@/modules/seller/features/users/list")),
     },
 
-    // Analytics - Ecommerce Only
+    // Marketing Routes - Seller-specific components
+    {
+      path: SELLER_ROUTES.MARKETING.DISCOUNT_COUPONS.LIST,
+      Component: lazy(() => import("@/modules/seller/features/marketing/DiscountCouponsList")),
+    },
+    {
+      path: SELLER_ROUTES.MARKETING.DISCOUNT_COUPONS.CREATE,
+      Component: lazy(() => import("@/modules/seller/features/marketing/DiscountCouponForm")),
+    },
+    {
+      path: SELLER_ROUTES.MARKETING.DISCOUNT_COUPONS.VIEW(),
+      Component: lazy(() => import("@/modules/seller/features/marketing/DiscountCouponForm")),
+    },
+    {
+      path: SELLER_ROUTES.MARKETING.DISCOUNT_COUPONS.EDIT(),
+      Component: lazy(() => import("@/modules/seller/features/marketing/DiscountCouponForm")),
+    },
+    // TODO: Uncomment when survey functionality is ready
+    // {
+    //   path: SELLER_ROUTES.MARKETING.SURVEYS.LIST,
+    //   Component: lazy(() => import("@/modules/seller/features/marketing/SurveysList")),
+    // },
+    // {
+    //   path: SELLER_ROUTES.MARKETING.SURVEYS.CREATE,
+    //   Component: lazy(() => import("@/modules/survey/features/market-research-create")),
+    // },
+    // {
+    //   path: SELLER_ROUTES.MARKETING.SURVEYS.VIEW(),
+    //   Component: lazy(() => import("@/modules/survey/features/market-research-detail")),
+    // },
+    // {
+    //   path: SELLER_ROUTES.MARKETING.SURVEYS.EDIT(),
+    //   Component: lazy(() => import("@/modules/survey/features/market-research-create")),
+    // },
+    // TODO: Uncomment when promotion functionality is ready
+    // {
+    //   path: SELLER_ROUTES.MARKETING.PROMOTIONS.LIST,
+    //   Component: lazy(() => import("@/modules/seller/features/marketing/PromotionsList")),
+    // },
+    // {
+    //   path: SELLER_ROUTES.MARKETING.PROMOTIONS.CREATE,
+    //   Component: lazy(() => import("@/modules/seller/features/marketing/PromotionForm")),
+    // },
+    // {
+    //   path: SELLER_ROUTES.MARKETING.PROMOTIONS.VIEW(),
+    //   Component: lazy(() => import("@/modules/seller/features/marketing/PromotionForm")),
+    // },
+    // {
+    //   path: SELLER_ROUTES.MARKETING.PROMOTIONS.EDIT(),
+    //   Component: lazy(() => import("@/modules/seller/features/marketing/PromotionForm")),
+    // },
+
+    // Analytics Routes
+    {
+      path: SELLER_ROUTES.ANALYTICS.SALES_INSIGHTS.BASE,
+      Component: lazy(() => import("@/modules/seller/features/analytics/SalesInsights")),
+    },
+    {
+      path: SELLER_ROUTES.ANALYTICS.INGREDIENT_INSIGHTS.BASE,
+      Component: lazy(() => import("@/modules/seller/features/analytics/IngredientInsights")),
+    },
+    {
+      path: SELLER_ROUTES.ANALYTICS.BRAND_INSIGHTS.BASE,
+      Component: lazy(() => import("@/modules/seller/features/analytics/BrandInsights")),
+    },
+    {
+      path: SELLER_ROUTES.ANALYTICS.CUSTOMER_INSIGHTS.BASE,
+      Component: lazy(() => import("@/modules/seller/features/analytics/CustomerInsights")),
+    },
+    {
+      path: SELLER_ROUTES.ANALYTICS.MARKET_TRENDS.BASE,
+      Component: lazy(() => import("@/modules/seller/features/analytics/MarketTrends")),
+    },
     {
       path: SELLER_ROUTES.ANALYTICS.ECOMMERCE.BASE,
       Component: lazy(() => import("@/modules/seller/features/analytics/SellerAnalyticsDashboard")),
+    },
+
+    // User Settings Routes
+    {
+      path: SELLER_ROUTES.USER_SETTINGS.PERMISSIONS.BASE,
+      Component: lazy(() => import("@/modules/seller/features/settings/PermissionsSettings")),
+    },
+    {
+      path: SELLER_ROUTES.USER_SETTINGS.PREFERENCES.BASE,
+      Component: lazy(() => import("@/modules/seller/features/settings/PreferencesSettings")),
     },
     // Listing/Product Management
     {

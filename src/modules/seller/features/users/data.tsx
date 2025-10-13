@@ -107,18 +107,18 @@ export const columns: ColumnDef<CompanyUserResponse>[] = [
       );
     },
   },
-  {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => {
-      const status = row.original.status;
-      return (
-        <StatusBadge status={status || ""} module="company_user">
-          {status || "Unknown"}
-        </StatusBadge>
-      );
-    },
-  },
+  // {
+  //   accessorKey: "status",
+  //   header: "Status",
+  //   cell: ({ row }) => {
+  //     const status = row.original.status;
+  //     return (
+  //       <StatusBadge status={status || ""} module="company_user">
+  //         {status || "Unknown"}
+  //       </StatusBadge>
+  //     );
+  //   },
+  // },
   {
     accessorKey: "createdAt",
     header: "Created",

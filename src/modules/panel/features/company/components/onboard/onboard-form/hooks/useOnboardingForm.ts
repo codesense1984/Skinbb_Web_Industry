@@ -29,11 +29,13 @@ import {
 interface UseOnboardingFormProps {
   mode?: MODE;
   initialData?: CompanyOnboading;
+  isLocationEdit?: boolean; // Flag to indicate if we're editing a specific location
 }
 
 export const useOnboardingForm = ({
   mode = MODE.ADD,
   initialData,
+  isLocationEdit = false,
 }: UseOnboardingFormProps) => {
   const qc = useQueryClient();
   const [currentValue, setCurrentValue] = useState<StepKey>(
@@ -64,16 +66,22 @@ export const useOnboardingForm = ({
   // Initialize form with initial data
   useEffect(() => {
     if (initialData) {
+      // When editing a location, we need to check if the current location is primary
+      // For location editing, we should disable company name unless it's the primary location
       const isPrimary = initialData.addresses.some((item) => item.isPrimary);
+      
+      // If we're explicitly editing a location, disable company name unless it's the primary address
+      const shouldDisableCompanyName = isLocationEdit && !isPrimary;
+      
       const formData = transformApiResponseToFormData(initialData, {
         disabledCompanyDetails: !isPrimary,
         isCreatingNewCompany: isPrimary,
-        disabledCompanyName: !isPrimary,
+        disabledCompanyName: shouldDisableCompanyName,
         mode: MODE.EDIT,
       });
       reset(formData);
     }
-  }, [initialData, reset]);
+  }, [initialData, reset, mode, isLocationEdit]);
 
   // Watch form data for debugging
   useEffect(() => {

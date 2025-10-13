@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/core/components/ui/button";
 import { PageContent } from "@/core/components/ui/structure";
@@ -92,24 +92,12 @@ const AddCatalog: React.FC<AddCatalogProps> = ({ isAdminPanel = false }) => {
     (user && !sellerInfo);
 
   // Get seller's primary address and first brand for seller context
-  const getSellerBrandId = () => {
+  const getSellerBrandId = useCallback(() => {
     if (isAdminContext || !sellerInfo) return "";
     const primaryAddress = sellerInfo.addresses?.find(addr => addr.isPrimary) || sellerInfo.addresses?.[0];
     return primaryAddress?.brands?.[0]?._id || "";
-  };
+  }, [isAdminContext, sellerInfo]);
 
-  // Debug logging
-  console.log("AddCatalog Debug:", {
-    isAdminPanel,
-    pathname: location.pathname,
-    user: !!user,
-    sellerInfo: !!sellerInfo,
-    isAdminContext,
-    includesPanel: location.pathname.includes("/panel/"),
-    includesAdmin: location.pathname.includes("/admin/"),
-    includesSeller: location.pathname.includes("/seller"),
-    includesCompany: location.pathname.includes("/company/"),
-  });
   
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
@@ -133,7 +121,7 @@ const AddCatalog: React.FC<AddCatalogProps> = ({ isAdminPanel = false }) => {
       setValue("companyId", params.companyId || sellerInfo.companyId || "");
       setValue("brandId", params.brandId || brandId);
     }
-  }, [sellerInfo, isAdminContext, params.companyId, params.brandId, setValue]);
+  }, [sellerInfo, isAdminContext, params.companyId, params.brandId, setValue, getSellerBrandId]);
 
   // Create fetchers for PaginationComboBox
   const companiesFetcher = createSimpleFetcher(apiGetCompanyList, {

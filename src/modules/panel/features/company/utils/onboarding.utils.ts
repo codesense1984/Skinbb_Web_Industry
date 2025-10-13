@@ -188,7 +188,7 @@ export function getCompanySchema(
 
 export function transformFormDataToApiRequest(
   formData: FullCompanyFormType,
-  roleId: string = DEFAULT_ROLE_ID,
+  _roleId: string = DEFAULT_ROLE_ID,
 ): CompanyOnboardingSubmitRequest {
   if (!formData) {
     throw new Error("Form data is required");

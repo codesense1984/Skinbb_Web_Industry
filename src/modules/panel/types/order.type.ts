@@ -8,6 +8,11 @@ export type Order = {
   paymentMethod: string;
   fullName?: string | null;
   totalProduct: number;
+  companyId?: string;
+  brand?: {
+    _id: string;
+    name: string;
+  };
 };
 
 // Order type for detailed view (full API response)
@@ -81,5 +86,7 @@ export type OrderDetails = {
 export type OrderFilter = {
   status?: string;
   paymentMethod?: string;
+  brand?: string;
+  companyId?: string;
   [key: string]: unknown;
 };

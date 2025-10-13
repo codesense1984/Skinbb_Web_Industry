@@ -1,86 +1,44 @@
-import { createSimpleFetcher, DataTable } from "@/core/components/data-table";
-import { Button } from "@/core/components/ui/button";
-import { PageContent } from "@/core/components/ui/structure";
-import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
-import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
-import { apiGetCompanyLocationBrands } from "@/modules/panel/services/http/company.service";
-import { PlusIcon } from "@heroicons/react/24/solid";
-import { useNavigate, useParams } from "react-router";
-import { columns } from "./data";
-import type { PaginationParams } from "@/core/types";
+import React from "react";
+import { useParams } from "react-router";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
-
-const fetcher = (companyId: string, locationId: string, userId: string) =>
-  createSimpleFetcher(
-    (params: PaginationParams, signal?: AbortSignal) =>
-      apiGetCompanyLocationBrands(
-        companyId,
-        locationId,
-        { ...params, userId: userId },
-        signal,
-      ),
-    {
-      dataPath: "data",
-    },
-  );
+import UnifiedBrandList from "../../brands/shared/UnifiedBrandList";
+import type { BrandListConfig } from "../../brands/shared/UnifiedBrandList";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 
 const CompanyLocationBrandsList = () => {
   const { companyId, locationId } = useParams();
   const { userId } = useAuth();
-  const navigate = useNavigate();
 
   if (!companyId || !locationId || !userId) {
     return (
-      <PageContent
-        header={{
-          title: "Brands",
-          description:
-            "Company ID, Location ID, and User ID are required to view brands.",
-        }}
-      >
-        <div className="py-8 text-center">
-          <p className="text-gray-500">
-            Invalid company, location, or user ID provided.
-          </p>
-        </div>
-      </PageContent>
+      <div className="py-8 text-center">
+        <p className="text-gray-500">
+          Invalid company, location, or user ID provided.
+        </p>
+      </div>
     );
   }
 
+  const config: BrandListConfig = {
+    mode: 'location',
+    title: "Brands",
+    description: "Manage brands for this location",
+    showFilters: true,
+    showAddButton: true,
+    addButtonText: "Add Brand",
+    addButtonRoute: PANEL_ROUTES.COMPANY_LOCATION.BRAND_CREATE(companyId, locationId),
+    autoSelectCompany: companyId,
+    autoSelectLocation: locationId,
+    disableFilterEditing: true,
+  };
+
   return (
-    <PageContent
-      header={{
-        title: "Brands",
-        description: "Manage brands for this location",
-        actions: (
-          <Button
-            onClick={() =>
-              navigate(
-                PANEL_ROUTES.COMPANY_LOCATION.BRAND_CREATE(
-                  companyId,
-                  locationId,
-                ),
-              )
-            }
-            variant="contained"
-            color="secondary"
-          >
-            <PlusIcon className="mr-2 h-4 w-4" />
-            Add Brand
-          </Button>
-        ),
-      }}
-    >
-      <DataTable
-        columns={columns(companyId, locationId)}
-        isServerSide={false}
-        fetcher={fetcher(companyId, locationId, userId)}
-        queryKeyPrefix={ENDPOINTS.COMPANY_LOCATION_BRANDS.LIST(
-          companyId,
-          locationId,
-        )}
-      />
-    </PageContent>
+    <UnifiedBrandList
+      config={config}
+      companyId={companyId}
+      locationId={locationId}
+      userId={userId}
+    />
   );
 };
 

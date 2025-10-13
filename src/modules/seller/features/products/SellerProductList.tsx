@@ -10,7 +10,6 @@ import { StatusBadge } from "@/core/components/ui/badge";
 import { Button } from "@/core/components/ui/button";
 import { StatCard } from "@/core/components/ui/stat";
 import { PageContent } from "@/core/components/ui/structure";
-import { SegmentedControl } from "@/core/components/ui/segmented-control";
 import { formatCurrency, formatDate, formatNumber } from "@/core/utils";
 import { SELLER_ROUTES } from "@/modules/seller/routes/constant";
 import type { Product } from "@/modules/panel/types/product.type";
@@ -21,8 +20,6 @@ import { apiGetProducts } from "@/modules/panel/services/http/product.service";
 import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth";
 import { LocationFilter } from "@/modules/panel/features/brands/components/LocationFilter";
 import { BrandFilter } from "@/modules/panel/features/listing/components/BrandFilter";
-import CatalogList from "@/modules/panel/features/listing/CatalogList";
-import { Package, FileText } from "lucide-react";
 
 // Initial stats data
 const initialStatsData = [
@@ -208,7 +205,6 @@ const SellerProductList = () => {
   const [stats, setStats] = useState(initialStatsData);
   const [selectedLocationId, setSelectedLocationId] = useState<string>("all");
   const [selectedBrandId, setSelectedBrandId] = useState<string>("all");
-  const [viewMode, setViewMode] = useState<"products" | "catalogs">("products");
 
   // Fetch stats separately since we need them for the summary cards
   const fetchStats = useCallback(async () => {
@@ -320,96 +316,64 @@ const SellerProductList = () => {
         title: "Products",
         description: `Products for ${sellerInfo.companyName}`,
         actions: (
-          <div className="flex gap-2">
-            <Button color={"primary"} asChild>
-              <NavLink to={SELLER_ROUTES.PRODUCTS.CREATE}>Add Product</NavLink>
-            </Button>
-            <Button color={"secondary"} asChild>
-              <NavLink to={SELLER_ROUTES.SELLER_LISTINGS.CREATE}>Add Catalog</NavLink>
-            </Button>
-          </div>
+          <Button color={"primary"} asChild>
+            <NavLink to={SELLER_ROUTES.PRODUCTS.CREATE}>Add Product</NavLink>
+          </Button>
         ),
       }}
     >
-      {/* View Mode Toggle */}
-      <div className="mb-6">
-        <SegmentedControl
-          value={viewMode}
-          onValueChange={(value) => setViewMode(value as "products" | "catalogs")}
-          options={[
-            {
-              value: "products",
-              label: "Single Products",
-              icon: <Package className="h-4 w-4" />,
-            },
-            {
-              value: "catalogs",
-              label: "Catalog List",
-              icon: <FileText className="h-4 w-4" />,
-            },
-          ]}
-        />
-      </div>
+      <section className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:gap-5 lg:grid-cols-4">
+        {stats.map((item) => (
+          <StatCard
+            key={item.title}
+            title={item.title}
+            value={formatNumber(item.value)}
+            barColor={item.barColor}
+          />
+        ))}
+      </section>
 
-      {/* Conditional Content */}
-      {viewMode === "catalogs" ? (
-        <CatalogList isAdminPanel={false} />
-      ) : (
-        <>
-          <section className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:gap-5 lg:grid-cols-4">
-            {stats.map((item) => (
-              <StatCard
-                key={item.title}
-                title={item.title}
-                value={formatNumber(item.value)}
-                barColor={item.barColor}
-              />
-            ))}
-          </section>
-
-          <DataTable
-            columns={columns}
-            isServerSide
-            fetcher={createSellerProductFetcher(
-              sellerInfo.companyId,
-              selectedLocationId === "all" ? undefined : selectedLocationId,
-              selectedBrandId === "all" ? undefined : selectedBrandId
-            )}
-            queryKeyPrefix={`seller-products-${sellerInfo.companyId}-${selectedLocationId}-${selectedBrandId}`}
-            actionProps={(tableState) => ({
-              children: (
-                <div className="flex items-center gap-4">
-                  {sellerInfo.addresses.length > 1 && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">Location:</span>
-                      <LocationFilter
-                        companyId={sellerInfo.companyId}
-                        value={selectedLocationId}
-                        onValueChange={handleLocationChange}
-                        placeholder="All Locations"
-                      />
-                    </div>
-                  )}
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">Brand:</span>
-                    <BrandFilter
-                      value={selectedBrandId}
-                      onValueChange={handleBrandChange}
-                      placeholder="All Brands"
-                      companyId={sellerInfo.companyId}
-                    />
-                  </div>
-                  <StatusFilter
-                    tableState={tableState}
-                    module="product"
-                    multi={false} // Single selection mode
+      <DataTable
+        columns={columns}
+        isServerSide
+        fetcher={createSellerProductFetcher(
+          sellerInfo.companyId,
+          selectedLocationId === "all" ? undefined : selectedLocationId,
+          selectedBrandId === "all" ? undefined : selectedBrandId
+        )}
+        queryKeyPrefix={`seller-products-${sellerInfo.companyId}-${selectedLocationId}-${selectedBrandId}`}
+        actionProps={(tableState) => ({
+          children: (
+            <div className="flex items-center gap-4">
+              {sellerInfo.addresses.length > 1 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">Location:</span>
+                  <LocationFilter
+                    companyId={sellerInfo.companyId}
+                    value={selectedLocationId}
+                    onValueChange={handleLocationChange}
+                    placeholder="All Locations"
                   />
                 </div>
-              ),
-            })}
-          />
-        </>
-      )}
+              )}
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Brand:</span>
+                <BrandFilter
+                  value={selectedBrandId}
+                  onValueChange={handleBrandChange}
+                  placeholder="All Brands"
+                  companyId={sellerInfo.companyId}
+                />
+              </div>
+              <StatusFilter
+                tableState={tableState}
+                module="product"
+                multi={false} // Single selection mode
+              />
+            </div>
+          ),
+        })}
+      />
     </PageContent>
   );
 };

@@ -399,31 +399,6 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                 />
               </div>
 
-              {/* Debug Information */}
-              <div className="mt-4 p-4 bg-gray-100 rounded-lg">
-                <p className="text-sm text-gray-600">
-                  Debug: companyDetails = {companyDetails ? "Loaded" : "Not loaded"}
-                </p>
-                {companyDetails && (
-                  <div className="mt-2">
-                    <p className="text-sm text-gray-600">
-                      Debug: Available fields: {Object.keys(companyDetails).join(", ")}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Debug: subsidiaryOfGlobalBusiness = {companyDetails.subsidiaryOfGlobalBusiness ? "Yes" : "No"}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Debug: headquaterLocation = {companyDetails.headquaterLocation || "Not set"}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Debug: headquartersAddress = {companyDetails.headquartersAddress || "Not set"}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Debug: companyName = {companyDetails.companyName || "Not set"}
-                    </p>
-                  </div>
-                )}
-              </div>
 
               {/* Company Details Section */}
               {companyDetails && (
