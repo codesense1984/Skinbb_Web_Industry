@@ -113,11 +113,21 @@ export const sellerRoutes: RouteObject = {
         () => import("@/modules/panel/features/listing/ProductCreate"),
       ),
     },
+
+    // Product Management - Using existing admin listing routes
+    {
+      path: "/listing",
+      Component: lazy(() => import("@/modules/panel/features/listing")),
+    },
     {
       path: "/listing/catalog",
-      Component: lazy(
-        () => import("@/modules/panel/features/listing/AddCatalog"),
-      ),
+      Component: lazy(() => import("@/modules/panel/features/listing/AddCatalog")),
+    },
+    
+    // Catalog Management - Dedicated catalog list
+    {
+      path: "/catalog",
+      Component: lazy(() => import("@/modules/panel/features/listing/CatalogList")),
     },
 
     // Company Location Brand Management (Complex routes)

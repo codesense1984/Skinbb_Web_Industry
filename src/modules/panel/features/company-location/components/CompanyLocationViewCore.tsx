@@ -326,6 +326,89 @@ export const CompanyLocationViewCore: React.FC<
         </CardContent>
       </Card>
 
+      {/* Company Information */}
+      <Card>
+        <CardHeader className="border-b">
+          <CardTitle className="flex items-center gap-2">
+            <BuildingOfficeIcon className="h-5 w-5" />
+            Company Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <InfoItem
+              icon={<BuildingOfficeIcon className="h-5 w-5" />}
+              label="Company Name"
+              value={company.companyName.toUpperCase()}
+            />
+            <InfoItem
+              icon={<TagIcon className="h-5 w-5" />}
+              label="Business Type"
+              value={company.businessType || "-"}
+            />
+            <InfoItem
+              icon={<TagIcon className="h-5 w-5" />}
+              label="Company Category"
+              value={company.companyCategory || "-"}
+            />
+
+            {/* <div className="space-y-4">
+              <InfoItem
+                icon={<CalendarIcon className="h-5 w-5" />}
+                label="Established In"
+                value={company.establishedIn || "-"}
+              />
+              <InfoItem
+                icon={<DocumentTextIcon className="h-5 w-5" />}
+                label="Designation"
+                value={owner?.ownerDesignation || "-"}
+              />
+            </div> */}
+
+            <InfoItem
+              icon={
+                company.subsidiaryOfGlobalBusiness ? (
+                  <CheckCircleIcon className="h-5 w-5" />
+                ) : (
+                  <XCircleIcon className="h-5 w-5" />
+                )
+              }
+              label="Subsidiary of Global Business"
+              value={company.subsidiaryOfGlobalBusiness ? "Yes" : "No"}
+            />
+            <InfoItem
+              icon={<MapPinIcon className="h-5 w-5" />}
+              label="Headquarters"
+              value={company.headquaterLocation || "-"}
+            />
+            {company.website && (
+              <InfoItem
+                icon={<GlobeAltIcon className="h-5 w-5" />}
+                label="Company Website"
+                value={
+                  <a
+                    href={company.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm break-all text-blue-600 hover:text-blue-800"
+                  >
+                    {company.website}
+                  </a>
+                }
+              />
+            )}
+            {company.companyDescription && (
+              <InfoItem
+                icon={<GlobeAltIcon className="h-5 w-5" />}
+                label="Company Information"
+                value={company.companyDescription}
+                className="lg:col-span-3"
+              />
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Personal Information */}
 
       {/* Location Details */}
@@ -731,88 +814,6 @@ export const CompanyLocationViewCore: React.FC<
       //   />
       // </div> */}
 
-      {/* Company Information */}
-      <Card>
-        <CardHeader className="border-b">
-          <CardTitle className="flex items-center gap-2">
-            <BuildingOfficeIcon className="h-5 w-5" />
-            Company Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <InfoItem
-              icon={<BuildingOfficeIcon className="h-5 w-5" />}
-              label="Company Name"
-              value={company.companyName.toUpperCase()}
-            />
-            <InfoItem
-              icon={<TagIcon className="h-5 w-5" />}
-              label="Business Type"
-              value={company.businessType || "-"}
-            />
-            <InfoItem
-              icon={<TagIcon className="h-5 w-5" />}
-              label="Company Category"
-              value={company.companyCategory || "-"}
-            />
-
-            {/* <div className="space-y-4">
-              <InfoItem
-                icon={<CalendarIcon className="h-5 w-5" />}
-                label="Established In"
-                value={company.establishedIn || "-"}
-              />
-              <InfoItem
-                icon={<DocumentTextIcon className="h-5 w-5" />}
-                label="Designation"
-                value={owner?.ownerDesignation || "-"}
-              />
-            </div> */}
-
-            <InfoItem
-              icon={
-                company.subsidiaryOfGlobalBusiness ? (
-                  <CheckCircleIcon className="h-5 w-5" />
-                ) : (
-                  <XCircleIcon className="h-5 w-5" />
-                )
-              }
-              label="Subsidiary of Global Business"
-              value={company.subsidiaryOfGlobalBusiness ? "Yes" : "No"}
-            />
-            <InfoItem
-              icon={<MapPinIcon className="h-5 w-5" />}
-              label="Headquarters"
-              value={company.headquaterLocation || "-"}
-            />
-            {company.website && (
-              <InfoItem
-                icon={<GlobeAltIcon className="h-5 w-5" />}
-                label="Company Website"
-                value={
-                  <a
-                    href={company.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm break-all text-blue-600 hover:text-blue-800"
-                  >
-                    {company.website}
-                  </a>
-                }
-              />
-            )}
-            {company.companyDescription && (
-              <InfoItem
-                icon={<GlobeAltIcon className="h-5 w-5" />}
-                label="Company Information"
-                value={company.companyDescription}
-                className="lg:col-span-3"
-              />
-            )}
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Location Information */}
       <Card>

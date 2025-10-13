@@ -117,6 +117,13 @@ export const SELLER_ROUTES = {
     CREATE: "/listing/create", // /listing/create
   },
 
+  // ---- Seller Catalog Routes (using admin components) ----
+  CATALOG: {
+    BASE: "/catalog", // /catalog (dedicated catalog list)
+    LIST: "/catalog", // /catalog (dedicated catalog list)
+    ADD: "/listing/catalog", // /listing/catalog (admin catalog add)
+  },
+
   // ---- Company Location Products ----
   COMPANY_LOCATION_PRODUCTS: {
     BASE: PRODUCTS_BASE, // /products

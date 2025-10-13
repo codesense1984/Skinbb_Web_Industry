@@ -9,12 +9,10 @@ import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth";
 import {
   PAGE,
   PERMISSION,
-  ROLE,
   type Permission,
   type PermissionElement,
   type Role,
 } from "@/modules/auth/types/permission.type.";
-import { SURVEY_ROUTES } from "@/modules/survey/routes/constant";
 import { motion } from "motion/react";
 import { Fragment, type ReactElement, type SVGProps } from "react";
 import { NavLink } from "react-router";
@@ -79,6 +77,29 @@ const cardData: CardConfig[] = [
           strokeLinecap="round"
           strokeLinejoin="round"
           d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6"
+        />
+      </svg>
+    ),
+  },
+  {
+    title: "Catalog Management",
+    description: "Upload and manage your product catalogs with bulk import functionality",
+    buttons: [
+      { name: "View Catalogs", href: "/catalog" },
+      { name: "Add Catalog", href: "/listing/catalog" },
+    ],
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={0.7}
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v16.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Zm3.75 11.625a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"
         />
       </svg>
     ),

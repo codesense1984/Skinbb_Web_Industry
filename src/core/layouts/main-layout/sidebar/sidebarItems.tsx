@@ -8,6 +8,7 @@ import {
 } from "@/modules/auth/types/permission.type.";
 import { ANALYTICS_ROUTES } from "@/modules/analytics/routes/constants";
 import { SURVEY_ROUTES } from "@/modules/survey/routes/constant";
+import { SELLER_ROUTES } from "@/modules/seller/routes/constant";
 import {
   BoltIcon,
   BuildingStorefrontIcon,
@@ -19,7 +20,6 @@ import {
 import React from "react";
 import type { MatchMode } from "@/modules/auth/components/guard";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
-import { SELLER_ROUTES } from "@/modules/seller";
 
 export interface SidebarItem {
   name: string;
@@ -245,12 +245,20 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
         />
       </svg>
     ),
-    children: ["products", "orders", "coupons"],
+    children: ["products", "catalog", "orders", "coupons"],
   },
 
   products: {
     name: "Products",
     href: "/listing",
+    requiredPermission: {
+      page: PAGE.PRODUCTS,
+      action: [PERMISSION.VIEW, PERMISSION.CREATE],
+    },
+  },
+  catalog: {
+    name: "Catalog",
+    href: "/catalog",
     requiredPermission: {
       page: PAGE.PRODUCTS,
       action: [PERMISSION.VIEW, PERMISSION.CREATE],
@@ -415,6 +423,15 @@ export const sellerSidebarItems: Readonly<Record<string, SidebarItem>> = {
     name: "products",
     href: SELLER_ROUTES.PRODUCTS.LIST,
     icon: <ShoppingBagIcon />,
+    children: ["all-products", "catalog"],
+  },
+  "all-products": {
+    name: "All Products",
+    href: SELLER_ROUTES.PRODUCTS.LIST,
+  },
+  catalog: {
+    name: "Catalog",
+    href: "/catalog",
   },
   orders: {
     name: "orders",

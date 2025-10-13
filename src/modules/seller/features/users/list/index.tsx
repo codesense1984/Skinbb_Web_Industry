@@ -44,7 +44,7 @@ const CompanyUsersList = () => {
       <div className="space-y-4">
         <DataTable
           // tableHeading={companyName}
-          columns={columns(companyId)}
+          columns={columns}
           isServerSide
           fetcher={fetcher(companyId)}
           queryKeyPrefix={PANEL_ROUTES.COMPANY.USERS(companyId)}

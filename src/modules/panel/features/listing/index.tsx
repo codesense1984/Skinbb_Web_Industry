@@ -9,11 +9,8 @@ import { columns } from "./data";
 import { CompanyFilter } from "./components/CompanyFilter";
 import { LocationFilter } from "./components/LocationFilter";
 import { BrandFilter } from "./components/BrandFilter";
-import CatalogList from "./CatalogList";
 import React, { useState } from "react";
 import { useParams, useSearchParams } from "react-router";
-import { SegmentedControl } from "@/core/components/ui/segmented-control";
-import { Package, FileText } from "lucide-react";
 
 // Create fetcher for server-side data
 const createProductFetcher = (companyId?: string, locationId?: string, brandId?: string) => {
@@ -50,7 +47,6 @@ const ProductList = () => {
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("all");
   const [selectedLocationId, setSelectedLocationId] = useState<string>("all");
   const [selectedBrandId, setSelectedBrandId] = useState<string>("all");
-  const [viewMode, setViewMode] = useState<"products" | "catalogs">("products");
 
   // Handle company filter change
   const handleCompanyChange = (companyId: string) => {
@@ -160,31 +156,8 @@ const ProductList = () => {
         ),
       }}
     >
-      {/* View Mode Toggle */}
-      <div className="mb-6">
-        <SegmentedControl
-          value={viewMode}
-          onValueChange={(value) => setViewMode(value as "products" | "catalogs")}
-          options={[
-            {
-              value: "products",
-              label: "Single Products",
-              icon: <Package className="h-4 w-4" />,
-            },
-            {
-              value: "catalogs",
-              label: "Catalog List",
-              icon: <FileText className="h-4 w-4" />,
-            },
-          ]}
-        />
-      </div>
-
-      {/* Conditional Content */}
-      {viewMode === "catalogs" ? (
-        <CatalogList isAdminPanel={true} />
-      ) : (
-        <>
+      {/* Product Content */}
+      <>
           {/* <section
             className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:gap-5 lg:grid-cols-4"
             aria-label="Product Statistics"
@@ -247,8 +220,7 @@ const ProductList = () => {
               ),
             })}
           />
-        </>
-      )}
+      </>
     </PageContent>
   );
 };

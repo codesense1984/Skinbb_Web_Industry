@@ -91,6 +91,13 @@ const AddCatalog: React.FC<AddCatalogProps> = ({ isAdminPanel = false }) => {
     // If we have a user but no seller info, we're likely in admin panel
     (user && !sellerInfo);
 
+  // Get seller's primary address and first brand for seller context
+  const getSellerBrandId = () => {
+    if (isAdminContext || !sellerInfo) return "";
+    const primaryAddress = sellerInfo.addresses?.find(addr => addr.isPrimary) || sellerInfo.addresses?.[0];
+    return primaryAddress?.brands?.[0]?._id || "";
+  };
+
   // Debug logging
   console.log("AddCatalog Debug:", {
     isAdminPanel,
@@ -110,7 +117,7 @@ const AddCatalog: React.FC<AddCatalogProps> = ({ isAdminPanel = false }) => {
     defaultValues: {
       category: "",
       companyId: isAdminContext ? "" : (params.companyId || sellerInfo?.companyId || ""),
-      brandId: isAdminContext ? "" : (params.brandId || ""),
+      brandId: isAdminContext ? "" : (params.brandId || getSellerBrandId()),
     },
   });
 
@@ -118,6 +125,15 @@ const AddCatalog: React.FC<AddCatalogProps> = ({ isAdminPanel = false }) => {
 
   const watchedCategory = watch("category");
   const watchedCompanyId = watch("companyId");
+
+  // Update form values when sellerInfo changes (for seller context)
+  useEffect(() => {
+    if (!isAdminContext && sellerInfo) {
+      const brandId = getSellerBrandId();
+      setValue("companyId", params.companyId || sellerInfo.companyId || "");
+      setValue("brandId", params.brandId || brandId);
+    }
+  }, [sellerInfo, isAdminContext, params.companyId, params.brandId, setValue]);
 
   // Create fetchers for PaginationComboBox
   const companiesFetcher = createSimpleFetcher(apiGetCompanyList, {

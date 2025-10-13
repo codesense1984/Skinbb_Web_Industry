@@ -289,6 +289,7 @@ export const PANEL_ROUTES = {
     LIST: LISTING_BASE, // /listing
     CREATE: ROUTE.build(LISTING_BASE, ROUTE.seg.create), // /listing/create
     CATALOG: ROUTE.build(LISTING_BASE, "catalog"), // /listing/catalog
+    CATALOG_LIST: "/catalog", // /catalog (dedicated catalog list)
     CREATE_WITH_PARAMS: (companyId: string, brandId: string) =>
       ROUTE.build(LISTING_BASE, ROUTE.seg.create) +
       `?companyId=${companyId}&brandId=${brandId}`, // /listing/create?companyId=:companyId&brandId=:brandId
