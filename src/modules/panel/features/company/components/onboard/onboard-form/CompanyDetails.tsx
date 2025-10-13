@@ -153,24 +153,7 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
           field: formField,
           fieldState,
         }: CustomRenders<FullCompanyFormType, "companyName">) => {
-          if (isCreatingNewCompany) {
-            // If company name is disabled (location edit mode), show as read-only text
-            if (disabledCompanyName) {
-              return (
-                <div
-                  className="space-y-2"
-                  key={`company-field-readonly-${isCreatingNewCompany}`}
-                >
-                  <div className="rounded-md border bg-gray-50 px-3 py-2 text-sm text-gray-900">
-                    {formField.value || "New Company Name"}
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    Company name cannot be changed when editing a location
-                  </div>
-                </div>
-              );
-            }
-
+          if (isCreatingNewCompany)
             return (
               <div
                 className="space-y-2"
@@ -179,9 +162,9 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
                 <Input
                   type="text"
                   placeholder="Enter new company name..."
-                  className={"pe-15"}
+                  className={mode !== MODE.EDIT ? "pe-15" : ""}
                   invalid={!!fieldState.error}
-                  disabled={disabledCompanyName}
+                  disabled={mode === MODE.EDIT || disabledCompanyName}
                   endIcon={
                     mode !== MODE.EDIT ? (
                       <Button
@@ -209,25 +192,6 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
                 />
               </div>
             );
-          }
-
-          // If company name is disabled (location edit mode), show as read-only text
-          if (disabledCompanyName) {
-            const selectedCompany = companyOptions.find(option => option.value === formField.value);
-            return (
-              <div
-                className="w-full"
-                key={`company-field-readonly-${isCreatingNewCompany}`}
-              >
-                <div className="rounded-md border bg-gray-50 px-3 py-2 text-sm text-gray-900">
-                  {selectedCompany?.label || formField.value || "Selected Company"}
-                </div>
-                <div className="mt-1 text-xs text-gray-500">
-                  Company name cannot be changed when editing a location
-                </div>
-              </div>
-            );
-          }
 
           return (
             <div

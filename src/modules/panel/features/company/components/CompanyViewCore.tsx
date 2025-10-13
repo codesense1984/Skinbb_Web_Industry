@@ -477,7 +477,7 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                       <InfoItem
                         icon={<DocumentTextIcon className="h-5 w-5" />}
                         label="COI Certificate"
-                        value="Certificate Available"
+                        value={location.cinNumber ?? "-"}
                         className="rounded-lg border p-3"
                       >
                         <Link

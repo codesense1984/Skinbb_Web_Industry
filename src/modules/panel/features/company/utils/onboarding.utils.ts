@@ -196,6 +196,14 @@ export function transformFormDataToApiRequest(
 
   // Get the first address (assuming it's the registered address)
   const addresses = Array.isArray(formData.address) ? formData.address : [];
+
+  const landlineNo =
+    Array.isArray(formData.address) && formData.address.length > 0
+      ? formData.address.length === 1
+        ? formData.address[0]?.phoneNumber
+        : formData.address[formData.address.length - 1]?.phoneNumber
+      : undefined;
+
   const primaryAddress =
     formData.mode === MODE.EDIT
       ? addresses[0]
@@ -232,8 +240,7 @@ export function transformFormDataToApiRequest(
     designation: safeString(formData.designation),
     // roleId,
     companyName: safeString(formData.companyName),
-    companyDescription:
-      safeString(formData.description) || "Company description not provided",
+    companyDescription: safeString(formData.description) || "",
     businessType: safeString(formData.businessType),
     headquartersAddress: safeString(formData.headquarterLocation),
     establishedIn: formData.establishedIn
@@ -246,7 +253,7 @@ export function transformFormDataToApiRequest(
     instagramUrl: safeString(formData.instagramUrl),
     facebookUrl: safeString(formData.facebookUrl),
     youtubeUrl: safeString(formData.youtubeUrl),
-    landlineNo: safeString(formData.phoneNumber),
+    landlineNo: safeString(landlineNo),
     isCompanyBrand: false, // Assuming true since brand details are required
     brandName: safeString(formData.brandName),
     brandDescription: safeString(formData.description),
