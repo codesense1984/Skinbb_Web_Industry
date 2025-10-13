@@ -9,7 +9,7 @@ import { createCompanySchema } from "../schema/fullCompany.schema";
 import { LocationService } from "@/core/services/location.service";
 
 // Constants
-const DEFAULT_ROLE_ID = "6875fc068683bb026013181b";
+// const DEFAULT_ROLE_ID = "6875fc068683bb026013181b";
 // const DEFAULT_MONTH = "01";
 
 const ADDRESS_TYPES = {
@@ -188,7 +188,7 @@ export function getCompanySchema(
 
 export function transformFormDataToApiRequest(
   formData: FullCompanyFormType,
-  _roleId: string = DEFAULT_ROLE_ID,
+  // roleId: string = DEFAULT_ROLE_ID,
 ): CompanyOnboardingSubmitRequest {
   if (!formData) {
     throw new Error("Form data is required");

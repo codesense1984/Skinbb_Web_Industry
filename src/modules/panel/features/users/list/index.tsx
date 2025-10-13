@@ -1,7 +1,7 @@
 import { Button } from "@/core/components/ui/button";
 import { PageContent } from "@/core/components/ui/structure";
-import { NavLink } from "react-router";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
+import { NavLink } from "react-router";
 
 const UserList = () => {
   return (

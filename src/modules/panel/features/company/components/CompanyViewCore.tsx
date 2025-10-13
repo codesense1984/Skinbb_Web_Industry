@@ -263,7 +263,6 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
               </Button>
             </DropdownMenu>
             {/* {onViewLocation && address.status === "pending" && (
-            {/* {onViewLocation && address.status === "pending" && (
               <Button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -359,7 +358,11 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                 <InfoItem
                   icon={<PhoneIcon className="h-5 w-5" />}
                   label="Landline"
-                  value={location.landlineNumber || location.phoneNumber || "Not available"}
+                  value={
+                    location.landlineNumber ||
+                    location.phoneNumber ||
+                    "Not available"
+                  }
                 />
                 <InfoItem
                   icon={<MapPinIcon className="h-5 w-5" />}
@@ -495,7 +498,7 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                       <InfoItem
                         icon={<DocumentTextIcon className="h-5 w-5" />}
                         label="MSME Certificate"
-                        value="Certificate Available"
+                        value={location?.msmeNumber ?? "-"}
                         className="rounded-lg border p-3"
                       >
                         <Link
