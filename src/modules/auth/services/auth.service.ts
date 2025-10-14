@@ -131,7 +131,21 @@ async function fetchSellerInfoIfNeeded(
     console.log(`Fetching seller info for user: ${userId}`);
     const response = await getSellerInfo(userId);
 
-    if (response.data.companyStatus === STATUS_MAP.company.pending.value) {
+    console.log(
+      "response.data.companyStatus",
+      response.data.companyStatus,
+      [
+        STATUS_MAP.company.pending.value,
+        STATUS_MAP.company.rejected.value,
+      ].includes(response.data.companyStatus),
+    );
+
+    if (
+      [
+        STATUS_MAP.company.pending.value,
+        STATUS_MAP.company.rejected.value,
+      ].includes(response.data.companyStatus)
+    ) {
       throw Error(
         me.user.firstName + " " + me.user.lastName + "is not approved yet",
       );
