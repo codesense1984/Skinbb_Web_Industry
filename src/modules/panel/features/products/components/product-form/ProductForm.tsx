@@ -75,6 +75,9 @@ type ProductFormProps = {
     ((errors: Array<{ field: string | number; message: string }>) => void) | null
   >;
   children?: React.ReactNode;
+  // Seller-specific props
+  sellerBrands?: Array<{ _id: string; name: string; slug: string }>;
+  isSellerMode?: boolean;
 };
 
 // Variant Attributes Section Component
@@ -432,6 +435,87 @@ const ProductForm = (props: ProductFormProps) => {
                     {errors.productVariationType && (
                       <p className="text-red-500 text-xs mt-1">
                         {errors.productVariationType.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label htmlFor="brand" className="block text-sm font-medium text-gray-700 mb-1">
+                      Brand *
+                    </label>
+                    {props.isSellerMode && props.sellerBrands ? (
+                      <PaginationComboBox
+                        apiFunction={createSimpleFetcher(
+                          () => Promise.resolve({
+                            data: {
+                              items: props.sellerBrands!.map(brand => ({
+                                _id: brand._id,
+                                name: brand.name
+                              })),
+                              total: props.sellerBrands!.length
+                            }
+                          }),
+                          {
+                            dataPath: "data.items",
+                            totalPath: "data.total",
+                          }
+                        )}
+                        transform={(option: { _id: string; name: string }) => ({
+                          label: option.name,
+                          value: option._id,
+                        })}
+                        placeholder="Select Brand"
+                        value={methods.watch("brand")?.value || ""}
+                        onChange={(value: string | string[]) => {
+                          const stringValue = Array.isArray(value) ? value[0] : value;
+                          if (stringValue) {
+                            const brand = props.sellerBrands!.find(b => b._id === stringValue);
+                            methods.setValue("brand", { value: stringValue, label: brand?.name || "" });
+                          } else {
+                            methods.setValue("brand", null);
+                          }
+                        }}
+                        className="w-full"
+                        queryKey={["seller-brands"]}
+                      />
+                    ) : (
+                      <PaginationComboBox
+                        apiFunction={createSimpleFetcher(
+                          () => Promise.resolve({
+                            data: {
+                              items: [
+                                { _id: "1", name: "Brand 1" },
+                                { _id: "2", name: "Brand 2" }
+                              ],
+                              total: 2
+                            }
+                          }),
+                          {
+                            dataPath: "data.items",
+                            totalPath: "data.total",
+                          }
+                        )}
+                        transform={(option: { _id: string; name: string }) => ({
+                          label: option.name,
+                          value: option._id,
+                        })}
+                        placeholder="Select Brand"
+                        value={methods.watch("brand")?.value || ""}
+                        onChange={(value: string | string[]) => {
+                          const stringValue = Array.isArray(value) ? value[0] : value;
+                          if (stringValue) {
+                            const option = stringValue === "1" ? "Brand 1" : "Brand 2";
+                            methods.setValue("brand", { value: stringValue, label: option });
+                          } else {
+                            methods.setValue("brand", null);
+                          }
+                        }}
+                        className="w-full"
+                        queryKey={["admin-brands"]}
+                      />
+                    )}
+                    {errors.brand && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.brand.message}
                       </p>
                     )}
                   </div>
