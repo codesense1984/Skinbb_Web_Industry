@@ -31,6 +31,7 @@ import { apiGetProductDetailById } from "@/modules/panel/services/http/company.s
 import { useAuth } from "@/modules/auth/hooks/useAuth";
 import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth";
 import { MODE } from "@/core/types";
+import { SELLER_ROUTES } from "@/modules/seller/routes/constant";
 
 // Fetchers for dropdown data using createSimpleFetcher
 const createBrandsFetcher = (companyId?: string) => {
@@ -244,7 +245,7 @@ const ProductCreate = (props?: ProductCreateProps) => {
   const [error, setError] = useState<string | null>(null);
 
   const { userId, role } = useAuth();
-  const { sellerInfo } = useSellerAuth();
+  const { sellerInfo, isSellerMember } = useSellerAuth();
 
   // Use props if provided, otherwise use URL params or seller context
   const brandId = props?.brandId || "";
@@ -1070,8 +1071,9 @@ const ProductCreate = (props?: ProductCreateProps) => {
       }
 
       if (result.success) {
-        // Navigate back to product list
-        navigate(PANEL_ROUTES.LISTING.LIST);
+        // Navigate back to product list - use seller route if in seller mode
+        const redirectRoute = isSellerMember ? SELLER_ROUTES.PRODUCTS.LIST : PANEL_ROUTES.LISTING.LIST;
+        navigate(redirectRoute);
       }
     } catch (error: unknown) {
       // Handle error silently
@@ -1102,7 +1104,9 @@ const ProductCreate = (props?: ProductCreateProps) => {
   };
 
   const handleCancel = () => {
-    navigate(PANEL_ROUTES.LISTING.LIST);
+    // Navigate back to product list - use seller route if in seller mode
+    const redirectRoute = isSellerMember ? SELLER_ROUTES.PRODUCTS.LIST : PANEL_ROUTES.LISTING.LIST;
+    navigate(redirectRoute);
   };
 
   // Image upload functions

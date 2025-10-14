@@ -197,12 +197,12 @@ export function transformFormDataToApiRequest(
   // Get the first address (assuming it's the registered address)
   const addresses = Array.isArray(formData.address) ? formData.address : [];
 
-  const landlineNo =
-    Array.isArray(formData.address) && formData.address.length > 0
-      ? formData.address.length === 1
-        ? formData.address[0]?.phoneNumber
-        : formData.address[formData.address.length - 1]?.phoneNumber
-      : undefined;
+  // const landlineNo =
+  //   Array.isArray(formData.address) && formData.address.length > 0
+  //     ? formData.address.length === 1
+  //       ? formData.address[0]?.phoneNumber
+  //       : formData.address[formData.address.length - 1]?.phoneNumber
+  //     : undefined;
 
   const primaryAddress =
     formData.mode === MODE.EDIT
@@ -253,7 +253,7 @@ export function transformFormDataToApiRequest(
     instagramUrl: safeString(formData.instagramUrl),
     facebookUrl: safeString(formData.facebookUrl),
     youtubeUrl: safeString(formData.youtubeUrl),
-    landlineNo: safeString(landlineNo),
+    // landlineNo: safeString(landlineNo),
     isCompanyBrand: false, // Assuming true since brand details are required
     brandName: safeString(formData.brandName),
     brandDescription: safeString(formData.description),
@@ -276,6 +276,7 @@ export function transformFormDataToApiRequest(
             msmeNumber: safeString(msmeDoc?.number),
             addressLine1: safeString(primaryAddress.address),
             addressLine2: "",
+            landlineNumber: safeString(primaryAddress.landlineNumber),
             landmark: safeString(primaryAddress.landmark),
             city: safeString(primaryAddress.city),
             state:
@@ -411,7 +412,7 @@ export function transformApiResponseToFormData(
         addressType: "registered" as const,
         address: "",
         landmark: "",
-        phoneNumber: "",
+        landlineNumber: "",
         country: "IN",
         state: "",
         city: "",
@@ -495,7 +496,7 @@ export function transformApiResponseToFormData(
                 : ADDRESS_TYPES.REGISTERED) as "registered" | "office",
               address: safeString(address?.addressLine1),
               landmark: safeString(address?.landmark),
-              phoneNumber: safeString(address?.landlineNumber),
+              landlineNumber: safeString(address?.landlineNumber),
               country: LocationService.getCountryIsoCodeByName(
                 safeString(address?.country),
               ),
@@ -513,7 +514,7 @@ export function transformApiResponseToFormData(
                     addressType: "office" as const,
                     address: "",
                     landmark: "",
-                    phoneNumber: "",
+                    landlineNumber: "",
                     country: "IN",
                     state: "",
                     city: "",

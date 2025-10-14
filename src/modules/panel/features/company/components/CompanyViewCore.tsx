@@ -22,9 +22,7 @@ import { PAGE, PERMISSION } from "@/modules/auth/types/permission.type.";
 import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { apiGetCompanyLocationById } from "@/modules/panel/services/http/company-location.service";
-import { 
-  apiGetCompanyDetailById,
-} from "@/modules/panel/services/http/company.service";
+import { apiGetCompanyDetailById } from "@/modules/panel/services/http/company.service";
 import {
   BuildingOfficeIcon,
   CalendarIcon,
@@ -402,7 +400,6 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                 />
               </div>
 
-
               {/* Company Details Section */}
               {companyDetails && (
                 <Card className="mt-6 shadow-none">
@@ -438,12 +435,20 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                           )
                         }
                         label="Subsidiary of Global Business"
-                        value={companyDetails.subsidiaryOfGlobalBusiness ? "Yes" : "No"}
+                        value={
+                          companyDetails.subsidiaryOfGlobalBusiness
+                            ? "Yes"
+                            : "No"
+                        }
                       />
                       <InfoItem
                         icon={<MapPinIcon className="h-5 w-5" />}
                         label="Headquarters"
-                        value={companyDetails.headquaterLocation || companyDetails.headquartersAddress || "-"}
+                        value={
+                          companyDetails.headquaterLocation ||
+                          companyDetails.headquartersAddress ||
+                          "-"
+                        }
                       />
                       {companyDetails.website && (
                         <InfoItem
@@ -480,7 +485,7 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                       <InfoItem
                         icon={<DocumentTextIcon className="h-5 w-5" />}
                         label="COI Certificate"
-                        value={location.cinNumber ?? "-"}
+                        value={location?.cinNumber ?? "-"}
                         className="rounded-lg border p-3"
                       >
                         <Link
@@ -715,9 +720,17 @@ export const CompanyViewCore: React.FC<CompanyViewCoreProps> = ({
                 <div className="flex flex-1 items-start gap-6">
                   {/* Company Logo Placeholder */}
                   <div className="flex-shrink-0">
-                    <div className="flex h-20 w-20 items-center justify-center rounded-xl bg-gradient-to-br from-gray-600 to-gray-800 text-2xl font-bold text-white">
-                      {company.companyName?.charAt(0) || "C"}
-                    </div>
+                    {company.logo ? (
+                      <img
+                        src={company.logo}
+                        alt={company.companyName}
+                        className="border-border h-20 w-20 rounded-xl border"
+                      />
+                    ) : (
+                      <div className="flex h-20 w-20 items-center justify-center rounded-xl bg-gradient-to-br from-gray-600 to-gray-800 text-2xl font-bold text-white">
+                        {company.companyName?.charAt(0) || "C"}
+                      </div>
+                    )}
                   </div>
 
                   {/* Company Basic Info */}

@@ -65,7 +65,7 @@ export const sellerRoutes: RouteObject = {
       ),
     },
     {
-      path: "/product/create",
+      path: "/products/create",
       Component: lazy(() => import("@/modules/panel/features/listing/ProductCreate")),
     },
     {
