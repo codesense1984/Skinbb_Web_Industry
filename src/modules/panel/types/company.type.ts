@@ -86,7 +86,7 @@ export interface CompanyOnboardingSubmitRequest
   instagramUrl: string;
   facebookUrl: string;
   youtubeUrl: string;
-  landlineNo: string;
+  // landlineNo: string;
   isCompanyBrand: boolean;
   brandName: string;
   brandDescription: string;
@@ -102,6 +102,7 @@ export interface CompanyOnboardingSubmitRequest
     addressLine1: string;
     addressLine2?: string;
     landmark?: string;
+    landlineNumber: string;
     city: string;
     state: string;
     postalCode: string;
@@ -198,6 +199,7 @@ export interface CompanyDetailResponse {
   _id: string;
   ownerUserId: string;
   companyName: string;
+  logo: string;
   establishedIn: string;
   businessType: "public" | "private";
   companyCategory: "principal" | "subsidiary";
