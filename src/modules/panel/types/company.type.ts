@@ -10,7 +10,7 @@ export interface CompanyAddress {
   addressType: "registered" | "office";
   address: string;
   landmark: string;
-  phoneNumber: string;
+  landlineNumber: string;
   country: string;
   state: string;
   city: string;

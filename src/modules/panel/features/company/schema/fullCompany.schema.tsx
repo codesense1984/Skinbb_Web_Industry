@@ -162,7 +162,7 @@ const addressSchema = z.object({
   addressType: z.enum(["registered", "office"]),
   address: createRequiredString("Address"),
   landmark: createRequiredString("Landmark"),
-  phoneNumber: createRequiredString("Phone number"),
+  landlineNumber: createRequiredString("Landline number"),
   country: createRequiredString("Country"),
   state: createRequiredString("State"),
   city: createRequiredString("City"),
@@ -698,7 +698,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
         disabled: disabled || mode === MODE.VIEW,
       },
       {
-        name: makeName("phoneNumber"),
+        name: makeName("landlineNumber"),
         label: "Fixed landline number",
         type: INPUT_TYPES.TEXT,
         placeholder: "Enter fixed landline number",
