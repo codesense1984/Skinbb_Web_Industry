@@ -491,10 +491,14 @@ export function DataTable<TData extends object>({
   isServerSide = false,
   ...props
 }: DataTableProps<TData>) {
+  console.log('DataTable props:', { showPagination, pageSize, isServerSide });
+  const finalPageSize = !showPagination ? -1 : pageSize;
+  console.log('DataTable finalPageSize:', finalPageSize);
+  
   const tableState = useTable({
     rows,
     columns,
-    pageSize: !showPagination ? -1 : pageSize,
+    pageSize: finalPageSize,
     isServerSide: isServerSide,
     ...props,
   });

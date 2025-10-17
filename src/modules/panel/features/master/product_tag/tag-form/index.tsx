@@ -31,8 +31,7 @@ export default function TagForm() {
       name: "",
       slug: "",
       description: "",
-      color: "#3B82F6",
-      isActive: true,
+      seoKeywords: [],
     },
   });
 
@@ -54,12 +53,12 @@ export default function TagForm() {
 
   // Fetch tag data for edit mode
   const { data: tagData, isLoading } = useQuery({
-    queryKey: ["product-tag", id],
+    queryKey: ["product-tag-v2", id],
     queryFn: () => apiGetProductTags({ page: 1, limit: 1000 }),
     enabled: isEdit || isView,
     select: (data: any) => {
-      if (!data?.data?.productTags) return null;
-      return data.data.productTags.find((tag: any) => tag._id === id);
+      if (!data?.data?.tags) return null;
+      return data.data.tags.find((tag: any) => tag._id === id);
     },
   });
 
@@ -70,8 +69,7 @@ export default function TagForm() {
         name: tagData.name || "",
         slug: tagData.slug || "",
         description: tagData.description || "",
-        color: tagData.color || "#3B82F6",
-        isActive: tagData.isActive ?? true,
+        seoKeywords: tagData.seoKeywords || [],
       });
     }
   }, [tagData, isEdit, isView, form]);
@@ -205,44 +203,56 @@ export default function TagForm() {
                 inputProps={{ rows: 3 }}
               />
 
-              <div className="space-y-6">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  SEO Keywords
+                </label>
                 <div className="space-y-2">
-                  <FormInput
-                    name="color"
-                    type={INPUT_TYPES.TEXT}
-                    control={control}
-                    label="Color"
-                    placeholder="#3B82F6"
-                    disabled={mode === MODE.VIEW}
-                    required
-                  />
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="color"
-                      value={watch("color")}
-                      onChange={(e) => setValue("color", e.target.value)}
-                      disabled={mode === MODE.VIEW}
-                      className="h-8 w-8 rounded border"
-                    />
-                    <div
-                      className="h-4 w-4 rounded border"
-                      style={{ backgroundColor: watch("color") }}
-                    />
-                    <span className="text-sm text-gray-500">Color preview</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center">
-                  <FormInput
-                    name="isActive"
-                    type={INPUT_TYPES.CHECKBOX}
-                    control={control}
-                    label="Active Status"
-                    disabled={mode === MODE.VIEW}
-                    description="Turning this off will remove this tag from every section."
-                  />
+                  {watch("seoKeywords")?.map((keyword, index) => (
+                    <div key={index} className="flex items-center space-x-2">
+                      <input
+                        type="text"
+                        value={keyword}
+                        onChange={(e) => {
+                          const newKeywords = [...(watch("seoKeywords") || [])];
+                          newKeywords[index] = e.target.value;
+                          setValue("seoKeywords", newKeywords);
+                        }}
+                        disabled={mode === MODE.VIEW}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter SEO keyword"
+                      />
+                      {mode !== MODE.VIEW && (
+                        <Button
+                          type="button"
+                          variant="outlined"
+                          size="sm"
+                          onClick={() => {
+                            const newKeywords = watch("seoKeywords")?.filter((_, i) => i !== index) || [];
+                            setValue("seoKeywords", newKeywords);
+                          }}
+                        >
+                          Remove
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                  {mode !== MODE.VIEW && (
+                    <Button
+                      type="button"
+                      variant="outlined"
+                      size="sm"
+                      onClick={() => {
+                        const currentKeywords = watch("seoKeywords") || [];
+                        setValue("seoKeywords", [...currentKeywords, ""]);
+                      }}
+                    >
+                      Add Keyword
+                    </Button>
+                  )}
                 </div>
               </div>
+
             </div>
           </form>
         </Form>

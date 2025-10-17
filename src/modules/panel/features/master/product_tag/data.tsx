@@ -2,15 +2,17 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/core/components/ui/badge";
 import { TableAction } from "@/core/components/data-table/components/table-action";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
+import { apiDeleteProductTag } from "@/modules/panel/services/http/product.service";
+import { toast } from "sonner";
 
 export interface ProductTag {
   _id: string;
   name: string;
   slug: string;
+  totalCount?: number; // Only present in list API
   description?: string;
-  color?: string;
-  isActive: boolean;
-  productsCount: number;
+  seoKeywords?: string[];
+  isDeleted?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -18,25 +20,17 @@ export interface ProductTag {
 export const columns = (): ColumnDef<ProductTag>[] => [
   {
     accessorKey: "name",
-    header: "Tag Name",
+    header: "NAME",
     cell: ({ row }) => {
       const tag = row.original;
       return (
-        <div className="flex items-center space-x-2">
-          {tag.color && (
-            <div
-              className="h-3 w-3 rounded-full"
-              style={{ backgroundColor: tag.color }}
-            />
-          )}
-          <div className="font-medium">{tag.name}</div>
-        </div>
+        <div className="font-medium">{tag.name}</div>
       );
     },
   },
   {
     accessorKey: "slug",
-    header: "Slug",
+    header: "SLUG",
     cell: ({ row }) => (
       <code className="rounded bg-gray-100 px-2 py-1 text-sm">
         {row.getValue("slug")}
@@ -44,44 +38,20 @@ export const columns = (): ColumnDef<ProductTag>[] => [
     ),
   },
   {
-    accessorKey: "description",
-    header: "Description",
+    accessorKey: "totalCount",
+    header: "TOTAL",
     cell: ({ row }) => {
-      const description = row.getValue("description") as string;
+      const count = row.getValue("totalCount") as number;
       return (
-        <div className="max-w-xs truncate" title={description}>
-          {description || "-"}
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "productsCount",
-    header: "Products",
-    cell: ({ row }) => {
-      const count = row.getValue("productsCount") as number;
-      return (
-        <Badge variant="outline">
-          {count || 0} {count === 1 ? "product" : "products"}
-        </Badge>
-      );
-    },
-  },
-  {
-    accessorKey: "isActive",
-    header: "Status",
-    cell: ({ row }) => {
-      const isActive = row.getValue("isActive") as boolean;
-      return (
-        <Badge variant={isActive ? "default" : "destructive"}>
-          {isActive ? "Active" : "Inactive"}
-        </Badge>
+        <span className="font-medium">
+          {count || 0}
+        </span>
       );
     },
   },
   {
     accessorKey: "createdAt",
-    header: "Created",
+    header: "CREATED AT",
     cell: ({ row }) => {
       const date = new Date(row.getValue("createdAt"));
       return date.toLocaleDateString();
@@ -94,13 +64,6 @@ export const columns = (): ColumnDef<ProductTag>[] => [
       const tag = row.original;
       return (
         <TableAction
-          view={{
-            onClick: () =>
-              window.open(
-                PANEL_ROUTES.MASTER.PRODUCT_TAG_VIEW(tag._id),
-                "_blank",
-              ),
-          }}
           edit={{
             onClick: () =>
               window.open(
@@ -109,9 +72,17 @@ export const columns = (): ColumnDef<ProductTag>[] => [
               ),
           }}
           delete={{
-            onClick: () => {
-              // TODO: Implement delete functionality
-              console.log("Delete tag:", tag._id);
+            onClick: async () => {
+              if (window.confirm(`Are you sure you want to delete the tag "${tag.name}"?`)) {
+                try {
+                  await apiDeleteProductTag(tag._id);
+                  toast.success("Tag deleted successfully");
+                  // Refresh the table by triggering a refetch
+                  window.location.reload();
+                } catch (error: any) {
+                  toast.error(error?.response?.data?.message || "Failed to delete tag");
+                }
+              }
             },
           }}
         />

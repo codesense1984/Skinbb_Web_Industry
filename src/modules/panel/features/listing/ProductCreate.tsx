@@ -187,8 +187,8 @@ interface ProductCreateData {
   customerCareEmail?: string;
   customerCareNumber?: string;
   // Key Information
-  ingredient?: string;
-  keyIngredients?: string;
+  ingredient?: string[];
+  keyIngredients?: string[];
   benefitsSingle?: string;
   // Capture Details
   captureBy?: string;
@@ -345,8 +345,8 @@ const ProductCreate = (props?: ProductCreateProps) => {
     customerCareEmail: "",
     customerCareNumber: "",
     // Key Information
-    ingredient: "",
-    keyIngredients: "",
+    ingredient: [],
+    keyIngredients: [],
     benefitsSingle: "",
     // Capture Details
     captureBy: role,
@@ -679,12 +679,8 @@ const ProductCreate = (props?: ProductCreateProps) => {
                   "customer-care-number",
                 ),
               ),
-              ingredient: getStringValue(
-                (product.ingredients as string[])?.[0],
-              ),
-              keyIngredients: getStringValue(
-                (product.keyIngredients as string[])?.[0],
-              ),
+              ingredient: getStringArray(product.ingredients),
+              keyIngredients: getStringArray(product.keyIngredients),
               benefitsSingle: getStringValue(
                 (product.benefit as string[])?.[0],
               ),
@@ -739,8 +735,12 @@ const ProductCreate = (props?: ProductCreateProps) => {
               manufacturedBy: String(initialFormData.manufacturedBy || ""),
               importedBy: String(initialFormData.importedBy || ""),
               productType: String(initialFormData.productType || ""),
-              ingredient: String(initialFormData.ingredient || ""),
-              keyIngredients: String(initialFormData.keyIngredients || ""),
+              ingredient: Array.isArray(initialFormData.ingredient)
+                ? initialFormData.ingredient.map(String)
+                : [],
+              keyIngredients: Array.isArray(initialFormData.keyIngredients)
+                ? initialFormData.keyIngredients.map(String)
+                : [],
               benefitsSingle: String(initialFormData.benefitsSingle || ""),
               thumbnail: String(initialFormData.thumbnail || ""),
               barcodeImage: String(initialFormData.barcodeImage || ""),
@@ -812,10 +812,8 @@ const ProductCreate = (props?: ProductCreateProps) => {
             ? formData.productCategory
             : ["68652da5d559321c67d22f44"],
         tags: formData.tags || [],
-        ingredients: formData.ingredient ? [formData.ingredient] : [],
-        keyIngredients: formData.keyIngredients
-          ? [formData.keyIngredients]
-          : [],
+        ingredients: formData.ingredient || [],
+        keyIngredients: formData.keyIngredients || [],
         benefit: formData.benefitsSingle ? [formData.benefitsSingle] : [],
         marketedBy: formData.marketedBy,
         marketedByAddress: formData.marketedByAddress,
@@ -1997,13 +1995,14 @@ const ProductCreate = (props?: ProductCreateProps) => {
                       value: tag._id,
                     })}
                     placeholder="Select or create tags"
-                    value={formData.tags?.[0] || ""}
+                    value={formData.tags || []}
                     onChange={(value: string | string[]) => {
-                      const stringValue = Array.isArray(value) ? value[0] : value;
-                      handleInputChange("tags", [stringValue]);
+                      const arrayValue = Array.isArray(value) ? value : [value];
+                      handleInputChange("tags", arrayValue);
                     }}
                     className="w-full"
                     disabled={isViewMode}
+                    multi={true}
                     queryKey={["tags-dropdown"]}
                   />
                 </div>
@@ -2427,14 +2426,15 @@ const ProductCreate = (props?: ProductCreateProps) => {
                         label: ingredient.name,
                         value: ingredient._id,
                       })}
-                      placeholder="Select an Ingredient"
-                      value={formData.ingredient || ""}
+                      placeholder="Select ingredients"
+                      value={formData.ingredient || []}
                       onChange={(value: string | string[]) => {
-                        const stringValue = Array.isArray(value) ? value[0] : value;
-                        handleInputChange("ingredient", stringValue);
+                        const arrayValue = Array.isArray(value) ? value : [value];
+                        handleInputChange("ingredient", arrayValue);
                       }}
                       className="w-full"
                       disabled={isViewMode}
+                      multi={true}
                       queryKey={["ingredients-dropdown"]}
                     />
                   </div>
@@ -2452,14 +2452,15 @@ const ProductCreate = (props?: ProductCreateProps) => {
                         label: ingredient.name,
                         value: ingredient._id,
                       })}
-                      placeholder="Select a Key Ingredient"
-                      value={formData.keyIngredients || ""}
+                      placeholder="Select key ingredients"
+                      value={formData.keyIngredients || []}
                       onChange={(value: string | string[]) => {
-                        const stringValue = Array.isArray(value) ? value[0] : value;
-                        handleInputChange("keyIngredients", stringValue);
+                        const arrayValue = Array.isArray(value) ? value : [value];
+                        handleInputChange("keyIngredients", arrayValue);
                       }}
                       className="w-full"
                       disabled={isViewMode}
+                      multi={true}
                       queryKey={["key-ingredients-dropdown"]}
                     />
                   </div>
