@@ -37,18 +37,14 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
     name: "sidebar",
     children: [
       "dashboard",
-      "brands",
-      "company",
-      "masterData",
-      "analytics",
-      "surveys",
-      "promotions",
-      "listing",
+      "orders",
+      "products",
       "customers",
-      "users",
-      "seller-users",
-      "chat",
-      "formulationLooker",
+      "brandPartners",
+      "marketing",
+      "analytics",
+      "app",
+      "settings",
     ],
   },
   dashboard: {
@@ -70,13 +66,109 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
       </svg>
     ),
   },
-  brands: {
-    name: "brands",
+  orders: {
+    name: "Orders",
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={1.5}
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
+        />
+      </svg>
+    ),
+    children: ["allOrders", "draftOrders"],
+  },
+  allOrders: {
+    name: "All Orders",
+    href: PANEL_ROUTES.ORDER.LIST,
     requiredPermission: {
-      page: PAGE.BRANDS,
-      action: [PERMISSION.VIEW],
+      page: PAGE.ORDERS,
+      action: [PERMISSION.VIEW, PERMISSION.CREATE],
     },
-    href: PANEL_ROUTES.BRAND.LIST,
+  },
+  draftOrders: {
+    name: "Draft Orders",
+    href: PANEL_ROUTES.ORDER.LIST + "?status=draft",
+    requiredPermission: {
+      page: PAGE.ORDERS,
+      action: [PERMISSION.VIEW, PERMISSION.CREATE],
+    },
+  },
+  products: {
+    name: "Products",
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={1.5}
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.46-.662M4.5 12l3 3m-3-3-3 3"
+        />
+      </svg>
+    ),
+    children: ["allProducts", "productCategories", "productTags", "productAttributes"],
+  },
+  allProducts: {
+    name: "All Products",
+    href: "/listing",
+    requiredPermission: {
+      page: PAGE.PRODUCTS,
+      action: [PERMISSION.VIEW, PERMISSION.CREATE],
+    },
+  },
+  customers: {
+    name: "Customers",
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={1.5}
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"
+        />
+      </svg>
+    ),
+    children: ["allCustomers", "customerSegments", "customerReviews", "customerRoutines"],
+  },
+  allCustomers: {
+    name: "All Customers",
+    href: PANEL_ROUTES.CUSTOMER.LIST,
+    requiredRoles: [ROLE.ADMIN],
+  },
+  customerSegments: {
+    name: "Segments",
+    href: PANEL_ROUTES.CUSTOMER.LIST + "?view=segments",
+    requiredRoles: [ROLE.ADMIN],
+  },
+  customerReviews: {
+    name: "Reviews",
+    href: PANEL_ROUTES.CUSTOMER.LIST + "?view=reviews",
+    requiredRoles: [ROLE.ADMIN],
+  },
+  customerRoutines: {
+    name: "Routines",
+    href: PANEL_ROUTES.CUSTOMER.LIST + "?view=routines",
+    requiredRoles: [ROLE.ADMIN],
+  },
+  brandPartners: {
+    name: "Brand Partners",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -92,60 +184,20 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
         />
       </svg>
     ),
+    children: ["brandDiscover", "brandOnboarding"],
   },
-  company: {
-    name: "company",
-    href: PANEL_ROUTES.COMPANY.LIST,
-    // requiredRoles: [ROLE.ADMIN],
+  brandDiscover: {
+    name: "Discover",
+    href: PANEL_ROUTES.BRAND.LIST,
     requiredPermission: {
-      page: PAGE.COMPANIES,
+      page: PAGE.BRANDS,
       action: [PERMISSION.VIEW],
     },
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={1.5}
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M3.75 5.25h16.5m-16.5 0a3 3 0 0 1 3-3h10.5a3 3 0 0 1 3 3v.75H3.75V5.25Z"
-        />
-      </svg>
-    ),
   },
-  masterData: {
-    name: "Master Data",
+  brandOnboarding: {
+    name: "Onboarding",
+    href: PANEL_ROUTES.ONBOARD.COMPANY,
     requiredRoles: [ROLE.ADMIN],
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={1.5}
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z"
-        />
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M6 6h.008v.008H6V6Z"
-        />
-      </svg>
-    ),
-    children: [
-      "productCategories",
-      "productTags",
-      "productAttributes",
-      "discountCoupons",
-    ],
   },
   productCategories: {
     name: "Product Categories",
@@ -167,8 +219,27 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
     href: PANEL_ROUTES.MASTER.DISCOUNT_COUPON,
     requiredRoles: [ROLE.ADMIN],
   },
+  marketing: {
+    name: "Marketing",
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={1.5}
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"
+        />
+      </svg>
+    ),
+    children: ["discountCoupons", "promotions", "surveys"],
+  },
   analytics: {
-    name: "analytics",
+    name: "Analytics",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -185,51 +256,40 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
       </svg>
     ),
     children: [
-      "platform analysis",
-      "brand analysis",
-      "user insight",
-      "market trends",
-      "ingredient analysis",
-      "ecommerce analysis",
+      "salesInsights",
+      "customerInsights", 
+      "brandReport",
+      "marketTrends",
+      "ingredientInsights",
     ],
   },
-  "platform analysis": {
-    name: "Platform insight",
-    href: ANALYTICS_ROUTES.PLATFORM.BASE,
-    requiredRoles: [ROLE.ADMIN],
-  },
-  "brand analysis": {
-    name: "Brand insight",
-    href: ANALYTICS_ROUTES.BRAND.BASE,
-    requiredRoles: [ROLE.ADMIN],
-  },
-  "user insight": {
-    name: "user insight",
-    href: "/user-insight",
-    requiredRoles: [ROLE.ADMIN],
-  },
-  "market trends": {
-    name: "market trends",
-    href: "/market-trends",
-    requiredRoles: [ROLE.ADMIN],
-  },
-  "ingredient analysis": {
-    name: "Ingredient insight",
-    href: ANALYTICS_ROUTES.INGREDIENT.BASE,
-    requiredRoles: [ROLE.ADMIN],
-  },
-  "ecommerce analysis": {
-    name: "Ecommerce insight",
+  salesInsights: {
+    name: "Sales Insights",
     href: ANALYTICS_ROUTES.ECOMMERCE.BASE,
     requiredRoles: [ROLE.ADMIN],
   },
-  listing: {
-    name: "listing",
-    href: "/listing",
-    requiredPermission: {
-      page: PAGE.PRODUCTS,
-      action: [PERMISSION.VIEW, PERMISSION.CREATE],
-    },
+  customerInsights: {
+    name: "Customer Insights",
+    href: "/user-insight",
+    requiredRoles: [ROLE.ADMIN],
+  },
+  brandReport: {
+    name: "Brand Report",
+    href: ANALYTICS_ROUTES.BRAND.BASE,
+    requiredRoles: [ROLE.ADMIN],
+  },
+  marketTrends: {
+    name: "Market Trends",
+    href: "/market-trends",
+    requiredRoles: [ROLE.ADMIN],
+  },
+  ingredientInsights: {
+    name: "Ingredient Insights",
+    href: ANALYTICS_ROUTES.INGREDIENT.BASE,
+    requiredRoles: [ROLE.ADMIN],
+  },
+  app: {
+    name: "App",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -241,157 +301,26 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
-          d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.46-.662M4.5 12l3 3m-3-3-3 3"
+          d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"
         />
       </svg>
     ),
-    children: ["products", "catalog", "orders", "coupons"],
+    children: ["rewards", "formulationLooker", "chat"],
   },
-
-  products: {
-    name: "Products",
-    href: "/listing",
-    requiredPermission: {
-      page: PAGE.PRODUCTS,
-      action: [PERMISSION.VIEW, PERMISSION.CREATE],
-    },
-  },
-  catalog: {
-    name: "Catalog",
-    href: "/catalog",
-    requiredPermission: {
-      page: PAGE.PRODUCTS,
-      action: [PERMISSION.VIEW, PERMISSION.CREATE],
-    },
-  },
-  orders: {
-    name: "Orders",
-    href: PANEL_ROUTES.ORDER.LIST,
-    requiredPermission: {
-      page: PAGE.ORDERS,
-      action: [PERMISSION.VIEW, PERMISSION.CREATE],
-    },
-  },
-  coupons: {
-    name: "Coupons",
-    href: "/listing",
-    requiredPermission: {
-      page: PAGE.COUPONS,
-      action: [PERMISSION.VIEW, PERMISSION.CREATE],
-    },
+  rewards: {
+    name: "Rewards",
+    href: "/rewards",
+    requiredRoles: [ROLE.ADMIN],
   },
 
   surveys: {
-    name: "brand surveys",
-    requiredRoles: [ROLE.ADMIN],
-
+    name: "Surveys",
     href: SURVEY_ROUTES.LIST,
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={1.5}
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v16.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Zm3.75 11.625a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"
-        />
-      </svg>
-    ),
+    requiredRoles: [ROLE.ADMIN],
   },
   promotions: {
-    name: "promotions",
+    name: "Promotions",
     href: "/promo",
-    requiredRoles: [ROLE.ADMIN],
-
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={1.5}
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"
-        />
-      </svg>
-    ),
-  },
-
-  customers: {
-    name: "customers",
-    href: PANEL_ROUTES.CUSTOMER.LIST,
-    requiredRoles: [ROLE.ADMIN],
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={1.5}
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"
-        />
-      </svg>
-    ),
-  },
-  users: {
-    name: "users",
-    href: PANEL_ROUTES.USER.LIST,
-    requiredPermission: {
-      page: PAGE.USERS,
-      action: [PERMISSION.VIEW],
-    },
-    requiredRoles: [ROLE.ADMIN],
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={1.5}
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"
-        />
-      </svg>
-    ),
-  },
-  "seller-users": {
-    name: "users",
-    href: "/company/:id/users",
-    requiredRoles: [ROLE.SELLER],
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={1.5}
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"
-        />
-      </svg>
-    ),
-  },
-  chat: {
-    name: "chat",
-    href: PANEL_ROUTES.CHAT,
-    icon: <BoltIcon />,
     requiredRoles: [ROLE.ADMIN],
   },
   formulationLooker: {
@@ -399,6 +328,63 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
     href: PANEL_ROUTES.INGREDIENT_DETAILS,
     requiredRoles: [ROLE.ADMIN],
     icon: <BuildingStorefrontIcon />,
+  },
+  chat: {
+    name: "Chat",
+    href: PANEL_ROUTES.CHAT,
+    icon: <BoltIcon />,
+    requiredRoles: [ROLE.ADMIN],
+  },
+  settings: {
+    name: "Settings",
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={1.5}
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 0 1 0 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 0 1 0-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281Z"
+        />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+        />
+      </svg>
+    ),
+    children: ["companyManagement", "userRolesPermissions", "apiIntegrations", "notificationsEmailTemplates"],
+  },
+  companyManagement: {
+    name: "Company Management",
+    href: PANEL_ROUTES.COMPANY.LIST,
+    requiredPermission: {
+      page: PAGE.COMPANIES,
+      action: [PERMISSION.VIEW],
+    },
+  },
+  userRolesPermissions: {
+    name: "User Roles & Permissions",
+    href: PANEL_ROUTES.USER.LIST,
+    requiredPermission: {
+      page: PAGE.USERS,
+      action: [PERMISSION.VIEW],
+    },
+    requiredRoles: [ROLE.ADMIN],
+  },
+  apiIntegrations: {
+    name: "API / Integrations",
+    href: "/api-integrations",
+    requiredRoles: [ROLE.ADMIN],
+  },
+  notificationsEmailTemplates: {
+    name: "Notifications / Email Templates",
+    href: "/notifications",
+    requiredRoles: [ROLE.ADMIN],
   },
 };
 

@@ -395,7 +395,7 @@ export default function OrderView() {
         </Card>
 
         {/* Addresses */}
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
           {/* Shipping Address */}
           <Card>
             <CardHeader className="pb-3">

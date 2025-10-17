@@ -33,6 +33,30 @@ type CardConfig = {
 
 const cardData: CardConfig[] = [
   {
+    title: "Orders",
+    description: "View and manage all your orders and fulfillment",
+    buttons: [{ name: "Explore", href: SELLER_ROUTES.ORDERS.LIST }],
+    requiredPermissions: {
+      page: PAGE.ORDERS,
+      action: [PERMISSION.VIEW],
+    },
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={0.7}
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
+        />
+      </svg>
+    ),
+  },
+  {
     title: "Brands",
     description: "Discover top brands from around the world.",
     buttons: [{ name: "Explore", href: "/brands" }],
@@ -66,6 +90,10 @@ const cardData: CardConfig[] = [
       // TODO: Uncomment when promotion functionality is ready
       // { name: "Promotions", href: SELLER_ROUTES.MARKETING.PROMOTIONS.LIST },
     ],
+    requiredPermissions: {
+      page: PAGE.COUPONS,
+      action: [PERMISSION.VIEW],
+    },
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -84,14 +112,14 @@ const cardData: CardConfig[] = [
   },
   {
     title: "Analytics",
-    description: "Comprehensive insights across sales, ingredients, brands, customers, and market trends",
+    description: "View comprehensive insights and performance metrics",
     buttons: [
-      { name: "Sales Insights", href: SELLER_ROUTES.ANALYTICS.SALES_INSIGHTS.BASE },
-      { name: "Ingredient Insights", href: SELLER_ROUTES.ANALYTICS.INGREDIENT_INSIGHTS.BASE },
-      { name: "Brand Insights", href: SELLER_ROUTES.ANALYTICS.BRAND_INSIGHTS.BASE },
-      { name: "Customer Insights", href: SELLER_ROUTES.ANALYTICS.CUSTOMER_INSIGHTS.BASE },
-      { name: "Market Trends", href: SELLER_ROUTES.ANALYTICS.MARKET_TRENDS.BASE },
+      { name: "Seller Analytics", href: SELLER_ROUTES.ANALYTICS.SALES_INSIGHTS.BASE },
     ],
+    requiredPermissions: {
+      page: PAGE.PRODUCTS,
+      action: [PERMISSION.VIEW],
+    },
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -314,7 +342,7 @@ const SellerDashboard = () => {
         animate: true,
       }}
     >
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
         {visibleCards.map(({ title, description, buttons, icon }, index) => (
           <Card
             key={title}
@@ -358,7 +386,7 @@ const Card = ({ title, description, buttons, icon, index }: CardProps) => {
       <BlobIcon size="lg">{icon}</BlobIcon>
       <div className="flex flex-col items-center text-center">
         <h5 className="mb-1 font-medium">{title}</h5>
-        <p>{description}</p>
+        <p className="mb-4 text-sm leading-relaxed">{description}</p>
         <div className="divide-primary/20 divide-y-0.5 grid auto-cols-max grid-flow-col items-center">
           {buttons.map((link, index) => (
             <Fragment key={link.name}>
@@ -367,6 +395,7 @@ const Card = ({ title, description, buttons, icon, index }: CardProps) => {
                 color={"primary"}
                 variant={"link"}
                 asChild
+                className="text-xs"
               >
                 {buttons.length !== 1 ? (
                   <NavLink to={link.href}>{link.name}</NavLink>
@@ -385,7 +414,7 @@ const Card = ({ title, description, buttons, icon, index }: CardProps) => {
   );
 
   const className =
-    "bg-background hover:ring-primary visited:ring-3 visited:ring-primary flex flex-col items-center gap-3 rounded-lg py-7 px-6 shadow-md hover:ring-3";
+    "bg-background hover:ring-primary visited:ring-3 visited:ring-primary flex flex-col items-center gap-3 rounded-lg py-7 px-6 shadow-md hover:ring-3 min-h-[200px]";
 
   if (buttons.length === 1) {
     return (

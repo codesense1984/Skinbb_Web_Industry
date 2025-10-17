@@ -7,6 +7,7 @@ import type {
 import type { FullCompanyFormType } from "../schema/fullCompany.schema";
 import { createCompanySchema } from "../schema/fullCompany.schema";
 import { LocationService } from "@/core/services/location.service";
+import { parse } from "date-fns";
 
 // Constants
 // const DEFAULT_ROLE_ID = "6875fc068683bb026013181b";
@@ -480,8 +481,11 @@ export function transformApiResponseToFormData(
     headquarterLocation:
       safeString(apiData.headquaterLocation) ||
       defaultValues.headquarterLocation,
+    // establishedIn: apiData.establishedIn
+    //   ? new Date(safeString(apiData.establishedIn))
+    //   : defaultValues.establishedIn,
     establishedIn: apiData.establishedIn
-      ? new Date(safeString(apiData.establishedIn))
+      ? parse(apiData.establishedIn, "dd/MM/yyyy", new Date())
       : defaultValues.establishedIn,
     description:
       safeString(apiData.companyDescription) || defaultValues.description,
