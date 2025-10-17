@@ -87,7 +87,7 @@ const SignIn = () => {
           >
             <img src={logo} alt="Logo" className="w-32" />
 
-            <h5 className="-mt-4">Welcome to SkinBB Tracker</h5>
+            <h5 className="-mt-4">Welcome to SkinBB Metaverse</h5>
 
             <div className="flex w-full flex-col gap-5">
               <FormInput
@@ -164,12 +164,12 @@ const SignIn = () => {
                   disabled={isPending}
                 />
 
-                <NavLink
+                {/* <NavLink
                   to={AUTH_ROUTES.FORGOT_PASSWORD}
                   className="flex items-center gap-3"
                 >
                   Forgot password
-                </NavLink>
+                </NavLink> */}
               </div>
             </div>
 
