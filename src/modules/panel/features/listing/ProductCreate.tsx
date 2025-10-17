@@ -265,6 +265,8 @@ const ProductCreate = (props?: ProductCreateProps) => {
     pathMode = MODE.EDIT;
   } else if (location.pathname.includes("/view")) {
     pathMode = MODE.VIEW;
+  } else if (location.pathname.includes("/create")) {
+    pathMode = MODE.ADD; // Explicitly set CREATE mode for create routes
   }
   const finalMode = mode || urlMode || pathMode;
 
@@ -823,6 +825,8 @@ const ProductCreate = (props?: ProductCreateProps) => {
         importedByAddress: formData.importedByAddress,
         // capturedBy: formData.captureBy,
         capturedBy: userId,
+        sellerId: isSellerMember ? userId : undefined, // Add seller ID for seller users
+        companyId: (isSellerMember && companyId) ? companyId : undefined, // Add company ID for seller products
         capturedDate:
           formData.capturedDate.split("T")[0] ?? new Date().toISOString(), // Convert to date string
         thumbnail: formData.thumbnail || "", // Include thumbnail ID
@@ -2746,9 +2750,10 @@ const ProductCreate = (props?: ProductCreateProps) => {
                         handleInputChange("targetConcerns", arrayValue);
                       }}
                       className="w-full"
-                            disabled={isViewMode}
+                      disabled={isViewMode}
+                      multi={true}
                       queryKey={["target-concerns-dropdown"]}
-                          />
+                    />
                   </div>
 
                   <div>
@@ -2766,9 +2771,10 @@ const ProductCreate = (props?: ProductCreateProps) => {
                         handleInputChange("productFeatures", arrayValue);
                       }}
                       className="w-full"
-                            disabled={isViewMode}
+                      disabled={isViewMode}
+                      multi={true}
                       queryKey={["product-features-dropdown"]}
-                          />
+                    />
                   </div>
 
                   <div>
@@ -2786,9 +2792,10 @@ const ProductCreate = (props?: ProductCreateProps) => {
                         handleInputChange("benefits", arrayValue);
                       }}
                       className="w-full"
-                            disabled={isViewMode}
+                      disabled={isViewMode}
+                      multi={true}
                       queryKey={["benefits-attribute-dropdown"]}
-                          />
+                    />
                   </div>
 
                   <div>
@@ -2806,9 +2813,10 @@ const ProductCreate = (props?: ProductCreateProps) => {
                         handleInputChange("certifications", arrayValue);
                       }}
                       className="w-full"
-                            disabled={isViewMode}
+                      disabled={isViewMode}
+                      multi={true}
                       queryKey={["certifications-dropdown"]}
-                          />
+                    />
                   </div>
 
                   <div>
@@ -2826,9 +2834,10 @@ const ProductCreate = (props?: ProductCreateProps) => {
                         handleInputChange("skinConcerns", arrayValue);
                       }}
                       className="w-full"
-                            disabled={isViewMode}
+                      disabled={isViewMode}
+                      multi={true}
                       queryKey={["skin-concerns-dropdown"]}
-                          />
+                    />
                   </div>
                 </div>
               </div>
