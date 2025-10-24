@@ -54,11 +54,14 @@ export default function TagForm() {
   // Fetch tag data for edit mode
   const { data: tagData, isLoading } = useQuery({
     queryKey: ["product-tag-v2", id],
-    queryFn: () => apiGetProductTags({ page: 1, limit: 1000 }),
+    queryFn: async () => {
+      const response = await apiGetProductTags({ page: 1, limit: 1000 });
+      return response as { data?: { tags?: Array<{ _id: string; name: string; slug: string; description?: string; seoKeywords?: string[] }> } };
+    },
     enabled: isEdit || isView,
-    select: (data: any) => {
+    select: (data) => {
       if (!data?.data?.tags) return null;
-      return data.data.tags.find((tag: any) => tag._id === id);
+      return data.data.tags.find((tag) => tag._id === id);
     },
   });
 
@@ -81,19 +84,19 @@ export default function TagForm() {
       toast.success("Tag created successfully");
       navigate(PANEL_ROUTES.MASTER.PRODUCT_TAG);
     },
-    onError: (error: any) => {
+    onError: (error: { response?: { data?: { message?: string } } }) => {
       toast.error(error?.response?.data?.message || "Failed to create tag");
     },
   });
 
   // Update tag mutation
   const updateTagMutation = useMutation({
-    mutationFn: (data: TagFormData) => apiUpdateProductTag(id!, data),
+    mutationFn: (data: TagFormData) => apiUpdateProductTag(id!, { ...data, _id: id! }),
     onSuccess: () => {
       toast.success("Tag updated successfully");
       navigate(PANEL_ROUTES.MASTER.PRODUCT_TAG);
     },
-    onError: (error: any) => {
+    onError: (error: { response?: { data?: { message?: string } } }) => {
       toast.error(error?.response?.data?.message || "Failed to update tag");
     },
   });
@@ -204,7 +207,7 @@ export default function TagForm() {
               />
 
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
+                <label htmlFor="seo-keywords" className="block text-sm font-medium text-gray-700">
                   SEO Keywords
                 </label>
                 <div className="space-y-2">
