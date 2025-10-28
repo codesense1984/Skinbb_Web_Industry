@@ -175,27 +175,22 @@ export const columns: ColumnDef<Product>[] = [
       return <div>{formatDate(capturedDate)}</div>;
     },
   },
-  // {
-  //   header: "Action",
-  //   accessorKey: "actions",
-  //   enableSorting: false,
-  //   enableHiding: false,
-  //   size: 100,
-  //   cell: ({ row }) => {
-  //     return (
-  //       <TableAction
-  //         view={{
-  //           to:
-  //             PANEL_ROUTES.LISTING.CREATE + `?mode=view&id=${row.original._id}`,
-  //           title: "View product details",
-  //         }}
-  //         edit={{
-  //           to:
-  //             PANEL_ROUTES.LISTING.CREATE + `?mode=edit&id=${row.original._id}`,
-  //           title: "Edit product",
-  //         }}
-  //       />
-  //     );
-  //   },
-  // },
+  {
+    header: "Action",
+    accessorKey: "actions",
+    enableSorting: false,
+    enableHiding: false,
+    size: 100,
+    cell: ({ row }) => {
+      return (
+        <TableAction
+          edit={{
+            to:
+              PANEL_ROUTES.LISTING.CREATE + `?mode=edit&id=${row.original._id}`,
+            title: "Edit product",
+          }}
+        />
+      );
+    },
+  },
 ];

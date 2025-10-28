@@ -237,7 +237,7 @@ and performance`,
               </ToggleGroupItem>
               <ToggleGroupItem
                 className="aspect-auto h-full flex-auto px-3"
-                value={`${ANALYTICS_ROUTES.ECOMMERCE.BASE}`}
+                value={`${ANALYTICS_ROUTES.ECOMMERCE.DASHBOARD}`}
                 aria-label="Toggle Ecommerce"
               >
                 Ecommerce

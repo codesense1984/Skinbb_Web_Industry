@@ -21,7 +21,11 @@ export const analyticsRoutes: RouteObject = {
     },
     {
       path: ANALYTICS_ROUTES.ECOMMERCE.BASE,
-      Component: lazy(() => import("@/modules/analytics/features/ecommerce")),
+      Component: lazy(() => import("@/modules/analytics/features/ecommerce-dashboard")),
+    },
+    {
+      path: ANALYTICS_ROUTES.ECOMMERCE.DASHBOARD,
+      Component: lazy(() => import("@/modules/analytics/features/ecommerce-dashboard")),
     },
   ],
 };

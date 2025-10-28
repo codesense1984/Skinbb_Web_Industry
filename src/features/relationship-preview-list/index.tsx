@@ -252,7 +252,13 @@ const IngredientSelector = ({ onSelect }: { onSelect: (ingredient: Node) => void
         console.log("🚀 ~ useEffect ~ auto-selecting:", selectedOption);
         // Use setTimeout to avoid infinite loops
         setTimeout(() => {
-          onSelect(selectedOption as Node);
+          // Convert Option to Node by ensuring all required properties are present
+          const node: Node = {
+            label: selectedOption.label as string,
+            id: selectedOption.value,
+            hasChildren: Boolean(selectedOption.hasChildren) || true, // Default to true if not specified
+          };
+          onSelect(node);
         }, 100);
       }
     }

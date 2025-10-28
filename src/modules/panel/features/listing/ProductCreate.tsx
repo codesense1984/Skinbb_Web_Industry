@@ -27,7 +27,7 @@ import {
 import { apiGetBrands } from "@/modules/panel/services/http/brand.service";
 import { apiGetProductAttributes } from "@/modules/panel/services/http/product-attribute.service";
 import { apiGetProductAttributeValues as apiGetAttributeValues } from "@/modules/panel/services/http/product-attribute-value.service";
-import { apiGetProductDetailById } from "@/modules/panel/services/http/company.service";
+import { apiGetProductDetail } from "@/modules/panel/services/http/product.service";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
 import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth";
 import { MODE } from "@/core/types";
@@ -262,17 +262,18 @@ const ProductCreate = (props?: ProductCreateProps) => {
   const urlMode = searchParams.get("mode") ?? "";
   let pathMode = "";
   if (location.pathname.includes("/edit")) {
-    pathMode = MODE.EDIT;
+    pathMode = "edit";
   } else if (location.pathname.includes("/view")) {
-    pathMode = MODE.VIEW;
+    pathMode = "view";
   } else if (location.pathname.includes("/create")) {
     pathMode = MODE.ADD; // Explicitly set CREATE mode for create routes
   }
+  // Normalize mode to be consistent
   const finalMode = mode || urlMode || pathMode;
 
   // Use props if available, otherwise use URL params
-  const isEditMode = finalMode === MODE.EDIT;
-  const isViewMode = finalMode === MODE.VIEW;
+  const isEditMode = finalMode === "edit";
+  const isViewMode = finalMode === "view";
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const [thumbnailImage, setThumbnailImage] = useState<File | null>(null);
@@ -429,26 +430,26 @@ const ProductCreate = (props?: ProductCreateProps) => {
 
   // Fetch product data for edit/view mode
   useEffect(() => {
+    console.log("useEffect triggered with:", { productId, isEditMode, isViewMode, finalMode, mode, urlMode });
+    
     const fetchProductData = async () => {
-      if (productId && (isEditMode || isViewMode)) {
+          if (productId && (isEditMode || isViewMode)) {
+        console.log("Fetching product data for:", { productId, isEditMode, isViewMode });
         try {
-          // Only use new API endpoint - require companyId
-          if (!companyId) {
-            setError(
-              "Company ID is required to fetch product data",
-            );
-            return;
-          }
-
-          const response = (await apiGetProductDetailById(productId)) as {
+          const response = (await apiGetProductDetail(productId)) as {
             statusCode: number;
             success: boolean;
             data: Record<string, unknown>;
           };
+          console.log("Product API response:", response);
 
-          if (response.success && response.data) {
+          // Handle response structure - check for both data and nested data property
+          const productData = response.data || response;
+          
+          if (productData) {
             // Extract product data from response - handle both old and new API response structures
-            const product = response.data as Record<string, unknown>;
+            const product = productData as Record<string, unknown>;
+            console.log("Setting product data:", product);
 
 
             // Helper function to ensure we get string values
@@ -507,9 +508,11 @@ const ProductCreate = (props?: ProductCreateProps) => {
               quantity: (product.quantity as number) || 0,
               sku: (product.sku as string) || "",
               brand: getStringValue(product.brand),
-              productVariationType: getStringValue(
-                product.productVariationType,
-              ),
+              productVariationType: product.productVariationType 
+                ? (typeof product.productVariationType === "string" 
+                    ? product.productVariationType 
+                    : (product.productVariationType as Record<string, unknown>)?._id as string || "")
+                : "",
               productCategory: getStringArray(product.productCategory),
               tags: getStringArray(product.tags),
               marketedBy: getStringValue(product.marketedBy),
@@ -765,7 +768,8 @@ const ProductCreate = (props?: ProductCreateProps) => {
               ) || [],
             );
           }
-        } catch {
+        } catch (error) {
+          console.error("Failed to load product data:", error);
           setError("Failed to load product data");
         }
       }
@@ -779,6 +783,9 @@ const ProductCreate = (props?: ProductCreateProps) => {
     userId,
     brandId,
     companyId,
+    finalMode,
+    mode,
+    urlMode,
   ]);
 
   const handleInputChange = (

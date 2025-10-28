@@ -72,7 +72,7 @@ const cardData: CardConfig[] = [
       },
       {
         name: "Ecommerce",
-        href: `${ANALYTICS_ROUTES.ECOMMERCE.BASE}`,
+        href: `${ANALYTICS_ROUTES.ECOMMERCE.DASHBOARD}`,
       },
     ],
     icon: (
@@ -188,7 +188,7 @@ const cardData: CardConfig[] = [
     title: "Sales & Revenue",
     description:
       "Overview of earnings generated from product or service sales.",
-    buttons: [{ name: "Explore", href: "/analytic/ecommerce" }],
+    buttons: [{ name: "Explore", href: "/analytic/ecommerce-dashboard" }],
     requiredRoles: [ROLE.ADMIN],
     icon: (
       <svg

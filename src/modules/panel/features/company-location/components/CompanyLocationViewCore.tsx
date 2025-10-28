@@ -351,20 +351,11 @@ export const CompanyLocationViewCore: React.FC<
               label="Company Category"
               value={company.companyCategory || "-"}
             />
-
-            {/* <div className="space-y-4">
-              <InfoItem
-                icon={<CalendarIcon className="h-5 w-5" />}
-                label="Established In"
-                value={company.establishedIn || "-"}
-              />
-              <InfoItem
-                icon={<DocumentTextIcon className="h-5 w-5" />}
-                label="Designation"
-                value={owner?.ownerDesignation || "-"}
-              />
-            </div> */}
-
+            <InfoItem
+              icon={<CalendarIcon className="h-5 w-5" />}
+              label="Established In"
+              value={company.establishedIn ? formatDate(company.establishedIn) : "-"}
+            />
             <InfoItem
               icon={
                 company.subsidiaryOfGlobalBusiness ? (

@@ -224,7 +224,7 @@ export async function apiGetProductsForDropdown(params?: ApiParams) {
 
 // Product Detail and Update APIs
 export async function apiGetProductDetail(id: string) {
-  return api.get(`${API_PREFIX}/products/detail/${id}`);
+  return api.get(`${API_PREFIX}/products/admin/${id}`);
 }
 
 export async function apiUpdateProduct(id: string, data: Record<string, unknown>) {

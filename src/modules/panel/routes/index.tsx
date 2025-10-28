@@ -401,6 +401,12 @@ export const panelRoutes: RouteObject = {
     // },
 
     { path: PANEL_ROUTES.INGREDIENT_DETAILS, Component: IngredientDetail },
+    
+    // face analysis
+    {
+      path: PANEL_ROUTES.FACE_ANALYSIS,
+      Component: lazy(() => import("@/modules/face-analysis/features/face-analysis-page")),
+    },
   ],
 };
 

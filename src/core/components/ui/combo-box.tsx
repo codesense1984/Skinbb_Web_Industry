@@ -362,8 +362,7 @@ export const ComboBox = <T extends boolean = false>({
             selectedOption &&
             !Array.isArray(selectedOption) &&
             clearable ? (
-            <button
-              type="button"
+            <span
               onClick={(e) => {
                 e.stopPropagation();
                 handleClearValue();
@@ -379,9 +378,11 @@ export const ComboBox = <T extends boolean = false>({
               }}
               className="ring-offset-background focus:ring-ring hover:bg-muted/50 cursor-pointer rounded-full outline-none focus:ring-2 focus:ring-offset-2"
               aria-label="Clear selection"
+              role="button"
+              tabIndex={0}
             >
               <XIcon className="size-5" />
-            </button>
+            </span>
           ) : (
             <ChevronsUpDownIcon className="size-4 opacity-50" />
           )}
