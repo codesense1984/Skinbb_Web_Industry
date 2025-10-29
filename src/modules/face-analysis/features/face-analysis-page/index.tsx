@@ -48,6 +48,8 @@ const FaceAnalysisPage: React.FC = () => {
   );
   const [filterResult, setFilterResult] = useState<FilterResult | null>(null);
   const [loading, setLoading] = useState(false);
+  const [filtering, setFiltering] = useState(false);
+  const [privacyMaskEnabled, setPrivacyMaskEnabled] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const [recommendations, setRecommendations] = useState<{
@@ -336,9 +338,12 @@ const FaceAnalysisPage: React.FC = () => {
   };
 
   const applyPrivacyFilter = async () => {
-    if (!selectedImage) return;
+    if (!selectedImage) {
+      console.log("No image selected for privacy filter");
+      return;
+    }
 
-    setLoading(true);
+    setFiltering(true);
     try {
       const formData = new FormData();
       // Create a proper file object with content type
@@ -347,6 +352,7 @@ const FaceAnalysisPage: React.FC = () => {
       });
       formData.append("file", file);
 
+      console.log("Applying privacy filter...");
       const response = await fetch(
         "http://localhost:8000/face-analysis/privacy-filter",
         {
@@ -356,6 +362,13 @@ const FaceAnalysisPage: React.FC = () => {
       );
 
       const result = await response.json();
+      console.log("Privacy filter result:", result);
+      console.log("Has filtered_image:", !!result.filtered_image);
+      
+      if (result.success && result.filtered_image) {
+        console.log("Filtered image received, length:", result.filtered_image.length);
+      }
+      
       setFilterResult(result);
     } catch (error) {
       console.error("Filter failed:", error);
@@ -364,7 +377,7 @@ const FaceAnalysisPage: React.FC = () => {
         error: "Failed to apply privacy filter. Please try again.",
       });
     } finally {
-      setLoading(false);
+      setFiltering(false);
     }
   };
 
@@ -398,12 +411,46 @@ const FaceAnalysisPage: React.FC = () => {
             {/* Image Preview */}
             {imagePreview && (
               <div className="relative">
+                {filtering && (
+                  <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-black bg-opacity-50">
+                    <div className="text-center text-white">
+                      <Loader2 className="mx-auto mb-2 h-8 w-8 animate-spin" />
+                      <p className="text-sm">Applying privacy filter...</p>
+                    </div>
+                  </div>
+                )}
                 <img
-                  src={imagePreview}
+                  key={
+                    filterResult?.success && filterResult?.filtered_image
+                      ? "filtered"
+                      : "original"
+                  }
+                  src={
+                    filterResult?.success && filterResult?.filtered_image
+                      ? `data:image/jpeg;base64,${filterResult.filtered_image}`
+                      : imagePreview
+                  }
                   alt="Preview"
                   className="mx-auto h-80 w-full rounded-lg border object-cover"
                   style={{ maxWidth: "300px", aspectRatio: "3/4" }}
+                  onError={(e) => {
+                    console.error("Image load error:", e);
+                    console.error("Current src:", e.currentTarget.src.substring(0, 50));
+                  }}
+                  onLoad={() => {
+                    console.log(
+                      "Image loaded:",
+                      filterResult?.success && filterResult?.filtered_image
+                        ? "Filtered"
+                        : "Original",
+                    );
+                  }}
                 />
+                {filterResult?.success && filterResult?.filtered_image && (
+                  <div className="absolute top-2 right-2 rounded bg-green-500 px-2 py-1 text-xs font-semibold text-white">
+                    Privacy Masked
+                  </div>
+                )}
               </div>
             )}
 
@@ -509,41 +556,41 @@ const FaceAnalysisPage: React.FC = () => {
                   <input
                     type="checkbox"
                     id="privacy-mask"
-                    defaultChecked={false}
+                    checked={privacyMaskEnabled}
                     className="h-4 w-4 rounded"
                     onChange={(e) => {
-                      if (e.target.checked) {
+                      e.stopPropagation();
+                      const checked = e.target.checked;
+                      setPrivacyMaskEnabled(checked);
+                      if (checked) {
                         applyPrivacyFilter();
                       } else {
                         setFilterResult(null);
                       }
                     }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
                   />
                   <Label htmlFor="privacy-mask" className="text-base">
                     Apply privacy mask (recommended)
                   </Label>
+                  {filtering && (
+                    <span className="text-sm text-gray-500">
+                      <Loader2 className="mr-1 inline h-3 w-3 animate-spin" />
+                      Filtering...
+                    </span>
+                  )}
                 </div>
 
-                {/* Privacy Filter Result */}
-                {filterResult && (
-                  <div className="space-y-4 pt-4">
-                    {filterResult.success && filterResult.filtered_image && (
-                      <div className="space-y-2">
-                        <img
-                          src={`data:image/jpeg;base64,${filterResult.filtered_image}`}
-                          alt="Filtered"
-                          className="mx-auto h-80 w-full rounded border object-cover"
-                          style={{ maxWidth: "300px", aspectRatio: "3/4" }}
-                        />
-                      </div>
-                    )}
-                    {!filterResult.success && (
-                      <Alert variant="destructive">
-                        <AlertDescription>
-                          {filterResult.error}
-                        </AlertDescription>
-                      </Alert>
-                    )}
+                {/* Privacy Filter Error */}
+                {filterResult && !filterResult.success && (
+                  <div className="pt-4">
+                    <Alert variant="destructive">
+                      <AlertDescription>
+                        {filterResult.error}
+                      </AlertDescription>
+                    </Alert>
                   </div>
                 )}
               </div>
@@ -619,6 +666,7 @@ const FaceAnalysisPage: React.FC = () => {
             {/* Analyze Button - EXACTLY like Python */}
             <div className="pt-4">
               <Button
+                type="button"
                 onClick={analyzeImage}
                 disabled={!selectedImage || loading}
                 className="w-full text-sm sm:text-base"
@@ -626,9 +674,9 @@ const FaceAnalysisPage: React.FC = () => {
               >
                 {loading ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                     <span className="hidden sm:inline">
-                      Analyzing image with Claude AI... This may take 1-2
+                      Analyzing image... This may take 1-2
                       minutes
                     </span>
                     <span className="sm:hidden">Analyzing...</span>
