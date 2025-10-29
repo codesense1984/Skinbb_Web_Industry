@@ -14,6 +14,7 @@ import { Badge } from "@/core/components/ui/badge";
 import { Alert, AlertDescription } from "@/core/components/ui/alert";
 import { Loader2, Upload, Camera, Search } from "lucide-react";
 import type { Option } from "@/core/types";
+import { basePythonApiUrl } from "@/core/config/baseUrls";
 
 interface AnalysisResult {
   success: boolean;
@@ -222,7 +223,7 @@ const FaceAnalysisPage: React.FC = () => {
       console.log("Recommendation payload:", payload);
 
       const response = await fetch(
-        "http://localhost:8000/face-analysis/recommendations",
+        `${basePythonApiUrl}/face-analysis/recommendations`,
         {
           method: "POST",
           headers: {
@@ -305,7 +306,7 @@ const FaceAnalysisPage: React.FC = () => {
       const base64Image = await fileToBase64(selectedImage);
 
       const response = await fetch(
-        "http://localhost:8000/face-analysis/analyze/json",
+        `${basePythonApiUrl}/face-analysis/analyze/json`,
         {
           method: "POST",
           headers: {
@@ -354,7 +355,7 @@ const FaceAnalysisPage: React.FC = () => {
 
       console.log("Applying privacy filter...");
       const response = await fetch(
-        "http://localhost:8000/face-analysis/privacy-filter",
+        `${basePythonApiUrl}/face-analysis/privacy-filter`,
         {
           method: "POST",
           body: formData,
@@ -364,11 +365,14 @@ const FaceAnalysisPage: React.FC = () => {
       const result = await response.json();
       console.log("Privacy filter result:", result);
       console.log("Has filtered_image:", !!result.filtered_image);
-      
+
       if (result.success && result.filtered_image) {
-        console.log("Filtered image received, length:", result.filtered_image.length);
+        console.log(
+          "Filtered image received, length:",
+          result.filtered_image.length,
+        );
       }
-      
+
       setFilterResult(result);
     } catch (error) {
       console.error("Filter failed:", error);
@@ -412,7 +416,7 @@ const FaceAnalysisPage: React.FC = () => {
             {imagePreview && (
               <div className="relative">
                 {filtering && (
-                  <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-black bg-opacity-50">
+                  <div className="bg-opacity-50 absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-black">
                     <div className="text-center text-white">
                       <Loader2 className="mx-auto mb-2 h-8 w-8 animate-spin" />
                       <p className="text-sm">Applying privacy filter...</p>
@@ -435,7 +439,10 @@ const FaceAnalysisPage: React.FC = () => {
                   style={{ maxWidth: "300px", aspectRatio: "3/4" }}
                   onError={(e) => {
                     console.error("Image load error:", e);
-                    console.error("Current src:", e.currentTarget.src.substring(0, 50));
+                    console.error(
+                      "Current src:",
+                      e.currentTarget.src.substring(0, 50),
+                    );
                   }}
                   onLoad={() => {
                     console.log(
@@ -587,9 +594,7 @@ const FaceAnalysisPage: React.FC = () => {
                 {filterResult && !filterResult.success && (
                   <div className="pt-4">
                     <Alert variant="destructive">
-                      <AlertDescription>
-                        {filterResult.error}
-                      </AlertDescription>
+                      <AlertDescription>{filterResult.error}</AlertDescription>
                     </Alert>
                   </div>
                 )}
@@ -676,8 +681,7 @@ const FaceAnalysisPage: React.FC = () => {
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
                     <span className="hidden sm:inline">
-                      Analyzing image... This may take 1-2
-                      minutes
+                      Analyzing image... This may take 1-2 minutes
                     </span>
                     <span className="sm:hidden">Analyzing...</span>
                   </>
