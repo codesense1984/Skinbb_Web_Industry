@@ -223,7 +223,7 @@ const FaceAnalysisPage: React.FC = () => {
       console.log("Recommendation payload:", payload);
 
       const response = await fetch(
-        `${basePythonApiUrl}/face-analysis/recommendations`,
+        `${basePythonApiUrl}/api/face-analysis/recommendations`,
         {
           method: "POST",
           headers: {
@@ -306,7 +306,7 @@ const FaceAnalysisPage: React.FC = () => {
       const base64Image = await fileToBase64(selectedImage);
 
       const response = await fetch(
-        `${basePythonApiUrl}/face-analysis/analyze/json`,
+        `${basePythonApiUrl}/api/face-analysis/analyze/json`,
         {
           method: "POST",
           headers: {
@@ -355,7 +355,7 @@ const FaceAnalysisPage: React.FC = () => {
 
       console.log("Applying privacy filter...");
       const response = await fetch(
-        `${basePythonApiUrl}/face-analysis/privacy-filter`,
+        `${basePythonApiUrl}/api/face-analysis/privacy-filter`,
         {
           method: "POST",
           body: formData,
