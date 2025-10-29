@@ -10,8 +10,6 @@ import { ANALYTICS_ROUTES } from "@/modules/analytics/routes/constants";
 import { SURVEY_ROUTES } from "@/modules/survey/routes/constant";
 import { SELLER_ROUTES } from "@/modules/seller/routes/constant";
 import {
-  BoltIcon,
-  BuildingStorefrontIcon,
   ChartBarIcon,
   HomeIcon,
   ShoppingBagIcon,
@@ -40,6 +38,7 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
       "orders",
       "products",
       "customers",
+      "companies",
       "brandPartners",
       "marketing",
       "analytics",
@@ -167,6 +166,30 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
     href: PANEL_ROUTES.CUSTOMER.LIST + "?view=routines",
     requiredRoles: [ROLE.ADMIN],
   },
+  companies: {
+    name: "Companies",
+    href: PANEL_ROUTES.COMPANY.LIST,
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={1.5}
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3a3 3 0 0 1 3-3h3a3 3 0 0 1 3 3v3M6 3h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"
+        />
+      </svg>
+    ),
+    requiredPermission: {
+      page: PAGE.COMPANIES,
+      action: [PERMISSION.VIEW],
+    },
+    requiredRoles: [ROLE.ADMIN],
+  },
   brandPartners: {
     name: "Brand Partners",
     icon: (
@@ -265,7 +288,7 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
   },
   salesInsights: {
     name: "Sales Insights",
-    href: ANALYTICS_ROUTES.ECOMMERCE.BASE,
+    href: ANALYTICS_ROUTES.ECOMMERCE.DASHBOARD,
     requiredRoles: [ROLE.ADMIN],
   },
   customerInsights: {
@@ -305,7 +328,7 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
         />
       </svg>
     ),
-    children: ["rewards", "formulationLooker", "chat"],
+    children: ["rewards", "formulationLooker", "chat", "faceAnalysis"],
   },
   rewards: {
     name: "Rewards",
@@ -327,12 +350,15 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
     name: "Formulation Looker",
     href: PANEL_ROUTES.INGREDIENT_DETAILS,
     requiredRoles: [ROLE.ADMIN],
-    icon: <BuildingStorefrontIcon />,
   },
   chat: {
     name: "Chat",
     href: PANEL_ROUTES.CHAT,
-    icon: <BoltIcon />,
+    requiredRoles: [ROLE.ADMIN],
+  },
+  faceAnalysis: {
+    name: "Face Analysis",
+    href: PANEL_ROUTES.FACE_ANALYSIS,
     requiredRoles: [ROLE.ADMIN],
   },
   settings: {
@@ -512,7 +538,7 @@ export const sellerSidebarItems: Readonly<Record<string, SidebarItem>> = {
   },
   "ecommerce-analytics": {
     name: "Ecommerce Analytics",
-    href: SELLER_ROUTES.ANALYTICS.ECOMMERCE.BASE,
+    href: ANALYTICS_ROUTES.ECOMMERCE.DASHBOARD,
   },
   users: {
     name: "users",

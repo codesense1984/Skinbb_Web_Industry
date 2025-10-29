@@ -13,7 +13,7 @@ import axios, {
 } from "axios";
 
 // ---- Config ---------------------------------------------------------------
-export const API_BASE_URL = import.meta.env.VITE_API_URL ?? "/api";
+export const API_BASE_URL = import.meta.env.VITE_API_URL ?? "https://api.skintruth.in";
 export const REQUEST_TIMEOUT_MS = 25_000; // reasonable network timeout
 
 // If you still have Redux auth slice, wire it here. Otherwise, swap with your auth store.

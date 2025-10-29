@@ -21,7 +21,7 @@ import FunctionalTrends from "./FunctionalTrends";
 import IngredientOvertime from "./IngredientOvertime";
 import TopCategoryTrends from "./TopCategoryTrends";
 const RelationshipPreview = lazy(
-  () => import("@/features/relationship-preview"),
+  () => import("@/features/relationship-preview-list"),
 );
 // import FunctionalTrends from "./FunctionalTrends";
 

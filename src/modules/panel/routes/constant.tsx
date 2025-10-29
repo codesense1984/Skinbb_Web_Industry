@@ -369,6 +369,7 @@ export const PANEL_ROUTES = {
   CHAT: "/chat",
   RELATIONSHIP_PREVIEW: "/relationship",
   INGREDIENT_DETAILS: "/ingredient-details",
+  FACE_ANALYSIS: "/face-analysis",
 
   // ---------- Back-compat flat keys (mapped to normalized ones) ----------
   // (Keep these so existing imports continue to work. Remove later.)

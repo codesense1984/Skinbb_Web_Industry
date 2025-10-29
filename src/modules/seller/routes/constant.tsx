@@ -206,7 +206,7 @@ export const SELLER_ROUTES = {
       BASE: "/analytics/market-trends",
     },
     ECOMMERCE: {
-      BASE: "/analytic/ecommerce",
+      BASE: "/analytic/ecommerce-dashboard",
     },
   },
 

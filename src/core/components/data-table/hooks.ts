@@ -33,6 +33,7 @@ export function useTable<TData extends object>({
   queryKeyPrefix,
   meta,
 }: UseTableOptions<TData>): UseTableResponse<TData> {
+  console.log('useTable called with:', { pageSize, isServerSide, hasFetcher: !!fetcher });
   // ---- UI state (client) ----
   const [sorting, setSorting] = useState<SortingState>(initialSorting);
   const [columnFilters, setColumnFilters] =
@@ -123,25 +124,29 @@ export function useTable<TData extends object>({
       // For scenario 3 (client-side with auto-recall), we fetch all data without pagination
       // For scenario 2 (server-side), we pass pagination parameters
       if (isServerSide) {
-        return fetcher({
+        const serverParams = {
           pageIndex: pagination.pageIndex,
           pageSize: pagination.pageSize,
           sorting,
           columnFilters,
           globalFilter: debouncedGlobal,
           signal,
-        });
+        };
+        console.log('useTable server-side params:', serverParams);
+        return fetcher(serverParams);
       } else {
         // Scenario 3: Fetch all data for client-side processing
         // Only use global filter for server-side search, everything else is client-side
-        return fetcher({
+        const clientParams = {
           pageIndex: 0,
           pageSize: -1, // Large page size to get all data
           sorting: [], // No server-side sorting
           columnFilters: [], // No server-side filtering
           globalFilter: debouncedGlobal, // Only use global filter for search
           signal,
-        });
+        };
+        console.log('useTable client-side params:', clientParams);
+        return fetcher(clientParams);
       }
     },
     // Enable query if fetcher is provided

@@ -18,5 +18,7 @@ export const ANALYTICS_ROUTES = {
   },
   ECOMMERCE: {
     BASE: ROUTE.build(ANALYTIC_BASE, "ecommerce"), // /analytic/ecommerce
+    DASHBOARD: ROUTE.build(ANALYTIC_BASE, "ecommerce-dashboard"),
   },
+  
 };

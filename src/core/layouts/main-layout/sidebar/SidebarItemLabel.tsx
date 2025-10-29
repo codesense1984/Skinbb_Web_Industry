@@ -38,7 +38,7 @@ function SidebarItemLabel({ item }: { item: ItemInstance<SidebarItem> }) {
   const content = (
     <TreeItemLabel
       className={cn(
-        "before:bg-background relative cursor-pointer px-3 py-2 not-in-data-[folder=true]:ps-3 before:absolute before:inset-x-0 before:-inset-y-0.5 before:-z-10",
+        "before:bg-background relative cursor-pointer px-3 py-2 before:absolute before:inset-x-0 before:-inset-y-0.5 before:-z-10",
         isActiveFolder && "bg-accent",
       )}
     >

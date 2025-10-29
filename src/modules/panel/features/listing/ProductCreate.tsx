@@ -27,7 +27,7 @@ import {
 import { apiGetBrands } from "@/modules/panel/services/http/brand.service";
 import { apiGetProductAttributes } from "@/modules/panel/services/http/product-attribute.service";
 import { apiGetProductAttributeValues as apiGetAttributeValues } from "@/modules/panel/services/http/product-attribute-value.service";
-import { apiGetProductDetailById } from "@/modules/panel/services/http/company.service";
+import { apiGetProductDetail } from "@/modules/panel/services/http/product.service";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
 import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth";
 import { MODE } from "@/core/types";
@@ -187,8 +187,8 @@ interface ProductCreateData {
   customerCareEmail?: string;
   customerCareNumber?: string;
   // Key Information
-  ingredient?: string;
-  keyIngredients?: string;
+  ingredient?: string[];
+  keyIngredients?: string[];
   benefitsSingle?: string;
   // Capture Details
   captureBy?: string;
@@ -262,17 +262,18 @@ const ProductCreate = (props?: ProductCreateProps) => {
   const urlMode = searchParams.get("mode") ?? "";
   let pathMode = "";
   if (location.pathname.includes("/edit")) {
-    pathMode = MODE.EDIT;
+    pathMode = "edit";
   } else if (location.pathname.includes("/view")) {
-    pathMode = MODE.VIEW;
+    pathMode = "view";
   } else if (location.pathname.includes("/create")) {
     pathMode = MODE.ADD; // Explicitly set CREATE mode for create routes
   }
+  // Normalize mode to be consistent
   const finalMode = mode || urlMode || pathMode;
 
   // Use props if available, otherwise use URL params
-  const isEditMode = finalMode === MODE.EDIT;
-  const isViewMode = finalMode === MODE.VIEW;
+  const isEditMode = finalMode === "edit";
+  const isViewMode = finalMode === "view";
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const [thumbnailImage, setThumbnailImage] = useState<File | null>(null);
@@ -345,8 +346,8 @@ const ProductCreate = (props?: ProductCreateProps) => {
     customerCareEmail: "",
     customerCareNumber: "",
     // Key Information
-    ingredient: "",
-    keyIngredients: "",
+    ingredient: [],
+    keyIngredients: [],
     benefitsSingle: "",
     // Capture Details
     captureBy: role,
@@ -429,26 +430,26 @@ const ProductCreate = (props?: ProductCreateProps) => {
 
   // Fetch product data for edit/view mode
   useEffect(() => {
+    console.log("useEffect triggered with:", { productId, isEditMode, isViewMode, finalMode, mode, urlMode });
+    
     const fetchProductData = async () => {
-      if (productId && (isEditMode || isViewMode)) {
+          if (productId && (isEditMode || isViewMode)) {
+        console.log("Fetching product data for:", { productId, isEditMode, isViewMode });
         try {
-          // Only use new API endpoint - require companyId
-          if (!companyId) {
-            setError(
-              "Company ID is required to fetch product data",
-            );
-            return;
-          }
-
-          const response = (await apiGetProductDetailById(productId)) as {
+          const response = (await apiGetProductDetail(productId)) as {
             statusCode: number;
             success: boolean;
             data: Record<string, unknown>;
           };
+          console.log("Product API response:", response);
 
-          if (response.success && response.data) {
+          // Handle response structure - check for both data and nested data property
+          const productData = response.data || response;
+          
+          if (productData) {
             // Extract product data from response - handle both old and new API response structures
-            const product = response.data as Record<string, unknown>;
+            const product = productData as Record<string, unknown>;
+            console.log("Setting product data:", product);
 
 
             // Helper function to ensure we get string values
@@ -507,9 +508,11 @@ const ProductCreate = (props?: ProductCreateProps) => {
               quantity: (product.quantity as number) || 0,
               sku: (product.sku as string) || "",
               brand: getStringValue(product.brand),
-              productVariationType: getStringValue(
-                product.productVariationType,
-              ),
+              productVariationType: product.productVariationType 
+                ? (typeof product.productVariationType === "string" 
+                    ? product.productVariationType 
+                    : (product.productVariationType as Record<string, unknown>)?._id as string || "")
+                : "",
               productCategory: getStringArray(product.productCategory),
               tags: getStringArray(product.tags),
               marketedBy: getStringValue(product.marketedBy),
@@ -679,12 +682,8 @@ const ProductCreate = (props?: ProductCreateProps) => {
                   "customer-care-number",
                 ),
               ),
-              ingredient: getStringValue(
-                (product.ingredients as string[])?.[0],
-              ),
-              keyIngredients: getStringValue(
-                (product.keyIngredients as string[])?.[0],
-              ),
+              ingredient: getStringArray(product.ingredients),
+              keyIngredients: getStringArray(product.keyIngredients),
               benefitsSingle: getStringValue(
                 (product.benefit as string[])?.[0],
               ),
@@ -739,8 +738,12 @@ const ProductCreate = (props?: ProductCreateProps) => {
               manufacturedBy: String(initialFormData.manufacturedBy || ""),
               importedBy: String(initialFormData.importedBy || ""),
               productType: String(initialFormData.productType || ""),
-              ingredient: String(initialFormData.ingredient || ""),
-              keyIngredients: String(initialFormData.keyIngredients || ""),
+              ingredient: Array.isArray(initialFormData.ingredient)
+                ? initialFormData.ingredient.map(String)
+                : [],
+              keyIngredients: Array.isArray(initialFormData.keyIngredients)
+                ? initialFormData.keyIngredients.map(String)
+                : [],
               benefitsSingle: String(initialFormData.benefitsSingle || ""),
               thumbnail: String(initialFormData.thumbnail || ""),
               barcodeImage: String(initialFormData.barcodeImage || ""),
@@ -765,7 +768,8 @@ const ProductCreate = (props?: ProductCreateProps) => {
               ) || [],
             );
           }
-        } catch {
+        } catch (error) {
+          console.error("Failed to load product data:", error);
           setError("Failed to load product data");
         }
       }
@@ -779,6 +783,9 @@ const ProductCreate = (props?: ProductCreateProps) => {
     userId,
     brandId,
     companyId,
+    finalMode,
+    mode,
+    urlMode,
   ]);
 
   const handleInputChange = (
@@ -812,10 +819,8 @@ const ProductCreate = (props?: ProductCreateProps) => {
             ? formData.productCategory
             : ["68652da5d559321c67d22f44"],
         tags: formData.tags || [],
-        ingredients: formData.ingredient ? [formData.ingredient] : [],
-        keyIngredients: formData.keyIngredients
-          ? [formData.keyIngredients]
-          : [],
+        ingredients: formData.ingredient || [],
+        keyIngredients: formData.keyIngredients || [],
         benefit: formData.benefitsSingle ? [formData.benefitsSingle] : [],
         marketedBy: formData.marketedBy,
         marketedByAddress: formData.marketedByAddress,
@@ -1997,13 +2002,14 @@ const ProductCreate = (props?: ProductCreateProps) => {
                       value: tag._id,
                     })}
                     placeholder="Select or create tags"
-                    value={formData.tags?.[0] || ""}
+                    value={formData.tags || []}
                     onChange={(value: string | string[]) => {
-                      const stringValue = Array.isArray(value) ? value[0] : value;
-                      handleInputChange("tags", [stringValue]);
+                      const arrayValue = Array.isArray(value) ? value : [value];
+                      handleInputChange("tags", arrayValue);
                     }}
                     className="w-full"
                     disabled={isViewMode}
+                    multi={true}
                     queryKey={["tags-dropdown"]}
                   />
                 </div>
@@ -2427,14 +2433,15 @@ const ProductCreate = (props?: ProductCreateProps) => {
                         label: ingredient.name,
                         value: ingredient._id,
                       })}
-                      placeholder="Select an Ingredient"
-                      value={formData.ingredient || ""}
+                      placeholder="Select ingredients"
+                      value={formData.ingredient || []}
                       onChange={(value: string | string[]) => {
-                        const stringValue = Array.isArray(value) ? value[0] : value;
-                        handleInputChange("ingredient", stringValue);
+                        const arrayValue = Array.isArray(value) ? value : [value];
+                        handleInputChange("ingredient", arrayValue);
                       }}
                       className="w-full"
                       disabled={isViewMode}
+                      multi={true}
                       queryKey={["ingredients-dropdown"]}
                     />
                   </div>
@@ -2452,14 +2459,15 @@ const ProductCreate = (props?: ProductCreateProps) => {
                         label: ingredient.name,
                         value: ingredient._id,
                       })}
-                      placeholder="Select a Key Ingredient"
-                      value={formData.keyIngredients || ""}
+                      placeholder="Select key ingredients"
+                      value={formData.keyIngredients || []}
                       onChange={(value: string | string[]) => {
-                        const stringValue = Array.isArray(value) ? value[0] : value;
-                        handleInputChange("keyIngredients", stringValue);
+                        const arrayValue = Array.isArray(value) ? value : [value];
+                        handleInputChange("keyIngredients", arrayValue);
                       }}
                       className="w-full"
                       disabled={isViewMode}
+                      multi={true}
                       queryKey={["key-ingredients-dropdown"]}
                     />
                   </div>

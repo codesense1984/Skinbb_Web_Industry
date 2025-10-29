@@ -32,9 +32,9 @@ interface ProductCategoryUpdateData extends Partial<ProductCategoryCreateData> {
 
 interface ProductTagCreateData {
   name: string;
+  slug: string;
   description?: string;
-  color?: string;
-  isActive?: boolean;
+  seoKeywords?: string[];
 }
 
 interface ProductTagUpdateData extends Partial<ProductTagCreateData> {
@@ -75,7 +75,8 @@ export async function apiToggleProductCategoryStatus(id: string) {
 
 // Product Tag APIs
 export async function apiGetProductTags(params?: ApiParams) {
-  return api.get(ENDPOINTS.PRODUCT.TAG, { params });
+  console.log("apiGetProductTags called with endpoint:", ENDPOINTS.PRODUCT.TAG_LIST, "params:", params);
+  return api.get(ENDPOINTS.PRODUCT.TAG_LIST, { params });
 }
 
 export async function apiCreateProductTag(data: ProductTagCreateData) {
@@ -87,7 +88,7 @@ export async function apiUpdateProductTag(id: string, data: ProductTagUpdateData
 }
 
 export async function apiDeleteProductTag(id: string) {
-  return api.delete(`${ENDPOINTS.PRODUCT.TAG}/${id}`);
+  return api.patch(`${ENDPOINTS.PRODUCT.TAG}/${id}`);
 }
 
 export async function apiBulkCreateProductTags(data: BulkTagCreateData) {
@@ -223,7 +224,7 @@ export async function apiGetProductsForDropdown(params?: ApiParams) {
 
 // Product Detail and Update APIs
 export async function apiGetProductDetail(id: string) {
-  return api.get(`${API_PREFIX}/products/detail/${id}`);
+  return api.get(`${API_PREFIX}/products/admin/${id}`);
 }
 
 export async function apiUpdateProduct(id: string, data: Record<string, unknown>) {

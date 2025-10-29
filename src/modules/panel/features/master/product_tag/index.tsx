@@ -11,6 +11,8 @@ import { PlusIcon } from "@heroicons/react/24/outline";
 export default function ProductTagList() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  
+  console.log('ProductTagList rendering with isServerSide: true');
 
   return (
     <PageContent
@@ -32,12 +34,13 @@ export default function ProductTagList() {
       <div className="w-full">
         <DataTable
           columns={columns()}
-          isServerSide
+          isServerSide={true}
           fetcher={fetcher()}
-          queryKeyPrefix={PANEL_ROUTES.MASTER.PRODUCT_TAG}
+          queryKeyPrefix={`${PANEL_ROUTES.MASTER.PRODUCT_TAG}-v5`}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
-          showPagination={false}
+          showPagination={true}
+          pageSize={10}
         />
       </div>
     </PageContent>

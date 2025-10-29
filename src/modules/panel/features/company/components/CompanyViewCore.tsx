@@ -105,6 +105,7 @@ interface LocationAccordionItemProps {
     headquartersAddress?: string;
     website?: string;
     companyDescription?: string;
+    establishedIn?: string;
   }; // Add company data prop
   onViewBrands: (companyId: string, locationId: string) => void;
   onViewProducts: (companyId: string, locationId: string) => void;
@@ -426,6 +427,17 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                         label="Company Category"
                         value={companyDetails.companyCategory || "-"}
                       />
+                      {companyDetails.establishedIn && (
+                        <InfoItem
+                          icon={<CalendarIcon className="h-5 w-5" />}
+                          label="Established In"
+                          value={
+                            companyDetails.establishedIn
+                              ? formatDate(companyDetails.establishedIn)
+                              : "-"
+                          }
+                        />
+                      )}
                       <InfoItem
                         icon={
                           companyDetails.subsidiaryOfGlobalBusiness ? (

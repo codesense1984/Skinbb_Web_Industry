@@ -4,8 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "cross-env VITE_API_URL=https://api.skintruth.in vite",
-    "dev-port": "cross-env VITE_API_URL=https://api.skintruth.in vite --port 3000",
+    "dev": "vite",
     "build": "tsc -b && vite build",
     "build:simple": "vite build",
     "build:dev": "tsc -b && vite build --mode development",
