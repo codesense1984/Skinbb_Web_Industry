@@ -212,7 +212,7 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
         />
       </svg>
     ),
-    children: ["brandDiscover", "brandOnboarding"],
+    children: ["companies", "brandOnboarding"],
   },
   brandDiscover: {
     name: "Discover",
