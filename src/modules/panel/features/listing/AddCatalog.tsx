@@ -173,7 +173,7 @@ const AddCatalog: React.FC<AddCatalogProps> = ({ isAdminPanel = false }) => {
     onSuccess: (response) => {
       setUploadSuccess(true);
       toast.success("Catalog uploaded successfully!", {
-        description: `File uploaded with ${response.data.totalRows} rows. Import job ID: ${response.data.importJobId}`,
+        description: `File uploaded with ${response.data.totalRows} rows.`,
       });
     },
     onError: (error: unknown) => {
@@ -404,9 +404,6 @@ const AddCatalog: React.FC<AddCatalogProps> = ({ isAdminPanel = false }) => {
                     <Download className="h-4 w-4 mr-2" />
                     Download Template
                   </Button>
-                  <p className="text-xs text-muted-foreground">
-                    Download the latest template for {watchedCategory || "selected category"}
-                  </p>
                 </div>
 
                 {/* File Upload */}
