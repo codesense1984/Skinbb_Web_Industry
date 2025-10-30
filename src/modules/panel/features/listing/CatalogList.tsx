@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient, type UseMutationResult } from "@tanstack/react-query";
 import { Button } from "@/core/components/ui/button";
 import { DataTable } from "@/core/components/data-table";
@@ -10,7 +10,7 @@ import { Textarea } from "@/core/components/ui/textarea";
 import { Label } from "@/core/components/ui/label";
 import { PageContent } from "@/core/components/ui/structure";
 import { createSimpleFetcher } from "@/core/components/data-table";
-import { apiGetCatalogList, apiApproveCatalog, apiDownloadCatalog, apiRejectCatalog, type CatalogListParams, type CatalogJob, type CatalogApprovalResponse } from "@/modules/panel/services/http/product.service";
+import { apiGetCatalogList, apiApproveCatalog, apiDownloadCatalog, apiRejectCatalog, type CatalogListParams, type CatalogJob, type CatalogApprovalResponse, type CatalogListResponse } from "@/modules/panel/services/http/product.service";
 import { api } from "@/core/services/http";
 import { apiGetCompanyList } from "@/modules/panel/services/http/company.service";
 import { apiGetBrands } from "@/modules/panel/services/http/brand.service";
@@ -26,15 +26,17 @@ interface CatalogListProps {
   isAdminPanel?: boolean;
 }
 
+type CatalogRow = CatalogJob & { importJobId?: string; id?: string };
+
 // Manage Approval Dialog Component
 const ManageApprovalDialog = ({ 
   catalogJob, 
   approveMutation, 
   rejectMutation 
 }: { 
-  catalogJob: CatalogJob;
-  approveMutation: UseMutationResult<CatalogApprovalResponse, unknown, { importJobId: string; status: string; reason?: string }, unknown>;
-  rejectMutation: UseMutationResult<CatalogApprovalResponse, unknown, { importJobId: string; status: string; reason?: string }, unknown>;
+  catalogJob: CatalogRow;
+  approveMutation: UseMutationResult<CatalogApprovalResponse, unknown, { importJobId: string; reason?: string }, unknown>;
+  rejectMutation: UseMutationResult<CatalogApprovalResponse, unknown, { importJobId: string; reason?: string }, unknown>;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [reason, setReason] = useState("");
@@ -120,10 +122,28 @@ const ManageApprovalDialog = ({
             </Button>
             <Button
               onClick={() => {
+                // Use importJobId if available, otherwise fallback to _id
+                const jobId = catalogJob?.importJobId || catalogJob?._id;
+                
+                console.log("Approval action clicked:", { action, catalogJob, jobId });
+                if (!jobId) {
+                  console.error("Catalog ID is missing!", { 
+                    catalogJob, 
+                    availableKeys: Object.keys(catalogJob || {}),
+                    hasImportJobId: !!catalogJob?.importJobId,
+                    hasId: !!catalogJob?.id,
+                    has_id: !!catalogJob?._id
+                  });
+                  toast.error("Catalog ID is missing. Please refresh the page.", {
+                    description: `Available fields: ${Object.keys(catalogJob || {}).join(", ")}`
+                  });
+                  return;
+                }
+                
                 if (action === "approve") {
                   approveMutation.mutate({ 
-                    importJobId: catalogJob._id, 
-                    status: "approved" 
+                    importJobId: jobId,
+                    reason: reason.trim() || undefined
                   }, {
                     onSuccess: () => {
                       setIsOpen(false);
@@ -132,8 +152,7 @@ const ManageApprovalDialog = ({
                   });
                 } else if (action === "reject" && reason.trim()) {
                   rejectMutation.mutate({ 
-                    importJobId: catalogJob._id, 
-                    status: "rejected", 
+                    importJobId: jobId, 
                     reason: reason.trim() 
                   }, {
                     onSuccess: () => {
@@ -191,11 +210,11 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
     (user && !sellerInfo);
 
   // Get seller's primary address and first brand for seller context
-  const getSellerBrandId = () => {
+  const getSellerBrandId = useCallback(() => {
     if (isAdminContext || !sellerInfo) return "";
     const primaryAddress = sellerInfo.addresses?.find(addr => addr.isPrimary) || sellerInfo.addresses?.[0];
     return primaryAddress?.brands?.[0]?._id || "";
-  };
+  }, [isAdminContext, sellerInfo]);
 
   // Filter states
   const [filters, setFilters] = useState<CatalogListParams>({
@@ -220,7 +239,7 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
         brandId: params.brandId || brandId,
       }));
     }
-  }, [sellerInfo, isAdminContext, params.companyId, params.brandId]);
+  }, [sellerInfo, isAdminContext, params.companyId, params.brandId, getSellerBrandId]);
 
   // Create fetchers for dropdowns (admin only)
   const companiesFetcher = createSimpleFetcher(apiGetCompanyList, {
@@ -325,12 +344,31 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
 
   // Approve catalog mutation
   const approveMutation = useMutation({
-    mutationFn: (data: { importJobId: string; status: string; reason?: string }) => {
-      return apiApproveCatalog(data.importJobId, { status: data.status, reason: data.reason });
+    mutationFn: (data: { importJobId: string; reason?: string }) => {
+      console.log("Approve mutation called with:", data);
+      if (!data.importJobId) {
+        console.error("Import job ID is missing in approve mutation!", data);
+        throw new Error("Import job ID is required");
+      }
+      console.log("Calling apiApproveCatalog with:", { importJobId: data.importJobId, reason: data.reason });
+      return apiApproveCatalog(data.importJobId, { reason: data.reason });
     },
     onSuccess: () => {
       toast.success("Catalog approved successfully!");
-      queryClient.invalidateQueries({ queryKey: ["catalog-list"] });
+      // Invalidate all queries that start with "catalog-list"
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const queryKey = query.queryKey[0];
+          return typeof queryKey === "string" && queryKey.startsWith("catalog-list");
+        },
+      });
+      // Also refetch to ensure immediate UI update
+      queryClient.refetchQueries({ 
+        predicate: (query) => {
+          const queryKey = query.queryKey[0];
+          return typeof queryKey === "string" && queryKey.startsWith("catalog-list");
+        },
+      });
     },
     onError: (error: unknown) => {
       const errorMessage = error && typeof error === "object" && "response" in error 
@@ -378,11 +416,31 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
 
   // Reject catalog mutation
   const rejectMutation = useMutation({
-    mutationFn: (data: { importJobId: string; status: string; reason?: string }) => 
-      apiRejectCatalog(data.importJobId, { status: data.status, reason: data.reason }),
+    mutationFn: (data: { importJobId: string; reason?: string }) => {
+      console.log("Reject mutation called with:", data);
+      if (!data.importJobId) {
+        console.error("Import job ID is missing in reject mutation!", data);
+        throw new Error("Import job ID is required");
+      }
+      console.log("Calling apiRejectCatalog with:", { importJobId: data.importJobId, reason: data.reason });
+      return apiRejectCatalog(data.importJobId, { reason: data.reason });
+    },
     onSuccess: () => {
       toast.success("Catalog rejected successfully!");
-      queryClient.invalidateQueries({ queryKey: ["catalog-list"] });
+      // Invalidate all queries that start with "catalog-list"
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const queryKey = query.queryKey[0];
+          return typeof queryKey === "string" && queryKey.startsWith("catalog-list");
+        },
+      });
+      // Also refetch to ensure immediate UI update
+      queryClient.refetchQueries({ 
+        predicate: (query) => {
+          const queryKey = query.queryKey[0];
+          return typeof queryKey === "string" && queryKey.startsWith("catalog-list");
+        },
+      });
     },
     onError: (error: unknown) => {
       const errorMessage = error && typeof error === "object" && "response" in error 
@@ -398,7 +456,7 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
     {
       accessorKey: "fileName",
       header: "File Name",
-      cell: ({ row }: { row: { original: CatalogJob } }) => (
+      cell: ({ row }: { row: { original: CatalogRow } }) => (
         <div className="font-medium text-sm truncate max-w-[200px]" title={row.original.fileName}>
           {row.original.fileName}
         </div>
@@ -407,7 +465,7 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
     {
       accessorKey: "status",
       header: "Status",
-      cell: ({ row }: { row: { original: CatalogJob } }) => (
+      cell: ({ row }: { row: { original: CatalogRow } }) => (
         <div className="flex flex-col gap-1">
           <StatusBadge module="product" status={row.original.status} variant="badge" />
           {row.original.status === "rejected" && row.original.errorMessage && (
@@ -421,7 +479,7 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
     {
       accessorKey: "categoryId",
       header: "Category",
-      cell: ({ row }: { row: { original: CatalogJob } }) => {
+      cell: ({ row }: { row: { original: CatalogRow } }) => {
         const categoryName = categoryMap.get(row.original.categoryId) || "Unknown";
         return (
           <div className="text-sm font-medium text-gray-700">
@@ -433,7 +491,7 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
     {
       accessorKey: "brandId",
       header: "Brand",
-      cell: ({ row }: { row: { original: CatalogJob } }) => {
+      cell: ({ row }: { row: { original: CatalogRow } }) => {
         const brandName = brandMap.get(row.original.brandId) || "Unknown";
         return (
           <div className="text-sm font-medium text-gray-700">
@@ -442,10 +500,10 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
         );
       },
     },
-    {
+    ...(isAdminContext ? [{
       accessorKey: "companyId",
       header: "Company",
-      cell: ({ row }: { row: { original: CatalogJob } }) => {
+      cell: ({ row }: { row: { original: CatalogRow } }) => {
         const companyName = companyMap.get(row.original.sellerId) || row.original.sellerId;
         return (
           <div className="text-sm text-gray-600 truncate max-w-[120px]" title={companyName}>
@@ -453,24 +511,28 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
           </div>
         );
       },
-    },
+    }] : []),
     {
       id: "actions",
       header: "Actions",
-      cell: ({ row }: { row: { original: CatalogJob } }) => (
+      cell: ({ row }: { row: { original: CatalogRow } }) => (
         <div className="flex gap-1">
           <Button
             variant="outlined"
             size="sm"
             onClick={() => {
+              // Use importJobId if available, otherwise fallback to _id
+              const jobId = row.original.importJobId || row.original._id;
               // Try API download first, fallback to direct fileUrl
               if (row.original.fileUrl) {
                 // Direct download fallback
                 window.open(row.original.fileUrl, "_blank");
                 toast.success("Download started!");
-              } else {
+              } else if (jobId) {
                 // Use API download
-                downloadMutation.mutate(row.original._id);
+                downloadMutation.mutate(jobId);
+              } else {
+                toast.error("Catalog ID is missing for download");
               }
             }}
             disabled={downloadMutation.isPending}
@@ -479,19 +541,7 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
             <Download className="h-3 w-3 mr-1" />
             Download
           </Button>
-          {/* Always show Manage button for testing */}
-          <ManageApprovalDialog 
-            catalogJob={row.original} 
-            approveMutation={approveMutation}
-            rejectMutation={rejectMutation}
-          />
-          {/* Original conditional rendering */}
-          {(() => {
-            console.log("Checking status for row:", row.original.status, "for catalog:", row.original._id);
-            const shouldShow = row.original.status === "completed" || row.original.status === "pending";
-            console.log("Should show ManageApprovalDialog:", shouldShow);
-            return false; // Disabled for now to test
-          })() && (
+          {isAdminContext && (row.original.status === "completed" || row.original.status === "pending") && (
             <ManageApprovalDialog 
               catalogJob={row.original} 
               approveMutation={approveMutation}
@@ -501,7 +551,7 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
         </div>
       ),
     },
-  ], [downloadMutation, approveMutation, rejectMutation, categoryMap, companyMap, brandMap]);
+  ], [downloadMutation, approveMutation, rejectMutation, categoryMap, companyMap, brandMap, isAdminContext]);
 
   // Handle filter changes
   const handleFilterChange = (key: keyof CatalogListParams, value: string | number) => {
@@ -617,11 +667,28 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
         <DataTable
           columns={columns}
           isServerSide
-          fetcher={createSimpleFetcher(
+          fetcher={createSimpleFetcher<Record<string, unknown>, CatalogListResponse, "data.importJobs", CatalogRow>(
             (params: Record<string, unknown>) => apiGetCatalogList({ ...filters, ...params }),
             {
               dataPath: "data.importJobs",
               totalPath: "data.pagination.totalJobs",
+              transformResult: (response: CatalogListResponse) => {
+                const jobs = (response?.data?.importJobs || []) as CatalogRow[];
+                // Normalize id fields - ensure both _id and importJobId are set
+                const normalizedJobs: CatalogRow[] = jobs.map((job) => {
+                  const jobId = job.importJobId || job._id || job.id || "";
+                  return {
+                    ...job,
+                    _id: job._id ?? jobId,
+                    importJobId: job.importJobId ?? job._id ?? job.id,
+                  } as CatalogRow;
+                });
+                console.log("Normalized catalog jobs:", normalizedJobs.slice(0, 2)); // Log first 2 for debugging
+                return {
+                  rows: normalizedJobs,
+                  total: response?.data?.pagination?.totalJobs || 0,
+                };
+              },
             }
           )}
           queryKeyPrefix={`catalog-list-${JSON.stringify(filters)}`}

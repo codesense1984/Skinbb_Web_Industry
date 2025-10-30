@@ -60,6 +60,9 @@ export const ENDPOINTS = {
     BULK_IMPORT_DETAIL: (importJobId: string) => `${API_PREFIX}/products/admin/bulk-import/${importJobId}`,
     BULK_IMPORT_APPROVE: (importJobId: string) => `${API_PREFIX}/products/admin/bulk-import/${importJobId}/approve`,
     BULK_IMPORT_DOWNLOAD: (importJobId: string) => `${API_PREFIX}/products/admin/bulk-import/${importJobId}/download`,
+    BULK_IMPORT_ERROR_LOGS: (importJobId: string) => `${API_PREFIX}/product-import-jobs/admin/${importJobId}`,
+    BULK_IMPORT_TEMPLATE: (categoryName: string) => `${API_PREFIX}/products/admin/template/${categoryName}`,
+    CREATE_WITH_SELLER: `${API_PREFIX}/products/create-with-seller`,
   },
 
   MEDIA: {

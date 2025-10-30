@@ -43,18 +43,20 @@ function SidebarItemLabel({ item }: { item: ItemInstance<SidebarItem> }) {
       )}
     >
       <span className="-order-1 flex flex-1 items-center gap-3">
-        {icon && React.isValidElement(icon)
-          ? React.cloneElement(
-              icon as React.ReactElement<{ className?: string }>,
-              {
-                className: cn(
-                  "size-6",
-                  (icon as React.ReactElement<{ className?: string }>).props
-                    .className,
-                ),
-              },
-            )
-          : icon}
+        <span className="inline-flex h-6 w-6 shrink-0 items-center justify-start">
+          {icon && React.isValidElement(icon)
+            ? React.cloneElement(
+                icon as React.ReactElement<{ className?: string }>,
+                {
+                  className: cn(
+                    "h-5 w-5",
+                    (icon as React.ReactElement<{ className?: string }>).props
+                      .className,
+                  ),
+                },
+              )
+            : icon}
+        </span>
         {camelToTitle(item.getItemName())}
       </span>
     </TreeItemLabel>
