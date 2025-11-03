@@ -38,7 +38,6 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
       "orders",
       "products",
       "customers",
-      "companies",
       "brandPartners",
       "marketing",
       "analytics",
@@ -117,7 +116,7 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
         />
       </svg>
     ),
-    children: ["allProducts", "productCategories", "productTags", "productAttributes"],
+    children: ["allProducts", "catalog", "productCategories", "productTags", "productAttributes"],
   },
   allProducts: {
     name: "All Products",
@@ -126,6 +125,11 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
       page: PAGE.PRODUCTS,
       action: [PERMISSION.VIEW, PERMISSION.CREATE],
     },
+  },
+  catalog: {
+    name: "Catalog",
+    href: PANEL_ROUTES.LISTING.CATALOG_LIST,
+    requiredRoles: [ROLE.ADMIN],
   },
   customers: {
     name: "Customers",
@@ -207,7 +211,7 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
         />
       </svg>
     ),
-    children: ["brandDiscover", "brandOnboarding"],
+    children: ["companies", "brandOnboarding"],
   },
   brandDiscover: {
     name: "Discover",
@@ -328,13 +332,9 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
         />
       </svg>
     ),
-    children: ["rewards", "formulationLooker", "chat", "faceAnalysis"],
+    children: ["formulationLooker", "chat", "faceAnalysis"],
   },
-  rewards: {
-    name: "Rewards",
-    href: "/rewards",
-    requiredRoles: [ROLE.ADMIN],
-  },
+  
 
   surveys: {
     name: "Surveys",

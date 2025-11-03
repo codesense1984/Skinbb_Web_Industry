@@ -14,7 +14,7 @@ import { ComboBox } from "@/core/components/ui/combo-box";
 import { createSimpleFetcher } from "@/core/components/data-table";
 import { apiGetCompanyList } from "@/modules/panel/services/http/company.service";
 import { apiGetBrands } from "@/modules/panel/services/http/brand.service";
-import { apiBulkImportProducts, type BulkImportRequest } from "@/modules/panel/services/http/product.service";
+import { apiBulkImportProducts, apiDownloadImportTemplate, type BulkImportRequest } from "@/modules/panel/services/http/product.service";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api } from "@/core/services/http";
@@ -173,7 +173,7 @@ const AddCatalog: React.FC<AddCatalogProps> = ({ isAdminPanel = false }) => {
     onSuccess: (response) => {
       setUploadSuccess(true);
       toast.success("Catalog uploaded successfully!", {
-        description: `File uploaded with ${response.data.totalRows} rows. Import job ID: ${response.data.importJobId}`,
+        description: `File uploaded with ${response.data.totalRows} rows.`,
       });
     },
     onError: (error: unknown) => {
@@ -202,23 +202,68 @@ const AddCatalog: React.FC<AddCatalogProps> = ({ isAdminPanel = false }) => {
     },
   });
 
-  const handleDownloadTemplate = () => {
+  // Map category slug to API category name
+  const getCategoryNameForAPI = (categoryId: string): "skincare" | "haircare" | "lipcare" | null => {
+    if (!categoryId || !categoriesData) return null;
+    
+    const category = (categoriesData as CategoryResponse)?.data?.productCategories?.find(
+      (cat) => cat._id === categoryId
+    );
+    
+    if (!category) return null;
+    
+    // Normalize slug/name to lowercase for comparison
+    const slug = (category.slug || category.name || "").toLowerCase();
+    
+    // Map category to API expected values - check most specific matches first
+    // Priority: exact matches > specific terms > general terms
+    if (slug === "lipcare" || slug === "lip-care" || slug.includes("lipcare") || slug.includes("lip-care")) {
+      return "lipcare";
+    }
+    if (slug === "haircare" || slug === "hair-care" || slug.includes("haircare") || slug.includes("hair-care")) {
+      return "haircare";
+    }
+    if (slug === "skincare" || slug === "skin-care" || slug.includes("skincare") || slug.includes("skin-care") || slug.includes("skin")) {
+      return "skincare";
+    }
+    
+    // Default to skincare if unable to determine
+    return "skincare";
+  };
+
+  const handleDownloadTemplate = async () => {
     if (!watchedCategory) {
-      window.alert("Please select a category first");
+      toast.error("Please select a category first");
       return;
     }
 
-    // Create a sample template file
-    const templateData = "Product Name,Description,Price,SKU,Stock Quantity,Status\nSample Product 1,Description 1,29.99,SKU001,100,active\nSample Product 2,Description 2,39.99,SKU002,50,active";
-    const blob = new Blob([templateData], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "catalog-template.csv";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
+    const categoryName = getCategoryNameForAPI(watchedCategory);
+    if (!categoryName) {
+      toast.error("Unable to determine category type. Please select a valid category.");
+      return;
+    }
+
+    try {
+      const blob = await apiDownloadImportTemplate(categoryName);
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `catalog-template-${categoryName}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success("Template downloaded successfully!");
+    } catch (error: unknown) {
+      console.error("Template download failed:", error);
+      const errorMessage = error && typeof error === "object" && "response" in error 
+        ? (error as { response?: { data?: { message?: string } } }).response?.data?.message 
+        : "Failed to download template";
+      toast.error("Download failed", { description: errorMessage });
+    }
   };
 
   const onSubmit = async (data: CatalogFormData) => {
@@ -359,9 +404,6 @@ const AddCatalog: React.FC<AddCatalogProps> = ({ isAdminPanel = false }) => {
                     <Download className="h-4 w-4 mr-2" />
                     Download Template
                   </Button>
-                  <p className="text-xs text-muted-foreground">
-                    Download the latest template for {watchedCategory || "selected category"}
-                  </p>
                 </div>
 
                 {/* File Upload */}

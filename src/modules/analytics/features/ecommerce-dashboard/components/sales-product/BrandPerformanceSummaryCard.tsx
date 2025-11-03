@@ -1,12 +1,6 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
-import { StatValue } from "@/core/components/ui/stat";
-import { Badge } from "@/core/components/ui/badge";
-import { 
-  BuildingStorefrontIcon,
-  ArrowTrendingUpIcon,
-  ArrowTrendingDownIcon 
-} from "@heroicons/react/24/outline";
+import { BuildingStorefrontIcon } from "@heroicons/react/24/outline";
 import { cn } from "@/core/utils";
 
 interface BrandPerformanceSummaryCardProps {
@@ -33,7 +27,6 @@ export const BrandPerformanceSummaryCard: React.FC<BrandPerformanceSummaryCardPr
     period: "vs last month"
   };
 
-  const isPositive = performanceData.change > 0;
   const formattedSales = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
@@ -42,64 +35,38 @@ export const BrandPerformanceSummaryCard: React.FC<BrandPerformanceSummaryCardPr
   }).format(performanceData.sales);
 
   return (
-    <Card className={cn("bg-gradient-to-br from-indigo-50 to-indigo-100 border-indigo-200", className)}>
+    <Card className={cn("bg-white border-gray-200 border-l-4 border-l-[var(--chart-1)]", className)}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-medium text-indigo-700">
+          <CardTitle className="text-lg font-semibold text-gray-900">
             Brand Performance Summary
           </CardTitle>
-          <BuildingStorefrontIcon className="h-5 w-5 text-indigo-600" />
+          <div className="bg-[var(--chart-1)]/20 rounded-full p-2 flex items-center justify-center">
+            <BuildingStorefrontIcon className="h-5 w-5 text-[var(--chart-1)]" />
+          </div>
         </div>
       </CardHeader>
       <CardContent className="pt-0">
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div>
-            <p className="text-sm font-medium text-indigo-900">{performanceData.topBrand}</p>
-            <p className="text-xs text-gray-600">Top performing brand</p>
+            <p className="text-sm font-medium text-gray-900">{performanceData.topBrand}</p>
+            <p className="text-xs text-gray-500">Top performing brand</p>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <StatValue
-                value={formattedSales}
-                valueProps={{
-                  className: "text-lg font-bold text-indigo-900"
-                }}
-              />
+              <p className="text-lg font-bold text-gray-900">{formattedSales}</p>
               <p className="text-xs text-gray-600">Sales</p>
             </div>
             <div>
-              <StatValue
-                value={performanceData.orders}
-                valueProps={{
-                  className: "text-lg font-bold text-indigo-900"
-                }}
-              />
+              <p className="text-lg font-bold text-gray-900">{performanceData.orders}</p>
               <p className="text-xs text-gray-600">Orders</p>
             </div>
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between pt-2 border-t border-gray-100">
             <div className="flex items-center gap-1">
-              <span className="text-sm font-medium text-indigo-900">{performanceData.rating}</span>
+              <span className="text-sm font-medium text-gray-900">{performanceData.rating}</span>
               <span className="text-xs text-gray-600">★ avg rating</span>
             </div>
-            <Badge 
-              variant={isPositive ? "default" : "destructive"}
-              className={cn(
-                "text-xs px-2 py-1",
-                isPositive 
-                  ? "bg-green-100 text-green-800 hover:bg-green-100" 
-                  : "bg-red-100 text-red-800 hover:bg-red-100"
-              )}
-            >
-              <div className="flex items-center gap-1">
-                {isPositive ? (
-                  <ArrowTrendingUpIcon className="h-3 w-3" />
-                ) : (
-                  <ArrowTrendingDownIcon className="h-3 w-3" />
-                )}
-                {Math.abs(performanceData.change)}%
-              </div>
-            </Badge>
           </div>
         </div>
       </CardContent>

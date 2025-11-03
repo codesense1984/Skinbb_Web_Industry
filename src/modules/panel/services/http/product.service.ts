@@ -2,7 +2,7 @@ import { api } from "@/core/services/http";
 import { ENDPOINTS, API_PREFIX } from "@/modules/panel/config/endpoint.config";
 
 // API Request/Response Types
-interface ApiParams {
+export interface ApiParams {
   page?: number;
   limit?: number;
   search?: string;
@@ -169,6 +169,50 @@ export async function apiGetBenefits() {
   });
 }
 
+export async function apiGetSkinTypes(params?: ApiParams, signal?: AbortSignal) {
+  return api.get(ENDPOINTS.INFO.SKIN_TYPES, {
+    params: {
+      limit: 1000,
+      page: 1,
+      ...params,
+    },
+    signal,
+  });
+}
+
+export async function apiGetHairTypes(params?: ApiParams, signal?: AbortSignal) {
+  return api.get(ENDPOINTS.INFO.HAIR_TYPES, {
+    params: {
+      limit: 1000,
+      page: 1,
+      ...params,
+    },
+    signal,
+  });
+}
+
+export async function apiGetSkinConcerns(params?: ApiParams, signal?: AbortSignal) {
+  return api.get(ENDPOINTS.INFO.SKIN_CONCERNS, {
+    params: {
+      limit: 1000,
+      page: 1,
+      ...params,
+    },
+    signal,
+  });
+}
+
+export async function apiGetHairConcerns(params?: ApiParams, signal?: AbortSignal) {
+  return api.get(ENDPOINTS.INFO.HAIR_CONCERNS, {
+    params: {
+      limit: 1000,
+      page: 1,
+      ...params,
+    },
+    signal,
+  });
+}
+
 export async function apiGetProductAttributeValues(attributeId?: string) {
   if (attributeId) {
     return api.get(ENDPOINTS.PRODUCT.ATTRIBUTE_VALUE_BY_ATTRIBUTE(attributeId), {
@@ -331,10 +375,16 @@ export interface CatalogDetailResponse {
   data: CatalogJob;
 }
 
+export interface CatalogApprovalRequest {
+  status: "approved" | "rejected";
+  reason?: string;
+}
+
 export interface CatalogApprovalResponse {
   success: boolean;
   statusCode: number;
   message: string;
+  data?: Record<string, unknown>;
 }
 
 export interface CatalogDownloadResponse {
@@ -374,9 +424,28 @@ export async function apiGetCatalogDetail(importJobId: string): Promise<CatalogD
   return api.get<CatalogDetailResponse>(ENDPOINTS.PRODUCT.BULK_IMPORT_DETAIL(importJobId));
 }
 
-// Approve catalog
-export async function apiApproveCatalog(importJobId: string, data: { status: string; reason?: string }): Promise<CatalogApprovalResponse> {
-  return api.post<CatalogApprovalResponse>(ENDPOINTS.PRODUCT.BULK_IMPORT_APPROVE(importJobId), data);
+// Approve or reject bulk import
+// POST /api/v1/products/admin/bulk-import/{importJobId}/approve
+// Body: { status: "approved" | "rejected", reason?: string }
+export async function apiApproveOrRejectCatalog(
+  importJobId: string, 
+  data: CatalogApprovalRequest
+): Promise<CatalogApprovalResponse> {
+  return api.post<CatalogApprovalResponse>(
+    ENDPOINTS.PRODUCT.BULK_IMPORT_APPROVE(importJobId), 
+    data
+  );
+}
+
+// Approve catalog (convenience function)
+export async function apiApproveCatalog(
+  importJobId: string, 
+  data?: { reason?: string }
+): Promise<CatalogApprovalResponse> {
+  return apiApproveOrRejectCatalog(importJobId, { 
+    status: "approved", 
+    ...data 
+  });
 }
 
 // Download catalog
@@ -384,7 +453,161 @@ export async function apiDownloadCatalog(importJobId: string): Promise<CatalogDo
   return api.get<CatalogDownloadResponse>(ENDPOINTS.PRODUCT.BULK_IMPORT_DOWNLOAD(importJobId));
 }
 
-// Reject catalog
-export async function apiRejectCatalog(importJobId: string, data: { status: string; reason?: string }): Promise<CatalogApprovalResponse> {
-  return api.post<CatalogApprovalResponse>(ENDPOINTS.PRODUCT.BULK_IMPORT_APPROVE(importJobId), data);
+// Reject catalog (convenience function)
+export async function apiRejectCatalog(
+  importJobId: string, 
+  data: { reason?: string }
+): Promise<CatalogApprovalResponse> {
+  return apiApproveOrRejectCatalog(importJobId, { 
+    status: "rejected", 
+    reason: data.reason 
+  });
+}
+
+// Import Job Error Logs API Types
+export interface ImportJobErrorLog {
+  _id: string;
+  importJobId: string;
+  rowNumber: number;
+  productName: string;
+  sku: string;
+  errorMessage: string;
+  rawData: Record<string, unknown>;
+  createdAt: string;
+}
+
+export interface ImportJobErrorLogsResponse {
+  success: boolean;
+  statusCode: number;
+  message: string;
+  data: {
+    errorLogs: ImportJobErrorLog[];
+    importJob: {
+      _id: string;
+      fileName: string;
+      status: string;
+      totalRows: number;
+      importedCount: number;
+      failedCount: number;
+    };
+  };
+}
+
+// Get import job error logs
+export async function apiGetImportJobErrorLogs(importJobId: string): Promise<ImportJobErrorLogsResponse> {
+  return api.get<ImportJobErrorLogsResponse>(ENDPOINTS.PRODUCT.BULK_IMPORT_ERROR_LOGS(importJobId));
+}
+
+// Download import template
+export async function apiDownloadImportTemplate(categoryName: "skincare" | "haircare" | "lipcare"): Promise<Blob> {
+  return api.get<Blob>(ENDPOINTS.PRODUCT.BULK_IMPORT_TEMPLATE(categoryName), {
+    responseType: "blob",
+  });
+}
+
+// Create Product with Seller API Types
+export interface ProductVariant {
+  sku: string;
+  isPrimary: boolean;
+  price: number;
+  salePrice: number;
+  quantity: number;
+  manufacturingDate: string;
+  expiryDate: string;
+  dimensions: {
+    length: number;
+    width: number;
+    height: number;
+  };
+}
+
+export interface CreateProductWithSellerRequest {
+  productName: string;
+  sku: string;
+  sellerId: string;
+  description?: string;
+  brand: string;
+  productCategory: string[];
+  price: number;
+  salePrice?: number;
+  quantity: number;
+  weight?: number;
+  dimensions?: {
+    length: number;
+    width: number;
+    height: number;
+  };
+  manufacturingDate?: string;
+  expiryDate?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  metaKeywords?: string[];
+  thumbnail?: string;
+  images?: string[];
+  barcodeImage?: string;
+  tags?: string[];
+  ingredients?: string[];
+  keyIngredients?: string[];
+  skinTypes?: string[];
+  hairTypes?: string[];
+  skinConcerns?: string[];
+  hairConcerns?: string[];
+  hairGoals?: string[];
+  productType: "skincare" | "haircare" | "lipcare";
+  materialType?: number;
+  marketedBy?: string;
+  manufacturedBy?: string;
+  importedBy?: string;
+  benefit?: string[];
+  variants?: ProductVariant[];
+}
+
+export interface CreateProductWithSellerResponse {
+  success: boolean;
+  statusCode: number;
+  message: string;
+  data: {
+    _id: string;
+    productName: string;
+    sku: string;
+    slug: string;
+    status: string;
+    sellerId: {
+      _id: string;
+      companyName: string;
+      slug: string;
+    };
+    brand: {
+      _id: string;
+      name: string;
+      slug: string;
+    };
+    capturedBy: {
+      _id: string;
+      firstName: string;
+      lastName: string;
+    };
+    price: number;
+    salePrice?: number;
+    quantity: number;
+    variants?: Array<{
+      _id: string;
+      sku: string;
+      sequence: number;
+      isPrimary: boolean;
+      price: number;
+      salePrice: number;
+      quantity: number;
+      dimensions: Record<string, unknown>;
+      manufacturingDate: string;
+      expiryDate: string;
+    }>;
+    totalVariants?: number;
+    easyEcomSyncStatus?: string;
+  };
+}
+
+// Create product with seller
+export async function apiCreateProductWithSeller(data: CreateProductWithSellerRequest): Promise<CreateProductWithSellerResponse> {
+  return api.post<CreateProductWithSellerResponse>(ENDPOINTS.PRODUCT.CREATE_WITH_SELLER, data);
 }

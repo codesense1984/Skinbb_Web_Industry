@@ -25,8 +25,12 @@ const CatalogDetail: React.FC = () => {
 
   // Approve catalog mutation
   const approveMutation = useMutation({
-    mutationFn: (data: { status: string; reason?: string }) => 
-      apiApproveCatalog(importJobId!, data),
+    mutationFn: (data?: { reason?: string }) => {
+      if (!importJobId) {
+        throw new Error("Import job ID is required");
+      }
+      return apiApproveCatalog(importJobId, data);
+    },
     onSuccess: () => {
       toast.success("Catalog approved successfully!");
       queryClient.invalidateQueries({ queryKey: ["catalog-detail", importJobId] });
@@ -35,6 +39,7 @@ const CatalogDetail: React.FC = () => {
     onError: (error: unknown) => {
       const errorMessage = error && typeof error === "object" && "response" in error 
         ? (error as { response?: { data?: { message?: string } } }).response?.data?.message 
+        : error instanceof Error ? error.message
         : "Failed to approve catalog";
       toast.error("Approval failed", { description: errorMessage });
     },
@@ -185,7 +190,7 @@ const CatalogDetail: React.FC = () => {
             </Button>
             {catalog.status === "completed" && (
               <Button
-                onClick={() => approveMutation.mutate({ status: "approved" })}
+                onClick={() => approveMutation.mutate()}
                 disabled={approveMutation.isPending}
               >
                 <CheckCircle className="h-4 w-4 mr-2" />
