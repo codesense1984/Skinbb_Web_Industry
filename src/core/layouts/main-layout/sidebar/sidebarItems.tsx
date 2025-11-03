@@ -38,7 +38,6 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
       "orders",
       "products",
       "customers",
-      "companies",
       "brandPartners",
       "marketing",
       "analytics",

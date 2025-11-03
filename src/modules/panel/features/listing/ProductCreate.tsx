@@ -1,10 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate, useSearchParams, useParams, useLocation } from "react-router";
+import {
+  useNavigate,
+  useSearchParams,
+  useParams,
+  useLocation,
+} from "react-router";
 import { Button } from "@/core/components/ui/button";
 import { PageContent } from "@/core/components/ui/structure";
 import { PaginationComboBox } from "@/core/components/ui/pagination-combo-box";
 import { ComboBox } from "@/core/components/ui/combo-box";
-import type { Option } from "@/core/types";
+// import type { Option } from "@/core/types"; // Uncomment if status field is re-enabled
 import { createSimpleFetcher } from "@/core/components/data-table";
 import { Input } from "@/core/components/ui/input";
 import { Label } from "@/core/components/ui/label";
@@ -23,7 +28,12 @@ import {
   apiGetImportedBy,
   apiGetIngredients,
   apiGetBenefits,
+  apiGetSkinTypes,
+  apiGetHairTypes,
+  apiGetSkinConcerns,
+  apiGetHairConcerns,
 } from "@/modules/panel/services/http/product.service";
+import type { ApiParams as ProductApiParams } from "@/modules/panel/services/http/product.service";
 import { apiGetBrands } from "@/modules/panel/services/http/brand.service";
 import { apiGetProductAttributes } from "@/modules/panel/services/http/product-attribute.service";
 import { apiGetProductAttributeValues as apiGetAttributeValues } from "@/modules/panel/services/http/product-attribute-value.service";
@@ -46,7 +56,7 @@ const createBrandsFetcher = (companyId?: string) => {
     {
       dataPath: "data.brands",
       totalPath: "data.totalRecords",
-    }
+    },
   );
 };
 
@@ -60,37 +70,49 @@ const tagsFetcher = createSimpleFetcher(apiGetTagsForDropdown, {
   totalPath: "data.totalRecords",
 });
 
-const variationTypesFetcher = createSimpleFetcher(async (_params) => {
-  const response = await apiGetVariationTypes();
-  return response;
-}, {
-  dataPath: "data.productVariationTypes",
-  totalPath: "data.totalRecords",
-});
+const variationTypesFetcher = createSimpleFetcher(
+  async (_params) => {
+    const response = await apiGetVariationTypes();
+    return response;
+  },
+  {
+    dataPath: "data.productVariationTypes",
+    totalPath: "data.totalRecords",
+  },
+);
 
-const marketedByFetcher = createSimpleFetcher(async (_params) => {
-  const response = await apiGetMarketedBy();
-  return response;
-}, {
-  dataPath: "data.marketedBy",
-  totalPath: "data.totalRecords",
-});
+const marketedByFetcher = createSimpleFetcher(
+  async (_params) => {
+    const response = await apiGetMarketedBy();
+    return response;
+  },
+  {
+    dataPath: "data.marketedBy",
+    totalPath: "data.totalRecords",
+  },
+);
 
-const manufacturedByFetcher = createSimpleFetcher(async (_params) => {
-  const response = await apiGetManufacturedBy();
-  return response;
-}, {
-  dataPath: "data.manufacturedBy",
-  totalPath: "data.totalRecords",
-});
+const manufacturedByFetcher = createSimpleFetcher(
+  async (_params) => {
+    const response = await apiGetManufacturedBy();
+    return response;
+  },
+  {
+    dataPath: "data.manufacturedBy",
+    totalPath: "data.totalRecords",
+  },
+);
 
-const importedByFetcher = createSimpleFetcher(async (_params) => {
-  const response = await apiGetImportedBy();
-  return response;
-}, {
-  dataPath: "data.importedBys",
-  totalPath: "data.totalRecords",
-});
+const importedByFetcher = createSimpleFetcher(
+  async (_params) => {
+    const response = await apiGetImportedBy();
+    return response;
+  },
+  {
+    dataPath: "data.importedBys",
+    totalPath: "data.totalRecords",
+  },
+);
 
 const ingredientsFetcher = createSimpleFetcher(apiGetIngredients, {
   dataPath: "data.ingredientLists",
@@ -103,41 +125,88 @@ const benefitsFetcher = createSimpleFetcher(apiGetBenefits, {
 });
 
 // Fetcher for product attribute values (takes attributeId as parameter)
-const productAttributeValueFetcher = (attributeId: string) => 
+const productAttributeValueFetcher = (attributeId: string) =>
   createSimpleFetcher(
-    (params: Record<string, unknown>) => apiGetAttributeValues({ ...params, attributeId }),
+    (params: Record<string, unknown>) =>
+      apiGetAttributeValues({ ...params, attributeId }),
     {
       dataPath: "data.productAttributeValues",
       totalPath: "data.totalRecords",
-    }
+    },
   );
-
 
 // Fetchers for specific product attributes
 const keyIngredientFetcher = ingredientsFetcher;
-const countryOfOriginFetcher = productAttributeValueFetcher("685544632be6a9f5abc15bd4");
-const productFormFetcher = productAttributeValueFetcher("685545f42be6a9f5abc15bf4");
+const countryOfOriginFetcher = productAttributeValueFetcher(
+  "685544632be6a9f5abc15bd4",
+);
+const productFormFetcher = productAttributeValueFetcher(
+  "685545f42be6a9f5abc15bf4",
+);
 const genderFetcher = productAttributeValueFetcher("6855458b2be6a9f5abc15bed");
-const productTypeFetcher = productAttributeValueFetcher("6855480a2be6a9f5abc15c32");
-const targetAreaFetcher = productAttributeValueFetcher("685547d62be6a9f5abc15c2b");
+const productTypeFetcher = productAttributeValueFetcher(
+  "6855480a2be6a9f5abc15c32",
+);
+const targetAreaFetcher = productAttributeValueFetcher(
+  "685547d62be6a9f5abc15c2b",
+);
 const finishFetcher = productAttributeValueFetcher("685547af2be6a9f5abc15c26");
-const fragranceFetcher = productAttributeValueFetcher("6855478e2be6a9f5abc15c1f");
-const hairTypeFetcher = productAttributeValueFetcher("685547372be6a9f5abc15c13");
-const skinTypeFetcher = productAttributeValueFetcher("685547232be6a9f5abc15c0c");
+const fragranceFetcher = productAttributeValueFetcher(
+  "6855478e2be6a9f5abc15c1f",
+);
+// Use new APIs for skin type, hair type, skin concerns, and hair concerns
+const hairTypeFetcher = createSimpleFetcher(
+  (params: Record<string, unknown>, signal?: AbortSignal) =>
+    apiGetHairTypes(params as ProductApiParams, signal),
+  {
+    dataPath: "data.hairTypes",
+    totalPath: "data.totalRecords",
+  },
+);
+const skinTypeFetcher = createSimpleFetcher(
+  (params: Record<string, unknown>, signal?: AbortSignal) =>
+    apiGetSkinTypes(params as ProductApiParams, signal),
+  {
+    dataPath: "data.skinTypes",
+    totalPath: "data.totalRecords",
+  },
+);
 
 // Fetchers for multi-select attributes
-const targetConcernsFetcher = productAttributeValueFetcher("685545232be6a9f5abc15be4");
-const productFeaturesFetcher = productAttributeValueFetcher("685544f12be6a9f5abc15bdd");
-const benefitsAttributeFetcher = productAttributeValueFetcher("6855428336d659329f72b94e");
-const certificationsFetcher = productAttributeValueFetcher("685546332be6a9f5abc15bfb");
-const skinConcernsFetcher = productAttributeValueFetcher("685547672be6a9f5abc15c1a");
+const targetConcernsFetcher = productAttributeValueFetcher(
+  "685545232be6a9f5abc15be4",
+);
+const productFeaturesFetcher = productAttributeValueFetcher(
+  "685544f12be6a9f5abc15bdd",
+);
+// const benefitsAttributeFetcher = productAttributeValueFetcher(
+//   "6855428336d659329f72b94e",
+// ); // Removed - Benefits field moved to Key Information section
+const certificationsFetcher = productAttributeValueFetcher(
+  "685546332be6a9f5abc15bfb",
+);
+const skinConcernsFetcher = createSimpleFetcher(
+  (params: Record<string, unknown>, signal?: AbortSignal) =>
+    apiGetSkinConcerns(params as ProductApiParams, signal),
+  {
+    dataPath: "data.skinConcerns",
+    totalPath: "data.totalRecords",
+  },
+);
+const hairConcernsFetcher = createSimpleFetcher(
+  (params: Record<string, unknown>, signal?: AbortSignal) =>
+    apiGetHairConcerns(params as ProductApiParams, signal),
+  {
+    dataPath: "data.hairConcerns",
+    totalPath: "data.totalRecords",
+  },
+);
 
 // Fetcher for variant attributes
 const variantAttributesFetcher = createSimpleFetcher(apiGetProductAttributes, {
   dataPath: "data.productAttributes",
   totalPath: "data.totalRecords",
 });
-
 
 interface ProductCreateData {
   productName: string;
@@ -162,7 +231,7 @@ interface ProductCreateData {
   targetConcerns?: string[]; // 685545232be6a9f5abc15be4
   productFeatures?: string[]; // 685544f12be6a9f5abc15bdd
   countryOfOrigin?: string; // 685544632be6a9f5abc15bd4
-  benefits?: string[]; // 6855428336d659329f72b94e
+  // benefits?: string[]; // Removed - Benefits field moved to Key Information section as benefitsSingle
   certifications?: string[]; // 685546332be6a9f5abc15bfb
   productForm?: string; // 685545f42be6a9f5abc15bf4
   gender?: string; // 6855458b2be6a9f5abc15bed
@@ -189,7 +258,7 @@ interface ProductCreateData {
   // Key Information
   ingredient?: string[];
   keyIngredients?: string[];
-  benefitsSingle?: string;
+  benefitsSingle?: string[];
   // Capture Details
   captureBy?: string;
   capturedDate: string;
@@ -227,7 +296,6 @@ interface DropdownOption {
   address?: string;
 }
 
-
 interface ProductCreateProps {
   companyId?: string;
   locationId?: string;
@@ -257,7 +325,7 @@ const ProductCreate = (props?: ProductCreateProps) => {
   if (!productId) {
     productId = params.id || searchParams.get("id") || "";
   }
-  
+
   // Get mode from URL parameters or pathname if not provided as props
   const urlMode = searchParams.get("mode") ?? "";
   let pathMode = "";
@@ -289,13 +357,16 @@ const ProductCreate = (props?: ProductCreateProps) => {
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const barcodeInputRef = useRef<HTMLInputElement>(null);
 
-
   // Variant attributes state
-  const [variantAttributes, setVariantAttributes] = useState<DropdownOption[]>([]);
-  const [attributeValues, setAttributeValues] = useState<Record<string, DropdownOption[]>>({});
+  const [variantAttributes, setVariantAttributes] = useState<DropdownOption[]>(
+    [],
+  );
+  const [attributeValues, setAttributeValues] = useState<
+    Record<string, DropdownOption[]>
+  >({});
 
   // State for static dropdowns only
-  const [statusOptions, setStatusOptions] = useState<Option[]>([]);
+  // const [statusOptions, setStatusOptions] = useState<Option[]>([]);
 
   // Form data state
   const [formData, setFormData] = useState<ProductCreateData>({
@@ -321,7 +392,7 @@ const ProductCreate = (props?: ProductCreateProps) => {
     targetConcerns: [],
     productFeatures: [],
     countryOfOrigin: "",
-    benefits: [],
+    // benefits: [], // Removed - using benefitsSingle instead
     certifications: [],
     productForm: "",
     gender: "",
@@ -348,7 +419,7 @@ const ProductCreate = (props?: ProductCreateProps) => {
     // Key Information
     ingredient: [],
     keyIngredients: [],
-    benefitsSingle: "",
+    benefitsSingle: [],
     // Capture Details
     captureBy: role,
     capturedDate: new Date().toISOString(),
@@ -376,11 +447,11 @@ const ProductCreate = (props?: ProductCreateProps) => {
   // Load static dropdown data on component mount
   useEffect(() => {
     // Set status options (static data)
-    setStatusOptions([
-      { label: "Active", value: "active" },
-      { label: "Inactive", value: "inactive" },
-      { label: "Draft", value: "draft" },
-    ]);
+    // setStatusOptions([
+    //   { label: "Active", value: "active" },
+    //   { label: "Inactive", value: "inactive" },
+    //   { label: "Draft", value: "draft" },
+    // ]);
   }, []);
 
   // Fetch variant attributes
@@ -392,10 +463,12 @@ const ProductCreate = (props?: ProductCreateProps) => {
         limit: 100,
       });
       const attributes = response?.data?.productAttributes || [];
-      setVariantAttributes(attributes.map((attr: { _id: string; name: string }) => ({
-        _id: attr._id,
-        name: attr.name
-      })));
+      setVariantAttributes(
+        attributes.map((attr: { _id: string; name: string }) => ({
+          _id: attr._id,
+          name: attr.name,
+        })),
+      );
     } catch (err) {
       console.error("Failed to load variant attributes", err);
     }
@@ -412,9 +485,9 @@ const ProductCreate = (props?: ProductCreateProps) => {
       const values = response?.data?.productAttributeValues || [];
       const options = values.map((v: { _id: string; label: string }) => ({
         _id: v._id,
-        name: v.label
+        name: v.label,
       }));
-      setAttributeValues(prev => ({
+      setAttributeValues((prev) => ({
         ...prev,
         [attributeId]: options,
       }));
@@ -430,11 +503,22 @@ const ProductCreate = (props?: ProductCreateProps) => {
 
   // Fetch product data for edit/view mode
   useEffect(() => {
-    console.log("useEffect triggered with:", { productId, isEditMode, isViewMode, finalMode, mode, urlMode });
-    
+    console.log("useEffect triggered with:", {
+      productId,
+      isEditMode,
+      isViewMode,
+      finalMode,
+      mode,
+      urlMode,
+    });
+
     const fetchProductData = async () => {
-          if (productId && (isEditMode || isViewMode)) {
-        console.log("Fetching product data for:", { productId, isEditMode, isViewMode });
+      if (productId && (isEditMode || isViewMode)) {
+        console.log("Fetching product data for:", {
+          productId,
+          isEditMode,
+          isViewMode,
+        });
         try {
           const response = (await apiGetProductDetail(productId)) as {
             statusCode: number;
@@ -445,12 +529,11 @@ const ProductCreate = (props?: ProductCreateProps) => {
 
           // Handle response structure - check for both data and nested data property
           const productData = response.data || response;
-          
+
           if (productData) {
             // Extract product data from response - handle both old and new API response structures
             const product = productData as Record<string, unknown>;
             console.log("Setting product data:", product);
-
 
             // Helper function to ensure we get string values
             const getStringValue = (value: unknown): string => {
@@ -508,10 +591,11 @@ const ProductCreate = (props?: ProductCreateProps) => {
               quantity: (product.quantity as number) || 0,
               sku: (product.sku as string) || "",
               brand: getStringValue(product.brand),
-              productVariationType: product.productVariationType 
-                ? (typeof product.productVariationType === "string" 
-                    ? product.productVariationType 
-                    : (product.productVariationType as Record<string, unknown>)?._id as string || "")
+              productVariationType: product.productVariationType
+                ? typeof product.productVariationType === "string"
+                  ? product.productVariationType
+                  : ((product.productVariationType as Record<string, unknown>)
+                      ?._id as string) || ""
                 : "",
               productCategory: getStringArray(product.productCategory),
               tags: getStringArray(product.tags),
@@ -541,21 +625,7 @@ const ProductCreate = (props?: ProductCreateProps) => {
                   "country-of-origin",
                 ),
               ),
-              benefits: [
-                ...getStringArray(product.benefit),
-                ...getStringArray(
-                  getMetaValueArray(
-                    product.metaData as Array<{ key: string; value: unknown }>,
-                    "conscious",
-                  ),
-                ),
-                ...getStringArray(
-                  getMetaValueArray(
-                    product.metaData as Array<{ key: string; value: unknown }>,
-                    "claims",
-                  ),
-                ),
-              ],
+              // benefits field removed - using benefitsSingle in Key Information section instead
               certifications: getStringArray(
                 getMetaValueArray(
                   product.metaData as Array<{ key: string; value: unknown }>,
@@ -684,9 +754,7 @@ const ProductCreate = (props?: ProductCreateProps) => {
               ),
               ingredient: getStringArray(product.ingredients),
               keyIngredients: getStringArray(product.keyIngredients),
-              benefitsSingle: getStringValue(
-                (product.benefit as string[])?.[0],
-              ),
+              benefitsSingle: getStringArray(product.benefit),
               captureBy: getStringValue(product.capturedBy) || userId,
               capturedDate:
                 (product.capturedDate as string) || new Date().toISOString(),
@@ -744,7 +812,9 @@ const ProductCreate = (props?: ProductCreateProps) => {
               keyIngredients: Array.isArray(initialFormData.keyIngredients)
                 ? initialFormData.keyIngredients.map(String)
                 : [],
-              benefitsSingle: String(initialFormData.benefitsSingle || ""),
+              benefitsSingle: Array.isArray(initialFormData.benefitsSingle)
+                ? initialFormData.benefitsSingle.map(String)
+                : [],
               thumbnail: String(initialFormData.thumbnail || ""),
               barcodeImage: String(initialFormData.barcodeImage || ""),
               images: Array.isArray(initialFormData.images)
@@ -813,7 +883,7 @@ const ProductCreate = (props?: ProductCreateProps) => {
         sku: formData.sku,
         productVariationType: formData.productVariationType,
         brand: formData.brand || brandId,
-        aboutTheBrand: "", // Add if needed
+        aboutTheBrand: formData.aboutTheBrand || "",
         productCategory:
           formData.productCategory.length > 0
             ? formData.productCategory
@@ -821,22 +891,40 @@ const ProductCreate = (props?: ProductCreateProps) => {
         tags: formData.tags || [],
         ingredients: formData.ingredient || [],
         keyIngredients: formData.keyIngredients || [],
-        benefit: formData.benefitsSingle ? [formData.benefitsSingle] : [],
-        marketedBy: formData.marketedBy,
-        marketedByAddress: formData.marketedByAddress,
-        manufacturedBy: formData.manufacturedBy,
-        manufacturedByAddress: formData.manufacturedByAddress,
-        importedBy: formData.importedBy,
-        importedByAddress: formData.importedByAddress,
-        // capturedBy: formData.captureBy,
+        benefit: formData.benefitsSingle && formData.benefitsSingle.length > 0 
+          ? formData.benefitsSingle 
+          : [],
+        skinTypes: formData.skinType ? [formData.skinType] : [],
+        hairTypes: formData.hairTypes || [],
+        skinConcerns: formData.skinConcerns || [],
+        hairConcerns: formData.hairConcerns || [],
+        hairGoals: formData.hairGoals || [],
+        materialType: 1, // Default material type as per API response
+        ...(formData.weight && {
+          weight: parseFloat(formData.weight.toString()),
+        }),
+        ...(formData.marketedBy && { marketedBy: formData.marketedBy }),
+        ...(formData.marketedByAddress && {
+          marketedByAddress: formData.marketedByAddress,
+        }),
+        ...(formData.manufacturedBy && {
+          manufacturedBy: formData.manufacturedBy,
+        }),
+        ...(formData.manufacturedByAddress && {
+          manufacturedByAddress: formData.manufacturedByAddress,
+        }),
+        ...(formData.importedBy && { importedBy: formData.importedBy }),
+        ...(formData.importedByAddress && {
+          importedByAddress: formData.importedByAddress,
+        }),
         capturedBy: userId,
-        sellerId: isSellerMember ? userId : undefined, // Add seller ID for seller users
-        companyId: (isSellerMember && companyId) ? companyId : undefined, // Add company ID for seller products
+        ...(isSellerMember && { sellerId: userId }), // Only include sellerId for sellers
+        ...(isSellerMember && companyId && { companyId: companyId }), // Only include companyId for sellers
         capturedDate:
           formData.capturedDate.split("T")[0] ?? new Date().toISOString(), // Convert to date string
-        thumbnail: formData.thumbnail || "", // Include thumbnail ID
-        barcodeImage: formData.barcodeImage || "", // Include barcode ID
-        images: formData.images || [], // Include image IDs
+        thumbnail: formData.thumbnail || "",
+        barcodeImage: formData.barcodeImage || "",
+        images: formData.images || [],
         dimensions: {
           length: formData.length || 0,
           width: formData.width || 0,
@@ -847,6 +935,13 @@ const ProductCreate = (props?: ProductCreateProps) => {
         quantity: formData.quantity,
         manufacturingDate: formData.manufacturingDate,
         expiryDate: formData.expiryDate,
+        metaTitle: formData.metaTitle || "",
+        metaDescription: formData.metaDescription || "",
+        metaKeywords: formData.metaKeywords || [],
+        isFeatured: formData.isFeatured || false,
+        isNewArrival: formData.isNewArrival || false,
+        isBestSeller: formData.isBestSeller || false,
+        isTrendingNow: formData.isTrendingNow || false,
         metaData: [
           // Safety precaution
           ...(formData.safetyPrecaution
@@ -1013,12 +1108,12 @@ const ProductCreate = (props?: ProductCreateProps) => {
                 },
               ]
             : []),
-          // Conscious (using benefits)
-          ...(formData.benefits && formData.benefits.length > 0
+          // Conscious (using benefitsSingle from Key Information)
+          ...(formData.benefitsSingle && formData.benefitsSingle.length > 0
             ? [
                 {
                   key: "conscious",
-                  value: formData.benefits,
+                  value: formData.benefitsSingle,
                   type: "array",
                   ref: true,
                 },
@@ -1042,6 +1137,7 @@ const ProductCreate = (props?: ProductCreateProps) => {
         success: boolean;
         message?: string;
         data?: { _id: string };
+        statusCode?: number;
       };
 
       if (isEditMode && productId) {
@@ -1061,8 +1157,11 @@ const ProductCreate = (props?: ProductCreateProps) => {
         // //   }
         // }
       } else {
-        // Create new product
-        result = (await api.post(ENDPOINTS.PRODUCT.MAIN, jsonData)) as {
+        // Create new product using the new create-product endpoint
+        result = (await api.post(
+          ENDPOINTS.PRODUCT.CREATE_PRODUCT,
+          jsonData,
+        )) as {
           success: boolean;
           message?: string;
           data?: { _id: string };
@@ -1081,7 +1180,9 @@ const ProductCreate = (props?: ProductCreateProps) => {
 
       if (result.success) {
         // Navigate back to product list - use seller route if in seller mode
-        const redirectRoute = isSellerMember ? SELLER_ROUTES.PRODUCTS.LIST : PANEL_ROUTES.LISTING.LIST;
+        const redirectRoute = isSellerMember
+          ? SELLER_ROUTES.PRODUCTS.LIST
+          : PANEL_ROUTES.LISTING.LIST;
         navigate(redirectRoute);
       }
     } catch (error: unknown) {
@@ -1114,7 +1215,9 @@ const ProductCreate = (props?: ProductCreateProps) => {
 
   const handleCancel = () => {
     // Navigate back to product list - use seller route if in seller mode
-    const redirectRoute = isSellerMember ? SELLER_ROUTES.PRODUCTS.LIST : PANEL_ROUTES.LISTING.LIST;
+    const redirectRoute = isSellerMember
+      ? SELLER_ROUTES.PRODUCTS.LIST
+      : PANEL_ROUTES.LISTING.LIST;
     navigate(redirectRoute);
   };
 
@@ -1692,93 +1795,6 @@ const ProductCreate = (props?: ProductCreateProps) => {
                 </div>
               </div>
 
-              {/* Pricing - Only show for simple products */}
-              {(() => {
-                // Check if product type is simple (not variable)
-                const SIMPLE_PRODUCT_ID = "685a4f3f2d20439677a5e89d";
-                return formData.productVariationType && formData.productVariationType === SIMPLE_PRODUCT_ID;
-              })() && (
-                <div className="space-y-4">
-                  <h3 className="border-b border-gray-200 pb-2 text-lg font-semibold text-gray-900">
-                    Pricing & Inventory
-                  </h3>
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="price"
-                      className="text-sm font-medium text-gray-700"
-                    >
-                      Price *
-                    </Label>
-                    <Input
-                      id="price"
-                      type="number"
-                      step="0.01"
-                      value={formData.price}
-                      onChange={(e) =>
-                        handleInputChange(
-                          "price",
-                          parseFloat(e.target.value) || 0,
-                        )
-                      }
-                      placeholder="0.00"
-                      required
-                      className="h-10"
-                      disabled={isViewMode}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="salePrice"
-                      className="text-sm font-medium text-gray-700"
-                    >
-                      Sale Price
-                    </Label>
-                    <Input
-                      id="salePrice"
-                      type="number"
-                      step="0.01"
-                      value={formData.salePrice}
-                      onChange={(e) =>
-                        handleInputChange(
-                          "salePrice",
-                          parseFloat(e.target.value) || 0,
-                        )
-                      }
-                      placeholder="0.00"
-                      className="h-10"
-                      disabled={isViewMode}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="quantity"
-                      className="text-sm font-medium text-gray-700"
-                    >
-                      Quantity *
-                    </Label>
-                    <Input
-                      id="quantity"
-                      type="number"
-                      value={formData.quantity}
-                      onChange={(e) =>
-                        handleInputChange(
-                          "quantity",
-                          parseInt(e.target.value) || 0,
-                        )
-                      }
-                      placeholder="0"
-                      required
-                      className="h-10"
-                      disabled={isViewMode}
-                    />
-                  </div>
-                </div>
-                </div>
-              )}
-
               {/* Product Details */}
               <div className="space-y-4">
                 <h3 className="border-b border-gray-200 pb-2 text-lg font-semibold text-gray-900">
@@ -1801,7 +1817,9 @@ const ProductCreate = (props?: ProductCreateProps) => {
                       placeholder="Select a brand"
                       value={formData.brand || ""}
                       onChange={(value: string | string[]) => {
-                        const stringValue = Array.isArray(value) ? value[0] : value;
+                        const stringValue = Array.isArray(value)
+                          ? value[0]
+                          : value;
                         handleInputChange("brand", stringValue);
                       }}
                       className="w-full"
@@ -1826,7 +1844,9 @@ const ProductCreate = (props?: ProductCreateProps) => {
                       placeholder="Select product type"
                       value={formData.productVariationType || ""}
                       onChange={(value: string | string[]) => {
-                        const stringValue = Array.isArray(value) ? value[0] : value;
+                        const stringValue = Array.isArray(value)
+                          ? value[0]
+                          : value;
                         handleInputChange("productVariationType", stringValue);
                       }}
                       className="w-full"
@@ -1835,130 +1855,293 @@ const ProductCreate = (props?: ProductCreateProps) => {
                     />
                   </div>
                 </div>
+                {/* Pricing - Only show for simple products */}
+                {(() => {
+                  // Check if product type is simple (not variable)
+                  const SIMPLE_PRODUCT_ID = "685a4f3f2d20439677a5e89d";
+                  return (
+                    formData.productVariationType &&
+                    formData.productVariationType === SIMPLE_PRODUCT_ID
+                  );
+                })() && (
+                  <div className="space-y-4">
+                    <h3 className="border-b border-gray-200 pb-2 text-lg font-semibold text-gray-900">
+                      Pricing & Inventory
+                    </h3>
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="price"
+                          className="text-sm font-medium text-gray-700"
+                        >
+                          Price *
+                        </Label>
+                        <Input
+                          id="price"
+                          type="number"
+                          step="0.01"
+                          value={formData.price}
+                          onChange={(e) =>
+                            handleInputChange(
+                              "price",
+                              parseFloat(e.target.value) || 0,
+                            )
+                          }
+                          placeholder="0.00"
+                          required
+                          className="h-10"
+                          disabled={isViewMode}
+                        />
+                      </div>
 
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="salePrice"
+                          className="text-sm font-medium text-gray-700"
+                        >
+                          Sale Price
+                        </Label>
+                        <Input
+                          id="salePrice"
+                          type="number"
+                          step="0.01"
+                          value={formData.salePrice}
+                          onChange={(e) =>
+                            handleInputChange(
+                              "salePrice",
+                              parseFloat(e.target.value) || 0,
+                            )
+                          }
+                          placeholder="0.00"
+                          className="h-10"
+                          disabled={isViewMode}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="quantity"
+                          className="text-sm font-medium text-gray-700"
+                        >
+                          Quantity *
+                        </Label>
+                        <Input
+                          id="quantity"
+                          type="number"
+                          value={formData.quantity}
+                          onChange={(e) =>
+                            handleInputChange(
+                              "quantity",
+                              parseInt(e.target.value) || 0,
+                            )
+                          }
+                          placeholder="0"
+                          required
+                          className="h-10"
+                          disabled={isViewMode}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {/* Variant Section - Only show for variable products */}
                 {(() => {
                   // Check if product type is variable (not simple product)
                   const SIMPLE_PRODUCT_ID = "685a4f3f2d20439677a5e89d";
-                  return formData.productVariationType && formData.productVariationType !== SIMPLE_PRODUCT_ID;
+                  return (
+                    formData.productVariationType &&
+                    formData.productVariationType !== SIMPLE_PRODUCT_ID
+                  );
                 })() && (
                   <div className="space-y-4">
                     <h3 className="border-b border-gray-200 pb-2 text-lg font-semibold text-gray-900">
                       Variant
                     </h3>
-                    
+
                     {/* Add Variant Attribute Button */}
                     <Button
                       type="button"
                       variant="outlined"
                       onClick={() => {
-                        const newAttributes = [...(formData.attributes || []), { attributeId: null, attributeValueId: [] }];
-                        setFormData(prev => ({ ...prev, attributes: newAttributes }));
+                        const newAttributes = [
+                          ...(formData.attributes || []),
+                          { attributeId: null, attributeValueId: [] },
+                        ];
+                        setFormData((prev) => ({
+                          ...prev,
+                          attributes: newAttributes,
+                        }));
                       }}
-                      className="flex items-center gap-2 mb-4"
+                      className="mb-4 flex items-center gap-2"
                     >
-                      <Plus className="w-4 h-4" />
+                      <Plus className="h-4 w-4" />
                       Add Variant Attribute
                     </Button>
 
                     {/* Attribute List */}
-                    {formData.attributes?.map((attribute: { attributeId: { value: string; label: string } | null; attributeValueId: Array<{ value: string; label: string }> }, index: number) => (
-                      <div key={index} className="space-y-4 p-4 border border-gray-200 rounded-lg bg-white">
-                        <div className="flex items-center justify-between">
-                          <h4 className="text-sm font-medium text-gray-700">
-                            {attribute.attributeId?.label || "Select an Attribute"}
-                          </h4>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              const newAttributes = formData.attributes?.filter((_, i: number) => i !== index) || [];
-                              setFormData(prev => ({ ...prev, attributes: newAttributes }));
-                            }}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
+                    {formData.attributes?.map(
+                      (
+                        attribute: {
+                          attributeId: { value: string; label: string } | null;
+                          attributeValueId: Array<{
+                            value: string;
+                            label: string;
+                          }>;
+                        },
+                        index: number,
+                      ) => (
+                        <div
+                          key={index}
+                          className="space-y-4 rounded-lg border border-gray-200 bg-white p-4"
+                        >
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-sm font-medium text-gray-700">
+                              {attribute.attributeId?.label ||
+                                "Select an Attribute"}
+                            </h4>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                const newAttributes =
+                                  formData.attributes?.filter(
+                                    (_, i: number) => i !== index,
+                                  ) || [];
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  attributes: newAttributes,
+                                }));
+                              }}
+                              className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {/* Attribute Selection */}
-                          <div>
-                            <Label htmlFor={`attribute-${index}`} className="text-sm font-medium text-gray-700">
-                              Attribute
-                            </Label>
-                            <PaginationComboBox
-                              apiFunction={variantAttributesFetcher}
-                              transform={(attr: { _id: string; name: string }) => ({
-                                label: attr.name,
-                                value: attr._id,
-                              })}
-                              placeholder="Select Attribute"
-                              value={attribute.attributeId?.value || ""}
-                              onChange={(value: string | string[]) => {
-                                const attributeId = Array.isArray(value) ? value[0] : value;
-                                const selectedAttribute = variantAttributes.find(attr => attr._id === attributeId);
-                                const newAttributes = [...(formData.attributes || [])];
-                                newAttributes[index] = { 
-                                  ...newAttributes[index], 
-                                  attributeId: { value: attributeId, label: selectedAttribute?.name || "" }, 
-                                  attributeValueId: [] 
-                                };
-                                setFormData(prev => ({ ...prev, attributes: newAttributes }));
-                                // Fetch attribute values when attribute is selected
-                                if (attributeId) {
-                                  fetchAttributeValues(attributeId);
+                          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            {/* Attribute Selection */}
+                            <div>
+                              <Label
+                                htmlFor={`attribute-${index}`}
+                                className="text-sm font-medium text-gray-700"
+                              >
+                                Attribute
+                              </Label>
+                              <PaginationComboBox
+                                apiFunction={variantAttributesFetcher}
+                                transform={(attr: {
+                                  _id: string;
+                                  name: string;
+                                }) => ({
+                                  label: attr.name,
+                                  value: attr._id,
+                                })}
+                                placeholder="Select Attribute"
+                                value={attribute.attributeId?.value || ""}
+                                onChange={(value: string | string[]) => {
+                                  const attributeId = Array.isArray(value)
+                                    ? value[0]
+                                    : value;
+                                  const selectedAttribute =
+                                    variantAttributes.find(
+                                      (attr) => attr._id === attributeId,
+                                    );
+                                  const newAttributes = [
+                                    ...(formData.attributes || []),
+                                  ];
+                                  newAttributes[index] = {
+                                    ...newAttributes[index],
+                                    attributeId: {
+                                      value: attributeId,
+                                      label: selectedAttribute?.name || "",
+                                    },
+                                    attributeValueId: [],
+                                  };
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    attributes: newAttributes,
+                                  }));
+                                  // Fetch attribute values when attribute is selected
+                                  if (attributeId) {
+                                    fetchAttributeValues(attributeId);
+                                  }
+                                }}
+                                className="w-full"
+                                disabled={isViewMode}
+                                queryKey={["variant-attributes-dropdown"]}
+                              />
+                            </div>
+
+                            {/* Attribute Values Selection */}
+                            <div>
+                              <Label
+                                htmlFor={`values-${index}`}
+                                className="text-sm font-medium text-gray-700"
+                              >
+                                Values
+                              </Label>
+                              <ComboBox
+                                options={
+                                  attribute.attributeId?.value
+                                    ? (
+                                        attributeValues[
+                                          attribute.attributeId.value
+                                        ] || []
+                                      ).map((option) => ({
+                                        value: option._id,
+                                        label: option.name || "",
+                                      }))
+                                    : []
                                 }
-                              }}
-                              className="w-full"
-                              disabled={isViewMode}
-                              queryKey={["variant-attributes-dropdown"]}
-                            />
-                          </div>
-
-                          {/* Attribute Values Selection */}
-                          <div>
-                            <Label htmlFor={`values-${index}`} className="text-sm font-medium text-gray-700">
-                              Values
-                            </Label>
-                            <ComboBox
-                              options={
-                                attribute.attributeId?.value
-                                  ? (attributeValues[attribute.attributeId.value] || []).map((option) => ({
-                                      value: option._id,
-                                      label: option.name || "",
-                                    }))
-                                  : []
-                              }
-                              value={attribute.attributeValueId?.map((v: { value: string; label: string }) => v.value) || []}
-                              onChange={(_, selectedOptions) => {
-                                const newAttributes = [...(formData.attributes || [])];
-                                newAttributes[index] = { 
-                                  ...newAttributes[index], 
-                                  attributeValueId: (selectedOptions || []).map(option => ({
-                                    value: option.value,
-                                    label: typeof option.label === "string" ? option.label : String(option.label)
-                                  }))
-                                };
-                                setFormData(prev => ({ ...prev, attributes: newAttributes }));
-                              }}
-                              placeholder={
-                                !attribute.attributeId?.value 
-                                  ? "Select Attribute Value" 
-                                  : attributeValues[attribute.attributeId.value]?.length 
-                                    ? "Select values..." 
-                                    : "No options available"
-                              }
-                              multi={true}
-                              disabled={!attribute.attributeId?.value || isViewMode}
-                              className="w-full"
-                              emptyMessage="No options available"
-                            />
+                                value={
+                                  attribute.attributeValueId?.map(
+                                    (v: { value: string; label: string }) =>
+                                      v.value,
+                                  ) || []
+                                }
+                                onChange={(_, selectedOptions) => {
+                                  const newAttributes = [
+                                    ...(formData.attributes || []),
+                                  ];
+                                  newAttributes[index] = {
+                                    ...newAttributes[index],
+                                    attributeValueId: (
+                                      selectedOptions || []
+                                    ).map((option) => ({
+                                      value: option.value,
+                                      label:
+                                        typeof option.label === "string"
+                                          ? option.label
+                                          : String(option.label),
+                                    })),
+                                  };
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    attributes: newAttributes,
+                                  }));
+                                }}
+                                placeholder={
+                                  !attribute.attributeId?.value
+                                    ? "Select Attribute Value"
+                                    : attributeValues[
+                                          attribute.attributeId.value
+                                        ]?.length
+                                      ? "Select values..."
+                                      : "No options available"
+                                }
+                                multi={true}
+                                disabled={
+                                  !attribute.attributeId?.value || isViewMode
+                                }
+                                className="w-full"
+                                emptyMessage="No options available"
+                              />
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ),
+                    )}
                   </div>
                 )}
 
@@ -1979,7 +2162,9 @@ const ProductCreate = (props?: ProductCreateProps) => {
                     placeholder="Select a category"
                     value={formData.productCategory[0] || ""}
                     onChange={(value: string | string[]) => {
-                      const stringValue = Array.isArray(value) ? value[0] : value;
+                      const stringValue = Array.isArray(value)
+                        ? value[0]
+                        : value;
                       handleInputChange("productCategory", [stringValue]);
                     }}
                     className="w-full"
@@ -2015,7 +2200,7 @@ const ProductCreate = (props?: ProductCreateProps) => {
                 </div>
 
                 {/* Status */}
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                   <Label
                     htmlFor="status"
                     className="text-sm font-medium text-gray-700"
@@ -2032,7 +2217,7 @@ const ProductCreate = (props?: ProductCreateProps) => {
                     className="w-full"
                     disabled={isViewMode}
                   />
-                </div>
+                </div> */}
               </div>
 
               {/* Company Information */}
@@ -2057,7 +2242,9 @@ const ProductCreate = (props?: ProductCreateProps) => {
                       placeholder="Select Market By"
                       value={formData.marketedBy || ""}
                       onChange={(value: string | string[]) => {
-                        const stringValue = Array.isArray(value) ? value[0] : value;
+                        const stringValue = Array.isArray(value)
+                          ? value[0]
+                          : value;
                         handleInputChange("marketedBy", stringValue);
                       }}
                       className="w-full"
@@ -2082,7 +2269,9 @@ const ProductCreate = (props?: ProductCreateProps) => {
                       placeholder="Select Manufacture By"
                       value={formData.manufacturedBy || ""}
                       onChange={(value: string | string[]) => {
-                        const stringValue = Array.isArray(value) ? value[0] : value;
+                        const stringValue = Array.isArray(value)
+                          ? value[0]
+                          : value;
                         handleInputChange("manufacturedBy", stringValue);
                       }}
                       className="w-full"
@@ -2108,7 +2297,9 @@ const ProductCreate = (props?: ProductCreateProps) => {
                     placeholder="Select Import By"
                     value={formData.importedBy || ""}
                     onChange={(value: string | string[]) => {
-                      const stringValue = Array.isArray(value) ? value[0] : value;
+                      const stringValue = Array.isArray(value)
+                        ? value[0]
+                        : value;
                       handleInputChange("importedBy", stringValue);
                     }}
                     className="w-full"
@@ -2429,14 +2620,19 @@ const ProductCreate = (props?: ProductCreateProps) => {
                     </Label>
                     <PaginationComboBox
                       apiFunction={ingredientsFetcher}
-                      transform={(ingredient: { _id: string; name: string }) => ({
+                      transform={(ingredient: {
+                        _id: string;
+                        name: string;
+                      }) => ({
                         label: ingredient.name,
                         value: ingredient._id,
                       })}
                       placeholder="Select ingredients"
                       value={formData.ingredient || []}
                       onChange={(value: string | string[]) => {
-                        const arrayValue = Array.isArray(value) ? value : [value];
+                        const arrayValue = Array.isArray(value)
+                          ? value
+                          : [value];
                         handleInputChange("ingredient", arrayValue);
                       }}
                       className="w-full"
@@ -2455,14 +2651,19 @@ const ProductCreate = (props?: ProductCreateProps) => {
                     </Label>
                     <PaginationComboBox
                       apiFunction={keyIngredientFetcher}
-                      transform={(ingredient: { _id: string; name: string }) => ({
+                      transform={(ingredient: {
+                        _id: string;
+                        name: string;
+                      }) => ({
                         label: ingredient.name,
                         value: ingredient._id,
                       })}
                       placeholder="Select key ingredients"
                       value={formData.keyIngredients || []}
                       onChange={(value: string | string[]) => {
-                        const arrayValue = Array.isArray(value) ? value : [value];
+                        const arrayValue = Array.isArray(value)
+                          ? value
+                          : [value];
                         handleInputChange("keyIngredients", arrayValue);
                       }}
                       className="w-full"
@@ -2486,14 +2687,15 @@ const ProductCreate = (props?: ProductCreateProps) => {
                       label: benefit.name,
                       value: benefit._id,
                     })}
-                    placeholder="Select a benefit"
-                    value={formData.benefitsSingle || ""}
+                    placeholder="Select benefits"
+                    value={formData.benefitsSingle || []}
                     onChange={(value: string | string[]) => {
-                      const stringValue = Array.isArray(value) ? value[0] : value;
-                      handleInputChange("benefitsSingle", stringValue);
+                      const arrayValue = Array.isArray(value) ? value : [value];
+                      handleInputChange("benefitsSingle", arrayValue);
                     }}
                     className="w-full"
                     disabled={isViewMode}
+                    multi={true}
                     queryKey={["benefits-dropdown"]}
                   />
                 </div>
@@ -2571,7 +2773,9 @@ const ProductCreate = (props?: ProductCreateProps) => {
                       placeholder="Select country of origin"
                       value={formData.countryOfOrigin || ""}
                       onChange={(value: string | string[]) => {
-                        const stringValue = Array.isArray(value) ? value[0] : value;
+                        const stringValue = Array.isArray(value)
+                          ? value[0]
+                          : value;
                         handleInputChange("countryOfOrigin", stringValue);
                       }}
                       className="w-full"
@@ -2591,7 +2795,9 @@ const ProductCreate = (props?: ProductCreateProps) => {
                       placeholder="Select product form"
                       value={formData.productForm || ""}
                       onChange={(value: string | string[]) => {
-                        const stringValue = Array.isArray(value) ? value[0] : value;
+                        const stringValue = Array.isArray(value)
+                          ? value[0]
+                          : value;
                         handleInputChange("productForm", stringValue);
                       }}
                       className="w-full"
@@ -2611,7 +2817,9 @@ const ProductCreate = (props?: ProductCreateProps) => {
                       placeholder="Select gender"
                       value={formData.gender || ""}
                       onChange={(value: string | string[]) => {
-                        const stringValue = Array.isArray(value) ? value[0] : value;
+                        const stringValue = Array.isArray(value)
+                          ? value[0]
+                          : value;
                         handleInputChange("gender", stringValue);
                       }}
                       className="w-full"
@@ -2631,7 +2839,9 @@ const ProductCreate = (props?: ProductCreateProps) => {
                       placeholder="Select product type"
                       value={formData.productType || ""}
                       onChange={(value: string | string[]) => {
-                        const stringValue = Array.isArray(value) ? value[0] : value;
+                        const stringValue = Array.isArray(value)
+                          ? value[0]
+                          : value;
                         handleInputChange("productType", stringValue);
                       }}
                       className="w-full"
@@ -2651,7 +2861,9 @@ const ProductCreate = (props?: ProductCreateProps) => {
                       placeholder="Select target area"
                       value={formData.targetArea || ""}
                       onChange={(value: string | string[]) => {
-                        const stringValue = Array.isArray(value) ? value[0] : value;
+                        const stringValue = Array.isArray(value)
+                          ? value[0]
+                          : value;
                         handleInputChange("targetArea", stringValue);
                       }}
                       className="w-full"
@@ -2671,7 +2883,9 @@ const ProductCreate = (props?: ProductCreateProps) => {
                       placeholder="Select finish"
                       value={formData.finish || ""}
                       onChange={(value: string | string[]) => {
-                        const stringValue = Array.isArray(value) ? value[0] : value;
+                        const stringValue = Array.isArray(value)
+                          ? value[0]
+                          : value;
                         handleInputChange("finish", stringValue);
                       }}
                       className="w-full"
@@ -2691,7 +2905,9 @@ const ProductCreate = (props?: ProductCreateProps) => {
                       placeholder="Select fragrance"
                       value={formData.fragrance || ""}
                       onChange={(value: string | string[]) => {
-                        const stringValue = Array.isArray(value) ? value[0] : value;
+                        const stringValue = Array.isArray(value)
+                          ? value[0]
+                          : value;
                         handleInputChange("fragrance", stringValue);
                       }}
                       className="w-full"
@@ -2704,14 +2920,20 @@ const ProductCreate = (props?: ProductCreateProps) => {
                     <Label htmlFor="hairType">Hair Type</Label>
                     <PaginationComboBox
                       apiFunction={hairTypeFetcher}
-                      transform={(item: { _id: string; label: string }) => ({
+                      transform={(item: {
+                        _id?: string;
+                        label: string;
+                        value: string;
+                      }) => ({
                         label: item.label,
-                        value: item._id,
+                        value: item._id || item.value,
                       })}
                       placeholder="Select hair type"
                       value={formData.hairType || ""}
                       onChange={(value: string | string[]) => {
-                        const stringValue = Array.isArray(value) ? value[0] : value;
+                        const stringValue = Array.isArray(value)
+                          ? value[0]
+                          : value;
                         handleInputChange("hairType", stringValue);
                       }}
                       className="w-full"
@@ -2724,14 +2946,20 @@ const ProductCreate = (props?: ProductCreateProps) => {
                     <Label htmlFor="skinType">Skin Type</Label>
                     <PaginationComboBox
                       apiFunction={skinTypeFetcher}
-                      transform={(item: { _id: string; label: string }) => ({
+                      transform={(item: {
+                        _id: string;
+                        label: string;
+                        value?: string;
+                      }) => ({
                         label: item.label,
                         value: item._id,
                       })}
                       placeholder="Select skin type"
                       value={formData.skinType || ""}
                       onChange={(value: string | string[]) => {
-                        const stringValue = Array.isArray(value) ? value[0] : value;
+                        const stringValue = Array.isArray(value)
+                          ? value[0]
+                          : value;
                         handleInputChange("skinType", stringValue);
                       }}
                       className="w-full"
@@ -2754,7 +2982,9 @@ const ProductCreate = (props?: ProductCreateProps) => {
                       placeholder="Select target concerns"
                       value={formData.targetConcerns || []}
                       onChange={(value: string | string[]) => {
-                        const arrayValue = Array.isArray(value) ? value : [value];
+                        const arrayValue = Array.isArray(value)
+                          ? value
+                          : [value];
                         handleInputChange("targetConcerns", arrayValue);
                       }}
                       className="w-full"
@@ -2775,34 +3005,15 @@ const ProductCreate = (props?: ProductCreateProps) => {
                       placeholder="Select product features"
                       value={formData.productFeatures || []}
                       onChange={(value: string | string[]) => {
-                        const arrayValue = Array.isArray(value) ? value : [value];
+                        const arrayValue = Array.isArray(value)
+                          ? value
+                          : [value];
                         handleInputChange("productFeatures", arrayValue);
                       }}
                       className="w-full"
                       disabled={isViewMode}
                       multi={true}
                       queryKey={["product-features-dropdown"]}
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Benefits</Label>
-                    <PaginationComboBox
-                      apiFunction={benefitsAttributeFetcher}
-                      transform={(benefit: { _id: string; label: string }) => ({
-                        label: benefit.label,
-                        value: benefit._id,
-                      })}
-                      placeholder="Select benefits"
-                      value={formData.benefits || []}
-                      onChange={(value: string | string[]) => {
-                        const arrayValue = Array.isArray(value) ? value : [value];
-                        handleInputChange("benefits", arrayValue);
-                      }}
-                      className="w-full"
-                      disabled={isViewMode}
-                      multi={true}
-                      queryKey={["benefits-attribute-dropdown"]}
                     />
                   </div>
 
@@ -2817,7 +3028,9 @@ const ProductCreate = (props?: ProductCreateProps) => {
                       placeholder="Select certifications"
                       value={formData.certifications || []}
                       onChange={(value: string | string[]) => {
-                        const arrayValue = Array.isArray(value) ? value : [value];
+                        const arrayValue = Array.isArray(value)
+                          ? value
+                          : [value];
                         handleInputChange("certifications", arrayValue);
                       }}
                       className="w-full"
@@ -2831,20 +3044,53 @@ const ProductCreate = (props?: ProductCreateProps) => {
                     <Label>Skin Concerns</Label>
                     <PaginationComboBox
                       apiFunction={skinConcernsFetcher}
-                      transform={(concern: { _id: string; label: string }) => ({
+                      transform={(concern: {
+                        _id: string;
+                        label: string;
+                        value?: string;
+                      }) => ({
                         label: concern.label,
                         value: concern._id,
                       })}
                       placeholder="Select skin concerns"
                       value={formData.skinConcerns || []}
                       onChange={(value: string | string[]) => {
-                        const arrayValue = Array.isArray(value) ? value : [value];
+                        const arrayValue = Array.isArray(value)
+                          ? value
+                          : [value];
                         handleInputChange("skinConcerns", arrayValue);
                       }}
                       className="w-full"
                       disabled={isViewMode}
                       multi={true}
                       queryKey={["skin-concerns-dropdown"]}
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Hair Concerns</Label>
+                    <PaginationComboBox
+                      apiFunction={hairConcernsFetcher}
+                      transform={(concern: {
+                        label: string;
+                        value: string;
+                        _id?: string;
+                      }) => ({
+                        label: concern.label,
+                        value: concern._id || concern.value,
+                      })}
+                      placeholder="Select hair concerns"
+                      value={formData.hairConcerns || []}
+                      onChange={(value: string | string[]) => {
+                        const arrayValue = Array.isArray(value)
+                          ? value
+                          : [value];
+                        handleInputChange("hairConcerns", arrayValue);
+                      }}
+                      className="w-full"
+                      disabled={isViewMode}
+                      multi={true}
+                      queryKey={["hair-concerns-dropdown"]}
                     />
                   </div>
                 </div>

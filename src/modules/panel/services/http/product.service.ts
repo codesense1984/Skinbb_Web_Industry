@@ -2,7 +2,7 @@ import { api } from "@/core/services/http";
 import { ENDPOINTS, API_PREFIX } from "@/modules/panel/config/endpoint.config";
 
 // API Request/Response Types
-interface ApiParams {
+export interface ApiParams {
   page?: number;
   limit?: number;
   search?: string;
@@ -166,6 +166,50 @@ export async function apiGetBenefits() {
       limit: 1000,
       page: 1,
     },
+  });
+}
+
+export async function apiGetSkinTypes(params?: ApiParams, signal?: AbortSignal) {
+  return api.get(ENDPOINTS.INFO.SKIN_TYPES, {
+    params: {
+      limit: 1000,
+      page: 1,
+      ...params,
+    },
+    signal,
+  });
+}
+
+export async function apiGetHairTypes(params?: ApiParams, signal?: AbortSignal) {
+  return api.get(ENDPOINTS.INFO.HAIR_TYPES, {
+    params: {
+      limit: 1000,
+      page: 1,
+      ...params,
+    },
+    signal,
+  });
+}
+
+export async function apiGetSkinConcerns(params?: ApiParams, signal?: AbortSignal) {
+  return api.get(ENDPOINTS.INFO.SKIN_CONCERNS, {
+    params: {
+      limit: 1000,
+      page: 1,
+      ...params,
+    },
+    signal,
+  });
+}
+
+export async function apiGetHairConcerns(params?: ApiParams, signal?: AbortSignal) {
+  return api.get(ENDPOINTS.INFO.HAIR_CONCERNS, {
+    params: {
+      limit: 1000,
+      page: 1,
+      ...params,
+    },
+    signal,
   });
 }
 
