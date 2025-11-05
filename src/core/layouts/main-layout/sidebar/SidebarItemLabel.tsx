@@ -42,21 +42,19 @@ function SidebarItemLabel({ item }: { item: ItemInstance<SidebarItem> }) {
         isActiveFolder && "bg-accent",
       )}
     >
-      <span className="-order-1 flex flex-1 items-center gap-3">
-        <span className="inline-flex h-6 w-6 shrink-0 items-center justify-start">
-          {icon && React.isValidElement(icon)
-            ? React.cloneElement(
-                icon as React.ReactElement<{ className?: string }>,
-                {
-                  className: cn(
-                    "h-5 w-5",
-                    (icon as React.ReactElement<{ className?: string }>).props
-                      .className,
-                  ),
-                },
-              )
-            : icon}
-        </span>
+      <span className="-order-1 flex flex-1 items-center justify-start gap-3 text-left">
+        {icon && React.isValidElement(icon)
+          ? React.cloneElement(
+              icon as React.ReactElement<{ className?: string }>,
+              {
+                className: cn(
+                  "size-6",
+                  (icon as React.ReactElement<{ className?: string }>).props
+                    .className,
+                ),
+              },
+            )
+          : icon}
         {camelToTitle(item.getItemName())}
       </span>
     </TreeItemLabel>

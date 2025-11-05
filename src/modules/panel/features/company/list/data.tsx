@@ -1,4 +1,3 @@
-import { Avatar } from "@/core/components/ui/avatar";
 import { Badge, StatusBadge } from "@/core/components/ui/badge";
 import { formatDate } from "@/core/utils";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
@@ -146,12 +145,6 @@ export const columns: ColumnDef<CompanyListItem>[] = [
     size: 250,
     cell: ({ row }) => (
       <div className="flex items-center gap-3 font-medium">
-        {
-          <Avatar
-            src={row.original?.logo ?? undefined}
-            feedback={row.original.companyName.charAt(0)}
-          />
-        }
         <span className="break-all">
           {row.original.companyName.toUpperCase()}
         </span>

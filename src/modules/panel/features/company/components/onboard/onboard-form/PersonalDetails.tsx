@@ -10,6 +10,9 @@ import {
   apiSendMobileOTP,
   apiVerifyMobileOTP,
   type VerifyMobileOTPData,
+  apiSendEmailOTP,
+  apiVerifyEmailOTP,
+  type VerifyEmailOTPData,
 } from "@/modules/panel/services/http/company.service";
 import { useMutation } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
@@ -35,6 +38,7 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
   } = useFormContext<FullCompanyFormType>();
   console.log("🚀 ~ PersonalDetails ~ errors:", errors);
   const otpModalRef = useRef<OtpModalRef>(null);
+  const emailOtpModalRef = useRef<OtpModalRef>(null);
 
   const phoneNumber = useWatch({
     control,
@@ -44,6 +48,17 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
   const phoneVerified = useWatch({
     control,
     name: "phoneVerified",
+    defaultValue: false,
+  });
+
+  const email = useWatch({
+    control,
+    name: "email",
+    defaultValue: "",
+  });
+  const emailVerified = useWatch({
+    control,
+    name: "emailVerified",
     defaultValue: false,
   });
 
@@ -73,13 +88,96 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
     },
   });
 
+  // Send Email OTP
+  const sendEmailOtpMutation = useMutation({
+    mutationFn: (email: string) => apiSendEmailOTP({ email }),
+    onError: (error: AxiosError<{ message?: string }>) => {
+      toast.error(
+        `Failed to send OTP - ${(error?.response?.data as { message?: string })?.message || error.message || "Try again later"}`,
+      );
+    },
+  });
+
+  // Verify Email OTP
+  const verifyEmailOtpMutation = useMutation({
+    mutationFn: (payload: VerifyEmailOTPData) => apiVerifyEmailOTP(payload),
+    onSuccess: () => {
+      toast.success("Email verified");
+    },
+    onError: (error: Error) => {
+      toast.error(`Verification failed - ${error.message || "Invalid OTP"}`);
+    },
+  });
+
+  // Filter out email field from rawInfoFields since we'll render it separately
+  const filteredInfoFields = rawInfoFields.filter((field) => field.name !== "email");
+
   return (
     <>
       <FormFieldsRenderer<FullCompanyFormType>
         className="flex flex-wrap gap-6 md:grid md:grid-cols-2 lg:grid-cols-2 [&>div]:w-full [&>div]:flex-[1_1_200px]"
         control={control}
-        fieldConfigs={rawInfoFields}
+        fieldConfigs={filteredInfoFields}
       >
+        <FormInput
+          type="email"
+          control={control}
+          name="email"
+          label={
+            <span>
+              Email Address{" "}
+              <span className="text-green-500">
+                {emailVerified ? "(Verified)" : ""}
+              </span>
+            </span>
+          }
+          placeholder="Enter email address"
+          className=""
+          inputProps={{
+            endIcon:
+              mode !== MODE.EDIT && !emailVerified ? (
+                <Button
+                  variant={"contained"}
+                  color={"primary"}
+                  disableAnimation
+                  type="button"
+                  className="text-background !mr-0 rounded-l-none"
+                  disabled={
+                    sendEmailOtpMutation.isPending ||
+                    verifyEmailOtpMutation.isPending ||
+                    !email ||
+                    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+                  }
+                  onClick={() => emailOtpModalRef.current?.setOpen(true)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      emailOtpModalRef.current?.setOpen(true);
+                    }
+                  }}
+                >
+                  {sendEmailOtpMutation.isPending ? "Sending..." : "Send OTP"}
+                </Button>
+              ) : mode !== MODE.EDIT ? (
+                <Button
+                  variant={"outlined"}
+                  color={"default"}
+                  type="button"
+                  className="!mr-0 rounded-l-none px-3"
+                  startIcon={<XMarkIcon className="size-4" />}
+                  onClick={() => {
+                    setValue("emailVerified", false, {
+                      shouldValidate: true,
+                    });
+                    setValue("email", "", { shouldValidate: true });
+                  }}
+                ></Button>
+              ) : undefined,
+          }}
+          disabled={
+            mode === MODE.EDIT || emailVerified || sendEmailOtpMutation.isPending
+          }
+        />
+
         <FormInput
           type="text"
           control={control}
@@ -171,6 +269,22 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
           });
           setValue("phoneVerified", true, { shouldValidate: true });
           setValue("phoneNumber", phoneNumber, { shouldValidate: true });
+          return !!data.success;
+        }}
+      />
+
+      <OtpModal
+        ref={emailOtpModalRef}
+        onRequestCode={async () => {
+          await sendEmailOtpMutation.mutateAsync(email);
+        }}
+        onVerifyCode={async (code) => {
+          const data = await verifyEmailOtpMutation.mutateAsync({
+            email,
+            otp: code,
+          });
+          setValue("emailVerified", true, { shouldValidate: true });
+          setValue("email", email, { shouldValidate: true });
           return !!data.success;
         }}
       />

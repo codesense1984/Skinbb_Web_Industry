@@ -283,35 +283,29 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
       </svg>
     ),
     children: [
-      "salesInsights",
-      "customerInsights", 
-      "brandReport",
-      "marketTrends",
-      "ingredientInsights",
+      "platform",
+      "brand",
+      "ecommerce",
+      "ingredients",
     ],
   },
-  salesInsights: {
-    name: "Sales Insights",
-    href: ANALYTICS_ROUTES.ECOMMERCE.DASHBOARD,
+  platform: {
+    name: "Platform",
+    href: ANALYTICS_ROUTES.PLATFORM.BASE,
     requiredRoles: [ROLE.ADMIN],
   },
-  customerInsights: {
-    name: "Customer Insights",
-    href: "/user-insight",
-    requiredRoles: [ROLE.ADMIN],
-  },
-  brandReport: {
-    name: "Brand Report",
+  brand: {
+    name: "Brand",
     href: ANALYTICS_ROUTES.BRAND.BASE,
     requiredRoles: [ROLE.ADMIN],
   },
-  marketTrends: {
-    name: "Market Trends",
-    href: "/market-trends",
+  ecommerce: {
+    name: "Ecommerce",
+    href: ANALYTICS_ROUTES.ECOMMERCE.BASE,
     requiredRoles: [ROLE.ADMIN],
   },
-  ingredientInsights: {
-    name: "Ingredient Insights",
+  ingredients: {
+    name: "Ingredients",
     href: ANALYTICS_ROUTES.INGREDIENT.BASE,
     requiredRoles: [ROLE.ADMIN],
   },

@@ -1,28 +1,16 @@
 import React from "react";
 import { StatCard } from "@/core/components/ui/stat";
 import { BuildingStorefrontIcon } from "@heroicons/react/24/outline";
+import type { AnalyticsOverviewData } from "@/modules/analytics/features/ecommerce/types";
 
 interface BrandPartnersLiveCardProps {
   className?: string;
+  data?: AnalyticsOverviewData;
 }
 
-interface BrandPartnersData {
-  count: number;
-  change: number;
-  period: string;
-  pendingCount: number;
-}
-
-export const BrandPartnersLiveCard: React.FC<BrandPartnersLiveCardProps> = ({ className }) => {
-  // Mock data - replace with actual API call
-  const partnersData: BrandPartnersData = {
-    count: 156,
-    change: 4.2,
-    period: "vs last month",
-    pendingCount: 12
-  };
-
-  const formattedCount = partnersData.count.toLocaleString();
+export const BrandPartnersLiveCard: React.FC<BrandPartnersLiveCardProps> = ({ className, data }) => {
+  const brandPartnersLive = data?.brandPartnersLive ?? 0;
+  const formattedCount = brandPartnersLive.toLocaleString();
 
   return (
     <StatCard

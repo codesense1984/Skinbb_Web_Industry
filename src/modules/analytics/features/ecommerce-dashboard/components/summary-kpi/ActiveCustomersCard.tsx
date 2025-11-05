@@ -1,28 +1,16 @@
 import React from "react";
 import { StatCard } from "@/core/components/ui/stat";
 import { UsersIcon } from "@heroicons/react/24/outline";
+import type { AnalyticsOverviewData } from "@/modules/analytics/features/ecommerce/types";
 
 interface ActiveCustomersCardProps {
   className?: string;
+  data?: AnalyticsOverviewData;
 }
 
-interface ActiveCustomersData {
-  count: number;
-  change: number;
-  period: string;
-  timeframe: string;
-}
-
-export const ActiveCustomersCard: React.FC<ActiveCustomersCardProps> = ({ className }) => {
-  // Mock data - replace with actual API call
-  const customersData: ActiveCustomersData = {
-    count: 1247,
-    change: 15.3,
-    period: "vs last month",
-    timeframe: "last 30 days"
-  };
-
-  const formattedCount = customersData.count.toLocaleString();
+export const ActiveCustomersCard: React.FC<ActiveCustomersCardProps> = ({ className, data }) => {
+  const activeCustomers = data?.activeCustomers ?? 0;
+  const formattedCount = activeCustomers.toLocaleString();
 
   return (
     <StatCard

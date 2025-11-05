@@ -375,6 +375,7 @@ export function transformApiResponseToFormData(
     password: "",
     phoneNumber: "",
     phoneVerified: false,
+    emailVerified: false,
 
     // Step 1
     logo: "",
@@ -632,6 +633,7 @@ export function transformApiResponseToFormData(
       mergedData.phoneNumber = owner.ownerPhone;
       mergedData.password = owner.ownerPassword;
       mergedData.phoneVerified = true;
+      mergedData.emailVerified = true;
     }
   }
 

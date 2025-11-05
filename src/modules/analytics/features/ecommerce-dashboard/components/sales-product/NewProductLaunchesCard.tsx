@@ -1,4 +1,5 @@
 import React from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
 import { Button } from "@/core/components/ui/button";
 import { Badge } from "@/core/components/ui/badge";
@@ -8,92 +9,62 @@ import {
   CalendarIcon
 } from "@heroicons/react/24/outline";
 import { cn } from "@/core/utils";
+import { apiGetSalesInsights, getImageUrl } from "../../../ecommerce/services";
 
 interface NewProductLaunchesCardProps {
   className?: string;
+  startDate?: string;
+  endDate?: string;
+  brandId?: string;
 }
 
-interface NewProduct {
-  id: string;
-  name: string;
-  image: string;
-  brand: string;
-  launchDate: string;
-  status: 'launched' | 'coming-soon' | 'preview';
-  category: string;
-}
+export const NewProductLaunchesCard: React.FC<NewProductLaunchesCardProps> = ({ 
+  className,
+  startDate,
+  endDate,
+  brandId,
+}) => {
+  // Calculate default date range (last 30 days)
+  const defaultEndDate = React.useMemo(() => {
+    return new Date().toISOString().split('T')[0];
+  }, []);
 
-export const NewProductLaunchesCard: React.FC<NewProductLaunchesCardProps> = ({ className }) => {
-  // Mock data - replace with actual API call
-  const newProducts: NewProduct[] = [
-    {
-      id: "1",
-      name: "Advanced Retinol Complex",
-      image: "/placeholder-product.jpg",
-      brand: "Luxury Skincare Co.",
-      launchDate: "2024-01-15",
-      status: 'launched',
-      category: "Anti-Aging"
-    },
-    {
-      id: "2",
-      name: "Vitamin C + E Serum",
-      image: "/placeholder-product.jpg",
-      brand: "Natural Beauty",
-      launchDate: "2024-01-20",
-      status: 'coming-soon',
-      category: "Brightening"
-    },
-    {
-      id: "3",
-      name: "Hyaluronic Acid Mask",
-      image: "/placeholder-product.jpg",
-      brand: "HydraCare",
-      launchDate: "2024-01-25",
-      status: 'preview',
-      category: "Hydration"
-    },
-    {
-      id: "4",
-      name: "Gentle Exfoliating Toner",
-      image: "/placeholder-product.jpg",
-      brand: "Pure Skin",
-      launchDate: "2024-01-30",
-      status: 'coming-soon',
-      category: "Cleansing"
-    }
-  ];
+  const defaultStartDate = React.useMemo(() => {
+    const date = new Date();
+    date.setDate(date.getDate() - 30);
+    return date.toISOString().split('T')[0];
+  }, []);
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'launched':
-        return (
-          <Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-100 text-xs px-2 py-1">
-            Launched
-          </Badge>
-        );
-      case 'coming-soon':
-        return (
-          <Badge variant="default" className="bg-blue-100 text-blue-800 hover:bg-blue-100 text-xs px-2 py-1">
-            Coming Soon
-          </Badge>
-        );
-      case 'preview':
-        return (
-          <Badge variant="default" className="bg-purple-100 text-purple-800 hover:bg-purple-100 text-xs px-2 py-1">
-            Preview
-          </Badge>
-        );
-      default:
-        return null;
-    }
-  };
+  const { data: salesInsights, isLoading, isError } = useQuery({
+    queryKey: ["sales-insights", startDate || defaultStartDate, endDate || defaultEndDate, brandId],
+    queryFn: async () => {
+      const response = await apiGetSalesInsights({
+        startDate: startDate || defaultStartDate,
+        endDate: endDate || defaultEndDate,
+        brandId,
+      });
+      return response.data;
+    },
+    staleTime: 30_000, // 30 seconds
+    refetchOnWindowFocus: false,
+  });
+
+  const newProducts = salesInsights?.newProductLaunches || [];
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
+      year: 'numeric'
     });
+  };
+
+  const getImageSrc = (thumbnail: string) => {
+    if (!thumbnail) return undefined;
+    // If it's already a full URL, return it
+    if (thumbnail.startsWith('http')) return thumbnail;
+    // Otherwise, use the getImageUrl utility
+    return getImageUrl(thumbnail);
   };
 
   return (
@@ -110,36 +81,65 @@ export const NewProductLaunchesCard: React.FC<NewProductLaunchesCardProps> = ({ 
         </div>
       </CardHeader>
       <CardContent className="pt-0">
-        <div className="space-y-4">
-          {newProducts.map((product) => (
-            <div key={product.id} className="flex items-center gap-3 p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors">
-              <div className="flex-shrink-0">
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-12 h-12 rounded-lg object-cover border border-gray-200"
-                />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
-                  {product.name}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {product.brand} • {product.category}
-                </p>
-                <div className="flex items-center gap-2 mt-1">
-                  <CalendarIcon className="h-3 w-3 text-gray-400" />
-                  <span className="text-xs text-gray-600">
-                    {formatDate(product.launchDate)}
-                  </span>
+        {isLoading && (
+          <div className="text-center py-8 text-gray-500 text-sm">Loading products...</div>
+        )}
+        {isError && (
+          <div className="text-center py-8 text-red-500 text-sm">Error loading products</div>
+        )}
+        {!isLoading && !isError && newProducts.length === 0 && (
+          <div className="text-center py-8 text-gray-500 text-sm">No new products</div>
+        )}
+        {!isLoading && !isError && newProducts.length > 0 && (
+          <div className="space-y-4">
+            {newProducts.slice(0, 5).map((product) => {
+              const imageSrc = getImageSrc(product.thumbnail);
+              return (
+                <div key={product.productId} className="flex items-center gap-3 p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors">
+                  <div className="flex-shrink-0">
+                    {imageSrc ? (
+                      <img
+                        src={imageSrc}
+                        alt={product.productName}
+                        className="w-12 h-12 rounded-lg object-cover border border-gray-200"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-lg bg-gray-200 flex items-center justify-center border border-gray-300">
+                        <SparklesIcon className="h-6 w-6 text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {product.productName}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {product.brandName}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <CalendarIcon className="h-3 w-3 text-gray-400" />
+                      <span className="text-xs text-gray-600">
+                        {formatDate(product.createdAt)}
+                      </span>
+                      <span className="text-xs text-gray-400">•</span>
+                      <span className="text-xs font-semibold text-gray-700">
+                        ₹{product.price.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex-shrink-0">
+                    <Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-100 text-xs px-2 py-1">
+                      New
+                    </Badge>
+                  </div>
                 </div>
-              </div>
-              <div className="flex-shrink-0">
-                {getStatusBadge(product.status)}
-              </div>
-            </div>
-          ))}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

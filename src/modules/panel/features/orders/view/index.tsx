@@ -22,6 +22,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { formatDate, formatTime } from "@/core/utils/date";
 import { formatCurrency } from "@/core/utils/number";
+import { OrderTimelineInline } from "./OrderTimeline";
 
 export default function OrderView() {
   const { id } = useParams();
@@ -102,82 +103,49 @@ export default function OrderView() {
       <div className="w-full space-y-8">
         {/* Compact Order Overview */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-blue-100">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-blue-600">
-                    Order Number
-                  </p>
-                  <p className="text-xl font-bold text-blue-900">
-                    {order.orderNumber}
-                  </p>
-                </div>
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-200">
-                  <span className="text-sm font-bold text-blue-600">#</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="bg-background flex items-center gap-4 rounded-md p-4 shadow-md">
+            <div className="w-full flex flex-col">
+              <p className="text-sm font-medium text-gray-600">Order Number</p>
+              <p className="text-xl font-bold text-gray-900">{order.orderNumber}</p>
+            </div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-200">
+              <span className="text-sm font-bold text-blue-600">#</span>
+            </div>
+          </div>
 
-          <Card className="border-green-200 bg-gradient-to-r from-green-50 to-green-100">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-green-600">
-                    Total Amount
-                  </p>
-                  <p className="text-xl font-bold text-green-900">
-                    {formatCurrency(order.totalAmount)}
-                  </p>
-                </div>
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-200">
-                  <span className="text-sm font-bold text-green-600">₹</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="bg-background flex items-center gap-4 rounded-md p-4 shadow-md">
+            <div className="w-full flex flex-col">
+              <p className="text-sm font-medium text-gray-600">Total Amount</p>
+              <p className="text-xl font-bold text-gray-900">{formatCurrency(order.totalAmount)}</p>
+            </div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-200">
+              <span className="text-sm font-bold text-green-600">₹</span>
+            </div>
+          </div>
 
-          <Card className="border-purple-200 bg-gradient-to-r from-purple-50 to-purple-100">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-purple-600">
-                    Order Status
-                  </p>
-                  <Badge
-                    variant="outline"
-                    className="text-sm font-medium capitalize"
-                  >
-                    {order.orderStatus}
-                  </Badge>
-                </div>
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-200">
-                  <span className="text-sm font-bold text-purple-600">📦</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="bg-background flex items-center gap-4 rounded-md p-4 shadow-md">
+            <div className="w-full flex flex-col">
+              <p className="text-sm font-medium text-gray-600">Order Status</p>
+              <p className="text-xl font-bold text-gray-900 capitalize">{order.orderStatus}</p>
+            </div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-200">
+              <span className="text-sm font-bold text-purple-600">📦</span>
+            </div>
+          </div>
 
-          <Card className="border-orange-200 bg-gradient-to-r from-orange-50 to-orange-100">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-orange-600">Payment</p>
-                  <p className="text-sm font-bold text-orange-900 uppercase">
-                    {order.payment}
-                  </p>
-                </div>
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-200">
-                  <CreditCardIcon className="h-5 w-5 text-orange-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="bg-background flex items-center gap-4 rounded-md p-4 shadow-md">
+            <div className="w-full flex flex-col">
+              <p className="text-sm font-medium text-gray-600">Payment</p>
+              <p className="text-xl font-bold text-gray-900 uppercase">{order.payment}</p>
+            </div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-200">
+              <CreditCardIcon className="h-5 w-5 text-orange-600" />
+            </div>
+          </div>
         </div>
 
-        {/* Order Info & Customer & Payment Summary */}
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+        {/* Order Info & Customer */}
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
           {/* Order Information */}
           <Card>
             <CardHeader className="pb-3">
@@ -218,47 +186,6 @@ export default function OrderView() {
                 <span className="text-sm text-gray-900">
                   {order.items?.length || 0} items
                 </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <CreditCardIcon className="h-5 w-5" />
-                Payment Summary
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex justify-between py-3">
-                  <span className="text-gray-600">Subtotal:</span>
-                  <span className="font-medium">
-                    {formatCurrency(order.subtotal)}
-                  </span>
-                </div>
-                {order.totalDiscount > 0 && (
-                  <div className="flex justify-between py-3 text-green-600">
-                    <span>Discount:</span>
-                    <span>-{formatCurrency(order.totalDiscount)}</span>
-                  </div>
-                )}
-                {order.totalCouponDiscount > 0 && (
-                  <div className="flex justify-between py-3 text-green-600">
-                    <span>Coupon Discount:</span>
-                    <span>-{formatCurrency(order.totalCouponDiscount)}</span>
-                  </div>
-                )}
-                <div className="border-t pt-4">
-                  <div className="flex justify-between text-lg font-semibold">
-                    <span>Total:</span>
-                    <span>{formatCurrency(order.totalAmount)}</span>
-                  </div>
-                </div>
-                <div className="flex justify-between pt-2 text-sm text-gray-500">
-                  <span>Customer Payment:</span>
-                  <span>{formatCurrency(order.customerPayment)}</span>
-                </div>
               </div>
             </CardContent>
           </Card>
@@ -352,50 +279,50 @@ export default function OrderView() {
           </CardContent>
         </Card>
 
-        {/* Payment Summary */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <CreditCardIcon className="h-5 w-5" />
-              Payment Summary
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex justify-between py-3">
-                <span className="text-gray-600">Subtotal:</span>
-                <span className="font-medium">
-                  {formatCurrency(order.subtotal)}
-                </span>
-              </div>
-              {order.totalDiscount > 0 && (
-                <div className="flex justify-between py-3 text-green-600">
-                  <span>Discount:</span>
-                  <span>-{formatCurrency(order.totalDiscount)}</span>
+        {/* Payment Summary, Shipping Address & Billing Address - Merged Section */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          {/* Payment Summary */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <CreditCardIcon className="h-5 w-5" />
+                Payment Summary
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex justify-between py-3">
+                  <span className="text-gray-600">Subtotal:</span>
+                  <span className="font-medium">
+                    {formatCurrency(order.subtotal)}
+                  </span>
                 </div>
-              )}
-              {order.totalCouponDiscount > 0 && (
-                <div className="flex justify-between py-3 text-green-600">
-                  <span>Coupon Discount:</span>
-                  <span>-{formatCurrency(order.totalCouponDiscount)}</span>
+                {order.totalDiscount > 0 && (
+                  <div className="flex justify-between py-3 text-green-600">
+                    <span>Discount:</span>
+                    <span>-{formatCurrency(order.totalDiscount)}</span>
+                  </div>
+                )}
+                {order.totalCouponDiscount > 0 && (
+                  <div className="flex justify-between py-3 text-green-600">
+                    <span>Coupon Discount:</span>
+                    <span>-{formatCurrency(order.totalCouponDiscount)}</span>
+                  </div>
+                )}
+                <div className="border-t pt-4">
+                  <div className="flex justify-between text-lg font-semibold">
+                    <span>Total:</span>
+                    <span>{formatCurrency(order.totalAmount)}</span>
+                  </div>
                 </div>
-              )}
-              <div className="border-t pt-4">
-                <div className="flex justify-between text-lg font-semibold">
-                  <span>Total:</span>
-                  <span>{formatCurrency(order.totalAmount)}</span>
+                <div className="flex justify-between pt-2 text-sm text-gray-500">
+                  <span>Customer Payment:</span>
+                  <span>{formatCurrency(order.customerPayment)}</span>
                 </div>
               </div>
-              <div className="flex justify-between pt-2 text-sm text-gray-500">
-                <span>Customer Payment:</span>
-                <span>{formatCurrency(order.customerPayment)}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Addresses */}
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
           {/* Shipping Address */}
           <Card>
             <CardHeader className="pb-3">
@@ -470,6 +397,23 @@ export default function OrderView() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Shipment Status Timeline - At the bottom */}
+        {id && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg font-semibold text-gray-900">
+                Shipment Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <OrderTimelineInline
+                orderId={id}
+                orderNumber={order.orderNumber}
+              />
+            </CardContent>
+          </Card>
+        )}
       </div>
     </PageContent>
   );

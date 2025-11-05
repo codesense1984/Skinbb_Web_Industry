@@ -242,6 +242,9 @@ export function createCompanySchema(
       phoneVerified: z.boolean().refine((val) => val, {
         message: "Phone number is not verified",
       }),
+      emailVerified: z.boolean().refine((val) => val, {
+        message: "Email is not verified",
+      }),
       password: isEditMode ? z.string().optional() : createPasswordValidator(),
 
       // Company assets
