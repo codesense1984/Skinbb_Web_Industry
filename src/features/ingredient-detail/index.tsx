@@ -69,10 +69,18 @@ const api = {
     return response.data;
   },
 
-  async generateReport(inciList: string[]): Promise<string> {
+  async generateReport(
+    inciList: string[],
+    brandedIngredients: string[],
+    notBrandedIngredients: string[]
+  ): Promise<string> {
     const response = await axios.post(
       `${basePythonApiUrl}/api/formulation-report`,
-      { inciList },
+      {
+        inciList,
+        brandedIngredients,
+        notBrandedIngredients,
+      },
       { headers: { "Content-Type": "application/json" } },
     );
     return response.data;
@@ -93,6 +101,7 @@ const SectionTitle = React.memo(
     <h2 className="text-lg font-semibold tracking-tight">{children}</h2>
   ),
 );
+SectionTitle.displayName = "SectionTitle";
 
 const TabButton = React.memo(
   ({
@@ -131,6 +140,7 @@ const TabButton = React.memo(
     </button>
   ),
 );
+TabButton.displayName = "TabButton";
 
 const LoadingSpinner = React.memo(
   ({
@@ -153,6 +163,7 @@ const LoadingSpinner = React.memo(
     );
   },
 );
+LoadingSpinner.displayName = "LoadingSpinner";
 
 const EmptyState = React.memo(
   ({ title, description }: { title: string; description: string }) => (
@@ -165,6 +176,7 @@ const EmptyState = React.memo(
     </div>
   ),
 );
+EmptyState.displayName = "EmptyState";
 
 function IngredientAnalyzer() {
   // State management
@@ -209,10 +221,35 @@ function IngredientAnalyzer() {
 
   const generateReport = useCallback(async () => {
     if (!parsed.length) return;
+    
+    // Ensure we have analysis results before generating report
+    if (!resp) {
+      console.warn("No analysis results available. Please analyze ingredients first.");
+      return;
+    }
 
     setReportState((prev) => ({ ...prev, loading: true }));
     try {
-      const data = await api.generateReport(parsed);
+      // Extract branded and not branded ingredients from analyze_inci response
+      const brandedIngredients: string[] = [];
+      const notBrandedIngredients: string[] = resp.unmatched || [];
+
+      // Extract all INCI names from grouped (branded) ingredients
+      if (resp.grouped) {
+        resp.grouped.forEach((group) => {
+          group.inci_list.forEach((inci) => {
+            if (!brandedIngredients.includes(inci)) {
+              brandedIngredients.push(inci);
+            }
+          });
+        });
+      }
+
+      const data = await api.generateReport(
+        parsed,
+        brandedIngredients,
+        notBrandedIngredients
+      );
       setReportState((prev) => ({ ...prev, data, loading: false }));
     } catch (error) {
       console.error("Error generating report:", error);
@@ -222,7 +259,7 @@ function IngredientAnalyzer() {
         loading: false,
       }));
     }
-  }, [parsed]);
+  }, [parsed, resp]);
 
   const downloadPDF = useCallback(async () => {
     setReportState((prev) => ({ ...prev, pdfLoading: true }));
@@ -240,7 +277,7 @@ function IngredientAnalyzer() {
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Error downloading PDF:", error);
-      alert("Error downloading PDF. Please try again.");
+      window.alert("Error downloading PDF. Please try again.");
     } finally {
       setReportState((prev) => ({ ...prev, pdfLoading: false }));
     }
@@ -261,6 +298,7 @@ function IngredientAnalyzer() {
     if (
       activeTab === "analysis" &&
       parsed.length > 0 &&
+      resp && // Ensure analysis results are available
       !reportState.data &&
       !reportState.loading
     ) {
@@ -269,6 +307,7 @@ function IngredientAnalyzer() {
   }, [
     activeTab,
     parsed.length,
+    resp,
     reportState.data,
     reportState.loading,
     generateReport,
@@ -339,16 +378,6 @@ function IngredientAnalyzer() {
         <div className="mt-6">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-xl font-semibold">Analysis Results</h2>
-
-            <div className="flex items-center gap-4 text-sm">
-              <div className="flex items-center gap-2 text-emerald-700">
-                <span className="inline-block h-2.5 w-2.5 rounded-full bg-emerald-500" />
-                Overall: {Math.round(resp.overall_confidence * 100)}% confidence
-              </div>
-              <div className="text-gray-500">
-                {resp.processing_time}s processing time
-              </div>
-            </div>
           </div>
 
           {/* Tabs */}
@@ -372,7 +401,7 @@ function IngredientAnalyzer() {
                   ⚡
                 </span>
               }
-              label="Unmatched INCI"
+              label="Not Branded Ingredients"
               count={resp.unmatched?.length}
             />
             <TabButton
@@ -460,10 +489,11 @@ function IngredientAnalyzer() {
 
           {activeTab === "unmatched" && (
             <div>
-              <SectionTitle>Unmatched INCI</SectionTitle>
+              <SectionTitle>Not Branded Ingredients</SectionTitle>
               <p className="mt-2 text-sm text-gray-600">
-                We couldn't match these items to branded ingredients. Check
-                spelling or upload a TDS.
+                These are standard INCI ingredients that are not part of
+                proprietary branded ingredient systems. They are common cosmetic
+                ingredients.
               </p>
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {resp.unmatched?.map((u) => (
