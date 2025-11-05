@@ -1,29 +1,21 @@
 import React from "react";
 import { StatCard } from "@/core/components/ui/stat";
 import { ClockIcon } from "@heroicons/react/24/outline";
+import type { AnalyticsOverviewData } from "@/modules/analytics/features/ecommerce/types";
 
 interface PendingOrdersCardProps {
   className?: string;
+  data?: AnalyticsOverviewData;
 }
 
-interface PendingOrdersData {
-  count: number;
-  urgentCount: number;
-  avgWaitTime: string;
-}
-
-export const PendingOrdersCard: React.FC<PendingOrdersCardProps> = ({ className }) => {
-  // Mock data - replace with actual API call
-  const pendingData: PendingOrdersData = {
-    count: 23,
-    urgentCount: 5,
-    avgWaitTime: "2.3 hours"
-  };
+export const PendingOrdersCard: React.FC<PendingOrdersCardProps> = ({ className, data }) => {
+  const pendingOrders = data?.pendingOrders ?? 0;
+  const formattedCount = pendingOrders.toLocaleString();
 
   return (
     <StatCard
       title="Pending Orders"
-      value={pendingData.count}
+      value={formattedCount}
       barColor="bg-chart-1"
       icon={
         <div className="bg-[var(--chart-1)]/20 rounded-full p-3 flex items-center justify-center">

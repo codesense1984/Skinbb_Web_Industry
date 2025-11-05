@@ -72,7 +72,8 @@ export function isStepCompleted(
         values.designation?.trim() &&
         values.phoneNumber?.trim() &&
         values.password?.trim() &&
-        values.phoneVerified
+        values.phoneVerified &&
+        values.emailVerified
       );
 
     default:
@@ -130,6 +131,7 @@ export function getFieldNamesForStep(
       if (!values.phoneNumber) names.push("phoneNumber");
       if (!values.password) names.push("password");
       if (!values.phoneVerified) names.push("phoneVerified");
+      if (!values.emailVerified) names.push("emailVerified");
 
       return names;
     }

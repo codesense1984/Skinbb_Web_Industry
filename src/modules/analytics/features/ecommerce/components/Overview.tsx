@@ -3,7 +3,7 @@ import { StatCard } from "@/core/components/ui/stat";
 import { formatCurrency, formatNumber } from "@/core/utils";
 import {
   ShoppingBagIcon,
-  CurrencyDollarIcon,
+  CurrencyRupeeIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import type { SalesAnalyticsData } from "../types";
@@ -23,7 +23,7 @@ const Overview: React.FC<OverviewProps> = ({ data }) => {
           barColor="bg-green-500"
           className="relative"
           icon={
-            <CurrencyDollarIcon className="absolute right-3 h-6 w-6 text-green-500" />
+            <CurrencyRupeeIcon className="absolute right-3 h-6 w-6 text-green-500" />
           }
         />
 
@@ -43,7 +43,7 @@ const Overview: React.FC<OverviewProps> = ({ data }) => {
           barColor="bg-purple-500"
           className="relative"
           icon={
-            <CurrencyDollarIcon className="absolute right-3 h-6 w-6 text-purple-500" />
+            <CurrencyRupeeIcon className="absolute right-3 h-6 w-6 text-purple-500" />
           }
         />
 

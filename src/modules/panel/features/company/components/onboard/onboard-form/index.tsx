@@ -140,7 +140,7 @@ const OnBoardForm = ({
     [currentValue],
   );
 
-  const isFormStep = FormSteps.includes(currentItem?.step as any);
+  const isFormStep = currentItem?.step !== undefined && (FormSteps as readonly number[]).includes(currentItem.step);
   const isThankYou = currentItem.step === 6; // Thank you step
 
   const {
@@ -184,7 +184,7 @@ const OnBoardForm = ({
       onNext(STEPS_WITH_COMPONENTS);
       methods.reset(transformApiResponseToFormData());
     }
-  }, [onboardingMutation.isSuccess, onNext, methods.reset]);
+  }, [onboardingMutation.isSuccess, onNext, methods]);
 
   // Pick page-specific component
   const { title, description, Component } = currentItem;

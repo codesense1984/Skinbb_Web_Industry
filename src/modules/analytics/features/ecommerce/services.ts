@@ -5,6 +5,11 @@ import type {
   TopProductData,
   TopSellerData,
   AnalyticsParams,
+  AnalyticsOverviewData,
+  AbandonedDraftOrdersData,
+  SalesInsightsData,
+  BrandInsightsData,
+  CustomerInsightsData,
 } from "./types";
 
 // Utility function to construct full image URLs
@@ -116,4 +121,154 @@ export const fetchAllAnalytics = async (params: AnalyticsParams) => {
   }
 
   return result;
+};
+
+// Analytics Overview API
+export const apiGetAnalyticsOverview = async (
+  params?: {
+    startDate?: string;
+    endDate?: string;
+    brandId?: string;
+  },
+): Promise<ApiResponse<AnalyticsOverviewData>> => {
+  const queryParams = new URLSearchParams();
+  
+  if (params?.startDate) {
+    queryParams.append("startDate", params.startDate);
+  }
+  if (params?.endDate) {
+    queryParams.append("endDate", params.endDate);
+  }
+  if (params?.brandId) {
+    queryParams.append("brandId", params.brandId);
+  }
+
+  const queryString = queryParams.toString();
+  const url = `/api/v1/admin-analytics/overview${queryString ? `?${queryString}` : ""}`;
+
+  return api.get<ApiResponse<AnalyticsOverviewData>>(url);
+};
+
+// Abandoned Draft Orders API
+export const apiGetAbandonedDraftOrders = async (
+  params?: {
+    startDate?: string;
+    endDate?: string;
+    brandId?: string;
+  },
+): Promise<ApiResponse<AbandonedDraftOrdersData>> => {
+  const queryParams = new URLSearchParams();
+  
+  if (params?.startDate) {
+    queryParams.append("startDate", params.startDate);
+  }
+  if (params?.endDate) {
+    queryParams.append("endDate", params.endDate);
+  }
+  if (params?.brandId) {
+    queryParams.append("brandId", params.brandId);
+  }
+
+  const queryString = queryParams.toString();
+  const url = `/api/v1/admin-analytics/abandoned-draft-orders${queryString ? `?${queryString}` : ""}`;
+
+  return api.get<ApiResponse<AbandonedDraftOrdersData>>(url);
+};
+
+// Sales Insights API
+export const apiGetSalesInsights = async (
+  params?: {
+    startDate?: string;
+    endDate?: string;
+    brandId?: string;
+    page?: number;
+    limit?: number;
+  },
+): Promise<ApiResponse<SalesInsightsData>> => {
+  const queryParams = new URLSearchParams();
+  
+  if (params?.startDate) {
+    queryParams.append("startDate", params.startDate);
+  }
+  if (params?.endDate) {
+    queryParams.append("endDate", params.endDate);
+  }
+  if (params?.brandId) {
+    queryParams.append("brandId", params.brandId);
+  }
+  if (params?.page) {
+    queryParams.append("page", params.page.toString());
+  }
+  if (params?.limit) {
+    queryParams.append("limit", params.limit.toString());
+  }
+
+  const queryString = queryParams.toString();
+  const url = `/api/v1/admin-analytics/sales-insights${queryString ? `?${queryString}` : ""}`;
+
+  return api.get<ApiResponse<SalesInsightsData>>(url);
+};
+
+// Brand Insights API
+export const apiGetBrandInsights = async (
+  params?: {
+    startDate?: string;
+    endDate?: string;
+    page?: number;
+    limit?: number;
+  },
+): Promise<ApiResponse<BrandInsightsData>> => {
+  const queryParams = new URLSearchParams();
+  
+  if (params?.startDate) {
+    queryParams.append("startDate", params.startDate);
+  }
+  if (params?.endDate) {
+    queryParams.append("endDate", params.endDate);
+  }
+  if (params?.page) {
+    queryParams.append("page", params.page.toString());
+  }
+  if (params?.limit) {
+    queryParams.append("limit", params.limit.toString());
+  }
+
+  const queryString = queryParams.toString();
+  const url = `/api/v1/admin-analytics/brand-insights${queryString ? `?${queryString}` : ""}`;
+
+  return api.get<ApiResponse<BrandInsightsData>>(url);
+};
+
+// Customer Insights API
+export const apiGetCustomerInsights = async (
+  params?: {
+    startDate?: string;
+    endDate?: string;
+    brandId?: string;
+    page?: number;
+    limit?: number;
+  },
+): Promise<ApiResponse<CustomerInsightsData>> => {
+  const queryParams = new URLSearchParams();
+  
+  if (params?.startDate) {
+    queryParams.append("startDate", params.startDate);
+  }
+  if (params?.endDate) {
+    queryParams.append("endDate", params.endDate);
+  }
+  if (params?.brandId) {
+    queryParams.append("brandId", params.brandId);
+  }
+  if (params?.page) {
+    queryParams.append("page", params.page.toString());
+  }
+  if (params?.limit) {
+    queryParams.append("limit", params.limit.toString());
+  }
+
+  const queryString = queryParams.toString();
+  const url = `/api/v1/admin-analytics/customer-insights${queryString ? `?${queryString}` : ""}`;
+
+  return api.get<ApiResponse<CustomerInsightsData>>(url);
 };

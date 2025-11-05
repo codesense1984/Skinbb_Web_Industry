@@ -1,28 +1,16 @@
 import React from "react";
 import { StatCard } from "@/core/components/ui/stat";
 import { StarIcon } from "@heroicons/react/24/outline";
+import type { AnalyticsOverviewData } from "@/modules/analytics/features/ecommerce/types";
 
 interface AverageProductRatingCardProps {
   className?: string;
+  data?: AnalyticsOverviewData;
 }
 
-interface RatingData {
-  rating: number;
-  change: number;
-  period: string;
-  totalReviews: number;
-}
-
-export const AverageProductRatingCard: React.FC<AverageProductRatingCardProps> = ({ className }) => {
-  // Mock data - replace with actual API call
-  const ratingData: RatingData = {
-    rating: 4.3,
-    change: 0.2,
-    period: "vs last month",
-    totalReviews: 2847
-  };
-
-  const formattedRating = ratingData.rating.toFixed(1);
+export const AverageProductRatingCard: React.FC<AverageProductRatingCardProps> = ({ className, data }) => {
+  const averageProductRating = data?.averageProductRating ?? 0;
+  const formattedRating = averageProductRating.toFixed(1);
 
   return (
     <StatCard

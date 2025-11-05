@@ -57,16 +57,20 @@ export async function apiOnboardingSubmit<T = ApiResponse<string>>(
   });
 }
 
-export async function apiSendMailOTP<T, U extends Record<string, unknown>>(
-  data: U,
-) {
-  return api.post<T>(ENDPOINTS.ONBOARDING.SEND_MAIL, data);
+export async function apiSendEmailOTP(data: { email: string }) {
+  return api.post<ApiResponse<string>>(ENDPOINTS.ONBOARDING.SEND_MAIL, data);
 }
 
-export async function apiVerifyMailOTP<T, U extends Record<string, unknown>>(
-  data: U,
-) {
-  return api.post<T>(ENDPOINTS.ONBOARDING.VERIFY_MAIL, data);
+export interface VerifyEmailOTPData {
+  email: string;
+  otp: string;
+}
+
+export async function apiVerifyEmailOTP(data: VerifyEmailOTPData) {
+  return api.post<ApiResponse<string>>(
+    ENDPOINTS.ONBOARDING.VERIFY_MAIL,
+    data,
+  );
 }
 
 export async function apiSendMobileOTP(data: { phoneNumber: string }) {

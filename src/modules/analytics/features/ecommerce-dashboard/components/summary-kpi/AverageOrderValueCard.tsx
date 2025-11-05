@@ -1,33 +1,23 @@
 import React from "react";
 import { StatCard } from "@/core/components/ui/stat";
 import { ChartBarIcon } from "@heroicons/react/24/outline";
+import type { AnalyticsOverviewData } from "@/modules/analytics/features/ecommerce/types";
 
 interface AverageOrderValueCardProps {
   className?: string;
+  data?: AnalyticsOverviewData;
 }
 
-interface AOVData {
-  value: number;
-  change: number;
-  period: string;
-  currency: string;
-}
+export const AverageOrderValueCard: React.FC<AverageOrderValueCardProps> = ({ className, data }) => {
+  const averageOrderValue = data?.averageOrderValue ?? 0;
+  const currency = "INR";
 
-export const AverageOrderValueCard: React.FC<AverageOrderValueCardProps> = ({ className }) => {
-  // Mock data - replace with actual API call
-  const aovData: AOVData = {
-    value: 89.50,
-    change: -2.1,
-    period: "vs last month",
-    currency: "USD"
-  };
-
-  const formattedValue = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: aovData.currency,
+  const formattedValue = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: currency,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(aovData.value);
+  }).format(averageOrderValue);
 
   return (
     <StatCard

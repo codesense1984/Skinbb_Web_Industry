@@ -191,6 +191,12 @@ export const ENDPOINTS = {
     TOP_SELLERS: `${API_PREFIX}/dashboard/admin/top-sellers-analytics`,
   },
 
+  ANALYTICS: {
+    OVERVIEW: `${API_PREFIX}/admin-analytics/overview`,
+    ABANDONED_DRAFT_ORDERS: `${API_PREFIX}/admin-analytics/abandoned-draft-orders`,
+    SALES_INSIGHTS: `${API_PREFIX}/admin-analytics/sales-insights`,
+  },
+
   VERIFICATION: {
     VERIFY_PAN: `${API_PREFIX}/company-verification/verify-pan`,
     VERIFY_GST: `${API_PREFIX}/company-verification/verify-gst`,

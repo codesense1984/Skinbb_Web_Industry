@@ -1,28 +1,16 @@
 import React from "react";
 import { StatCard } from "@/core/components/ui/stat";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import type { AnalyticsOverviewData } from "@/modules/analytics/features/ecommerce/types";
 
 interface ConversionRateCardProps {
   className?: string;
+  data?: AnalyticsOverviewData;
 }
 
-interface ConversionRateData {
-  rate: number;
-  change: number;
-  period: string;
-  visitors: number;
-}
-
-export const ConversionRateCard: React.FC<ConversionRateCardProps> = ({ className }) => {
-  // Mock data - replace with actual API call
-  const conversionData: ConversionRateData = {
-    rate: 3.2,
-    change: -0.8,
-    period: "vs last month",
-    visitors: 12543
-  };
-
-  const formattedRate = `${conversionData.rate}%`;
+export const ConversionRateCard: React.FC<ConversionRateCardProps> = ({ className, data }) => {
+  const conversionRate = data?.conversionRate ?? 0;
+  const formattedRate = `${conversionRate.toFixed(2)}%`;
 
   return (
     <StatCard

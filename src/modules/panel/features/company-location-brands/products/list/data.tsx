@@ -130,18 +130,56 @@ export const columns = (
   {
     accessorKey: "priceRange",
     header: "Price Range",
-    cell: ({ getValue }) => {
+    cell: ({ row, getValue }) => {
       const priceRange = getValue() as { min: number; max: number } | undefined;
-      if (!priceRange) return "-";
-
-      const minPrice = formatCurrency(priceRange.min);
-      const maxPrice = formatCurrency(priceRange.max);
-
-      return (
-        <div className="text-sm">
-          {minPrice === maxPrice ? minPrice : `${minPrice} - ${maxPrice}`}
-        </div>
-      );
+      const product = row.original;
+      
+      // Check if priceRange exists and has valid values (> 0)
+      if (priceRange && priceRange.min > 0 && priceRange.max > 0) {
+        const minPrice = formatCurrency(priceRange.min);
+        const maxPrice = formatCurrency(priceRange.max);
+        return (
+          <div className="text-sm">
+            {minPrice === maxPrice ? minPrice : `${minPrice} - ${maxPrice}`}
+          </div>
+        );
+      }
+      
+      // If priceRange is 0-0 or missing, check variants
+      const variants = product.variants || [];
+      if (variants.length > 0) {
+        const variantPrices = variants
+          .map((v: any) => {
+            // Try different possible price field names
+            return v.price || v.salePrice || 0;
+          })
+          .filter((price: number) => price > 0);
+        
+        if (variantPrices.length > 0) {
+          const minVariantPrice = Math.min(...variantPrices);
+          const maxVariantPrice = Math.max(...variantPrices);
+          const minPrice = formatCurrency(minVariantPrice);
+          const maxPrice = formatCurrency(maxVariantPrice);
+          return (
+            <div className="text-sm">
+              {minPrice === maxPrice ? minPrice : `${minPrice} - ${maxPrice}`}
+            </div>
+          );
+        }
+      }
+      
+      // If no variants or no variant prices, check for single price field
+      const productPrice = (product as any).price;
+      if (productPrice && productPrice > 0) {
+        return (
+          <div className="text-sm">
+            {formatCurrency(productPrice)}
+          </div>
+        );
+      }
+      
+      // If all else fails, show dash
+      return "-";
     },
   },
   {

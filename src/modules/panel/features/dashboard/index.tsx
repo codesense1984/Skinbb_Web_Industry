@@ -241,6 +241,32 @@ const Dashboard = () => {
         animate: true,
       }}
     >
+      {/* Coming Soon Banner */}
+      <motion.div
+        {...fadeInUp}
+        className="mb-6 w-full bg-background flex flex-col items-center gap-3 rounded-lg py-7 px-6 shadow-md"
+      >
+        <BlobIcon size="lg">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={0.7}
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+            />
+          </svg>
+        </BlobIcon>
+        <div className="flex flex-col items-center text-center">
+          <h5 className="mb-1 font-medium">Coming Soon</h5>
+          <p>This banner space is reserved for future features and announcements.</p>
+        </div>
+      </motion.div>
+
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
         {visibleCards.map(({ title, description, buttons, icon }, index) => (
           <Card

@@ -28,7 +28,7 @@ export default function SidebarNavigation() {
 
   const filteredItems = useMemo(
     () => buildFilteredItems(sidebarItems, role, permissions),
-    [role, permissions],
+    [sidebarItems, role, permissions],
   );
 
   const { currentId, expandedItems } = useMemo(() => {
@@ -41,11 +41,16 @@ export default function SidebarNavigation() {
     initialState: { selectedItems: [currentId], expandedItems },
     indent: INDENT,
     rootItemId: "sidebar",
-    getItemName: (i) => i.getItemData().name,
+    getItemName: (i) => i.getItemData()?.name ?? "",
     isItemFolder: (i) => (i.getItemData()?.children?.length ?? 0) > 0,
     dataLoader: {
       getItem: (id) => filteredItems[id],
-      getChildren: (id) => filteredItems[id]?.children ?? [],
+      getChildren: (id) => {
+        const item = filteredItems[id];
+        if (!item?.children) return [];
+        // Filter out any children that don't exist in filteredItems
+        return item.children.filter((childId) => filteredItems[childId]);
+      },
     },
     features: [syncDataLoaderFeature, hotkeysCoreFeature, selectionFeature],
   });

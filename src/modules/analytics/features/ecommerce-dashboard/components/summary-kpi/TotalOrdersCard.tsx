@@ -1,26 +1,16 @@
 import React from "react";
 import { StatCard } from "@/core/components/ui/stat";
 import { ShoppingBagIcon } from "@heroicons/react/24/outline";
+import type { AnalyticsOverviewData } from "@/modules/analytics/features/ecommerce/types";
 
 interface TotalOrdersCardProps {
   className?: string;
+  data?: AnalyticsOverviewData;
 }
 
-interface OrdersData {
-  total: number;
-  change: number;
-  period: string;
-}
-
-export const TotalOrdersCard: React.FC<TotalOrdersCardProps> = ({ className }) => {
-  // Mock data - replace with actual API call
-  const ordersData: OrdersData = {
-    total: 2847,
-    change: 8.2,
-    period: "vs last month"
-  };
-
-  const formattedTotal = ordersData.total.toLocaleString();
+export const TotalOrdersCard: React.FC<TotalOrdersCardProps> = ({ className, data }) => {
+  const totalOrders = data?.totalOrders ?? 0;
+  const formattedTotal = totalOrders.toLocaleString();
 
   return (
     <StatCard

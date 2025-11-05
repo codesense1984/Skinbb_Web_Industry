@@ -3,6 +3,7 @@ import IngredientDetail from "@/features/ingredient-detail";
 import { lazy } from "react";
 import type { RouteObject } from "react-router";
 import { PANEL_ROUTES } from "./constant";
+import { NotFoundComponent } from "@/core/features/not-found";
 
 export const panelRoutes: RouteObject = {
   Component: MainLayout,
@@ -407,6 +408,10 @@ export const panelRoutes: RouteObject = {
       path: PANEL_ROUTES.FACE_ANALYSIS,
       Component: lazy(() => import("@/modules/face-analysis/features/face-analysis-page")),
     },
+    {
+      path: "*",
+      element: <NotFoundComponent />,
+    }
   ],
 };
 
