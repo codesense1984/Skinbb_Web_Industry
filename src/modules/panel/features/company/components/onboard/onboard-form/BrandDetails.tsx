@@ -21,10 +21,22 @@ interface BrandDetailsProps {
 const BrandDetails = ({ mode }: BrandDetailsProps) => {
   const { control, setValue } = useFormContext<FullCompanyFormType>();
 
-  const profileData = useWatch({
+  const brandLogoFiles = useWatch({
     control,
     name: "brand_logo_files",
-  })?.[0];
+  });
+
+  // Extract File from FileList or array
+  const profileData = brandLogoFiles
+    ? brandLogoFiles instanceof FileList
+      ? brandLogoFiles[0] || null
+      : Array.isArray(brandLogoFiles)
+        ? brandLogoFiles[0] || null
+        : brandLogoFiles instanceof File
+          ? brandLogoFiles
+          : null
+    : null;
+
   const profileDataLogo = useWatch({
     control,
     name: "brand_logo",

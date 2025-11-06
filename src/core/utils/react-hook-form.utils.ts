@@ -3,6 +3,14 @@ import { toast } from "sonner";
 export const handleFormErrors = (error: unknown) => {
   if (error && typeof error === "object") {
     const errorMessages: string[] = [];
+    const fieldNames: Record<string, string> = {
+      name: "Brand Name",
+      brandType: "Brand Type",
+      marketingBudget: "Marketing Budget",
+      totalSKU: "Total SKU",
+      authorizationLetter: "Authorization Letter",
+      websiteUrl: "Website URL",
+    };
 
     Object.keys(error).forEach((fieldName) => {
       const fieldError = (error as Record<string, unknown>)[fieldName];
@@ -12,17 +20,17 @@ export const handleFormErrors = (error: unknown) => {
         "message" in fieldError &&
         typeof (fieldError as Record<string, unknown>).message === "string"
       ) {
-        errorMessages.push(
-          `${fieldName}: ${(fieldError as Record<string, unknown>).message}`,
-        );
+        const displayName = fieldNames[fieldName] || fieldName;
+        const message = (fieldError as Record<string, unknown>).message as string;
+        errorMessages.push(`${displayName}: ${message}`);
       }
     });
 
     if (errorMessages.length > 0) {
-      const displayMessage = errorMessages.slice(0, 3).join(", ");
-      toast.error(
-        `Form errors: ${displayMessage}${errorMessages.length > 3 ? "..." : ""}`,
-      );
+      // Show all errors, not just first 3
+      errorMessages.forEach((msg) => {
+        toast.error(msg, { duration: 5000 });
+      });
     } else {
       toast.error("Please fix the form errors before proceeding");
     }

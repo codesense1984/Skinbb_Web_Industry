@@ -10,28 +10,29 @@ export const brandFormSchema = z.object({
   _id: z.string().optional(),
   name: z
     .string()
+    .trim()
     .min(1, "Brand name is required")
     .min(2, "Brand name must be at least 2 characters")
     .max(100, "Brand name must be less than 100 characters"),
   aboutTheBrand: z.string().optional(),
-  websiteUrl: createUrlValidator("Website"),
-  totalSKU: z.string().min(1),
+  websiteUrl: z.string().optional(),
+  totalSKU: z.string().optional(),
   logo_files: z.any().optional(),
   logo: z.string().optional(),
-  marketingBudget: z.string().min(1),
-  instagramUrl: createUrlValidator("Instagram"),
-  facebookUrl: createUrlValidator("Facebook"),
-  youtubeUrl: createUrlValidator("YouTube"),
-  brandType: z.array(z.string()).min(1),
+  marketingBudget: z.string().optional(),
+  instagramUrl: z.string().optional(),
+  facebookUrl: z.string().optional(),
+  youtubeUrl: z.string().optional(),
+  brandType: z.array(z.string()).optional(),
   sellingOn: z
     .array(
       z.object({
         platform: z.string(),
-        url: createUrlValidator("URL"),
+        url: z.string().optional(),
       }),
     )
     .optional(),
-  authorizationLetter: z.string().min(1),
+  authorizationLetter: z.string().optional(),
   authorizationLetter_files: z.any().optional(),
 });
 
@@ -85,7 +86,7 @@ export const brandSchema: {
       options: Object.values(SURVEY.BRAND_PRODUCT_CATEGORY_OPTIONS),
       disabled: mode === MODE.VIEW,
       className: "md:col-span-2",
-      required: true,
+      required: false,
     },
 
     // {
@@ -101,10 +102,10 @@ export const brandSchema: {
       name: "marketingBudget",
       label: "Marketing Budget",
       type: INPUT_TYPES.NUMBER,
-      placeholder: "Enter average selling price",
+      placeholder: "Enter marketing budget",
       disabled: mode === MODE.VIEW,
       className: "md:col-span-2 lg:col-span-1",
-      required: true,
+      required: false,
     },
     {
       name: "websiteUrl",
@@ -113,7 +114,7 @@ export const brandSchema: {
       placeholder: "https://example.com",
       disabled: mode === MODE.VIEW,
       className: "md:col-span-2 lg:col-span-1",
-      required: true,
+      required: false,
     },
     {
       name: "instagramUrl",

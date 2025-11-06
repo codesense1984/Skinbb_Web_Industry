@@ -39,8 +39,8 @@ export function useImagePreview(
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    // If URL is provided, use it directly
-    if (file) {
+    // If file is provided and is a valid File or Blob, create object URL
+    if (file && (file instanceof File || file instanceof Blob)) {
       const objectUrl = URL.createObjectURL(file);
       setPreviewUrl(objectUrl);
 
@@ -48,12 +48,11 @@ export function useImagePreview(
         URL.revokeObjectURL(objectUrl);
       };
     }
+    // If URL is provided, use it directly
     if (url) {
       setPreviewUrl(url);
       return;
     }
-
-    // If file is provided, create object URL
 
     // Fallback to placeholder
     setPreviewUrl(options?.placeholder ?? null);
