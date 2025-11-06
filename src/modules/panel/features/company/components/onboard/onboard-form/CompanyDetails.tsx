@@ -40,10 +40,21 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
     defaultValue: "false",
   });
 
-  const profileData = useWatch({
+  const logoFiles = useWatch({
     control,
     name: "logo_files",
-  })?.[0];
+  });
+
+  // Extract File from FileList or array
+  const profileData = logoFiles
+    ? logoFiles instanceof FileList
+      ? logoFiles[0] || null
+      : Array.isArray(logoFiles)
+        ? logoFiles[0] || null
+        : logoFiles instanceof File
+          ? logoFiles
+          : null
+    : null;
 
   const profileDataLogo = useWatch({
     control,

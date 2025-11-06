@@ -1,8 +1,10 @@
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import * as React from "react";
+import { useState, useEffect } from "react";
 import {
   useFormContext,
+  useWatch,
   type Control,
   type ControllerFieldState,
   type ControllerRenderProps,
@@ -276,10 +278,37 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
   name,
   ...props
 }: InputRendererProps<T, N>) {
-  const { setValue, trigger, clearErrors } = useFormContext();
+  const { setValue, trigger, clearErrors, control } = useFormContext();
 
   const rawValue = (inputProps?.value ?? field.value) as PathValue<T, N>;
   const value = transform ? transform.input(rawValue) : rawValue;
+  
+  // Local state to track selected file name for immediate UI update
+  const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
+  
+  // Watch for file selection - check if name already ends with _files or use name directly
+  const filesFieldName = (String(name).endsWith('_files') ? name : `${String(name)}_files`) as FieldPath<T>;
+  const selectedFiles = useWatch({
+    control,
+    name: filesFieldName,
+    defaultValue: undefined,
+  }) as FileList | File[] | null | undefined;
+  
+  // Update selectedFileName when selectedFiles changes
+  useEffect(() => {
+    if (selectedFiles) {
+      if (selectedFiles instanceof FileList && selectedFiles.length > 0) {
+        setSelectedFileName(selectedFiles[0].name);
+      } else if (Array.isArray(selectedFiles) && selectedFiles.length > 0) {
+        setSelectedFileName(selectedFiles[0].name);
+      } else if (selectedFiles instanceof File) {
+        setSelectedFileName(selectedFiles.name);
+      }
+    } else {
+      // Reset if no files selected
+      setSelectedFileName(null);
+    }
+  }, [selectedFiles]);
 
   switch (type) {
     case INPUT_TYPES.TEXTAREA:
@@ -438,12 +467,49 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
       );
     }
     case INPUT_TYPES.FILE:
+      // Get filename from selected files or value
+      const getFileName = () => {
+        // First check local state (most recent selection)
+        if (selectedFileName) {
+          return selectedFileName;
+        }
+        // Check if files are selected from form state (only if they actually exist and are valid)
+        if (selectedFiles) {
+          // Skip empty arrays - they should not prevent displaying existing URLs
+          if (Array.isArray(selectedFiles) && selectedFiles.length === 0) {
+            // Empty array, skip to check value
+          } else if (selectedFiles instanceof FileList && selectedFiles.length > 0) {
+            return selectedFiles[0].name;
+          } else if (Array.isArray(selectedFiles) && selectedFiles.length > 0 && selectedFiles[0] instanceof File) {
+            return selectedFiles[0].name;
+          } else if (selectedFiles instanceof File) {
+            return selectedFiles.name;
+          }
+        }
+        // Fallback to value (for existing URLs or paths) - prioritize URL display
+        if (typeof value === 'string' && value) {
+          // If it's a URL, extract filename for display
+          if (isURL(value)) {
+            return value.split("/").pop() || value;
+          }
+          // For file paths
+          return value.split("\\").pop()?.split("/").pop() || value;
+        }
+        if (Array.isArray(value) && value.length > 0 && value[0]?.name) {
+          return value[0].name;
+        }
+        return null;
+      };
+      
+      const fileName = getFileName();
+      const displayText = fileName || placeholder || "Choose File";
+      
       return (
         <FormControl {...formControlProps}>
           <div>
             <label
               className="form-control items-center gap-1"
-              title={typeof value === 'string' ? value?.split("\\").pop() : Array.isArray(value) && value.length > 0 ? value[0]?.name : ''}
+              title={fileName || placeholder}
               htmlFor={inputId}
               data-disabled={disabled}
               data-readonly={readOnly}
@@ -456,9 +522,22 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
                 id={inputId}
                 value={undefined}
                 onChange={(e) => {
+                  const files = e.target?.files;
+                  
+                  // Update local state immediately for UI responsiveness
+                  if (files && files.length > 0) {
+                    setSelectedFileName(files[0].name);
+                  } else {
+                    setSelectedFileName(null);
+                  }
+                  
                   field.onChange(transform ? transform.output(e) : e);
-                  if (type === INPUT_TYPES.FILE) {
-                    setValue(`${String(name)}_files`, e.target?.files);
+                  if (type === INPUT_TYPES.FILE && files) {
+                    // Convert FileList to Array for proper reactivity in react-hook-form
+                    const filesArray = files ? Array.from(files) : [];
+                    // Use the same logic as filesFieldName to determine the field name
+                    const fieldName = String(name).endsWith('_files') ? name : `${String(name)}_files`;
+                    setValue(fieldName as FieldPath<T>, filesArray);
                     trigger(name);
                   }
                 }}
@@ -466,22 +545,22 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
                 disabled={disabled}
                 {...(inputProps?.accept && { accept: inputProps.accept })}
               />
-              <p className="text-nowrap">{placeholder ?? "Choose File"}</p>
+              <p className="text-nowrap">{displayText}</p>
             </label>
 
-            {isURL(value) ? (
+            {fileName && isURL(value) ? (
               <Link
                 className="text-foreground block truncate"
                 target="_blank"
                 to={value}
               >
-                {typeof value === 'string' ? value?.split("\\").pop() : Array.isArray(value) && value.length > 0 ? value[0]?.name : ''}
+                {fileName}
               </Link>
-            ) : (
+            ) : fileName ? (
               <p className="text-foreground truncate">
-                {typeof value === 'string' ? value?.split("\\").pop() : Array.isArray(value) && value.length > 0 ? value[0]?.name : ''}
+                {fileName}
               </p>
-            )}
+            ) : null}
           </div>
         </FormControl>
       );

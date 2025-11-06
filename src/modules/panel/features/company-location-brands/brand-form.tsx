@@ -13,7 +13,7 @@ import { handleFormErrors } from "@/core/utils/react-hook-form.utils";
 import type { CompanyLocationBrand } from "@/modules/panel/types/brand.type";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   FormProvider,
   useFieldArray,
@@ -49,6 +49,7 @@ export const getDefaultValues = (
     sellingOn: brandData?.sellingOn || [],
     authorizationLetter: brandData?.authorizationLetter || "",
     logo: brandData?.logoImage || "",
+    logo_files: undefined,
     // isActive: brandData?.isActive ? "true" : "false",
   };
 };
@@ -69,6 +70,8 @@ const BrandForm = ({
   const form = useForm<BrandFormData>({
     resolver: zodResolver(brandFormSchema),
     defaultValues: defaultValues || getDefaultValues(),
+    mode: "onChange", // Validate on change for better UX
+    reValidateMode: "onChange",
   });
 
   const { handleSubmit, control, setValue } = form;
@@ -90,10 +93,35 @@ const BrandForm = ({
     }
   }, [defaultValues, form]);
 
-  const imageData = useWatch({
-    control,
-    name: "logo_files",
-  })?.[0];
+  const [logoFiles, setLogoFiles] = useState<FileList | File[] | null | undefined>(undefined);
+
+  // Watch for logo_files changes using form.watch subscription for better reactivity
+  useEffect(() => {
+    // Initialize with current value
+    const currentFiles = form.getValues("logo_files");
+    setLogoFiles(currentFiles);
+    
+    const subscription = form.watch((value, { name }) => {
+      // Update when logo_files changes or on any change (to catch all updates)
+      if (name === "logo_files" || name === undefined) {
+        const files = form.getValues("logo_files");
+        setLogoFiles(files);
+      }
+    });
+    
+    return () => subscription.unsubscribe();
+  }, [form]);
+
+  // Extract File from FileList or array
+  const imageData = logoFiles
+    ? logoFiles instanceof FileList
+      ? logoFiles[0] || null
+      : Array.isArray(logoFiles) && logoFiles.length > 0
+        ? logoFiles[0] || null
+        : logoFiles instanceof File
+          ? logoFiles
+          : null
+    : null;
 
   const imageUrl = useWatch({
     control,

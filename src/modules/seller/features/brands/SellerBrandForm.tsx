@@ -77,6 +77,8 @@ const SellerBrandForm = () => {
 
   const { control, setValue, handleSubmit, reset, watch } = form;
 
+  // console.log(watch(),"watch");
+
   // Fetch brand data for edit and view modes
   const {
     data: brandData,

@@ -50,6 +50,7 @@ interface AnalyzeResponse {
   unmatched: string[];
   overall_confidence: number;
   processing_time: number;
+  bis_cautions?: Record<string, string[]>; // BIS cautions from RAG
 }
 
 type ActiveTab = "grouped" | "unmatched" | "analysis";
@@ -72,7 +73,8 @@ const api = {
   async generateReport(
     inciList: string[],
     brandedIngredients: string[],
-    notBrandedIngredients: string[]
+    notBrandedIngredients: string[],
+    bisCautions?: Record<string, string[]>
   ): Promise<string> {
     const response = await axios.post(
       `${basePythonApiUrl}/api/formulation-report`,
@@ -80,6 +82,7 @@ const api = {
         inciList,
         brandedIngredients,
         notBrandedIngredients,
+        bisCautions: bisCautions || null,
       },
       { headers: { "Content-Type": "application/json" } },
     );
@@ -245,10 +248,14 @@ function IngredientAnalyzer() {
         });
       }
 
+      // Extract BIS cautions from analyze_inci response
+      const bisCautions = resp.bis_cautions || undefined;
+
       const data = await api.generateReport(
         parsed,
         brandedIngredients,
-        notBrandedIngredients
+        notBrandedIngredients,
+        bisCautions
       );
       setReportState((prev) => ({ ...prev, data, loading: false }));
     } catch (error) {

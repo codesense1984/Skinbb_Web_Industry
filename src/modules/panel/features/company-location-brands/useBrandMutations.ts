@@ -29,6 +29,7 @@ export const useBrandCreateMutation = () => {
       if (!companyId || !locationId) {
         throw new Error(BRAND_ERROR_MESSAGES.MISSING_IDS);
       }
+      
       const formData = createBrandFormData(data);
       return apiCreateCompanyLocationBrandJson(companyId, locationId, formData);
     },

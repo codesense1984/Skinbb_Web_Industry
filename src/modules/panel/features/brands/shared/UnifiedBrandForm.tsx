@@ -43,20 +43,31 @@ interface BrandApiResponse {
   name?: string;
   aboutTheBrand?: string;
   isActive?: boolean;
-  logoImage?: { url?: string };
-  authorizationLetter?: { url?: string };
-  total_skus?: string;
-  skus?: string;
-  marketing_budget?: string;
-  budget?: string;
-  product_category?: string;
-  category?: string;
+  logoImage?: string | { url?: string };
+  authorizationLetter?: string | { url?: string };
+  // Handle both camelCase (from API) and snake_case (legacy)
+  totalSKU?: number;
+  total_skus?: string | number;
+  skus?: string | number;
+  marketingBudget?: number;
+  marketing_budget?: string | number;
+  budget?: string | number;
+  productCategory?: string | string[];
+  product_category?: string | string[];
+  category?: string | string[];
+  brandType?: string[];
+  instagramUrl?: string;
   instagram_url?: string;
   instagram?: string;
+  facebookUrl?: string;
   facebook_url?: string;
   facebook?: string;
+  youtubeUrl?: string;
   youtube_url?: string;
   youtube?: string;
+  websiteUrl?: string;
+  website_url?: string;
+  website?: string;
   sellingOn?: Array<{ platform: string; url: string }>;
   platforms?: Array<{ platform: string; url: string }>;
   brand_logo?: string;
@@ -289,30 +300,63 @@ const UnifiedBrandForm: React.FC<UnifiedBrandFormProps> = ({
       const formData = {
         brand_logo_files: [],
         brand_logo:
-          brand.logoImage?.url ||
+          (typeof brand.logoImage === "string" ? brand.logoImage : brand.logoImage?.url) ||
           brand.brand_logo ||
           brand.logo ||
           "",
         brand_name: brand.name || brand.brand_name || "",
         description: brand.aboutTheBrand || brand.description || "",
         status: brand.isActive ? "active" : "inactive",
-        total_skus: brand.total_skus || brand.skus || "",
+        // Handle both camelCase (from API) and snake_case (legacy) field names
+        total_skus: brand.totalSKU !== undefined 
+          ? String(brand.totalSKU) 
+          : brand.total_skus !== undefined 
+            ? String(brand.total_skus) 
+            : brand.skus !== undefined 
+              ? String(brand.skus) 
+              : "",
         marketing_budget:
-          brand.marketing_budget || brand.budget || "",
+          brand.marketingBudget !== undefined
+            ? String(brand.marketingBudget)
+            : brand.marketing_budget !== undefined
+              ? String(brand.marketing_budget)
+              : brand.budget !== undefined
+                ? String(brand.budget)
+                : "",
         product_category:
-          brand.product_category || brand.category || "",
+          Array.isArray(brand.brandType) && brand.brandType.length > 0
+            ? brand.brandType[0]
+            : Array.isArray(brand.productCategory)
+              ? brand.productCategory[0] || ""
+              : Array.isArray(brand.product_category)
+                ? brand.product_category[0] || ""
+                : (typeof brand.productCategory === "string" 
+                    ? brand.productCategory 
+                    : typeof brand.product_category === "string"
+                      ? brand.product_category
+                      : typeof brand.category === "string"
+                        ? brand.category
+                        : Array.isArray(brand.category)
+                          ? brand.category[0] || ""
+                          : ""),
+        website_url:
+          brand.websiteUrl || brand.website_url || brand.website || "",
         instagram_url:
-          brand.instagram_url || brand.instagram || "",
+          brand.instagramUrl || brand.instagram_url || brand.instagram || "",
         facebook_url:
-          brand.facebook_url || brand.facebook || "",
-        youtube_url: brand.youtube_url || brand.youtube || "",
+          brand.facebookUrl || brand.facebook_url || brand.facebook || "",
+        youtube_url: brand.youtubeUrl || brand.youtube_url || brand.youtube || "",
         sellingOn: brand.sellingOn || brand.platforms || [],
         brand_authorization_letter_files: [],
         brand_authorization_letter:
-          brand.authorizationLetter?.url ||
-          brand.brand_authorization_letter ||
-          brand.authorization_letter ||
-          "",
+          // Handle authorizationLetter from API (can be string URL or object with url property)
+          (typeof brand.authorizationLetter === "string" && brand.authorizationLetter
+            ? brand.authorizationLetter 
+            : typeof brand.authorizationLetter === "object" && brand.authorizationLetter?.url
+              ? brand.authorizationLetter.url
+              : "") ||
+          // Fallback to other possible field names
+          (brand.brand_authorization_letter || brand.authorization_letter || ""),
         // Set company and location from context or data
         company_id: companyId || brand.company?._id || "",
         location_id: locationId || brand.location?._id || "",
@@ -355,6 +399,38 @@ const UnifiedBrandForm: React.FC<UnifiedBrandFormProps> = ({
       setValue("brand_logo", "");
     },
   });
+
+  // Authorization letter preview
+  const authorizationLetterFiles = useWatch({
+    control,
+    name: "brand_authorization_letter_files",
+  });
+
+  const authorizationLetterData = authorizationLetterFiles
+    ? authorizationLetterFiles instanceof FileList
+      ? authorizationLetterFiles[0] || null
+      : Array.isArray(authorizationLetterFiles) && authorizationLetterFiles.length > 0
+        ? authorizationLetterFiles[0] || null
+        : authorizationLetterFiles instanceof File
+          ? authorizationLetterFiles
+          : null
+    : null;
+
+  const existingAuthorizationLetterUrl = useWatch({
+    control,
+    name: "brand_authorization_letter",
+  });
+
+  const { element: authorizationLetterPreview } = useImagePreview(
+    authorizationLetterData,
+    existingAuthorizationLetterUrl,
+    {
+      clear: () => {
+        setValue("brand_authorization_letter_files", []);
+        setValue("brand_authorization_letter", "");
+      },
+    },
+  );
 
   const { remove, append } = useFieldArray({
     control,
@@ -414,6 +490,9 @@ const UnifiedBrandForm: React.FC<UnifiedBrandFormProps> = ({
   };
 
   const onSubmitForm = async (data: BrandFormData) => {
+    console.log(
+      "onSubmitForm", data
+    );
     if (onSubmit) {
       onSubmit(data);
       return;
@@ -777,18 +856,23 @@ const UnifiedBrandForm: React.FC<UnifiedBrandFormProps> = ({
                   <h2 className="text-xl font-semibold text-gray-900">
                     Brand Authorization Letter
                   </h2>
-                  <FormFieldsRenderer<BrandFormData>
-                    control={control}
-                    fieldConfigs={
-                      brandFormSchema.brand_authorization_letter.map(
-                        (field) => ({
-                          ...field,
-                          disabled: mode === MODE.VIEW,
-                        }),
-                      ) as FormFieldConfig<BrandFormData>[]
-                    }
-                    className="!sm:grid-cols-2 !grid !grid-cols-1 !gap-4"
-                  />
+                  <div className="flex items-center justify-start gap-6">
+                    <div className="left-0 col-span-1 flex">{authorizationLetterPreview}</div>
+                    <div className="left-0 col-span-1 flex">
+                      <FormFieldsRenderer<BrandFormData>
+                        control={control}
+                        fieldConfigs={
+                          brandFormSchema.brand_authorization_letter.map(
+                            (field) => ({
+                              ...field,
+                              disabled: mode === MODE.VIEW,
+                            }),
+                          ) as FormFieldConfig<BrandFormData>[]
+                        }
+                        className="w-full !sm:grid-cols-2 !grid !grid-cols-1 !gap-4"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

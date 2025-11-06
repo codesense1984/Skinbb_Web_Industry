@@ -16,6 +16,7 @@ export function createFormData(
 
   // Add all fields including files
   Object.entries(data).forEach(([key, value]) => {
+    // Allow empty strings for required fields, but skip null/undefined
     if (value !== null && value !== undefined) {
       if (arrayKeys.includes(key) && Array.isArray(value)) {
         // Handle specified arrays with proper indexing
@@ -58,11 +59,20 @@ export function createFormData(
           formData.append(key, JSON.stringify(value));
         }
       } else if (Array.isArray(value)) {
-        // Handle other arrays by stringifying them
-        formData.append(key, JSON.stringify(value));
+        // Handle simple arrays (like productCategory) - append each item with index
+        if (value.length > 0) {
+          value.forEach((item, index) => {
+            formData.append(`${key}[${index}]`, String(item));
+          });
+        }
       } else {
-        // Handle primitive values
-        formData.append(key, String(value));
+        // Handle primitive values (numbers and strings)
+        // Convert numbers to strings for FormData
+        if (typeof value === "number") {
+          formData.append(key, String(value));
+        } else {
+          formData.append(key, String(value));
+        }
       }
     }
   });
