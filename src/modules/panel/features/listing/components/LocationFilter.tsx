@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { PaginationComboBox } from "@/core/components/ui/pagination-combo-box";
 import { createSimpleFetcher } from "@/core/components/data-table";
 import { apiGetCompanyLocations } from "@/modules/panel/services/http/company.service";
@@ -11,19 +12,6 @@ interface LocationFilterProps {
   disabled?: boolean;
 }
 
-const locationFilter = (companyId: string) => createSimpleFetcher(
-  (params: Record<string, unknown>) => {
-    return apiGetCompanyLocations(companyId, {
-      page: (params.pageIndex as number) + 1,
-      limit: params.pageSize as number,
-    });
-  },
-  {
-    dataPath: "data.items",
-    totalPath: "data.total",
-  }
-);
-
 export const LocationFilter = ({
   companyId,
   value,
@@ -31,8 +19,27 @@ export const LocationFilter = ({
   placeholder = "Select Location",
   disabled = false,
 }: LocationFilterProps) => {
+  // Memoize the fetcher to prevent recreating it on every render
+  const locationFetcher = useMemo(() => {
+    if (!companyId || companyId === "all" || companyId === "") {
+      return null;
+    }
+    return createSimpleFetcher(
+      (params: Record<string, unknown>) => {
+        return apiGetCompanyLocations(companyId, {
+          page: (params.pageIndex as number) + 1,
+          limit: params.pageSize as number,
+        });
+      },
+      {
+        dataPath: "data.items",
+        totalPath: "data.total",
+      }
+    );
+  }, [companyId]);
+
   // Don't render the component if companyId is not valid
-  if (!companyId || companyId === "all" || companyId === "") {
+  if (!companyId || companyId === "all" || companyId === "" || !locationFetcher) {
     return (
       <div className="w-[150px] h-10 px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-500 flex items-center">
         {placeholder}
@@ -42,7 +49,7 @@ export const LocationFilter = ({
 
   return (
     <PaginationComboBox
-      apiFunction={locationFilter(companyId)}
+      apiFunction={locationFetcher}
       transform={(location: CompanyLocation) => ({
         label: `${location.addressLine1} - ${location.city}`,
         value: location._id,

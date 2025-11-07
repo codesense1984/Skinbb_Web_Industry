@@ -143,7 +143,15 @@ export const PaginationComboBox = <T = unknown,>({
     isLoading,
     isError,
   } = useInfiniteQuery({
-    queryKey: [...queryKey, debouncedSearchTerm, additionalFilters],
+    queryKey: [
+      ...queryKey,
+      debouncedSearchTerm,
+      // Stabilize additionalFilters by creating a sorted string representation
+      Object.entries(additionalFilters)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([key, value]) => `${key}:${value}`)
+        .join("|"),
+    ],
     queryFn: async ({
       pageParam = 0,
       signal,

@@ -469,7 +469,7 @@ export function DataTableAction<TData>({
         />
         {children}
       </div>
-      
+
       <div className="flex items-center gap-2">
         {showColumnsFilter && columnFilter()}
       </div>
@@ -491,10 +491,10 @@ export function DataTable<TData extends object>({
   isServerSide = false,
   ...props
 }: DataTableProps<TData>) {
-  console.log('DataTable props:', { showPagination, pageSize, isServerSide });
+  console.log("DataTable props:", { showPagination, pageSize, isServerSide });
   const finalPageSize = !showPagination ? -1 : pageSize;
-  console.log('DataTable finalPageSize:', finalPageSize);
-  
+  console.log("DataTable finalPageSize:", finalPageSize);
+
   const tableState = useTable({
     rows,
     columns,

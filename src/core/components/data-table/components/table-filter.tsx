@@ -245,7 +245,7 @@ const createStatusToggleHandler = <T,>(
   name: string,
 ) => {
   return (value: string, checked: boolean) => {
-    const statusColumn = tableState.table.getColumn(name);
+    const statusColumn = tableState?.table?.getColumn(name);
     if (!statusColumn) return;
 
     if (checked) {

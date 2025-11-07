@@ -35,7 +35,15 @@ export const ProductCard: FC<ProductCardProps> = ({ product }) => {
         <AvatarRoot className="size-12 rounded-md border">
           <AvatarImage
             className="object-cover"
-            src={product.thumbnail?.url}
+            src={
+              typeof product.thumbnail === "string"
+                ? product.thumbnail
+                : typeof product.thumbnail === "object" &&
+                    product.thumbnail &&
+                    "url" in product.thumbnail
+                  ? (product.thumbnail as { url: string }).url
+                  : ""
+            }
             alt={`${product.productName} thumbnail`}
           />
           <AvatarFallback className="rounded-md capitalize">
@@ -47,7 +55,11 @@ export const ProductCard: FC<ProductCardProps> = ({ product }) => {
             {product.productName || "Unnamed Product"}
           </h6>
           <p className="text-muted-foreground text-sm">
-            {product.brand?.name || "Unknown Brand"}
+            {typeof product.brand === "string"
+              ? product.brand
+              : typeof product.brand === "object" && product.brand && "name" in product.brand
+                ? (product.brand as { name: string }).name
+                : "Unknown Brand"}
           </p>
           <div className="mt-1 flex flex-wrap gap-1">
             {categories.slice(0, 2).map((category, index) => (
