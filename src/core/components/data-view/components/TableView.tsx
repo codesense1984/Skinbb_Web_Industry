@@ -250,4 +250,4 @@ export const TableView = React.memo(
   },
 ) as <TItem>(props: TableViewProps<TItem>) => React.ReactElement;
 
-TableView.displayName = "TableView";
+// TableView.displayName = "TableView";

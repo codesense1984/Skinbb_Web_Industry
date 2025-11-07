@@ -354,15 +354,15 @@ export function DataView<
         onSearchChange={setSearchInput}
         onViewChange={setView}
         actions={renderedActions}
-        columnVisibility={
-          state.view === "table" && columns ? (
-            <ColumnVisibility
-              columns={columns}
-              columnVisibility={state.columnVisibility}
-              toggleColumnVisibility={toggleColumnVisibility}
-            />
-          ) : null
-        }
+        // columnVisibility={
+        //   state.view === "table" && columns ? (
+        //     <ColumnVisibility
+        //       columns={columns}
+        //       columnVisibility={state.columnVisibility}
+        //       toggleColumnVisibility={toggleColumnVisibility}
+        //     />
+        //   ) : null
+        // }
       />
 
       {/* Content */}

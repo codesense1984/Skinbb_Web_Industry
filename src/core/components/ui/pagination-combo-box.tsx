@@ -47,6 +47,17 @@ interface PaginationComboBoxProps<T = unknown> {
   renderLabel?: (option: Option) => React.ReactNode;
   /** Custom render function for option items */
   renderOption?: (option: Option, isSelected: boolean) => React.ReactNode;
+  /** Custom render function for the button element */
+  renderButton?: (props: {
+    loading: boolean;
+    selectedOption: Option[] | Option | undefined;
+    disabled: boolean;
+    open: boolean;
+    value: string[] | string;
+    placeholder: string;
+    error: boolean;
+    multi: boolean;
+  }) => React.ReactNode;
   /** Message to show when no results are found */
   emptyMessage?: string;
   /** Whether to wrap items in multi-select mode */
@@ -107,6 +118,7 @@ export const PaginationComboBox = <T = unknown,>({
   maxVisibleItems = 3,
   renderLabel,
   renderOption,
+  renderButton,
   emptyMessage = "No results found",
   flexWrap = false,
   pageSize = 10,
@@ -367,6 +379,33 @@ export const PaginationComboBox = <T = unknown,>({
     emptyMessage,
   ]);
 
+  // Adapter function to convert renderButton props to ComboBox format
+  const adaptedRenderButton = renderButton
+    ? (props: {
+        loading: boolean;
+        selectedOption: typeof multi extends true
+          ? Option[]
+          : Option | undefined;
+        disabled: boolean;
+        open: boolean;
+        value: typeof multi extends true ? string[] : string;
+        placeholder: string;
+        error: boolean;
+        multi: typeof multi;
+      }) => {
+        return renderButton({
+          loading: props.loading,
+          selectedOption: props.selectedOption as Option[] | Option | undefined,
+          disabled: props.disabled,
+          open: props.open,
+          value: props.value as string[] | string,
+          placeholder: props.placeholder,
+          error: props.error,
+          multi: props.multi as boolean,
+        });
+      }
+    : undefined;
+
   return (
     <div className="relative">
       <ComboBox
@@ -384,6 +423,7 @@ export const PaginationComboBox = <T = unknown,>({
         maxVisibleItems={maxVisibleItems}
         renderLabel={renderLabel}
         renderOption={customRenderOption}
+        renderButton={adaptedRenderButton as any}
         commandListProps={commandListProps}
         commandInputProps={commandInputProps}
         emptyMessage={getEmptyMessage()}
