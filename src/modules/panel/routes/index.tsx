@@ -330,7 +330,7 @@ export const panelRoutes: RouteObject = {
     // users
     {
       path: PANEL_ROUTES.USER.LIST,
-      Component: lazy(() => import("@/modules/panel/features/users/list")),
+      Component: lazy(() => import("@/modules/panel/features/settings/UserRolesPermissions")),
     },
     {
       path: PANEL_ROUTES.USER.CREATE,
@@ -407,6 +407,36 @@ export const panelRoutes: RouteObject = {
     {
       path: PANEL_ROUTES.FACE_ANALYSIS,
       Component: lazy(() => import("@/modules/face-analysis/features/face-analysis-page")),
+    },
+
+    // Promotions Route
+    {
+      path: "/promo",
+      Component: lazy(() => import("@/modules/panel/features/promotions")),
+    },
+
+    // Settings Subpages
+    {
+      path: "/settings/company-management",
+      Component: lazy(() => import("@/modules/panel/features/settings/CompanyManagement")),
+    },
+    {
+      path: "/settings/user-roles-permissions",
+      Component: lazy(() => import("@/modules/panel/features/settings/UserRolesPermissions")),
+    },
+    {
+      path: "/api-integrations",
+      Component: lazy(() => import("@/modules/panel/features/settings/ApiIntegrations")),
+    },
+    {
+      path: "/notifications",
+      Component: lazy(() => import("@/modules/panel/features/settings/NotificationsEmailTemplates")),
+    },
+
+    // Account Route (shared with seller)
+    {
+      path: PANEL_ROUTES.ACCOUNT,
+      Component: lazy(() => import("@/modules/seller/features/account")),
     },
     {
       path: "*",

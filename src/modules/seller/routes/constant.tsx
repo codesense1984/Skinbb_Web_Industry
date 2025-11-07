@@ -223,4 +223,9 @@ export const SELLER_ROUTES = {
       BASE: "/settings/preferences",
     },
   },
+
+  // ---- Account ----
+  ACCOUNT: {
+    BASE: "/account",
+  },
 } as const;

@@ -10,8 +10,9 @@ import { useSidebar } from "@/core/store/theme-provider";
 import { cn } from "@/core/utils";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
 import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth";
+import { ROLE } from "@/modules/auth/types/permission.type.";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { NavLink } from "react-router";
 
 const Header = () => {
@@ -22,9 +23,10 @@ const Header = () => {
   const profile = user?.profilePic?.[0]?.url || "";
   const fullNameInitial = `${user?.firstName?.charAt(0) || ""}${user?.lastName?.charAt(0) || ""}`;
 
-  // Check if user is a seller and has company info
-  // const isSeller = ["seller-member", "seller"].includes(role || "");
-  // const hasCompanyInfo = sellerInfo?.companyId;
+  // Check if user is a seller (not admin)
+  const isSeller = useMemo(() => {
+    return role === ROLE.SELLER || role === ROLE.SELLER_MEMBER;
+  }, [role]);
 
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
@@ -149,41 +151,52 @@ const Header = () => {
           <DropdownMenu
             items={[
               {
-                children: "Account",
-                type: "item",
-              },
-              { type: "separator" },
-              {
                 children: (
                   <NavLink
-                    to={PANEL_ROUTES.COMPANY.VIEW(sellerInfo?.companyId || "")}
+                    to={PANEL_ROUTES.ACCOUNT}
                     className="flex w-full items-center gap-2"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="size-4"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3a3 3 0 0 1 3-3h3a3 3 0 0 1 3 3v3M6 3h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"
-                      />
-                    </svg>
-                    Company Details
+                    Account
                   </NavLink>
                 ),
-                type: "item",
+                type: "item" as const,
                 className: "cursor-pointer",
               },
-
-              { type: "separator" },
+              ...(isSeller
+                ? [
+                    { type: "separator" as const },
+                    {
+                      children: (
+                        <NavLink
+                          to={PANEL_ROUTES.COMPANY.VIEW(sellerInfo?.companyId || "")}
+                          className="flex w-full items-center gap-2"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke="currentColor"
+                            className="size-4"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3a3 3 0 0 1 3-3h3a3 3 0 0 1 3 3v3M6 3h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"
+                            />
+                          </svg>
+                          Company Details
+                        </NavLink>
+                      ),
+                      type: "item" as const,
+                      className: "cursor-pointer",
+                    },
+                  ]
+                : []),
+              { type: "separator" as const },
               {
                 children: "Logout",
-                type: "item",
+                type: "item" as const,
                 className: "cursor-pointer",
                 onClick: () => signOut(),
               },

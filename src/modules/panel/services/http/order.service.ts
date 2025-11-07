@@ -45,6 +45,7 @@ export interface OrderStatusResponse {
     statusDescription: string;
     nextStep: string;
     returnStatus: string;
+    cancellationReason?: string | null;
     timeline: OrderStatusTimelineItem[];
     orderDetails: {
       totalAmount: number;
@@ -78,4 +79,30 @@ export interface OrderStatusResponse {
 
 export async function apiGetOrderStatus(orderId: string): Promise<OrderStatusResponse> {
   return api.get<OrderStatusResponse>(`/api/v1/orders/status/${orderId}`);
+}
+
+export interface CancelOrderRequest {
+  reason: string;
+}
+
+export interface CancelOrderResponse {
+  statusCode: number;
+  success: boolean;
+  message: string;
+  data: {
+    orderId: string;
+    orderNumber: string;
+    status: string;
+    message: string;
+  };
+}
+
+export async function apiCancelOrderByAdmin(
+  orderId: string,
+  data: CancelOrderRequest,
+): Promise<CancelOrderResponse> {
+  return api.put<CancelOrderResponse>(
+    `/api/v1/orders/admin/cancel/${orderId}`,
+    data,
+  );
 }

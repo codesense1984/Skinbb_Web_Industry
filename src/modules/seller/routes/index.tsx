@@ -131,23 +131,23 @@ export const sellerRoutes: RouteObject = {
     //   path: SELLER_ROUTES.MARKETING.SURVEYS.EDIT(),
     //   Component: lazy(() => import("@/modules/survey/features/market-research-create")),
     // },
-    // TODO: Uncomment when promotion functionality is ready
-    // {
-    //   path: SELLER_ROUTES.MARKETING.PROMOTIONS.LIST,
-    //   Component: lazy(() => import("@/modules/seller/features/marketing/PromotionsList")),
-    // },
-    // {
-    //   path: SELLER_ROUTES.MARKETING.PROMOTIONS.CREATE,
-    //   Component: lazy(() => import("@/modules/seller/features/marketing/PromotionForm")),
-    // },
-    // {
-    //   path: SELLER_ROUTES.MARKETING.PROMOTIONS.VIEW(),
-    //   Component: lazy(() => import("@/modules/seller/features/marketing/PromotionForm")),
-    // },
-    // {
-    //   path: SELLER_ROUTES.MARKETING.PROMOTIONS.EDIT(),
-    //   Component: lazy(() => import("@/modules/seller/features/marketing/PromotionForm")),
-    // },
+    // Promotions Routes
+    {
+      path: SELLER_ROUTES.MARKETING.PROMOTIONS.LIST,
+      Component: lazy(() => import("@/modules/seller/features/marketing/PromotionsList")),
+    },
+    {
+      path: SELLER_ROUTES.MARKETING.PROMOTIONS.CREATE,
+      Component: lazy(() => import("@/modules/seller/features/marketing/PromotionsList")),
+    },
+    {
+      path: SELLER_ROUTES.MARKETING.PROMOTIONS.VIEW(),
+      Component: lazy(() => import("@/modules/seller/features/marketing/PromotionsList")),
+    },
+    {
+      path: SELLER_ROUTES.MARKETING.PROMOTIONS.EDIT(),
+      Component: lazy(() => import("@/modules/seller/features/marketing/PromotionsList")),
+    },
 
     // Analytics Routes
     {
@@ -177,12 +177,22 @@ export const sellerRoutes: RouteObject = {
 
     // User Settings Routes
     {
+      path: SELLER_ROUTES.USER_SETTINGS.BASE,
+      Component: lazy(() => import("@/modules/seller/features/settings/Settings")),
+    },
+    {
       path: SELLER_ROUTES.USER_SETTINGS.PERMISSIONS.BASE,
       Component: lazy(() => import("@/modules/seller/features/settings/PermissionsSettings")),
     },
     {
       path: SELLER_ROUTES.USER_SETTINGS.PREFERENCES.BASE,
       Component: lazy(() => import("@/modules/seller/features/settings/PreferencesSettings")),
+    },
+
+    // Account Route
+    {
+      path: SELLER_ROUTES.ACCOUNT.BASE,
+      Component: lazy(() => import("@/modules/seller/features/account")),
     },
     // Listing/Product Management
     {
