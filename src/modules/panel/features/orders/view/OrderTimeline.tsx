@@ -35,6 +35,12 @@ export const OrderTimeline: React.FC<OrderTimelineProps> = ({
   const currentStatus = statusResponse?.data?.currentStatus;
   const statusDescription = statusResponse?.data?.statusDescription;
   const nextStep = statusResponse?.data?.nextStep;
+  // Try multiple possible field names for cancellation reason
+  const cancellationReason = 
+    statusResponse?.data?.cancellationReason || 
+    statusResponse?.data?.cancelReason ||
+    statusResponse?.data?.cancellation_reason ||
+    statusResponse?.data?.cancel_reason;
 
   const formatTimelineDate = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -80,6 +86,12 @@ export const OrderTimeline: React.FC<OrderTimelineProps> = ({
                   <span className="text-sm font-medium text-gray-600">Current Status:</span>
                   <p className="text-lg font-semibold text-gray-900 capitalize">{currentStatus}</p>
                 </div>
+                {currentStatus === "cancelled" && cancellationReason && (
+                  <div className="mt-2 rounded-md bg-red-50 p-2 border border-red-200">
+                    <p className="text-xs font-medium text-red-800">Cancellation Reason:</p>
+                    <p className="text-sm text-red-700 mt-1">{cancellationReason}</p>
+                  </div>
+                )}
                 {statusDescription && (
                   <p className="text-sm text-gray-700">{statusDescription}</p>
                 )}
@@ -205,6 +217,12 @@ export const OrderTimelineInline: React.FC<OrderTimelineInlineProps> = ({
   const currentStatus = statusResponse?.data?.currentStatus;
   const statusDescription = statusResponse?.data?.statusDescription;
   const nextStep = statusResponse?.data?.nextStep;
+  // Try multiple possible field names for cancellation reason
+  const cancellationReason = 
+    statusResponse?.data?.cancellationReason || 
+    statusResponse?.data?.cancelReason ||
+    statusResponse?.data?.cancellation_reason ||
+    statusResponse?.data?.cancel_reason;
 
   const formatTimelineDate = (timestamp: string) => {
     return {
@@ -252,6 +270,12 @@ export const OrderTimelineInline: React.FC<OrderTimelineInlineProps> = ({
             <span className="text-sm font-medium text-gray-600">Current Status:</span>
             <p className="text-lg font-semibold text-gray-900 capitalize">{currentStatus}</p>
           </div>
+          {currentStatus === "cancelled" && cancellationReason && (
+            <div className="mt-2 rounded-md bg-red-50 p-2 border border-red-200">
+              <p className="text-xs font-medium text-red-800">Cancellation Reason:</p>
+              <p className="text-sm text-red-700 mt-1">{cancellationReason}</p>
+            </div>
+          )}
           {statusDescription && (
             <p className="text-sm text-gray-700">{statusDescription}</p>
           )}

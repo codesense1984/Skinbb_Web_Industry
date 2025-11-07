@@ -81,7 +81,7 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
         />
       </svg>
     ),
-    children: ["allOrders", "draftOrders"],
+    children: ["allOrders" /* , "draftOrders" */],
   },
   allOrders: {
     name: "All Orders",
@@ -91,14 +91,14 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
       action: [PERMISSION.VIEW, PERMISSION.CREATE],
     },
   },
-  draftOrders: {
-    name: "Draft Orders",
-    href: PANEL_ROUTES.ORDER.LIST + "?status=draft",
-    requiredPermission: {
-      page: PAGE.ORDERS,
-      action: [PERMISSION.VIEW, PERMISSION.CREATE],
-    },
-  },
+  // draftOrders: {
+  //   name: "Draft Orders",
+  //   href: PANEL_ROUTES.ORDER.LIST + "?status=draft",
+  //   requiredPermission: {
+  //     page: PAGE.ORDERS,
+  //     action: [PERMISSION.VIEW, PERMISSION.CREATE],
+  //   },
+  // },
   products: {
     name: "Products",
     icon: (
@@ -196,10 +196,10 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
         />
       </svg>
     ),
-    children: ["companies", "brandOnboarding"],
+    children: ["brandDiscover", "companies", "brandOnboarding"],
   },
   brandDiscover: {
-    name: "Discover",
+    name: "Brands",
     href: PANEL_ROUTES.BRAND.LIST,
     requiredPermission: {
       page: PAGE.BRANDS,
@@ -366,7 +366,7 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
   },
   companyManagement: {
     name: "Company Management",
-    href: PANEL_ROUTES.COMPANY.LIST,
+    href: "/settings/company-management",
     requiredPermission: {
       page: PAGE.COMPANIES,
       action: [PERMISSION.VIEW],
@@ -374,7 +374,7 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
   },
   userRolesPermissions: {
     name: "User Roles & Permissions",
-    href: PANEL_ROUTES.USER.LIST,
+    href: "/settings/user-roles-permissions",
     requiredPermission: {
       page: PAGE.USERS,
       action: [PERMISSION.VIEW],

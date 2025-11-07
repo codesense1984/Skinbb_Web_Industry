@@ -35,6 +35,7 @@ export type OrderDetails = {
   payment: string;
   shipmentStatus: unknown[];
   createdAt: string;
+  cancellationReason?: string | null;
   customer: {
     _id: string;
     name: string;

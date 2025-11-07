@@ -1,5 +1,7 @@
 import { useParams, useNavigate } from "react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/core/components/ui/button";
 import {
   Card,
@@ -9,7 +11,19 @@ import {
 } from "@/core/components/ui/card";
 import { Badge } from "@/core/components/ui/badge";
 import { PageContent } from "@/core/components/ui/structure";
-import { apiGetOrderDetails } from "@/modules/panel/services/http/order.service";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/core/components/ui/dialog";
+import { Textarea } from "@/core/components/ui/textarea";
+import {
+  apiGetOrderDetails,
+  apiCancelOrderByAdmin,
+} from "@/modules/panel/services/http/order.service";
 import type { OrderDetails } from "@/modules/panel/types/order.type";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import {
@@ -19,6 +33,7 @@ import {
   CreditCardIcon,
   ShoppingBagIcon,
   CalendarIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { formatDate, formatTime } from "@/core/utils/date";
 import { formatCurrency } from "@/core/utils/number";
@@ -27,6 +42,9 @@ import { OrderTimelineInline } from "./OrderTimeline";
 export default function OrderView() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
 
   const {
     data: orderResponse,
@@ -39,6 +57,36 @@ export default function OrderView() {
   });
 
   const order = orderResponse?.data as OrderDetails | undefined;
+
+  const cancelOrderMutation = useMutation({
+    mutationFn: (reason: string) => apiCancelOrderByAdmin(id!, { reason }),
+    onSuccess: (response) => {
+      toast.success(response.data.message || "Order cancelled successfully");
+      queryClient.invalidateQueries({ queryKey: ["order-details", id] });
+      queryClient.invalidateQueries({ queryKey: ["order-status", id] });
+      setIsCancelDialogOpen(false);
+      setCancelReason("");
+    },
+    onError: (error: any) => {
+      toast.error(
+        error?.response?.data?.message ||
+          "Failed to cancel order. Please try again.",
+      );
+    },
+  });
+
+  const handleCancelOrder = () => {
+    if (cancelReason.trim()) {
+      cancelOrderMutation.mutate(cancelReason.trim());
+    }
+  };
+
+  // Orders cannot be cancelled if they are already cancelled, shipped, or delivered
+  const canCancelOrder =
+    order &&
+    order.orderStatus !== "cancelled" &&
+    order.orderStatus !== "shipped" &&
+    order.orderStatus !== "delivered";
 
   if (isLoading) {
     return (
@@ -126,7 +174,24 @@ export default function OrderView() {
           <div className="bg-background flex items-center gap-4 rounded-md p-4 shadow-md">
             <div className="w-full flex flex-col">
               <p className="text-sm font-medium text-gray-600">Order Status</p>
-              <p className="text-xl font-bold text-gray-900 capitalize">{order.orderStatus}</p>
+              <div className="flex flex-col gap-1">
+                <p className="text-xl font-bold text-gray-900 capitalize">{order.orderStatus}</p>
+                {order.orderStatus === "cancelled" && (
+                  order.cancellationReason || 
+                  (order as any).cancelReason || 
+                  (order as any).cancellation_reason || 
+                  (order as any).cancel_reason
+                ) && (
+                  <p className="text-xs text-gray-600 italic">
+                    Reason: {
+                      order.cancellationReason || 
+                      (order as any).cancelReason || 
+                      (order as any).cancellation_reason || 
+                      (order as any).cancel_reason
+                    }
+                  </p>
+                )}
+              </div>
             </div>
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-200">
               <span className="text-sm font-bold text-purple-600">📦</span>
@@ -179,6 +244,26 @@ export default function OrderView() {
                   {order.paymentStatus}
                 </Badge>
               </div>
+              {order.orderStatus === "cancelled" && (
+                order.cancellationReason || 
+                (order as any).cancelReason || 
+                (order as any).cancellation_reason || 
+                (order as any).cancel_reason
+              ) && (
+                <div className="flex items-start justify-between border-b border-gray-100 py-3">
+                  <span className="text-sm font-medium text-gray-600">
+                    Cancellation Reason
+                  </span>
+                  <span className="text-sm text-gray-900 text-right max-w-[60%]">
+                    {
+                      order.cancellationReason || 
+                      (order as any).cancelReason || 
+                      (order as any).cancellation_reason || 
+                      (order as any).cancel_reason
+                    }
+                  </span>
+                </div>
+              )}
               <div className="flex items-center justify-between py-3">
                 <span className="text-sm font-medium text-gray-600">
                   Items Count
@@ -402,9 +487,22 @@ export default function OrderView() {
         {id && (
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg font-semibold text-gray-900">
-                Shipment Status
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg font-semibold text-gray-900">
+                  Shipment Status
+                </CardTitle>
+                {canCancelOrder && (
+                  <Button
+                    variant="outlined"
+                    color="destructive"
+                    onClick={() => setIsCancelDialogOpen(true)}
+                    className="flex items-center gap-2"
+                  >
+                    <XMarkIcon className="h-4 w-4" />
+                    Cancel Order
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               <OrderTimelineInline
@@ -415,6 +513,67 @@ export default function OrderView() {
           </Card>
         )}
       </div>
+
+      {/* Cancel Order Dialog */}
+      <Dialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancel Order</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to cancel this order? Please provide a reason for cancellation.
+              <br />
+              <span className="text-sm font-medium text-red-600 mt-1 block">
+                Note: Orders that are shipped or delivered cannot be cancelled.
+              </span>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label
+                htmlFor="cancel-reason"
+                className="text-sm font-medium text-gray-700"
+              >
+                Cancellation Reason <span className="text-red-500">*</span>
+              </label>
+              <Textarea
+                id="cancel-reason"
+                placeholder="Enter the reason for cancellation (e.g., Customer requested cancellation)"
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                rows={4}
+                className="resize-none"
+              />
+            </div>
+            {cancelOrderMutation.isError && (
+              <div className="rounded-md bg-red-50 p-3 text-sm text-red-800">
+                {cancelOrderMutation.error instanceof Error
+                  ? cancelOrderMutation.error.message
+                  : "Failed to cancel order. Please try again."}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outlined"
+              onClick={() => {
+                setIsCancelDialogOpen(false);
+                setCancelReason("");
+              }}
+              disabled={cancelOrderMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              color="destructive"
+              onClick={handleCancelOrder}
+              disabled={!cancelReason.trim() || cancelOrderMutation.isPending}
+              loading={cancelOrderMutation.isPending}
+            >
+              Confirm Cancellation
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </PageContent>
   );
 }

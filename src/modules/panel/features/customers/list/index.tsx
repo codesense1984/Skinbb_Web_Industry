@@ -2,11 +2,14 @@ import { createSimpleFetcher, DataTable } from "@/core/components/data-table";
 import { StatCard } from "@/core/components/ui/stat";
 import { PageContent } from "@/core/components/ui/structure";
 import { Button } from "@/core/components/ui/button";
+import { ComingSoon } from "@/core/components/ui/coming-soon";
 import { formatNumber } from "@/core/utils";
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "react-router";
 import { columns, statsData } from "./data";
 import { apiGetCustomers } from "@/modules/panel/services/http/customer.service";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
+import Routines from "../Routines";
 
 // Create fetcher for server-side data
 const fetcher = () =>
@@ -19,7 +22,20 @@ const fetcher = () =>
   });
 
 const CustomerList = () => {
+  const [searchParams] = useSearchParams();
+  const view = searchParams.get("view");
   const [stats, setStats] = useState(statsData);
+
+  // Show ComingSoon for segments and reviews views
+  if (view === "segments") {
+    return <ComingSoon title="Segments" />;
+  }
+  if (view === "reviews") {
+    return <ComingSoon title="Reviews" />;
+  }
+  if (view === "routines") {
+    return <Routines />;
+  }
 
   // Fetch stats separately since we need them for the summary cards
   const fetchStats = useCallback(async () => {
