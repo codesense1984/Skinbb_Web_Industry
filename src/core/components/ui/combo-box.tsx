@@ -98,6 +98,7 @@ interface ComboBoxProps<T extends boolean = false>
     placeholder: string;
     error: boolean;
     multi: T;
+    isSelected: boolean;
   }) => React.ReactNode;
   commandProps?: React.ComponentProps<typeof Command>;
   commandInputProps?: React.ComponentProps<typeof CommandInput>;
@@ -200,9 +201,14 @@ export const ComboBox = <T extends boolean = false>({
 
   const selectedOptions = multi
     ? options.filter((opt) => Array.isArray(value) && value.includes(opt.value))
-    : options.find((opt) => opt.value === value);
+    : options.find((opt) => String(opt.value) === String(value));
 
   const selectedOption = !multi ? selectedOptions : undefined;
+
+  // Calculate isSelected more robustly
+  const isSelected = multi
+    ? Array.isArray(value) && value.length > 0
+    : Boolean(value && value !== "" && selectedOption);
 
   // Handle keyboard navigation
   const handleKeyDown = (event: React.KeyboardEvent) => {
@@ -355,11 +361,12 @@ export const ComboBox = <T extends boolean = false>({
           disabled={disabled || (!open && loading)}
           onKeyDown={handleKeyDown}
           className={cn(
-            "form-control flex items-center justify-between",
+            "flex items-center justify-between",
             error && "border-red-500 focus:border-red-500 focus:ring-red-500",
             flexWrap && "h-auto",
             disabled && "bg-muted/50 cursor-not-allowed",
             loading && "cursor-wait",
+            !renderButton && "form-control",
             className,
           )}
           {...props}
@@ -378,6 +385,7 @@ export const ComboBox = <T extends boolean = false>({
               placeholder,
               error,
               multi,
+              isSelected,
             })
           ) : (
             <>

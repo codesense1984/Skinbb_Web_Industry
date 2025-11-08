@@ -45,7 +45,7 @@ html {
     @apply file:border-border file:text-muted-foreground file:inline-flex file:border-0 file:border-e file:py-0 file:pe-1 file:font-normal;
 
     /* Disabled state */
-    @apply disabled:bg-muted/50 data-[disabled=true]:bg-muted/50 data-[readOnly=true]:bg-muted/50 disabled:cursor-not-allowed data-[disabled=true]:cursor-not-allowed data-[readOnly=true]:cursor-not-allowed;
+    @apply disabled:bg-muted/50 data-[disabled=true]:bg-muted/50 data-[readOnly=true]:bg-muted/50 disabled:cursor-not-allowed data-[disabled=true]:cursor-not-allowed data-[readOnly=true]:cursor-not-allowed ;
 
     /* Focus state */
     @apply focus-visible:border-primary;

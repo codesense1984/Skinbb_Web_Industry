@@ -10,7 +10,7 @@ import type { Option } from "@/core/types";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { apiGetProducts } from "@/modules/panel/services/http/product.service";
 import type { Product } from "@/modules/panel/types/product.type";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, useParams, useSearchParams } from "react-router";
 import { z } from "zod";
 import { ActiveFilters } from "./components/ActiveFilters";
@@ -20,6 +20,15 @@ import { LocationTableFilter } from "./components/LocationFilter";
 import { StatusFilterButton } from "./components/StatusFilterButton";
 import { columns } from "./data";
 import { ProductCard } from "./ProductCard";
+import {
+  FilterBar,
+  type FilterConfig,
+  type AppliedFilters,
+} from "@/core/components/filters";
+import { brandOptionsFetcher } from "./fetchers/brand-options-fetcher";
+import { companyOptionsFetcher } from "./fetchers/company-options-fetcher";
+import { ChevronDownIcon } from "@heroicons/react/24/outline";
+import { cn } from "@/core/utils";
 
 // Filter schema
 const productFilterSchema = z
@@ -157,7 +166,6 @@ function ProductToolbar({
   onBrandLabelChange,
 }: ProductToolbarProps) {
   const { state, setFilter } = useDataViewContext<ProductFilters>();
-  const [moreFiltersOpen, setMoreFiltersOpen] = useState(false);
 
   // Get filter values from state
   const companyId = (state.filters?.companyId as string) || selectedCompanyId;
@@ -349,9 +357,284 @@ function ActiveFiltersDisplay({
   return <ActiveFilters filters={activeFilters} module={module} />;
 }
 
+// Component to wrap FilterBar with DataView context
+function FilterBarContent({
+  filters,
+  defaultValues,
+  onApply,
+  showAction = false,
+  setCompanyLabel,
+  setLocationLabel,
+  setBrandLabel,
+}: {
+  filters: FilterConfig[];
+  defaultValues: AppliedFilters;
+  onApply: (applied: AppliedFilters) => void;
+  showAction?: boolean;
+  setCompanyLabel: (label: string) => void;
+  setLocationLabel: (label: string) => void;
+  setBrandLabel: (label: string) => void;
+}) {
+  const { state, setFilter } = useDataViewContext<ProductFilters>();
+
+  // Convert DataView filter state to AppliedFilters format for syncing
+  // This ensures FilterBar stays in sync when filters are cleared externally
+  const syncedDefaultValues = useMemo<AppliedFilters>(() => {
+    const synced: AppliedFilters = {};
+
+    // Sync company - if companyId exists in state, use it; otherwise set to null
+    if (state.filters?.companyId) {
+      const companyId = state.filters.companyId as string;
+      const existingCompany = defaultValues.company;
+      // If existing company matches the ID, preserve it (keeps the label)
+      if (
+        existingCompany &&
+        (Array.isArray(existingCompany)
+          ? existingCompany[0]?.value
+          : existingCompany.value) === companyId
+      ) {
+        synced.company = existingCompany;
+      } else {
+        // Create placeholder if we don't have the label
+        synced.company = { value: companyId, label: companyId };
+      }
+    } else {
+      synced.company = null;
+    }
+
+    // Sync brand
+    if (state.filters?.brandId) {
+      const brandId = state.filters.brandId as string;
+      const existingBrand = defaultValues.brand;
+      if (
+        existingBrand &&
+        (Array.isArray(existingBrand)
+          ? existingBrand[0]?.value
+          : existingBrand.value) === brandId
+      ) {
+        synced.brand = existingBrand;
+      } else {
+        synced.brand = { value: brandId, label: brandId };
+      }
+    } else {
+      synced.brand = null;
+    }
+
+    // Sync status
+    if (state.filters?.status) {
+      const statusValue = state.filters.status;
+      const statusArray = Array.isArray(statusValue)
+        ? statusValue
+        : [statusValue];
+      const existingStatus = defaultValues.status;
+
+      // Try to match existing status values with labels
+      if (existingStatus) {
+        const existingArray = Array.isArray(existingStatus)
+          ? existingStatus
+          : [existingStatus];
+        const matched = statusArray.map((s) => {
+          const found = existingArray.find((e) => e.value === s);
+          return found || { value: String(s), label: String(s) };
+        });
+        synced.status = matched.length === 1 ? matched[0] : matched;
+      } else {
+        synced.status = statusArray.map((s) => ({
+          value: String(s),
+          label: String(s),
+        }));
+      }
+    } else {
+      synced.status = null;
+    }
+
+    return synced;
+  }, [state.filters, defaultValues]);
+
+  const handleFilterApply = useCallback(
+    (applied: AppliedFilters) => {
+      // Extract values from applied filters
+      const company = applied.company
+        ? (Array.isArray(applied.company)
+            ? applied.company[0]
+            : applied.company
+          ).value
+        : undefined;
+      // const location = applied.location
+      //   ? (Array.isArray(applied.location)
+      //       ? applied.location[0]
+      //       : applied.location
+      //     ).value
+      //   : undefined;
+      const brands = applied.brand
+        ? (Array.isArray(applied.brand) ? applied.brand : [applied.brand]).map(
+            (b) => b.value,
+          )
+        : undefined;
+      const statuses = applied.status
+        ? (Array.isArray(applied.status)
+            ? applied.status
+            : [applied.status]
+          ).map((s) => s.value)
+        : undefined;
+
+      // Update DataView filters
+      setFilter("companyId", company);
+      // setFilter("locationId", location);
+      setFilter("brandId", brands?.[0]); // DataView expects single brandId
+      setFilter("status", statuses);
+
+      // Update labels for display
+      if (company && applied.company) {
+        setCompanyLabel(
+          Array.isArray(applied.company)
+            ? applied.company[0].label
+            : applied.company.label,
+        );
+      } else {
+        setCompanyLabel("");
+      }
+
+      if (location && applied.location) {
+        setLocationLabel(
+          Array.isArray(applied.location)
+            ? applied.location[0].label
+            : applied.location.label,
+        );
+      } else {
+        setLocationLabel("");
+      }
+
+      if (brands?.[0] && applied.brand) {
+        setBrandLabel(
+          Array.isArray(applied.brand)
+            ? applied.brand.map((b) => b.label).join(", ")
+            : applied.brand.label,
+        );
+      } else {
+        setBrandLabel("");
+      }
+
+      // Call parent handler
+      onApply(applied);
+    },
+    [setFilter, onApply, setCompanyLabel, setLocationLabel, setBrandLabel],
+  );
+
+  return (
+    <div className="mb-4">
+      <FilterBar
+        filters={filters}
+        defaultValues={syncedDefaultValues}
+        onApply={handleFilterApply}
+        showAction={showAction}
+      />
+    </div>
+  );
+}
+
+// Filter configuration for FilterBar
+const productListFilters: FilterConfig[] = [
+  {
+    key: "company",
+    mode: "single",
+    ui: "dropdown",
+    data: {
+      kind: "remote",
+      fetcher: companyOptionsFetcher(),
+      pageSize: 10,
+      debounceMs: 300,
+      minQueryLength: 0,
+      queryKey: ["filter-companies"],
+    },
+    renderButton: ({ isSelected }) => (
+      <div
+        className={cn(
+          "form-control flex w-full items-center justify-between gap-2",
+          isSelected && "ring-primary ring-2",
+        )}
+      >
+        Company
+        <ChevronDownIcon className="h-4 w-4" />
+      </div>
+    ),
+  },
+  // {
+  //   key: "location",
+  //   label: "Location",
+  //   mode: "single",
+  //   ui: "dropdown",
+  //   data: {
+  //     kind: "remote",
+  //     fetcher: locationOptionsFetcher(),
+  //     pageSize: 10,
+  //     debounceMs: 300,
+  //     minQueryLength: 0,
+  //     queryKey: ["filter-locations"],
+  //   },
+  //   dependsOn: ["company"],
+  //   dependsOnBehavior: "disable+clear", // must select company first
+  //   placeholder: "Search locations...",
+  // },
+  {
+    key: "brand",
+    // label: "Brand",
+    mode: "single",
+    ui: "dropdown",
+    data: {
+      kind: "remote",
+      fetcher: brandOptionsFetcher(),
+      pageSize: 10,
+      debounceMs: 300,
+      minQueryLength: 0,
+      queryKey: ["filter-brands"],
+    },
+    dependsOn: ["company"],
+    dependsOnBehavior: "disable+clear", // keep enabled; clear when parents change; shows all brands initially
+    renderButton: ({ isSelected, disabled }) => (
+      <div
+        data-disabled={disabled}
+        className={cn(
+          "form-control flex w-full items-center justify-between gap-2",
+          isSelected && "ring-primary ring-2",
+        )}
+      >
+        Brand
+        <ChevronDownIcon className="h-4 w-4" />
+      </div>
+    ),
+  },
+  {
+    key: "status",
+    mode: "single",
+    ui: "dropdown",
+    data: {
+      kind: "static",
+      options: [
+        { value: "active", label: "Active" },
+        { value: "inactive", label: "Inactive" },
+        { value: "draft", label: "Draft" },
+        { value: "publish", label: "Publish" },
+      ],
+    },
+    className: "w-fit",
+    renderButton: ({ isSelected }) => (
+      <div
+        className={cn(
+          "form-control flex w-full items-center justify-between gap-2",
+          isSelected && "ring-primary ring-2",
+        )}
+      >
+        Status
+        <ChevronDownIcon className="h-4 w-4" />
+      </div>
+    ),
+  },
+];
+
 const ProductList = () => {
   const { companyId, locationId, brandId } = useParams();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("all");
   const [selectedLocationId, setSelectedLocationId] = useState<string>("all");
   const [selectedBrandId, setSelectedBrandId] = useState<string>("all");
@@ -366,6 +649,8 @@ const ProductList = () => {
   const [hideLocationFilter, setHideLocationFilter] = useState(false);
   const [hideBrandFilter, setHideBrandFilter] = useState(false);
   const hasInitialized = useRef(false);
+
+  // FilterBar state - will be used inside DataViewProvider
 
   // Auto-fill from URL parameters and track which came from URL
   useEffect(() => {
@@ -425,6 +710,54 @@ const ProductList = () => {
     [selectedCompanyId, selectedLocationId, selectedBrandId],
   );
 
+  // Handle FilterBar apply (for URL params sync)
+  const handleFilterApply = useCallback((applied: AppliedFilters) => {
+    console.log("🚀 ~ ProductList ~ applied:", applied);
+    // Extract values for URL params compatibility
+    const company = applied.company
+      ? (Array.isArray(applied.company) ? applied.company[0] : applied.company)
+          .value
+      : undefined;
+    const location = applied.location
+      ? (Array.isArray(applied.location)
+          ? applied.location[0]
+          : applied.location
+        ).value
+      : undefined;
+    const brands = applied.brand
+      ? (Array.isArray(applied.brand) ? applied.brand : [applied.brand]).map(
+          (b) => b.value,
+        )
+      : undefined;
+
+    // Update local state for URL params compatibility
+    setSelectedCompanyId(company || "all");
+    setSelectedLocationId(location || "all");
+    setSelectedBrandId(brands?.[0] || "all");
+  }, []);
+
+  // Build default values from URL params
+  const defaultFilterValues = useMemo<AppliedFilters>(() => {
+    const defaults: AppliedFilters = {};
+    if (selectedCompanyId !== "all" && companyLabel) {
+      defaults.company = { value: selectedCompanyId, label: companyLabel };
+    }
+    if (selectedLocationId !== "all" && locationLabel) {
+      defaults.location = { value: selectedLocationId, label: locationLabel };
+    }
+    if (selectedBrandId !== "all" && brandLabel) {
+      defaults.brand = [{ value: selectedBrandId, label: brandLabel }];
+    }
+    return defaults;
+  }, [
+    selectedCompanyId,
+    selectedLocationId,
+    selectedBrandId,
+    companyLabel,
+    locationLabel,
+    brandLabel,
+  ]);
+
   return (
     <PageContent
       header={{
@@ -460,6 +793,15 @@ const ProductList = () => {
         resourceKey="listing"
         syncUrl={false}
       >
+        <FilterBarContent
+          filters={productListFilters}
+          defaultValues={defaultFilterValues}
+          onApply={handleFilterApply}
+          showAction={false}
+          setCompanyLabel={setCompanyLabel}
+          setLocationLabel={setLocationLabel}
+          setBrandLabel={setBrandLabel}
+        />
         <div className="space-y-4">
           <ActiveFiltersDisplay
             module="product"

@@ -57,6 +57,7 @@ interface PaginationComboBoxProps<T = unknown> {
     placeholder: string;
     error: boolean;
     multi: boolean;
+    isSelected: boolean;
   }) => React.ReactNode;
   /** Message to show when no results are found */
   emptyMessage?: string;
@@ -392,6 +393,7 @@ export const PaginationComboBox = <T = unknown,>({
         placeholder: string;
         error: boolean;
         multi: typeof multi;
+        isSelected: boolean;
       }) => {
         return renderButton({
           loading: props.loading,
@@ -402,6 +404,7 @@ export const PaginationComboBox = <T = unknown,>({
           placeholder: props.placeholder,
           error: props.error,
           multi: props.multi as boolean,
+          isSelected: props.isSelected,
         });
       }
     : undefined;
