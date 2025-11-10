@@ -28,6 +28,7 @@ const createProductFetcher = (
   companyId?: string,
   locationId?: string,
   brandId?: string,
+  status?: string,
 ) => {
   return createSimpleFetcher(
     (params: Record<string, unknown>) => {
@@ -37,6 +38,7 @@ const createProductFetcher = (
         ...(companyId && companyId !== "all" && { companyId }),
         ...(locationId && locationId !== "all" && { locationId }),
         ...(brandId && brandId !== "all" && { brand: brandId }),
+        ...(status && status !== "all" && { status }),
       };
       return apiGetProducts(filterParams);
     },
@@ -79,31 +81,42 @@ const createBrandFilter = (companyId?: string) => {
 
 const ProductList = () => {
   const [filterValue, setFilterValue] = React.useState<
-    Record<string, FilterOption[]>
-  >({});
+    Record<"status" | "company" | "brand" | "location", FilterOption[]>
+  >({
+    status: [],
+    company: [],
+    brand: [],
+    location: [],
+  });
   console.log("🚀 ~ ProductList ~ filterValue:", filterValue);
 
   const { companyId, locationId, brandId } = useParams();
   const [searchParams] = useSearchParams();
-  const [selectedCompanyId, setSelectedCompanyId] = useState<string>("all");
-  const [selectedLocationId, setSelectedLocationId] = useState<string>("all");
-  const [selectedBrandId, setSelectedBrandId] = useState<string>("all");
+
+  const selectedCompanyId = filterValue.company?.[0]?.value;
+  console.log("🚀 ~ ProductList ~ selectedCompanyId:", selectedCompanyId);
+  const selectedLocationId = filterValue.location?.[0]?.value;
+  const selectedBrandId = filterValue.brand?.[0]?.value;
+  const selectedStatus = filterValue.status?.[0]?.value;
+  // const [selectedCompanyId, setSelectedCompanyId] = useState<string>("all");
+  // const [selectedLocationId, setSelectedLocationId] = useState<string>("all");
+  // const [selectedBrandId, setSelectedBrandId] = useState<string>("all");
 
   // Handle company filter change
-  const handleCompanyChange = (companyId: string) => {
-    setSelectedCompanyId(companyId === "all" ? "" : companyId);
-    setSelectedLocationId(""); // Reset location when company changes
-  };
+  // const handleCompanyChange = (companyId: string) => {
+  //   setSelectedCompanyId(companyId === "all" ? "" : companyId);
+  //   setSelectedLocationId(""); // Reset location when company changes
+  // };
 
-  // Handle location filter change
-  const handleLocationChange = (locationId: string) => {
-    setSelectedLocationId(locationId === "all" ? "" : locationId);
-  };
+  // // Handle location filter change
+  // const handleLocationChange = (locationId: string) => {
+  //   setSelectedLocationId(locationId === "all" ? "" : locationId);
+  // };
 
-  // Handle brand filter change
-  const handleBrandChange = (brandId: string) => {
-    setSelectedBrandId(brandId === "all" ? "all" : brandId);
-  };
+  // // Handle brand filter change
+  // const handleBrandChange = (brandId: string) => {
+  //   setSelectedBrandId(brandId === "all" ? "all" : brandId);
+  // };
 
   // Auto-fill from URL parameters
   React.useEffect(() => {
@@ -111,17 +124,28 @@ const ProductList = () => {
     const urlLocationId = locationId || searchParams.get("locationId");
     const urlBrandId = brandId || searchParams.get("brandId");
 
-    if (urlCompanyId) {
-      setSelectedCompanyId(urlCompanyId);
-    }
+    setFilterValue((prev) => ({
+      ...prev,
+      companyId: urlCompanyId
+        ? [{ label: "Company", value: urlCompanyId }]
+        : [],
+      locationId: urlLocationId
+        ? [{ label: "Location", value: urlLocationId }]
+        : [],
+      brandId: urlBrandId ? [{ label: "Brand", value: urlBrandId }] : [],
+    }));
 
-    if (urlLocationId) {
-      setSelectedLocationId(urlLocationId);
-    }
+    // if (urlCompanyId) {
+    //   setSelectedCompanyId(urlCompanyId);
+    // }
 
-    if (urlBrandId) {
-      setSelectedBrandId(urlBrandId);
-    }
+    // if (urlLocationId) {
+    //   setSelectedLocationId(urlLocationId);
+    // }
+
+    // if (urlBrandId) {
+    //   setSelectedBrandId(urlBrandId);
+    // }
   }, [companyId, locationId, brandId, searchParams]);
 
   // const [stats, setStats] = useState(initialStatsData);
@@ -193,30 +217,20 @@ const ProductList = () => {
       }}
     >
       <FilterProvider
-        defaultValue={{
-          status: [
-            {
-              label: "Draft",
-              value: "draft",
-            },
-          ],
-          company: [
-            {
-              label: "All Companies",
-              value: selectedCompanyId,
-            },
-          ],
-        }}
         onChange={(v) => {
-          console.log("🚀 ~ onChange ~ v:", v);
-          setFilterValue(v);
+          setFilterValue((prev) => ({
+            status: v.status ?? prev.status ?? [],
+            company: v.company ?? prev.company ?? [],
+            brand: v.brand ?? prev.brand ?? [],
+            location: v.location ?? prev.location ?? [],
+          }));
         }}
       >
         <div className="flex items-center gap-2">
           <FilterDataItem
             dataKey="status"
             type="dropdown"
-            mode="multi"
+            mode="single"
             options={Object.values(STATUS_MAP.product)}
             placeholder="Select status..."
           />
@@ -283,50 +297,9 @@ const ProductList = () => {
             selectedCompanyId === "all" ? undefined : selectedCompanyId,
             selectedLocationId === "all" ? undefined : selectedLocationId,
             selectedBrandId === "all" ? undefined : selectedBrandId,
+            selectedStatus,
           )}
-          queryKeyPrefix={`${PANEL_ROUTES.LISTING.LIST}-${selectedCompanyId === "all" ? "" : selectedCompanyId}-${selectedLocationId === "all" ? "" : selectedLocationId}-${selectedBrandId === "all" ? "" : selectedBrandId}`}
-          actionProps={(tableState) => ({
-            children: (
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">Company:</span>
-                  <CompanyFilter
-                    value={selectedCompanyId}
-                    onValueChange={handleCompanyChange}
-                    placeholder="All Companies"
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">Location:</span>
-                  <LocationFilter
-                    companyId={selectedCompanyId}
-                    value={selectedLocationId}
-                    onValueChange={handleLocationChange}
-                    placeholder="All Locations"
-                    disabled={!selectedCompanyId}
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">Brand:</span>
-                  <BrandFilter
-                    value={selectedBrandId}
-                    onValueChange={handleBrandChange}
-                    placeholder="All Brands"
-                    companyId={
-                      selectedCompanyId === "all"
-                        ? undefined
-                        : selectedCompanyId
-                    }
-                  />
-                </div>
-                <StatusFilter
-                  tableState={tableState}
-                  module="product"
-                  multi={false} // Single selection mode
-                />
-              </div>
-            ),
-          })}
+          queryKeyPrefix={`${PANEL_ROUTES.LISTING.LIST}-${selectedCompanyId === "all" ? "" : selectedCompanyId}-${selectedLocationId === "all" ? "" : selectedLocationId}-${selectedBrandId === "all" ? "" : selectedBrandId}-${selectedStatus ?? ""}`}
         />
       </>
     </PageContent>
