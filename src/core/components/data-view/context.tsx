@@ -181,13 +181,34 @@ export function DataViewProvider<TData extends object>({
   const prevSearchRef = React.useRef(debouncedSearch);
   const prevSortingRef = React.useRef(sorting);
 
+  // Shallow comparison for filters (assuming flat structure)
+  // For nested structures, use a proper deep equality library
+  const filtersChanged = React.useMemo(() => {
+    const prev = prevFiltersRef.current;
+    const curr = filters;
+    const prevKeys = Object.keys(prev);
+    const currKeys = Object.keys(curr);
+    if (prevKeys.length !== currKeys.length) return true;
+    return prevKeys.some((key) => {
+      const prevVal = prev[key];
+      const currVal = curr[key];
+      if (prevVal?.length !== currVal?.length) return true;
+      return prevVal?.some((item, i) => item.value !== currVal[i]?.value);
+    });
+  }, [filters]);
+
+  const sortingChanged = React.useMemo(() => {
+    const prev = prevSortingRef.current;
+    const curr = sorting;
+    if (prev.length !== curr.length) return true;
+    return prev.some(
+      (p, i) => p.id !== curr[i]?.id || p.desc !== curr[i]?.desc,
+    );
+  }, [sorting]);
+
   // Reset to first page and reset infinite query when filters/search/sorting actually change
   useEffect(() => {
-    const filtersChanged =
-      JSON.stringify(prevFiltersRef.current) !== JSON.stringify(filters);
     const searchChanged = prevSearchRef.current !== debouncedSearch;
-    const sortingChanged =
-      JSON.stringify(prevSortingRef.current) !== JSON.stringify(sorting);
 
     if (filtersChanged || searchChanged || sortingChanged) {
       setPageIndex(0);
@@ -201,7 +222,7 @@ export function DataViewProvider<TData extends object>({
     prevFiltersRef.current = filters;
     prevSearchRef.current = debouncedSearch;
     prevSortingRef.current = sorting;
-  }, [debouncedSearch, filters, sorting, viewMode, gridQuery]);
+  }, [debouncedSearch, filtersChanged, sortingChanged, viewMode, gridQuery]);
 
   // Create table instance for table view
   const table = useReactTable<TData>({

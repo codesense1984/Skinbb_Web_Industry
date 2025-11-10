@@ -7,10 +7,7 @@ import {
   TableRow,
 } from "@/core/components/ui/table";
 import { cn } from "@/core/utils";
-import {
-  ChevronDownIcon,
-  ChevronUpIcon
-} from "@heroicons/react/24/outline";
+import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
 import { flexRender, type Header } from "@tanstack/react-table";
 import React, { useCallback, useEffect, useRef } from "react";
 import type { DataTableProps } from "../types";
@@ -169,6 +166,16 @@ export function DataTable<TData extends object>({
             {group.headers.map((header) => (
               <TableHead
                 key={header.id}
+                scope="col"
+                aria-sort={
+                  header.column.getCanSort()
+                    ? header.column.getIsSorted() === "asc"
+                      ? "ascending"
+                      : header.column.getIsSorted() === "desc"
+                        ? "descending"
+                        : "none"
+                    : undefined
+                }
                 className={
                   cn()
                   // "first:pl-0 last:pr-0",
@@ -180,12 +187,7 @@ export function DataTable<TData extends object>({
                 }}
               >
                 {/* {!header.isPlaceholder && <SortableHeader header={header} />} */}
-                {
-                  <SortableHeader
-                    key={header.id}
-                    header={header}
-                  />
-                }
+                {<SortableHeader key={header.id} header={header} />}
               </TableHead>
             ))}
           </TableRow>

@@ -108,7 +108,6 @@ export interface DataViewProps<TData extends object> {
    * Format: { filterKey: [{ label: string, value: string }] }
    */
   defaultFilters?: Record<string, FilterOption[]>;
-  defaultValueFilters?: Record<string, FilterOption[]>;
   /**
    * Grid container className
    */
@@ -139,12 +138,11 @@ export function DataView<TData extends object>({
   ariaLabels = {},
   additionalControls,
   defaultFilters,
-  defaultValueFilters,
   gridClassName,
   tableClassName,
 }: DataViewProps<TData>) {
   return (
-    <FilterProvider defaultValue={defaultFilters} value={defaultValueFilters}>
+    <FilterProvider defaultValue={defaultFilters}>
       <DataViewProvider
         fetcher={fetcher}
         columns={columns}
@@ -226,11 +224,6 @@ function DataViewInner<TData extends object>({
     setSearch("");
   };
 
-  // Convert context filters to FilterBadges format
-  const filterBadgesValue = React.useMemo(() => {
-    return contextFilters;
-  }, [contextFilters]);
-
   // Create setFilterValue adapter for FilterBadges
   const setFilterValue = React.useCallback(
     (updater: React.SetStateAction<Record<string, FilterOption[]>>) => {
@@ -245,6 +238,18 @@ function DataViewInner<TData extends object>({
   const handleRetry = () => {
     refetch();
   };
+
+  // Memoize load more callback to prevent grid re-renders
+  const handleLoadMore = React.useCallback(() => {
+    fetchNextPage?.();
+  }, [fetchNextPage]);
+
+  // Track data length for announcements
+  const prevDataLengthRef = React.useRef<number>(0);
+
+  React.useEffect(() => {
+    if (data) prevDataLengthRef.current = data.length;
+  }, [data]);
 
   // Error state
   if (error && !isLoading) {
@@ -298,7 +303,7 @@ function DataViewInner<TData extends object>({
       {/* Filter Badges - Show active filters with remove functionality */}
       {Object.keys(contextFilters).length > 0 && (
         <FilterBadges
-          filters={filterBadgesValue}
+          filters={contextFilters}
           setFilterValue={setFilterValue}
         />
       )}
@@ -343,9 +348,7 @@ function DataViewInner<TData extends object>({
               isLoading={isLoading}
               hasNextPage={hasNextPage ?? false}
               isFetchingNextPage={isFetchingNextPage ?? false}
-              onLoadMore={() => {
-                fetchNextPage?.();
-              }}
+              onLoadMore={handleLoadMore}
               ariaLabel={ariaLabels?.grid}
               className={gridClassName}
             />
@@ -354,6 +357,18 @@ function DataViewInner<TData extends object>({
       )}
 
       {/* Screen reader announcements */}
+      {!isLoading && data && data.length !== prevDataLengthRef.current && (
+        <div
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          className="sr-only"
+        >
+          {data.length === 0
+            ? "No results found"
+            : `${data.length} ${data.length === 1 ? "result" : "results"} found`}
+        </div>
+      )}
       <div
         role="status"
         aria-live="polite"
@@ -362,7 +377,6 @@ function DataViewInner<TData extends object>({
       >
         {isLoading && "Loading data..."}
         {!isLoading && isEmpty && "No data available"}
-        {!isLoading && !isEmpty && data && `${data.length} items displayed`}
       </div>
     </div>
   );

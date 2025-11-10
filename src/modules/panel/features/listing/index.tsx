@@ -210,18 +210,6 @@ const ProductList = () => {
         ),
       }}
     >
-      {/* <FilterProvider
-        onChange={(v) => {
-          setFilterValue((prev) => ({
-            status: v.status ?? prev.status ?? [],
-            company: v.company ?? prev.company ?? [],
-            brand: v.brand ?? prev.brand ?? [],
-            location: v.location ?? prev.location ?? [],
-          }));
-        }}
-      > */}
-      {/* <FilterBadges filters={filterValue} setFilterValue={setFilterValue} /> */}
-
       <DataView<Product>
         fetcher={fetchProduct}
         columns={columns}
@@ -282,7 +270,6 @@ const ProductList = () => {
         enableUrlSync={false}
         queryKeyPrefix={PANEL_ROUTES.LISTING.LIST}
         searchPlaceholder="Search products..."
-        // defaultFilters={filterValue}
         defaultFilters={filterValue}
       />
       {/* </FilterProvider> */}

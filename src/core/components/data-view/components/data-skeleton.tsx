@@ -31,7 +31,7 @@ function TableSkeleton({ count = 5 }: { count?: number }) {
             <TableRow key={rowIndex}>
               {Array.from({ length: 5 }).map((_, colIndex) => (
                 <TableCell key={colIndex}>
-                  <div className="h-4 w-full animate-pulse rounded bg-muted" />
+                  <div className="h-4 w-full min-h-[1rem] animate-pulse rounded bg-muted" />
                 </TableCell>
               ))}
             </TableRow>
@@ -64,7 +64,7 @@ function GridSkeleton({
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="rounded-md border p-4"
+          className="min-h-[200px] rounded-md border p-4"
           role="status"
           aria-label="Loading"
         >
