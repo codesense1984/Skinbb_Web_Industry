@@ -6,6 +6,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  type RowSelectionState,
   type SortingState,
 } from "@tanstack/react-table";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -62,6 +63,9 @@ export function DataViewProvider<TData extends object>({
 
   // Sorting state
   const [sorting, setSorting] = useState<SortingState>([]);
+
+  // Row selection state
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 
   // URL state sync
   // useUrlStateSync({
@@ -233,6 +237,16 @@ export function DataViewProvider<TData extends object>({
     getSortedRowModel: getSortedRowModel(),
     manualPagination: true,
     manualSorting: true,
+    enableRowSelection: true,
+    // Use _id as row identifier if available
+    getRowId: (row) => {
+      // Check if row has _id property (common in MongoDB documents)
+      if (row && typeof row === "object" && "_id" in row) {
+        return String((row as { _id: unknown })._id);
+      }
+      // Fallback to index-based ID
+      return String(data?.indexOf(row) ?? -1);
+    },
     pageCount: Math.ceil(total / pageSize),
     state: {
       pagination: {
@@ -240,6 +254,7 @@ export function DataViewProvider<TData extends object>({
         pageSize,
       },
       sorting,
+      rowSelection,
     },
     onPaginationChange: (updater) => {
       const currentState = { pageIndex, pageSize };
@@ -260,6 +275,7 @@ export function DataViewProvider<TData extends object>({
       const next = typeof updater === "function" ? updater(sorting) : updater;
       setSorting(next);
     },
+    onRowSelectionChange: setRowSelection,
   });
 
   // Wrapper for setFilters that works with FilterProvider

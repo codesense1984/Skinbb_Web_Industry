@@ -9,6 +9,7 @@ import type { Product } from "@/modules/panel/types/product.type";
 import { formatCurrency, formatDate } from "@/core/utils";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import type { ColumnDef } from "@tanstack/react-table";
+import { Checkbox } from "@/core/components/ui/checkbox";
 
 export const initialStatsData = [
   {
@@ -38,6 +39,29 @@ export const initialStatsData = [
 ];
 
 export const columns: ColumnDef<Product>[] = [
+  {
+    id: "select",
+    size: 50,
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && "indeterminate")
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
   {
     accessorKey: "productName",
     header: "Product",

@@ -1,12 +1,16 @@
 import { createSimpleFetcher } from "@/core/components/data-table";
+import {
+  DataView,
+  useDataView,
+  type ServerDataFetcher,
+} from "@/core/components/data-view";
+import {
+  FilterDataItem,
+  type FilterOption,
+} from "@/core/components/dynamic-filter";
 import { Button } from "@/core/components/ui/button";
 import { PageContent } from "@/core/components/ui/structure";
 import { STATUS_MAP } from "@/core/config/status";
-import {
-  FilterDataItem,
-  FilterProvider,
-  type FilterOption,
-} from "@/core/components/dynamic-filter";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import {
   apiGetProducts,
@@ -19,8 +23,6 @@ import { apiGetCompaniesForFilter } from "../../services/http/company.service";
 import type { Brand, Company } from "../../types";
 import type { Product } from "../../types/product.type";
 import { columns } from "./data";
-import { FilterBadges } from "@/core/components/dynamic-filter/filter-badges";
-import { DataView, type ServerDataFetcher } from "@/core/components/data-view";
 import { ProductCard } from "./ProductCard";
 
 // Create fetcher for DataView component
@@ -104,6 +106,44 @@ const createBrandFilter = (companyId?: string) => {
   );
 };
 
+/**
+ * Delete button component that accesses selected rows
+ */
+const DeleteButton = () => {
+  const { table } = useDataView<Product>();
+
+  const handleDelete = () => {
+    if (!table) return;
+
+    // Get selected rows
+    const selectedRows = table.getSelectedRowModel().rows;
+
+    if (selectedRows.length === 0) {
+      // Optionally show a message to the user
+      console.log("No rows selected");
+      return;
+    }
+
+    // Get the original data from selected rows
+    const selectedProducts = selectedRows.map((row) => row.original);
+
+    // Log or use the selected products
+    console.log("Selected products to delete:", selectedProducts);
+
+    // TODO: Implement your delete logic here
+    // For example:
+    // - Show a confirmation dialog
+    // - Call your delete API
+    // - Refetch data after deletion
+  };
+
+  return (
+    <Button color="primary" onClick={handleDelete}>
+      Delete
+    </Button>
+  );
+};
+
 const ProductList = () => {
   const [filterValue, setFilterValue] = React.useState<
     Record<"status" | "company" | "brand" | "location", FilterOption[]>
@@ -117,7 +157,6 @@ const ProductList = () => {
   const { companyId, locationId, brandId } = useParams();
   const [searchParams] = useSearchParams();
 
-  // Get selected filter values for dynamic brand filter
   const selectedCompanyId = filterValue.company?.[0]?.value;
 
   // Auto-fill from URL parameters on mount
@@ -130,10 +169,10 @@ const ProductList = () => {
       setFilterValue((prev) => ({
         ...prev,
         company: urlCompanyId
-          ? [{ label: "Company", value: urlCompanyId, disabled: true }]
+          ? [{ label: "Company", value: urlCompanyId, disabled: false }]
           : prev.company,
         location: urlLocationId
-          ? [{ label: "Location", value: urlLocationId, disabled: true }]
+          ? [{ label: "Location", value: urlLocationId, disabled: false }]
           : prev.location,
         brand: urlBrandId
           ? [{ label: "Brand", value: urlBrandId }]
@@ -141,61 +180,6 @@ const ProductList = () => {
       }));
     }
   }, [companyId, locationId, brandId, searchParams]);
-
-  // const [stats, setStats] = useState(initialStatsData);
-
-  // // Fetch stats separately since we need them for the summary cards
-  // const fetchStats = useCallback(async () => {
-  //   try {
-  //     const response = await apiGetProducts({ page: 1, limit: 1000 }); // Get all for stats
-
-  //     if (response?.success) {
-  //       const publishedProducts = response?.data?.products.filter(
-  //         (p) => p.status === "publish",
-  //       ).length;
-  //       const draftProducts = response?.data?.products.filter(
-  //         (p) => p.status === "draft",
-  //       ).length;
-  //       const totalVariants = response?.data?.products.reduce(
-  //         (sum, product) => sum + (product.variants?.length || 0),
-  //         0,
-  //       );
-
-  //       setStats([
-  //         {
-  //           title: "Total Products",
-  //           value: response?.data?.totalRecords,
-  //           barColor: "bg-primary",
-  //           icon: true,
-  //         },
-  //         {
-  //           title: "Published Products",
-  //           value: publishedProducts,
-  //           barColor: "bg-blue-300",
-  //           icon: false,
-  //         },
-  //         {
-  //           title: "Draft Products",
-  //           value: draftProducts || 0,
-  //           barColor: "bg-violet-300",
-  //           icon: false,
-  //         },
-  //         {
-  //           title: "Total Variants",
-  //           value: totalVariants,
-  //           barColor: "bg-red-300",
-  //           icon: true,
-  //         },
-  //       ]);
-  //     }
-  //   } catch (error) {
-  //     console.error("Failed to fetch product stats:", error);
-  //   }
-  // }, []);
-
-  // useEffect(() => {
-  //   fetchStats();
-  // }, [fetchStats]);
 
   return (
     <PageContent
@@ -237,7 +221,6 @@ const ProductList = () => {
                     value: item._id ?? "",
                   };
                 },
-                disabled: true,
                 queryKey: ["company-list-filter"],
                 pageSize: 10,
               }}
@@ -248,11 +231,7 @@ const ProductList = () => {
               mode="single"
               placeholder="Select brand..."
               elementProps={{
-                apiFunction: createBrandFilter(
-                  selectedCompanyId && selectedCompanyId !== "all"
-                    ? selectedCompanyId
-                    : undefined,
-                ),
+                apiFunction: createBrandFilter(),
                 transform: (item) => {
                   return {
                     label: item.name,
@@ -271,6 +250,7 @@ const ProductList = () => {
         queryKeyPrefix={PANEL_ROUTES.LISTING.LIST}
         searchPlaceholder="Search products..."
         defaultFilters={filterValue}
+        additionalControls={<DeleteButton />}
       />
       {/* </FilterProvider> */}
     </PageContent>
