@@ -43,8 +43,8 @@ export function DataViewProvider<TData extends object>({
   defaultPageSize = 10,
   searchDebounceMs = 400,
   queryKeyPrefix = "data-view",
-  enableUrlSync = true,
-  urlParams = {},
+  // enableUrlSync = true,
+  // urlParams = {},
 }: DataViewProviderProps<TData>) {
   // View mode state
   const [viewMode, setViewMode] = useState<"table" | "grid">(defaultViewMode);

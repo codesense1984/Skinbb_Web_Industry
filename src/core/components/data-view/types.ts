@@ -207,7 +207,15 @@ export interface DataGridProps<TData> {
 /**
  * Data view controls props
  */
-export interface DataViewControlsProps {
+export interface DataViewControlsProps<TData> {
+  /**
+   * Table instance from TanStack Table
+   */
+  table?: TableType<TData>;
+  /**
+   * Show column visibility toggle
+   */
+  showColumnVisibility?: boolean;
   /**
    * Current view mode
    */

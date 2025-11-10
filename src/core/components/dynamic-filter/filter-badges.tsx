@@ -1,9 +1,11 @@
 import { capitalize, cn } from "@/core/utils";
-import { XCircleIcon } from "@heroicons/react/24/outline";
-import type { FilterOption } from "./types";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 import type { Dispatch, SetStateAction } from "react";
+import { Button } from "../ui/button";
+import type { FilterOption } from "./types";
 
 interface ActiveFilterChip {
+  disabled?: boolean;
   key: string;
   label: string;
   value: string | string[];
@@ -44,21 +46,22 @@ export const ActiveFilters: React.FC<ActiveFiltersProps> = ({
         <div
           key={`${filter.key}-${value}-${index}`}
           className={cn(
-            "inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm shadow-sm",
+            "border-border inline-flex items-center gap-1.5 rounded-md border bg-white px-3 py-1.5 text-sm shadow-sm",
             className,
           )}
         >
-          <span className="text-blue-600">
-            {capitalize((filter.displayValue ?? "") as string)} : {filter.label}
+          <span className="text-muted-foreground">
+            {capitalize((filter.displayValue ?? "") as string)} :{" "}
+            <span className="font-medium">{filter.label}</span>
           </span>
-          <button
-            type="button"
+          {!filter.disabled && <Button
+            variant={"ghost"}
+            className="h-auto p-0"
             onClick={filter.onRemove}
-            className="rounded-full p-0.5 text-purple-600 transition-colors hover:text-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-1 focus:outline-none"
             aria-label={`Remove ${filter.label} filter: ${displayValue}`}
           >
-            <XCircleIcon className="h-3.5 w-3.5" />
-          </button>
+            <XMarkIcon className="size-4" />
+          </Button>}
         </div>
       );
     });
@@ -87,6 +90,7 @@ export const FilterBadges: React.FC<FilterBadgesProps> = ({
             label: item.label,
             value: item.value,
             displayValue: key,
+            disabled: item.disabled,
             onRemove: () => {
               setFilterValue((prev) => {
                 const newFilters = { ...prev };

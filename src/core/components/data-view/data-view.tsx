@@ -7,7 +7,9 @@ import { DataViewControls } from "./components/data-view-controls";
 import { DataErrorState } from "./components/data-error-state";
 import { DataEmptyState } from "./components/data-empty-state";
 import { DataPagination } from "./components/data-pagination";
+import { FilterBadges } from "@/core/components/dynamic-filter/filter-badges";
 import type { DataViewColumnDef, ServerDataFetcher, ViewMode } from "./types";
+import type { FilterOption } from "@/core/components/dynamic-filter/types";
 
 export interface DataViewProps<TData extends object> {
   /**
@@ -101,6 +103,12 @@ export interface DataViewProps<TData extends object> {
    * Additional controls to render in the controls bar
    */
   additionalControls?: React.ReactNode;
+  /**
+   * Default filter values to initialize filters with
+   * Format: { filterKey: [{ label: string, value: string }] }
+   */
+  defaultFilters?: Record<string, FilterOption[]>;
+  defaultValueFilters?: Record<string, FilterOption[]>;
 }
 
 /**
@@ -125,9 +133,11 @@ export function DataView<TData extends object>({
   loadingRows = 5,
   ariaLabels = {},
   additionalControls,
+  defaultFilters,
+  defaultValueFilters,
 }: DataViewProps<TData>) {
   return (
-    <FilterProvider>
+    <FilterProvider defaultValue={defaultFilters} value={defaultValueFilters}>
       <DataViewProvider
         fetcher={fetcher}
         columns={columns}
@@ -188,10 +198,6 @@ function DataViewInner<TData extends object>({
     setSearch,
     filters: contextFilters,
     setFilters,
-    pageIndex,
-    pageSize,
-    setPageIndex,
-    setPageSize,
     data,
     total,
     isLoading,
@@ -210,6 +216,21 @@ function DataViewInner<TData extends object>({
     setSearch("");
   };
 
+  // Convert context filters to FilterBadges format
+  const filterBadgesValue = React.useMemo(() => {
+    return contextFilters;
+  }, [contextFilters]);
+
+  // Create setFilterValue adapter for FilterBadges
+  const setFilterValue = React.useCallback(
+    (updater: React.SetStateAction<Record<string, FilterOption[]>>) => {
+      const newFilters =
+        typeof updater === "function" ? updater(contextFilters) : updater;
+      setFilters(newFilters);
+    },
+    [contextFilters, setFilters],
+  );
+
   // Handle retry
   const handleRetry = () => {
     refetch();
@@ -220,6 +241,7 @@ function DataViewInner<TData extends object>({
     return (
       <div className="space-y-4">
         <DataViewControls
+          table={table ?? undefined}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
           search={search}
@@ -250,6 +272,8 @@ function DataViewInner<TData extends object>({
     <div className="space-y-4">
       {/* Controls */}
       <DataViewControls
+        table={table ?? undefined}
+        showColumnVisibility={showColumnVisibility}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         search={search}
@@ -260,6 +284,14 @@ function DataViewInner<TData extends object>({
       >
         {additionalControls}
       </DataViewControls>
+
+      {/* Filter Badges - Show active filters with remove functionality */}
+      {Object.keys(contextFilters).length > 0 && (
+        <FilterBadges
+          filters={filterBadgesValue}
+          setFilterValue={setFilterValue}
+        />
+      )}
 
       {/* Content */}
       {viewMode === "table" ? (

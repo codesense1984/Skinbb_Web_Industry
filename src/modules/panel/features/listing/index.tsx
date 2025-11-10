@@ -130,10 +130,10 @@ const ProductList = () => {
       setFilterValue((prev) => ({
         ...prev,
         company: urlCompanyId
-          ? [{ label: "Company", value: urlCompanyId }]
+          ? [{ label: "Company", value: urlCompanyId, disabled: true }]
           : prev.company,
         location: urlLocationId
-          ? [{ label: "Location", value: urlLocationId }]
+          ? [{ label: "Location", value: urlLocationId, disabled: true }]
           : prev.location,
         brand: urlBrandId
           ? [{ label: "Brand", value: urlBrandId }]
@@ -210,7 +210,7 @@ const ProductList = () => {
         ),
       }}
     >
-      <FilterProvider
+      {/* <FilterProvider
         onChange={(v) => {
           setFilterValue((prev) => ({
             status: v.status ?? prev.status ?? [],
@@ -219,69 +219,72 @@ const ProductList = () => {
             location: v.location ?? prev.location ?? [],
           }));
         }}
-      >
-        <FilterBadges filters={filterValue} setFilterValue={setFilterValue} />
+      > */}
+      {/* <FilterBadges filters={filterValue} setFilterValue={setFilterValue} /> */}
 
-        <DataView<Product>
-          fetcher={fetchProduct}
-          columns={columns}
-          renderCard={(product) => <ProductCard product={product} />}
-          filters={
-            <>
-              <FilterDataItem
-                dataKey="status"
-                type="dropdown"
-                mode="single"
-                options={Object.values(STATUS_MAP.product)}
-                placeholder="Select status..."
-              />
-              <FilterDataItem<"pagination", undefined, Company>
-                dataKey="company"
-                type="pagination"
-                mode="single"
-                placeholder="Select company..."
-                elementProps={{
-                  apiFunction: companyFilter,
-                  transform: (item) => {
-                    return {
-                      label: item.companyName,
-                      value: item._id ?? "",
-                    };
-                  },
-                  queryKey: ["company-list-filter"],
-                  pageSize: 10,
-                }}
-              />
-              <FilterDataItem<"pagination", undefined, Brand>
-                dataKey="brand"
-                type="pagination"
-                mode="single"
-                placeholder="Select brand..."
-                elementProps={{
-                  apiFunction: createBrandFilter(
-                    selectedCompanyId && selectedCompanyId !== "all"
-                      ? selectedCompanyId
-                      : undefined,
-                  ),
-                  transform: (item) => {
-                    return {
-                      label: item.name,
-                      value: item._id ?? "",
-                    };
-                  },
-                  queryKey: ["company-brand-filter", selectedCompanyId],
-                  pageSize: 10,
-                }}
-              />
-            </>
-          }
-          defaultViewMode="table"
-          defaultPageSize={10}
-          enableUrlSync={false}
-          queryKeyPrefix={PANEL_ROUTES.LISTING.LIST}
-          searchPlaceholder="Search products..."
-        />
-      </FilterProvider>
+      <DataView<Product>
+        fetcher={fetchProduct}
+        columns={columns}
+        renderCard={(product) => <ProductCard product={product} />}
+        filters={
+          <>
+            <FilterDataItem
+              dataKey="status"
+              type="dropdown"
+              mode="single"
+              options={Object.values(STATUS_MAP.product)}
+              placeholder="Select status..."
+            />
+            <FilterDataItem<"pagination", undefined, Company>
+              dataKey="company"
+              type="pagination"
+              mode="single"
+              placeholder="Select company..."
+              elementProps={{
+                apiFunction: companyFilter,
+                transform: (item) => {
+                  return {
+                    label: item.companyName,
+                    value: item._id ?? "",
+                  };
+                },
+                disabled: true,
+                queryKey: ["company-list-filter"],
+                pageSize: 10,
+              }}
+            />
+            <FilterDataItem<"pagination", undefined, Brand>
+              dataKey="brand"
+              type="pagination"
+              mode="single"
+              placeholder="Select brand..."
+              elementProps={{
+                apiFunction: createBrandFilter(
+                  selectedCompanyId && selectedCompanyId !== "all"
+                    ? selectedCompanyId
+                    : undefined,
+                ),
+                transform: (item) => {
+                  return {
+                    label: item.name,
+                    value: item._id ?? "",
+                  };
+                },
+                queryKey: ["company-brand-filter", selectedCompanyId],
+                pageSize: 10,
+              }}
+            />
+          </>
+        }
+        defaultViewMode="table"
+        defaultPageSize={10}
+        enableUrlSync={false}
+        queryKeyPrefix={PANEL_ROUTES.LISTING.LIST}
+        searchPlaceholder="Search products..."
+        // defaultFilters={filterValue}
+        defaultFilters={filterValue}
+      />
+      {/* </FilterProvider> */}
     </PageContent>
   );
 };

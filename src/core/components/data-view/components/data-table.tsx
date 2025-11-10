@@ -11,21 +11,9 @@ import {
   ArrowDownIcon,
   ArrowUpIcon,
   BarsArrowUpIcon,
-  ViewColumnsIcon,
 } from "@heroicons/react/24/outline";
-import {
-  flexRender,
-  type Header,
-  type Table as TableType,
-} from "@tanstack/react-table";
+import { flexRender, type Header } from "@tanstack/react-table";
 import React, { useCallback, useEffect, useRef } from "react";
-import {
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuRoot,
-  DropdownMenuTrigger,
-} from "@/core/components/ui/dropdown-menu";
-import { Button } from "@/core/components/ui/button";
 import type { DataTableProps } from "../types";
 import { DataSkeleton } from "./data-skeleton";
 
@@ -37,7 +25,11 @@ function SortableHeader<TData>({
   renderCell,
 }: {
   header: Header<TData, unknown>;
-  renderCell?: (columnId: string, value: unknown, row: TData) => React.ReactNode;
+  renderCell?: (
+    columnId: string,
+    value: unknown,
+    row: TData,
+  ) => React.ReactNode;
 }) {
   const canSort = header.column.getCanSort();
   const isSorted = header.column.getIsSorted();
@@ -73,8 +65,8 @@ function SortableHeader<TData>({
           }
           onKeyDown={handleKeyDown}
           className={cn(
-            "group flex h-full w-full items-center gap-2 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
-            canSort && "cursor-pointer hover:bg-muted/50",
+            "group focus:ring-primary flex h-full w-full items-center gap-2 px-3 py-2 focus:ring-2 focus:ring-offset-2 focus:outline-none",
+            canSort && "hover:bg-muted/50 cursor-pointer",
           )}
           onClick={toggleHandler}
         >
@@ -82,17 +74,20 @@ function SortableHeader<TData>({
           {canSort && (
             <span className="ml-auto flex items-center gap-1">
               {isSorted === "asc" && (
-                <ArrowUpIcon className="h-4 w-4 text-primary" aria-hidden="true" />
+                <ArrowUpIcon
+                  className="text-primary h-4 w-4"
+                  aria-hidden="true"
+                />
               )}
               {isSorted === "desc" && (
                 <ArrowDownIcon
-                  className="h-4 w-4 text-primary"
+                  className="text-primary h-4 w-4"
                   aria-hidden="true"
                 />
               )}
               {!isSorted && (
                 <BarsArrowUpIcon
-                  className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100"
+                  className="text-muted-foreground h-4 w-4 opacity-0 group-hover:opacity-100"
                   aria-hidden="true"
                 />
               )}
@@ -111,8 +106,6 @@ export function DataTable<TData extends object>({
   table,
   renderCell,
   emptyMessage = "No data available",
-  loadingRows = 5,
-  showColumnVisibility = true,
   ariaLabel = "Data table",
 }: DataTableProps<TData>) {
   const tableRef = useRef<HTMLTableElement>(null);
@@ -186,101 +179,70 @@ export function DataTable<TData extends object>({
   const headers = table.getHeaderGroups();
 
   return (
-    <div className="space-y-4">
-      {showColumnVisibility && (
-        <div className="flex justify-end">
-          <DropdownMenuRoot>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" aria-label="Toggle columns">
-                <ViewColumnsIcon className="h-4 w-4 mr-2" />
-                Columns
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              {table
-                .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(checked) =>
-                      column.toggleVisibility(checked)
-                    }
-                  >
-                    {String(column.columnDef.header ?? column.id)}
-                  </DropdownMenuCheckboxItem>
-                ))}
-            </DropdownMenuContent>
-          </DropdownMenuRoot>
-        </div>
-      )}
+    <div className="rounded-md border">
+      <Table ref={tableRef} aria-label={ariaLabel}>
+        <TableHeader>
+          {headers.map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <SortableHeader
+                  key={header.id}
+                  header={header}
+                  renderCell={renderCell}
+                />
+              ))}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {rows.length === 0 ? (
+            <TableRow>
+              <TableCell
+                colSpan={headers[0]?.headers.length ?? 1}
+                className="h-24 text-center"
+              >
+                <div role="status" aria-live="polite">
+                  {emptyMessage}
+                </div>
+              </TableCell>
+            </TableRow>
+          ) : (
+            rows.map((row, rowIndex) => (
+              <TableRow
+                key={row.id}
+                data-row-index={rowIndex}
+                className="focus-within:bg-muted/50"
+              >
+                {row.getVisibleCells().map((cell, colIndex) => {
+                  const columnId = cell.column.id;
+                  const cellValue = cell.getValue();
+                  const rowData = row.original;
 
-      <div className="rounded-md border">
-        <Table ref={tableRef} aria-label={ariaLabel}>
-          <TableHeader>
-            {headers.map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <SortableHeader
-                    key={header.id}
-                    header={header}
-                    renderCell={renderCell}
-                  />
-                ))}
+                  return (
+                    <TableCell
+                      key={cell.id}
+                      data-row-index={rowIndex}
+                      data-col-index={colIndex}
+                      tabIndex={rowIndex === 0 && colIndex === 0 ? 0 : -1}
+                      onFocus={() =>
+                        setFocusedCell({ rowIndex, columnIndex: colIndex })
+                      }
+                      className="focus:ring-primary focus:ring-2 focus:ring-offset-2 focus:outline-none"
+                    >
+                      {renderCell
+                        ? renderCell(columnId, cellValue, rowData)
+                        : flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
+                    </TableCell>
+                  );
+                })}
               </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {rows.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={headers[0]?.headers.length ?? 1}
-                  className="h-24 text-center"
-                >
-                  <div role="status" aria-live="polite">
-                    {emptyMessage}
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : (
-              rows.map((row, rowIndex) => (
-                <TableRow
-                  key={row.id}
-                  data-row-index={rowIndex}
-                  className="focus-within:bg-muted/50"
-                >
-                  {row.getVisibleCells().map((cell, colIndex) => {
-                    const columnId = cell.column.id;
-                    const cellValue = cell.getValue();
-                    const rowData = row.original;
-
-                    return (
-                      <TableCell
-                        key={cell.id}
-                        data-row-index={rowIndex}
-                        data-col-index={colIndex}
-                        tabIndex={rowIndex === 0 && colIndex === 0 ? 0 : -1}
-                        onFocus={() =>
-                          setFocusedCell({ rowIndex, columnIndex: colIndex })
-                        }
-                        className="focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                      >
-                        {renderCell
-                          ? renderCell(columnId, cellValue, rowData)
-                          : flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext(),
-                            )}
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+            ))
+          )}
+        </TableBody>
+      </Table>
     </div>
   );
 }
@@ -299,4 +261,3 @@ export function DataTableWithSkeleton<TData extends object>(
 
   return <DataTable {...tableProps} />;
 }
-

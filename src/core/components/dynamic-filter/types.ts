@@ -2,7 +2,7 @@
  * Core types and runtime validators for the filter module
  */
 
-export type FilterOption = { label: string; value: string; meta?: unknown };
+export type FilterOption = { label: string; value: string; meta?: unknown , disabled?: boolean };
 
 export type FilterValue = Record<string, FilterOption[]>;
 

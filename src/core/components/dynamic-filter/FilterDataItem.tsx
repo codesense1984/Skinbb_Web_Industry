@@ -68,8 +68,9 @@ export function FilterDataItem<
       return (
         <div
           className={cn(
-            "form-control flex w-full items-center justify-between gap-2",
+            "form-control flex w-fit items-center justify-between gap-2",
             buttonProps.isSelected && "ring-primary ring-2",
+            buttonProps.disabled && "bg-muted/50 cursor-not-allowed opacity-80",
           )}
         >
           {displayLabel}
