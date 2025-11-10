@@ -2,18 +2,102 @@ import { createSimpleFetcher, DataTable } from "@/core/components/data-table";
 import { StatusFilter } from "@/core/components/data-table/components/table-filter";
 import { Button } from "@/core/components/ui/button";
 import { PageContent } from "@/core/components/ui/structure";
+import { STATUS_MAP } from "@/core/config/status";
+import { capitalize, cn } from "@/core/utils";
+import {
+  FilterDataItem,
+  FilterProvider,
+  type FilterOption,
+} from "@/core/components/dynamic-filter";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { apiGetProducts } from "@/modules/panel/services/http/product.service";
-import { NavLink } from "react-router";
-import { columns } from "./data";
+import { XCircleIcon } from "@heroicons/react/24/outline";
+import React, { useState } from "react";
+import { NavLink, useParams, useSearchParams } from "react-router";
+import { apiGetBrands } from "../../services/http/brand.service";
+import { apiGetCompaniesForFilter } from "../../services/http/company.service";
+import type { Brand, Company } from "../../types";
+import { BrandFilter } from "./components/BrandFilter";
 import { CompanyFilter } from "./components/CompanyFilter";
 import { LocationFilter } from "./components/LocationFilter";
-import { BrandFilter } from "./components/BrandFilter";
-import React, { useState } from "react";
-import { useParams, useSearchParams } from "react-router";
+import { columns } from "./data";
+
+interface ActiveFilterChip {
+  key: string;
+  label: string;
+  value: string | string[];
+  displayValue?: string | string[]; // Optional display value (e.g., name instead of ID)
+  onRemove: () => void;
+}
+
+interface ActiveFiltersProps {
+  filters: ActiveFilterChip[];
+  className?: string;
+}
+
+export const ActiveFilters: React.FC<ActiveFiltersProps> = ({
+  filters,
+  className,
+}) => {
+  if (filters.length === 0) {
+    return null;
+  }
+
+  const renderFilterChip = (filter: ActiveFilterChip) => {
+    const values = Array.isArray(filter.value) ? filter.value : [filter.value];
+    const displayValues = filter.displayValue
+      ? Array.isArray(filter.displayValue)
+        ? filter.displayValue
+        : [filter.displayValue]
+      : values;
+
+    return values.map((value, index) => {
+      let displayValue: string;
+      if (displayValues[index]) {
+        displayValue = displayValues[index];
+      } else {
+        displayValue = value;
+      }
+
+      return (
+        <div
+          key={`${filter.key}-${value}-${index}`}
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm shadow-sm",
+            className,
+          )}
+        >
+          <span className="text-blue-600">
+            {capitalize((filter.displayValue ?? "") as string)} : {filter.label}
+          </span>
+          <button
+            type="button"
+            onClick={filter.onRemove}
+            className="rounded-full p-0.5 text-purple-600 transition-colors hover:text-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-1 focus:outline-none"
+            aria-label={`Remove ${filter.label} filter: ${displayValue}`}
+          >
+            <XCircleIcon className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      );
+    });
+  };
+
+  console.log(filters, "filters");
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {filters.flatMap(renderFilterChip)}
+    </div>
+  );
+};
 
 // Create fetcher for server-side data
-const createProductFetcher = (companyId?: string, locationId?: string, brandId?: string) => {
+const createProductFetcher = (
+  companyId?: string,
+  locationId?: string,
+  brandId?: string,
+) => {
   return createSimpleFetcher(
     (params: Record<string, unknown>) => {
       // Add our custom filter parameters to the API call
@@ -37,11 +121,37 @@ const createProductFetcher = (companyId?: string, locationId?: string, brandId?:
         locationId: "locationId",
         brandId: "brand",
       },
-    }
+    },
+  );
+};
+
+const companyFilter = createSimpleFetcher(apiGetCompaniesForFilter, {
+  dataPath: "data.items",
+  totalPath: "data.total",
+});
+
+const createBrandFilter = (companyId?: string) => {
+  return createSimpleFetcher(
+    (params: Record<string, unknown>) => {
+      const filterParams = {
+        ...params,
+        ...(companyId && { companyId }),
+      };
+      return apiGetBrands(filterParams);
+    },
+    {
+      dataPath: "data.brands",
+      totalPath: "data.totalRecords",
+    },
   );
 };
 
 const ProductList = () => {
+  const [filterValue, setFilterValue] = React.useState<
+    Record<string, FilterOption[]>
+  >({});
+  console.log("🚀 ~ ProductList ~ filterValue:", filterValue);
+
   const { companyId, locationId, brandId } = useParams();
   const [searchParams] = useSearchParams();
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("all");
@@ -69,15 +179,15 @@ const ProductList = () => {
     const urlCompanyId = companyId || searchParams.get("companyId");
     const urlLocationId = locationId || searchParams.get("locationId");
     const urlBrandId = brandId || searchParams.get("brandId");
-    
+
     if (urlCompanyId) {
       setSelectedCompanyId(urlCompanyId);
     }
-    
+
     if (urlLocationId) {
       setSelectedLocationId(urlLocationId);
     }
-    
+
     if (urlBrandId) {
       setSelectedBrandId(urlBrandId);
     }
@@ -151,9 +261,97 @@ const ProductList = () => {
         ),
       }}
     >
+      <FilterProvider
+        defaultValue={{
+          status: [
+            {
+              label: "Draft",
+              value: "draft",
+            },
+          ],
+          company: [
+            {
+              label: "All Companies",
+              value: selectedCompanyId,
+            },
+          ],
+        }}
+        onChange={(v) => {
+          console.log("🚀 ~ onChange ~ v:", v);
+          setFilterValue(v);
+        }}
+      >
+        <div className="flex items-center gap-2">
+          <FilterDataItem
+            dataKey="status"
+            type="dropdown"
+            mode="multi"
+            options={Object.values(STATUS_MAP.product)}
+            placeholder="Select status..."
+          />
+          <FilterDataItem<"pagination", undefined, Company>
+            dataKey="company"
+            type="pagination"
+            mode="single"
+            placeholder="Select company..."
+            elementProps={{
+              apiFunction: companyFilter,
+              transform: (item) => {
+                return {
+                  label: item.companyName,
+                  value: item._id ?? "",
+                };
+              },
+              queryKey: ["company-list-filter"],
+              pageSize: 10,
+            }}
+          />
+          <FilterDataItem<"pagination", undefined, Brand>
+            dataKey="brand"
+            type="pagination"
+            mode="single"
+            placeholder="Select brand..."
+            elementProps={{
+              apiFunction: createBrandFilter(
+                selectedCompanyId === "all" ? undefined : selectedCompanyId,
+              ),
+              transform: (item) => {
+                return {
+                  label: item.name,
+                  value: item._id ?? "",
+                };
+              },
+              queryKey: ["company-brand-filter"],
+              pageSize: 10,
+            }}
+          />
+        </div>
+        {Object.entries(filterValue).map(([key, value]) => (
+          // <>
+          //   {JSON.stringify(value)} - {key}
+          // </>
+          <ActiveFilters
+            key={key}
+            filters={value.map((item) => ({
+              key,
+              label: item.label,
+              value: item.value,
+              displayValue: key,
+              onRemove: () => {
+                setFilterValue((prev) => {
+                  const newFilters = { ...prev };
+                  delete newFilters[key];
+                  return newFilters;
+                });
+              },
+            }))}
+          />
+        ))}
+      </FilterProvider>
+      {/* <FilterDemo /> */}
       {/* Product Content */}
       <>
-          {/* <section
+        {/* <section
             className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:gap-5 lg:grid-cols-4"
             aria-label="Product Statistics"
           >
@@ -167,54 +365,58 @@ const ProductList = () => {
             ))}
           </section> */}
 
-          <DataTable
-            columns={columns}
-            isServerSide
-            fetcher={createProductFetcher(
-              selectedCompanyId === "all" ? undefined : selectedCompanyId,
-              selectedLocationId === "all" ? undefined : selectedLocationId,
-              selectedBrandId === "all" ? undefined : selectedBrandId
-            )}
-            queryKeyPrefix={`${PANEL_ROUTES.LISTING.LIST}-${selectedCompanyId === "all" ? "" : selectedCompanyId}-${selectedLocationId === "all" ? "" : selectedLocationId}-${selectedBrandId === "all" ? "" : selectedBrandId}`}
-            actionProps={(tableState) => ({
-              children: (
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">Company:</span>
-                    <CompanyFilter
-                      value={selectedCompanyId}
-                      onValueChange={handleCompanyChange}
-                      placeholder="All Companies"
-                    />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">Location:</span>
-                    <LocationFilter
-                      companyId={selectedCompanyId}
-                      value={selectedLocationId}
-                      onValueChange={handleLocationChange}
-                      placeholder="All Locations"
-                      disabled={!selectedCompanyId}
-                    />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">Brand:</span>
-                    <BrandFilter
-                      value={selectedBrandId}
-                      onValueChange={handleBrandChange}
-                      placeholder="All Brands"
-                      companyId={selectedCompanyId === "all" ? undefined : selectedCompanyId}
-                    />
-                  </div>
-                  <StatusFilter
-                    tableState={tableState}
-                    module="product"
-                    multi={false} // Single selection mode
+        <DataTable
+          columns={columns}
+          isServerSide
+          fetcher={createProductFetcher(
+            selectedCompanyId === "all" ? undefined : selectedCompanyId,
+            selectedLocationId === "all" ? undefined : selectedLocationId,
+            selectedBrandId === "all" ? undefined : selectedBrandId,
+          )}
+          queryKeyPrefix={`${PANEL_ROUTES.LISTING.LIST}-${selectedCompanyId === "all" ? "" : selectedCompanyId}-${selectedLocationId === "all" ? "" : selectedLocationId}-${selectedBrandId === "all" ? "" : selectedBrandId}`}
+          actionProps={(tableState) => ({
+            children: (
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">Company:</span>
+                  <CompanyFilter
+                    value={selectedCompanyId}
+                    onValueChange={handleCompanyChange}
+                    placeholder="All Companies"
                   />
                 </div>
-              ),
-            })}
-          />
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">Location:</span>
+                  <LocationFilter
+                    companyId={selectedCompanyId}
+                    value={selectedLocationId}
+                    onValueChange={handleLocationChange}
+                    placeholder="All Locations"
+                    disabled={!selectedCompanyId}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">Brand:</span>
+                  <BrandFilter
+                    value={selectedBrandId}
+                    onValueChange={handleBrandChange}
+                    placeholder="All Brands"
+                    companyId={
+                      selectedCompanyId === "all"
+                        ? undefined
+                        : selectedCompanyId
+                    }
+                  />
+                </div>
+                <StatusFilter
+                  tableState={tableState}
+                  module="product"
+                  multi={false} // Single selection mode
+                />
+              </div>
+            ),
+          })}
+        />
       </>
     </PageContent>
   );

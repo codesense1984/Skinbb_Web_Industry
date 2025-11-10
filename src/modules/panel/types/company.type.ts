@@ -17,7 +17,7 @@ export interface CompanyAddress {
   postalCode: string;
 }
 export interface Company {
-  id?: string;
+  _id?: string;
   logo: string;
   companyName: string;
   category: string;
@@ -51,7 +51,7 @@ export interface ShortCompany {
 // }
 
 export interface CompanyList
-  extends Pick<Company, "id" | "logo" | "companyName" | "category" | "status"> {
+  extends Pick<Company, "_id" | "logo" | "companyName" | "category" | "status"> {
   products: number;
   surveys: number;
   promotions: number;
