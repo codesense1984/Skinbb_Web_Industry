@@ -109,6 +109,11 @@ export interface DataViewProps<TData extends object> {
    */
   defaultFilters?: Record<string, FilterOption[]>;
   defaultValueFilters?: Record<string, FilterOption[]>;
+  /**
+   * Grid container className
+   */
+  gridClassName?: string;
+  tableClassName?: string;
 }
 
 /**
@@ -135,6 +140,8 @@ export function DataView<TData extends object>({
   additionalControls,
   defaultFilters,
   defaultValueFilters,
+  gridClassName,
+  tableClassName,
 }: DataViewProps<TData>) {
   return (
     <FilterProvider defaultValue={defaultFilters} value={defaultValueFilters}>
@@ -159,6 +166,8 @@ export function DataView<TData extends object>({
           loadingRows={loadingRows}
           ariaLabels={ariaLabels}
           additionalControls={additionalControls}
+          gridClassName={gridClassName}
+          tableClassName={tableClassName}
         />
       </DataViewProvider>
     </FilterProvider>
@@ -180,6 +189,7 @@ function DataViewInner<TData extends object>({
   ariaLabels,
   searchPlaceholder,
   additionalControls,
+  gridClassName,
 }: Omit<
   DataViewProps<TData>,
   | "fetcher"
@@ -337,6 +347,7 @@ function DataViewInner<TData extends object>({
                 fetchNextPage?.();
               }}
               ariaLabel={ariaLabels?.grid}
+              className={gridClassName}
             />
           )}
         </>

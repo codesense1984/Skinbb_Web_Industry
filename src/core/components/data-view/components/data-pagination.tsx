@@ -6,7 +6,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/core/components/ui/select";
-import { cn } from "@/core/utils";
 import {
   ChevronDoubleLeftIcon,
   ChevronDoubleRightIcon,
@@ -14,7 +13,11 @@ import {
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 import type { Table as TableType } from "@tanstack/react-table";
-import React from "react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+} from "../../ui/pagination";
 
 interface DataPaginationProps<TData> {
   table: TableType<TData>;
@@ -40,8 +43,6 @@ export function DataPagination<TData>({
     getState,
     getCanPreviousPage,
     getCanNextPage,
-    getPageCount,
-    setPageIndex,
     setPageSize,
     previousPage,
     nextPage,
@@ -50,8 +51,6 @@ export function DataPagination<TData>({
   } = table;
 
   const { pagination } = getState();
-  const pageCount = total ? Math.ceil(total / pagination.pageSize) : getPageCount();
-  const currentPage = pagination.pageIndex + 1;
   const startEntry = pagination.pageIndex * pagination.pageSize + 1;
   const endEntry = Math.min(
     (pagination.pageIndex + 1) * pagination.pageSize,
@@ -60,88 +59,104 @@ export function DataPagination<TData>({
 
   return (
     <div
-      className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+      className="flex flex-wrap items-center justify-between gap-4 py-1 md:gap-4 md:gap-8"
       role="navigation"
       aria-label={ariaLabel}
     >
-      {showEntryCount && total !== undefined && (
-        <div className="text-sm text-muted-foreground">
-          Showing {startEntry} to {endEntry} of {total} entries
+      {showPageSizeOptions && (
+        <div className="flex flex-1 items-center gap-2">
+          <span className="hidden md:block">Rows per page</span>
+          <SelectRoot
+            value={String(pagination.pageSize)}
+            onValueChange={(value) => {
+              const newPageSize = Number(value);
+              setPageSize(newPageSize);
+            }}
+          >
+            <SelectTrigger className="h-8 w-fit py-1" size="sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {pageSizeOptions.map((size) => (
+                <SelectItem key={size} value={String(size)}>
+                  {size}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </SelectRoot>
         </div>
       )}
 
-      <div className="flex items-center gap-2">
-        {showPageSizeOptions && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Rows per page:</span>
-            <SelectRoot
-              value={String(pagination.pageSize)}
-              onValueChange={(value) => {
-                const newPageSize = Number(value);
-                // Use table's setPageSize which will trigger onPaginationChange
-                // The onPaginationChange handler will reset pageIndex to 0 automatically
-                setPageSize(newPageSize);
-              }}
-            >
-              <SelectTrigger className="h-8 w-[70px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {pageSizeOptions.map((size) => (
-                  <SelectItem key={size} value={String(size)}>
-                    {size}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </SelectRoot>
-          </div>
-        )}
-
-        <div className="flex items-center gap-1">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => firstPage()}
-            disabled={!getCanPreviousPage()}
-            aria-label="Go to first page"
+      {showEntryCount && total !== undefined && (
+        <div className="text-muted-foreground flex justify-end whitespace-nowrap">
+          <p
+            className="text-muted-foreground whitespace-nowrap"
+            aria-live="polite"
           >
-            <ChevronDoubleLeftIcon className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => previousPage()}
-            disabled={!getCanPreviousPage()}
-            aria-label="Go to previous page"
-          >
-            <ChevronLeftIcon className="h-4 w-4" />
-          </Button>
-          <div className="flex items-center gap-1 px-2 text-sm">
-            <span>
-              Page {currentPage} of {pageCount || 1}
-            </span>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => nextPage()}
-            disabled={!getCanNextPage()}
-            aria-label="Go to next page"
-          >
-            <ChevronRightIcon className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => lastPage()}
-            disabled={!getCanNextPage()}
-            aria-label="Go to last page"
-          >
-            <ChevronDoubleRightIcon className="h-4 w-4" />
-          </Button>
+            <span className="text-foreground">
+              {startEntry}-{endEntry}
+            </span>{" "}
+            of <span className="text-foreground">{total}</span>
+          </p>
         </div>
-      </div>
+      )}
+
+      <Pagination className="w-fit">
+        <PaginationContent>
+          {/* First page button */}
+          <PaginationItem className="hidden md:block">
+            <Button
+              size="icon"
+              variant="outlined"
+              className="disabled:bg-muted/50 size-8 disabled:pointer-events-none [&_svg]:size-4"
+              onClick={() => firstPage()}
+              disabled={!getCanPreviousPage()}
+              aria-label="Go to first page"
+            >
+              <ChevronDoubleLeftIcon aria-hidden="true" />
+            </Button>
+          </PaginationItem>
+          {/* Previous page button */}
+          <PaginationItem>
+            <Button
+              size="icon"
+              variant="outlined"
+              className="disabled:bg-muted/50 size-8 disabled:pointer-events-none [&_svg]:size-4"
+              onClick={() => previousPage()}
+              disabled={!getCanPreviousPage()}
+              aria-label="Go to previous page"
+            >
+              <ChevronLeftIcon aria-hidden="true" />
+            </Button>
+          </PaginationItem>
+          {/* Next page button */}
+          <PaginationItem>
+            <Button
+              size="icon"
+              variant="outlined"
+              className="disabled:bg-muted/50 size-8 disabled:pointer-events-none [&_svg]:size-4"
+              onClick={() => nextPage()}
+              disabled={!getCanNextPage()}
+              aria-label="Go to next page"
+            >
+              <ChevronRightIcon aria-hidden="true" />
+            </Button>
+          </PaginationItem>
+          {/* Last page button */}
+          <PaginationItem className="hidden md:block">
+            <Button
+              size="icon"
+              variant="outlined"
+              className="disabled:bg-muted/50 size-8 disabled:pointer-events-none [&_svg]:size-4"
+              onClick={() => lastPage()}
+              disabled={!getCanNextPage()}
+              aria-label="Go to last page"
+            >
+              <ChevronDoubleRightIcon aria-hidden="true" />
+            </Button>
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
     </div>
   );
 }
-

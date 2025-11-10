@@ -156,6 +156,8 @@ export interface DataTableProps<TData> {
    * ARIA label for the table
    */
   ariaLabel?: string;
+
+  className?: string;
 }
 
 /**

@@ -8,9 +8,8 @@ import {
 } from "@/core/components/ui/table";
 import { cn } from "@/core/utils";
 import {
-  ArrowDownIcon,
-  ArrowUpIcon,
-  BarsArrowUpIcon,
+  ChevronDownIcon,
+  ChevronUpIcon
 } from "@heroicons/react/24/outline";
 import { flexRender, type Header } from "@tanstack/react-table";
 import React, { useCallback, useEffect, useRef } from "react";
@@ -20,17 +19,7 @@ import { DataSkeleton } from "./data-skeleton";
 /**
  * Sortable table header with keyboard navigation
  */
-function SortableHeader<TData>({
-  header,
-  renderCell,
-}: {
-  header: Header<TData, unknown>;
-  renderCell?: (
-    columnId: string,
-    value: unknown,
-    row: TData,
-  ) => React.ReactNode;
-}) {
+function SortableHeader<TData>({ header }: { header: Header<TData, unknown> }) {
   const canSort = header.column.getCanSort();
   const isSorted = header.column.getIsSorted();
 
@@ -52,50 +41,39 @@ function SortableHeader<TData>({
   }, [canSort, header]);
 
   return (
-    <TableHead>
-      {header.isPlaceholder ? null : (
+    <>
+      {header.isPlaceholder ? null : header.column.getCanSort() ? (
         <div
-          role={canSort ? "button" : undefined}
-          tabIndex={canSort ? 0 : undefined}
-          aria-pressed={isSorted ? true : undefined}
-          aria-label={
-            canSort
-              ? `Sort by ${String(header.column.columnDef.header)}`
-              : undefined
-          }
-          onKeyDown={handleKeyDown}
           className={cn(
-            "group focus:ring-primary flex h-full w-full items-center gap-2 px-3 py-2 focus:ring-2 focus:ring-offset-2 focus:outline-none",
-            canSort && "hover:bg-muted/50 cursor-pointer",
+            isSorted &&
+              "flex h-full cursor-pointer items-center justify-between gap-2 select-none",
           )}
           onClick={toggleHandler}
+          onKeyDown={handleKeyDown}
+          tabIndex={isSorted ? 0 : undefined}
         >
-          {flexRender(header.column.columnDef.header, header.getContext())}
-          {canSort && (
-            <span className="ml-auto flex items-center gap-1">
-              {isSorted === "asc" && (
-                <ArrowUpIcon
-                  className="text-primary h-4 w-4"
-                  aria-hidden="true"
-                />
-              )}
-              {isSorted === "desc" && (
-                <ArrowDownIcon
-                  className="text-primary h-4 w-4"
-                  aria-hidden="true"
-                />
-              )}
-              {!isSorted && (
-                <BarsArrowUpIcon
-                  className="text-muted-foreground h-4 w-4 opacity-0 group-hover:opacity-100"
-                  aria-hidden="true"
-                />
-              )}
-            </span>
-          )}
+          <span className="truncate">
+            {flexRender(header.column.columnDef.header, header.getContext())}
+          </span>
+          {{
+            asc: (
+              <ChevronUpIcon
+                className="size-4 shrink-0 opacity-60"
+                aria-hidden="true"
+              />
+            ),
+            desc: (
+              <ChevronDownIcon
+                className="size-4 shrink-0 opacity-60"
+                aria-hidden="true"
+              />
+            ),
+          }[isSorted as string] ?? null}
         </div>
+      ) : (
+        flexRender(header.column.columnDef.header, header.getContext())
       )}
-    </TableHead>
+    </>
   );
 }
 
@@ -107,6 +85,7 @@ export function DataTable<TData extends object>({
   renderCell,
   emptyMessage = "No data available",
   ariaLabel = "Data table",
+  className,
 }: DataTableProps<TData>) {
   const tableRef = useRef<HTMLTableElement>(null);
   const [focusedCell, setFocusedCell] = React.useState<{
@@ -179,71 +158,94 @@ export function DataTable<TData extends object>({
   const headers = table.getHeaderGroups();
 
   return (
-    <div className="rounded-md border">
-      <Table ref={tableRef} aria-label={ariaLabel}>
-        <TableHeader>
-          {headers.map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <SortableHeader
-                  key={header.id}
-                  header={header}
-                  renderCell={renderCell}
-                />
-              ))}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {rows.length === 0 ? (
-            <TableRow>
-              <TableCell
-                colSpan={headers[0]?.headers.length ?? 1}
-                className="h-24 text-center"
+    <Table
+      ref={tableRef}
+      aria-label={ariaLabel}
+      className={cn("table-fixed", className)}
+    >
+      <TableHeader>
+        {headers.map((group) => (
+          <TableRow key={group.id}>
+            {group.headers.map((header) => (
+              <TableHead
+                key={header.id}
+                className={
+                  cn()
+                  // "first:pl-0 last:pr-0",
+                  // index === 0 && "first:pl-2",
+                  // index === group.headers.length - 1 && "last:pr-2",
+                }
+                style={{
+                  width: `${header.getSize()}px`,
+                }}
               >
-                <div role="status" aria-live="polite">
-                  {emptyMessage}
-                </div>
-              </TableCell>
-            </TableRow>
-          ) : (
-            rows.map((row, rowIndex) => (
-              <TableRow
-                key={row.id}
-                data-row-index={rowIndex}
-                className="focus-within:bg-muted/50"
-              >
-                {row.getVisibleCells().map((cell, colIndex) => {
-                  const columnId = cell.column.id;
-                  const cellValue = cell.getValue();
-                  const rowData = row.original;
+                {/* {!header.isPlaceholder && <SortableHeader header={header} />} */}
+                {
+                  <SortableHeader
+                    key={header.id}
+                    header={header}
+                  />
+                }
+              </TableHead>
+            ))}
+          </TableRow>
+        ))}
+      </TableHeader>
+      <TableBody>
+        {table.getRowModel().rows.length ? (
+          rows.map((row, rowIndex) => (
+            <TableRow
+              key={row.id}
+              data-row-index={rowIndex}
+              className="hover:bg-muted/50 focus-within:bg-muted/50"
+            >
+              {row.getVisibleCells().map((cell, colIndex) => {
+                const columnId = cell.column.id;
+                const cellValue = cell.getValue();
+                const rowData = row.original;
 
-                  return (
-                    <TableCell
-                      key={cell.id}
-                      data-row-index={rowIndex}
-                      data-col-index={colIndex}
-                      tabIndex={rowIndex === 0 && colIndex === 0 ? 0 : -1}
-                      onFocus={() =>
-                        setFocusedCell({ rowIndex, columnIndex: colIndex })
-                      }
-                      className="focus:ring-primary focus:ring-2 focus:ring-offset-2 focus:outline-none"
-                    >
-                      {renderCell
-                        ? renderCell(columnId, cellValue, rowData)
-                        : flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
-                          )}
-                    </TableCell>
-                  );
-                })}
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
-    </div>
+                return (
+                  <TableCell
+                    key={cell.id}
+                    data-row-index={rowIndex}
+                    data-col-index={colIndex}
+                    tabIndex={rowIndex === 0 && colIndex === 0 ? 0 : -1}
+                    onFocus={() =>
+                      setFocusedCell({ rowIndex, columnIndex: colIndex })
+                    }
+                  >
+                    {renderCell
+                      ? renderCell(columnId, cellValue, rowData)
+                      : flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                  </TableCell>
+                );
+              })}
+            </TableRow>
+          ))
+        ) : (
+          <TableRow>
+            <TableCell
+              colSpan={headers[0]?.headers.length ?? 1}
+              className="min-h-30 text-center"
+              data-cell="empty"
+            >
+              {emptyMessage ?? (
+                <div
+                  role="status"
+                  aria-live="polite"
+                  className="flex h-[228px] items-center justify-center"
+                >
+                  {emptyMessage ?? "No result found."}
+                </div>
+              )}
+            </TableCell>
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
   );
 }
 

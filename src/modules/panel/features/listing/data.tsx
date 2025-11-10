@@ -106,6 +106,7 @@ export const columns: ColumnDef<Product>[] = [
   {
     accessorKey: "status",
     header: "Status",
+    size: 120,
     cell: ({ getValue }) => {
       const status = getValue() as string;
       return <StatusBadge module="product" status={status} variant="badge" />;
@@ -117,6 +118,7 @@ export const columns: ColumnDef<Product>[] = [
   {
     accessorKey: "priceRange",
     header: "Price Range",
+    size: 120,
     cell: ({ row, getValue }) => {
       const priceRangeValue = getValue();
       const priceRange =
@@ -169,6 +171,7 @@ export const columns: ColumnDef<Product>[] = [
   // },
   {
     accessorKey: "capturedDate",
+    size: 120,
     header: "Created At",
     cell: ({ getValue }) => {
       const capturedDate = getValue() as string;

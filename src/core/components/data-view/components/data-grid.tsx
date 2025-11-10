@@ -1,6 +1,4 @@
-import { Button } from "@/core/components/ui/button";
 import { cn } from "@/core/utils";
-import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import React, { useCallback, useEffect, useRef } from "react";
 import type { DataGridProps } from "../types";
 import { DataSkeleton } from "./data-skeleton";
@@ -70,14 +68,14 @@ export function DataGrid<TData extends object>({
   }
 
   return (
-    <div
-      className={cn("space-y-4", className)}
-      role="grid"
-      aria-label={ariaLabel}
-    >
+    <>
       <div
-        className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
-        role="rowgroup"
+        className={cn(
+          "grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
+          className,
+        )}
+        role="grid"
+        aria-label={ariaLabel}
       >
         {rows.map((row, index) => (
           <div key={index} role="gridcell">
@@ -115,7 +113,7 @@ export function DataGrid<TData extends object>({
           <DataSkeleton type="grid" count={loadingItems} gridColumns={4} />
         </div>
       )}
-    </div>
+    </>
   );
 }
 
@@ -129,7 +127,7 @@ export function DataGridWithSkeleton<TData extends object>(
 
   if (isLoading) {
     return (
-      <DataSkeleton type="grid" count={props.loadingItems} gridColumns={4} />
+      <DataSkeleton type="grid" count={props.loadingItems} gridColumns={3} />
     );
   }
 
