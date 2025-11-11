@@ -70,7 +70,7 @@ export const ComboBoxOptionItem = ({
  * - value: string[]
  * - onChange option: Option[]
  */
-interface ComboBoxProps<T extends boolean = false>
+export interface ComboBoxProps<T extends boolean = false>
   extends Omit<React.ComponentProps<"button">, "onChange"> {
   options: Option[];
   placeholder?: string;
@@ -89,6 +89,17 @@ interface ComboBoxProps<T extends boolean = false>
   maxVisibleItems?: number;
   renderLabel?: (option: Option) => React.ReactNode;
   renderOption?: (option: Option, isSelected: boolean) => React.ReactNode;
+  renderButton?: (props: {
+    loading: boolean;
+    selectedOption: T extends true ? Option[] : Option | undefined;
+    disabled: boolean;
+    open: boolean;
+    value: T extends true ? string[] : string;
+    placeholder: string;
+    error: boolean;
+    multi: T;
+    isSelected: boolean;
+  }) => React.ReactNode;
   commandProps?: React.ComponentProps<typeof Command>;
   commandInputProps?: React.ComponentProps<typeof CommandInput>;
   commandListProps?: React.ComponentProps<typeof CommandList>;
@@ -112,6 +123,7 @@ export const ComboBox = <T extends boolean = false>({
   maxVisibleItems: propMaxVisibleItems,
   renderLabel,
   renderOption,
+  renderButton,
   commandProps,
   commandListProps = {},
   emptyMessage = "No result found.",
@@ -192,6 +204,11 @@ export const ComboBox = <T extends boolean = false>({
     : options.find((opt) => opt.value === value);
 
   const selectedOption = !multi ? selectedOptions : undefined;
+
+  // Calculate isSelected more robustly
+  const isSelected = multi
+    ? Array.isArray(value) && value.length > 0
+    : Boolean(value && value !== "" && selectedOption);
 
   // Handle keyboard navigation
   const handleKeyDown = (event: React.KeyboardEvent) => {
@@ -344,47 +361,68 @@ export const ComboBox = <T extends boolean = false>({
           disabled={disabled || (!open && loading)}
           onKeyDown={handleKeyDown}
           className={cn(
-            "form-control flex items-center justify-between",
+            "flex items-center justify-between",
             error && "border-red-500 focus:border-red-500 focus:ring-red-500",
             flexWrap && "h-auto",
             disabled && "bg-muted/50 cursor-not-allowed",
             loading && "cursor-wait",
+            !renderButton && "form-control",
             className,
           )}
           {...props}
         >
-          <span className="flex-1 truncate text-left">
-            {renderSelectedContent()}
-          </span>
-          {open && loading ? (
-            <div className="border-border size-4 animate-spin rounded-full border-2 border-t-transparent" />
-          ) : !multi &&
-            selectedOption &&
-            !Array.isArray(selectedOption) &&
-            clearable ? (
-            <span
-              onClick={(e) => {
-                e.stopPropagation();
-                handleClearValue();
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleClearValue();
-                }
-              }}
-              onMouseDown={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-              className="ring-offset-background focus:ring-ring hover:bg-muted/50 cursor-pointer rounded-full outline-none focus:ring-2 focus:ring-offset-2"
-              aria-label="Clear selection"
-              role="button"
-              tabIndex={0}
-            >
-              <XIcon className="size-5" />
-            </span>
+          {renderButton ? (
+            renderButton({
+              loading,
+              selectedOption: (multi
+                ? (selectedOptions as Option[])
+                : selectedOption) as T extends true
+                ? Option[]
+                : Option | undefined,
+              disabled,
+              open,
+              value: value as T extends true ? string[] : string,
+              placeholder,
+              error,
+              multi,
+              isSelected,
+            })
           ) : (
-            <ChevronsUpDownIcon className="size-4 opacity-50" />
+            <>
+              <span className="flex-1 truncate text-left">
+                {renderSelectedContent()}
+              </span>
+              {open && loading ? (
+                <div className="border-border size-4 animate-spin rounded-full border-2 border-t-transparent" />
+              ) : !multi &&
+                selectedOption &&
+                !Array.isArray(selectedOption) &&
+                clearable ? (
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleClearValue();
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleClearValue();
+                    }
+                  }}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  className="ring-offset-background focus:ring-ring hover:bg-muted/50 cursor-pointer rounded-full outline-none focus:ring-2 focus:ring-offset-2"
+                  aria-label="Clear selection"
+                  role="button"
+                  tabIndex={0}
+                >
+                  <XIcon className="size-5" />
+                </span>
+              ) : (
+                <ChevronsUpDownIcon className="size-4 opacity-50" />
+              )}
+            </>
           )}
         </button>
       </PopoverTrigger>

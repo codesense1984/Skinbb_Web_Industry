@@ -9,7 +9,10 @@ import { toast } from "sonner";
 import { api } from "@/core/services/http";
 import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
-import type { ProductReqData, ProductFormSchema } from "@/modules/panel/features/products/types/product.types";
+import type {
+  ProductReqData,
+  ProductFormSchema,
+} from "@/modules/panel/features/products/types/product.types";
 import { normalizeAxiosError } from "@/core/services/http";
 import { apiGetCompanyLocationProductById } from "@/modules/panel/services/http/company.service";
 import { transformApiResponseToFormData } from "@/modules/panel/features/products/utils/product.utils";
@@ -24,9 +27,14 @@ const CompanyLocationProductEdit: React.FC = () => {
   const queryClient = useQueryClient();
 
   // Fetch product data
-  const { data: productData, isLoading, error } = useQuery({
+  const {
+    data: productData,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["company-location-product", companyId, locationId, productId],
-    queryFn: () => apiGetCompanyLocationProductById(companyId!, locationId!, productId!),
+    queryFn: () =>
+      apiGetCompanyLocationProductById(companyId!, locationId!, productId!),
     enabled: !!companyId && !!locationId && !!productId,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -35,8 +43,12 @@ const CompanyLocationProductEdit: React.FC = () => {
   const updateProductMutation = useMutation({
     mutationFn: (data: ProductReqData) => {
       return api.put(
-        ENDPOINTS.COMPANY_LOCATION_PRODUCTS.UPDATE(companyId!, locationId!, productId!),
-        data
+        ENDPOINTS.COMPANY_LOCATION_PRODUCTS.UPDATE(
+          companyId!,
+          locationId!,
+          productId!,
+        ),
+        data,
       );
     },
     onSuccess: (response) => {
@@ -46,13 +58,26 @@ const CompanyLocationProductEdit: React.FC = () => {
         queryKey: ["company-location-products", companyId, locationId],
       });
       queryClient.invalidateQueries({
-        queryKey: ["company-location-product", companyId, locationId, productId],
+        queryKey: [
+          "company-location-product",
+          companyId,
+          locationId,
+          productId,
+        ],
       });
       // Navigate back to product view
-      navigate(PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_VIEW(companyId!, locationId!, productId!));
+      navigate(
+        PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_VIEW(
+          companyId!,
+          locationId!,
+          productId!,
+        ),
+      );
     },
     onError: (error: any) => {
-      toast.error(normalizeAxiosError(error)?.message || "Failed to update product");
+      toast.error(
+        normalizeAxiosError(error)?.message || "Failed to update product",
+      );
     },
   });
 
@@ -65,11 +90,14 @@ const CompanyLocationProductEdit: React.FC = () => {
       <PageContent
         header={{
           title: "Edit Product",
-          description: "Company ID, Location ID, and Product ID are required to edit a product.",
+          description:
+            "Company ID, Location ID, and Product ID are required to edit a product.",
         }}
       >
         <div className="py-8 text-center">
-          <p className="text-gray-500">Invalid company, location, or product ID provided.</p>
+          <p className="text-gray-500">
+            Invalid company, location, or product ID provided.
+          </p>
         </div>
       </PageContent>
     );
@@ -131,7 +159,8 @@ const CompanyLocationProductEdit: React.FC = () => {
   }
 
   const product = productData.data;
-  const defaultValues: ProductFormSchema = transformApiResponseToFormData(product);
+  const defaultValues: ProductFormSchema =
+    transformApiResponseToFormData(product);
 
   return (
     <PageContent
@@ -141,9 +170,17 @@ const CompanyLocationProductEdit: React.FC = () => {
         actions: (
           <div className="flex gap-2">
             <Button
-              onClick={() => navigate(PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_VIEW(companyId, locationId, productId))}
+              onClick={() =>
+                navigate(
+                  PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_VIEW(
+                    companyId,
+                    locationId,
+                    productId,
+                  ),
+                )
+              }
               variant="outlined"
-              className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
+              className="border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50"
             >
               <ArrowLeftIcon className="mr-2 h-4 w-4" />
               Back to Product
@@ -152,7 +189,7 @@ const CompanyLocationProductEdit: React.FC = () => {
         ),
       }}
     >
-      <div className="max-w-4xl mx-auto">
+      <div className="mx-auto max-w-4xl">
         <ProductForm
           onFormSubmit={handleFormSubmit}
           defaultValues={defaultValues}
@@ -161,17 +198,27 @@ const CompanyLocationProductEdit: React.FC = () => {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => navigate(PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_VIEW(companyId, locationId, productId))}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onClick={() =>
+                navigate(
+                  PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_VIEW(
+                    companyId,
+                    locationId,
+                    productId,
+                  ),
+                )
+              }
+              className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={updateProductMutation.isPending}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {updateProductMutation.isPending ? 'Updating...' : 'Update Product'}
+              {updateProductMutation.isPending
+                ? "Updating..."
+                : "Update Product"}
             </button>
           </div>
         </ProductForm>

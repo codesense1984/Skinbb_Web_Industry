@@ -1,142 +1,201 @@
-import { createSimpleFetcher, DataTable } from "@/core/components/data-table";
-import { StatusFilter } from "@/core/components/data-table/components/table-filter";
+import {
+  DataView,
+  useDataView,
+  type ServerDataFetcher,
+} from "@/core/components/data-view";
+import type { FilterOption } from "@/core/components/dynamic-filter";
 import { Button } from "@/core/components/ui/button";
 import { PageContent } from "@/core/components/ui/structure";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
-import { apiGetProducts } from "@/modules/panel/services/http/product.service";
-import { NavLink } from "react-router";
+import {
+  apiGetProducts,
+  type ApiParams,
+} from "@/modules/panel/services/http/product.service";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { NavLink, useParams, useSearchParams } from "react-router";
+import type { Product } from "../../types/product.type";
 import { columns } from "./data";
-import { CompanyFilter } from "./components/CompanyFilter";
-import { LocationFilter } from "./components/LocationFilter";
-import { BrandFilter } from "./components/BrandFilter";
-import React, { useState } from "react";
-import { useParams, useSearchParams } from "react-router";
+import { ProductCard } from "./ProductCard";
+import {
+  DEFAULT_PAGE_SIZE,
+  StatusFilter,
+  CompanyFilter,
+  BrandFilter,
+} from "@/modules/panel/components/data-view";
 
-// Create fetcher for server-side data
-const createProductFetcher = (companyId?: string, locationId?: string, brandId?: string) => {
-  return createSimpleFetcher(
-    (params: Record<string, unknown>) => {
-      // Add our custom filter parameters to the API call
-      const filterParams = {
-        ...params,
-        ...(companyId && companyId !== "all" && { companyId }),
-        ...(locationId && locationId !== "all" && { locationId }),
-        ...(brandId && brandId !== "all" && { brand: brandId }),
-      };
-      return apiGetProducts(filterParams);
-    },
-    {
-      dataPath: "data.products",
-      totalPath: "data.totalRecords",
-      filterMapping: {
-        status: "status",
-        category: "category",
-        brand: "brand",
-        tag: "tag",
-        companyId: "companyId",
-        locationId: "locationId",
-        brandId: "brand",
-      },
-    }
-  );
+// Constants
+const GRID_CLASSES = "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3";
+
+type ProductFilters = {
+  status: FilterOption[];
+  company: FilterOption[];
+  brand: FilterOption[];
+  location: FilterOption[];
 };
 
-const ProductList = () => {
+// Product fetcher for DataView component
+const createProductFetcher = (): ServerDataFetcher<Product> => {
+  return async ({
+    pageIndex,
+    pageSize,
+    sorting,
+    globalFilter,
+    filters,
+    signal,
+  }) => {
+    const params: ApiParams = {
+      page: pageIndex + 1, // API uses 1-based pagination
+      limit: pageSize,
+    };
+
+    if (globalFilter) {
+      params.search = globalFilter;
+    }
+
+    if (sorting.length > 0) {
+      params.sortBy = sorting[0].id;
+      params.order = sorting[0].desc ? "desc" : "asc";
+    }
+
+    // Map filters to API params
+    if (filters.status?.[0]?.value) {
+      params.status = filters.status[0].value;
+    }
+    if (filters.company?.[0]?.value) {
+      params.companyId = filters.company[0].value;
+    }
+    if (filters.brand?.[0]?.value) {
+      params.brandId = filters.brand[0].value;
+    }
+    if (filters.location?.[0]?.value) {
+      params.locationId = filters.location[0].value;
+    }
+
+    const response = await apiGetProducts(params, signal);
+
+    if (response && typeof response === "object" && "data" in response) {
+      const responseData = response.data as {
+        products?: Product[];
+        totalRecords?: number;
+      };
+      return {
+        rows: responseData?.products || [],
+        total: responseData?.totalRecords || 0,
+      };
+    }
+
+    return { rows: [], total: 0 };
+  };
+};
+
+// Custom hook for URL parameter handling
+const useUrlFilters = () => {
   const { companyId, locationId, brandId } = useParams();
   const [searchParams] = useSearchParams();
-  const [selectedCompanyId, setSelectedCompanyId] = useState<string>("all");
-  const [selectedLocationId, setSelectedLocationId] = useState<string>("all");
-  const [selectedBrandId, setSelectedBrandId] = useState<string>("all");
+  const [filters, setFilters] = useState<ProductFilters>({
+    status: [],
+    company: [],
+    brand: [],
+    location: [],
+  });
 
-  // Handle company filter change
-  const handleCompanyChange = (companyId: string) => {
-    setSelectedCompanyId(companyId === "all" ? "" : companyId);
-    setSelectedLocationId(""); // Reset location when company changes
-  };
-
-  // Handle location filter change
-  const handleLocationChange = (locationId: string) => {
-    setSelectedLocationId(locationId === "all" ? "" : locationId);
-  };
-
-  // Handle brand filter change
-  const handleBrandChange = (brandId: string) => {
-    setSelectedBrandId(brandId === "all" ? "all" : brandId);
-  };
-
-  // Auto-fill from URL parameters
-  React.useEffect(() => {
+  useEffect(() => {
     const urlCompanyId = companyId || searchParams.get("companyId");
     const urlLocationId = locationId || searchParams.get("locationId");
     const urlBrandId = brandId || searchParams.get("brandId");
-    
-    if (urlCompanyId) {
-      setSelectedCompanyId(urlCompanyId);
-    }
-    
-    if (urlLocationId) {
-      setSelectedLocationId(urlLocationId);
-    }
-    
-    if (urlBrandId) {
-      setSelectedBrandId(urlBrandId);
+
+    if (urlCompanyId || urlLocationId || urlBrandId) {
+      setFilters((prev) => ({
+        ...prev,
+        company: urlCompanyId
+          ? [{ label: "Company", value: urlCompanyId, disabled: false }]
+          : prev.company,
+        location: urlLocationId
+          ? [{ label: "Location", value: urlLocationId, disabled: false }]
+          : prev.location,
+        brand: urlBrandId
+          ? [{ label: "Brand", value: urlBrandId }]
+          : prev.brand,
+      }));
     }
   }, [companyId, locationId, brandId, searchParams]);
 
-  // const [stats, setStats] = useState(initialStatsData);
+  return filters;
+};
 
-  // // Fetch stats separately since we need them for the summary cards
-  // const fetchStats = useCallback(async () => {
-  //   try {
-  //     const response = await apiGetProducts({ page: 1, limit: 1000 }); // Get all for stats
+// Delete button component
+const DeleteButton = () => {
+  const { table, refetch } = useDataView<Product>();
 
-  //     if (response?.success) {
-  //       const publishedProducts = response?.data?.products.filter(
-  //         (p) => p.status === "publish",
-  //       ).length;
-  //       const draftProducts = response?.data?.products.filter(
-  //         (p) => p.status === "draft",
-  //       ).length;
-  //       const totalVariants = response?.data?.products.reduce(
-  //         (sum, product) => sum + (product.variants?.length || 0),
-  //         0,
-  //       );
+  const handleDelete = useCallback(async () => {
+    if (!table) return;
 
-  //       setStats([
-  //         {
-  //           title: "Total Products",
-  //           value: response?.data?.totalRecords,
-  //           barColor: "bg-primary",
-  //           icon: true,
-  //         },
-  //         {
-  //           title: "Published Products",
-  //           value: publishedProducts,
-  //           barColor: "bg-blue-300",
-  //           icon: false,
-  //         },
-  //         {
-  //           title: "Draft Products",
-  //           value: draftProducts || 0,
-  //           barColor: "bg-violet-300",
-  //           icon: false,
-  //         },
-  //         {
-  //           title: "Total Variants",
-  //           value: totalVariants,
-  //           barColor: "bg-red-300",
-  //           icon: true,
-  //         },
-  //       ]);
-  //     }
-  //   } catch (error) {
-  //     console.error("Failed to fetch product stats:", error);
-  //   }
-  // }, []);
+    const selectedRows = table.getSelectedRowModel().rows;
 
-  // useEffect(() => {
-  //   fetchStats();
-  // }, [fetchStats]);
+    if (selectedRows.length === 0) {
+      console.log("No rows selected");
+      return;
+    }
+
+    const selectedProducts = selectedRows.map((row) => row.original);
+    console.log("Selected products to delete:", selectedProducts);
+
+    // TODO: Implement delete logic
+    // - Show confirmation dialog
+    // - Call delete API (e.g., await apiDeleteProducts(selectedProducts.map(p => p._id)))
+
+    try {
+      // Example: await apiDeleteProducts(selectedProducts.map(p => p._id));
+
+      // Clear row selection
+      table.resetRowSelection();
+
+      // Refetch the table data
+      await refetch();
+    } catch (error) {
+      console.error("Error deleting products:", error);
+    }
+  }, [table, refetch]);
+
+  if (!table) {
+    return null;
+  }
+
+  const selectedRows = table.getSelectedRowModel().rows;
+  const selectedCount = selectedRows.length;
+
+  if (selectedCount === 0) {
+    return null;
+  }
+
+  return (
+    <Button color="primary" onClick={handleDelete}>
+      Delete {selectedCount}
+    </Button>
+  );
+};
+
+// Filter components
+interface ProductFiltersProps {
+  selectedCompanyId?: string;
+}
+
+const ProductFilters = ({ selectedCompanyId }: ProductFiltersProps) => {
+  return (
+    <>
+      <StatusFilter module="product" />
+      <CompanyFilter />
+      <BrandFilter selectedCompanyId={selectedCompanyId} />
+      {/* Location filter can be added here if needed */}
+    </>
+  );
+};
+
+// Main component
+const ProductList = () => {
+  const filterValue = useUrlFilters();
+  const selectedCompanyId = filterValue.company?.[0]?.value;
+  const productFetcher = useMemo(() => createProductFetcher(), []);
 
   return (
     <PageContent
@@ -145,77 +204,26 @@ const ProductList = () => {
         description:
           "Manage your product catalog, pricing, descriptions and media assets.",
         actions: (
-          <Button color={"primary"} asChild>
+          <Button color="primary" asChild>
             <NavLink to={PANEL_ROUTES.LISTING.CREATE}>Add Product</NavLink>
           </Button>
         ),
       }}
     >
-      {/* Product Content */}
-      <>
-          {/* <section
-            className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:gap-5 lg:grid-cols-4"
-            aria-label="Product Statistics"
-          >
-            {stats.map((item) => (
-              <StatCard
-                key={item.title}
-                title={item.title}
-                value={formatNumber(item.value)}
-                barColor={item.barColor}
-              />
-            ))}
-          </section> */}
-
-          <DataTable
-            columns={columns}
-            isServerSide
-            fetcher={createProductFetcher(
-              selectedCompanyId === "all" ? undefined : selectedCompanyId,
-              selectedLocationId === "all" ? undefined : selectedLocationId,
-              selectedBrandId === "all" ? undefined : selectedBrandId
-            )}
-            queryKeyPrefix={`${PANEL_ROUTES.LISTING.LIST}-${selectedCompanyId === "all" ? "" : selectedCompanyId}-${selectedLocationId === "all" ? "" : selectedLocationId}-${selectedBrandId === "all" ? "" : selectedBrandId}`}
-            actionProps={(tableState) => ({
-              children: (
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">Company:</span>
-                    <CompanyFilter
-                      value={selectedCompanyId}
-                      onValueChange={handleCompanyChange}
-                      placeholder="All Companies"
-                    />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">Location:</span>
-                    <LocationFilter
-                      companyId={selectedCompanyId}
-                      value={selectedLocationId}
-                      onValueChange={handleLocationChange}
-                      placeholder="All Locations"
-                      disabled={!selectedCompanyId}
-                    />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">Brand:</span>
-                    <BrandFilter
-                      value={selectedBrandId}
-                      onValueChange={handleBrandChange}
-                      placeholder="All Brands"
-                      companyId={selectedCompanyId === "all" ? undefined : selectedCompanyId}
-                    />
-                  </div>
-                  <StatusFilter
-                    tableState={tableState}
-                    module="product"
-                    multi={false} // Single selection mode
-                  />
-                </div>
-              ),
-            })}
-          />
-      </>
+      <DataView<Product>
+        fetcher={productFetcher}
+        columns={columns}
+        renderCard={(product) => <ProductCard product={product} />}
+        gridClassName={GRID_CLASSES}
+        filters={<ProductFilters selectedCompanyId={selectedCompanyId} />}
+        defaultViewMode="table"
+        defaultPageSize={DEFAULT_PAGE_SIZE}
+        enableUrlSync={false}
+        queryKeyPrefix={PANEL_ROUTES.LISTING.LIST}
+        searchPlaceholder="Search products..."
+        defaultFilters={filterValue}
+        additionalControls={<DeleteButton />}
+      />
     </PageContent>
   );
 };

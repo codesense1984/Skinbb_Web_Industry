@@ -234,7 +234,7 @@ export async function apiGetProductById(id: string) {
   return api.get(`${ENDPOINTS.PRODUCT.MAIN}/${id}`);
 }
 
-export async function apiGetProducts(params?: ApiParams) {
+export async function apiGetProducts(params?: ApiParams, signal?: AbortSignal) {
   const searchParams = new URLSearchParams();
   
   if (params?.page) searchParams.append("page", params.page.toString());
@@ -252,7 +252,7 @@ export async function apiGetProducts(params?: ApiParams) {
   if (params?.locationId) searchParams.append("locationId", params.locationId);
   
   const url = `${ENDPOINTS.PRODUCT.MAIN}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
-  return api.get(url);
+  return api.get(url, { signal });
 }
 
 // Get products for dropdown selection

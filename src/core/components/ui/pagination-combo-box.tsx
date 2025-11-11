@@ -3,8 +3,33 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ComboBox, ComboBoxOptionItem } from "./combo-box";
-import type { ServerTableFetcher, ServerTableResult } from "../data-table";
 
+export interface ColumnSort {
+  desc: boolean;
+  id: string;
+}
+export type SortingState = ColumnSort[];
+export interface SortingTableState {
+  sorting: SortingState;
+}
+export type ColumnFiltersState = ColumnFilter[];
+export interface ColumnFilter {
+  id: string;
+  value: unknown;
+}
+export type ServerTableFetcher<TData> = (params: {
+  pageIndex: number;
+  pageSize: number;
+  sorting: SortingState;
+  columnFilters: ColumnFiltersState;
+  globalFilter: string;
+  signal: AbortSignal;
+}) => Promise<ServerTableResult<TData>>;
+
+export type ServerTableResult<TData> = {
+  rows: TData[];
+  total: number; // total rows across all pages (for pagination UI)
+};
 /**
  * Transform function to convert API data to Option format
  * This type provides better inference for the item parameter
@@ -15,7 +40,7 @@ type TransformFunction<T> = (item: T) => Option;
  * Props for the PaginationComboBox component
  * @template T - The type of data items returned by the API
  */
-interface PaginationComboBoxProps<T = unknown> {
+export interface PaginationComboBoxProps<T = unknown> {
   /** API function that returns paginated data (compatible with createSimpleFetcher) */
   apiFunction: ServerTableFetcher<T>;
   /** Transform API data to Option format */
@@ -47,6 +72,18 @@ interface PaginationComboBoxProps<T = unknown> {
   renderLabel?: (option: Option) => React.ReactNode;
   /** Custom render function for option items */
   renderOption?: (option: Option, isSelected: boolean) => React.ReactNode;
+  /** Custom render function for the button element */
+  renderButton?: (props: {
+    loading: boolean;
+    selectedOption: Option[] | Option | undefined;
+    disabled: boolean;
+    open: boolean;
+    value: string[] | string;
+    placeholder: string;
+    error: boolean;
+    multi: boolean;
+    isSelected: boolean;
+  }) => React.ReactNode;
   /** Message to show when no results are found */
   emptyMessage?: string;
   /** Whether to wrap items in multi-select mode */
@@ -71,6 +108,8 @@ interface PaginationComboBoxProps<T = unknown> {
   componentEnabled?: boolean;
   /** Additional filter parameters to pass to the API */
   additionalFilters?: Record<string, unknown>;
+  /** Whether to fetch data when popover opens (on mount) */
+  fetchOnMount?: boolean;
 }
 
 /**
@@ -107,6 +146,7 @@ export const PaginationComboBox = <T = unknown,>({
   maxVisibleItems = 3,
   renderLabel,
   renderOption,
+  renderButton,
   emptyMessage = "No results found",
   flexWrap = false,
   pageSize = 10,
@@ -119,10 +159,15 @@ export const PaginationComboBox = <T = unknown,>({
   enabled = true,
   componentEnabled = true,
   additionalFilters = {},
+  fetchOnMount = false,
   ...props
 }: PaginationComboBoxProps<T>) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
+  // Track if popover has ever been opened (for fetchOnMount)
+  const [hasPopoverOpened, setHasPopoverOpened] = useState(false);
 
   // Debounce search term
   useEffect(() => {
@@ -143,7 +188,15 @@ export const PaginationComboBox = <T = unknown,>({
     isLoading,
     isError,
   } = useInfiniteQuery({
-    queryKey: [...queryKey, debouncedSearchTerm, additionalFilters],
+    queryKey: [
+      ...queryKey,
+      debouncedSearchTerm,
+      // Stabilize additionalFilters by creating a sorted string representation
+      Object.entries(additionalFilters)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([key, value]) => `${key}:${value}`)
+        .join("|"),
+    ],
     queryFn: async ({
       pageParam = 0,
       signal,
@@ -182,7 +235,13 @@ export const PaginationComboBox = <T = unknown,>({
     enabled:
       enabled &&
       componentEnabled &&
-      debouncedSearchTerm.length >= minSearchLength,
+      // If fetchOnMount is enabled, only fetch when popover has been opened
+      (fetchOnMount
+        ? hasPopoverOpened &&
+          isPopoverOpen &&
+          (minSearchLength === 0 ||
+            debouncedSearchTerm.length >= minSearchLength)
+        : debouncedSearchTerm.length >= minSearchLength),
     staleTime,
     gcTime,
     refetchOnWindowFocus: false,
@@ -359,6 +418,62 @@ export const PaginationComboBox = <T = unknown,>({
     emptyMessage,
   ]);
 
+  // Adapter function to convert renderButton props to ComboBox format
+  const adaptedRenderButton = renderButton
+    ? (props: {
+        loading: boolean;
+        selectedOption: typeof multi extends true
+          ? Option[]
+          : Option | undefined;
+        disabled: boolean;
+        open: boolean;
+        value: typeof multi extends true ? string[] : string;
+        placeholder: string;
+        error: boolean;
+        multi: typeof multi;
+        isSelected: boolean;
+      }) => {
+        return renderButton({
+          loading: props.loading,
+          selectedOption: props.selectedOption as Option[] | Option | undefined,
+          disabled: props.disabled,
+          open: props.open,
+          value: props.value as string[] | string,
+          placeholder: props.placeholder,
+          error: props.error,
+          multi: props.multi as boolean,
+          isSelected: props.isSelected,
+        });
+      }
+    : undefined;
+
+  // Track popover open state using popoverContentProps
+  // We'll detect when popover opens/closes to trigger fetch on mount if needed
+  const popoverContentProps = useMemo(
+    () => ({
+      onOpenAutoFocus: () => {
+        // When popover opens and fetchOnMount is enabled, set state to trigger fetch
+        if (fetchOnMount) {
+          setHasPopoverOpened(true);
+          setIsPopoverOpen(true);
+        }
+      },
+      onEscapeKeyDown: () => {
+        // When popover closes via escape, reset state
+        if (fetchOnMount) {
+          setIsPopoverOpen(false);
+        }
+      },
+      onInteractOutside: () => {
+        // When popover closes by clicking outside, reset state
+        if (fetchOnMount) {
+          setIsPopoverOpen(false);
+        }
+      },
+    }),
+    [fetchOnMount],
+  );
+
   return (
     <div className="relative">
       <ComboBox
@@ -376,10 +491,12 @@ export const PaginationComboBox = <T = unknown,>({
         maxVisibleItems={maxVisibleItems}
         renderLabel={renderLabel}
         renderOption={customRenderOption}
+        renderButton={adaptedRenderButton as any}
         commandListProps={commandListProps}
         commandInputProps={commandInputProps}
         emptyMessage={getEmptyMessage()}
         flexWrap={flexWrap}
+        popoverContentProps={popoverContentProps}
         {...props}
       />
 

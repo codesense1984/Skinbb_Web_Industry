@@ -33,7 +33,11 @@ export function useTable<TData extends object>({
   queryKeyPrefix,
   meta,
 }: UseTableOptions<TData>): UseTableResponse<TData> {
-  console.log('useTable called with:', { pageSize, isServerSide, hasFetcher: !!fetcher });
+  console.log("useTable called with:", {
+    pageSize,
+    isServerSide,
+    hasFetcher: !!fetcher,
+  });
   // ---- UI state (client) ----
   const [sorting, setSorting] = useState<SortingState>(initialSorting);
   const [columnFilters, setColumnFilters] =
@@ -132,7 +136,7 @@ export function useTable<TData extends object>({
           globalFilter: debouncedGlobal,
           signal,
         };
-        console.log('useTable server-side params:', serverParams);
+        console.log("useTable server-side params:", serverParams);
         return fetcher(serverParams);
       } else {
         // Scenario 3: Fetch all data for client-side processing
@@ -145,7 +149,7 @@ export function useTable<TData extends object>({
           globalFilter: debouncedGlobal, // Only use global filter for search
           signal,
         };
-        console.log('useTable client-side params:', clientParams);
+        console.log("useTable client-side params:", clientParams);
         return fetcher(clientParams);
       }
     },

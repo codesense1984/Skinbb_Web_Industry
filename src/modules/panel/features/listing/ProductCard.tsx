@@ -4,6 +4,8 @@ import {
   AvatarImage,
 } from "@/core/components/ui/avatar";
 import { StatusBadge } from "@/core/components/ui/badge";
+import { Checkbox } from "@/core/components/ui/checkbox";
+import { useDataView } from "@/core/components/data-view";
 import type { Product } from "@/modules/panel/types/product.type";
 import { formatCurrency, formatDate } from "@/core/utils";
 import { memo, type FC } from "react";
@@ -23,14 +25,36 @@ interface ProductCardProps {
 }
 
 export const ProductCard: FC<ProductCardProps> = ({ product }) => {
+  const { table } = useDataView<Product>();
+
   // Safe access to arrays with fallbacks
   const variants = product.variants || [];
   const categories = product.productCategory || [];
   const priceRange = product.priceRange || { min: 0, max: 0 };
   const salePriceRange = product.salePriceRange || { min: 0, max: 0 };
 
+  // Get row selection state
+  const row = table?.getRow(product._id);
+  const isSelected = row?.getIsSelected() ?? false;
+
+  const handleCheckboxChange = (checked: boolean) => {
+    if (row) {
+      row.toggleSelected(checked);
+    }
+  };
+
   return (
-    <article className="bg-background hover:ring-primary flex flex-col gap-4 rounded-md p-4 shadow-md hover:ring-3 md:p-5">
+    <article className="bg-background hover:ring-primary relative flex flex-col gap-4 rounded-md p-4 shadow-md hover:ring-3 md:p-5">
+      {/* Checkbox in top-right corner */}
+      <div className="absolute top-2 right-2 z-10">
+        <Checkbox
+          checked={isSelected}
+          onCheckedChange={handleCheckboxChange}
+          aria-label={`Select ${product.productName || "product"}`}
+          onClick={(e) => e.stopPropagation()}
+        />
+      </div>
+
       <header className="flex items-center gap-3">
         <AvatarRoot className="size-12 rounded-md border">
           <AvatarImage
