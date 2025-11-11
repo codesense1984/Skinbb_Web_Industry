@@ -1,30 +1,29 @@
+import { TableAction } from "@/core/components/data-table/components/table-action";
 import {
   DataView,
   useDataView,
   type ServerDataFetcher,
 } from "@/core/components/data-view";
 import {
-  FilterDataItem,
-  type FilterOption,
+  type FilterOption
 } from "@/core/components/dynamic-filter";
-import { PageContent } from "@/core/components/ui/structure";
-import { TableAction } from "@/core/components/data-table/components/table-action";
 import { StatusBadge } from "@/core/components/ui/badge";
-import { formatCurrency } from "@/core/utils/number";
-import { formatDate } from "@/core/utils/date";
-import { apiGetOrderList } from "@/modules/panel/services/http/order.service";
-import type { Order } from "@/modules/panel/types/order.type";
+import { PageContent } from "@/core/components/ui/structure";
 import type { PaginationParams } from "@/core/types";
-import { useCallback, useMemo } from "react";
-import { useNavigate } from "react-router";
-import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
+import { formatDate } from "@/core/utils/date";
+import { formatCurrency } from "@/core/utils/number";
 import {
+  BrandFilter,
+  CompanyFilter,
   DEFAULT_PAGE_SIZE,
   FILTER_KEYS,
   StatusFilter,
-  CompanyFilter,
-  BrandFilter,
 } from "@/modules/panel/components/data-view";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
+import { apiGetOrderList } from "@/modules/panel/services/http/order.service";
+import type { Order } from "@/modules/panel/types/order.type";
+import { useCallback, useMemo } from "react";
+import { useNavigate } from "react-router";
 
 // Constants
 const PAYMENT_METHOD_FILTER_KEY = FILTER_KEYS.PAYMENT_METHOD;
@@ -111,13 +110,13 @@ const OrderFilters = () => {
       <StatusFilter module="order" />
       <CompanyFilter />
       <BrandFilter selectedCompanyId={selectedCompanyId} />
-      <FilterDataItem
+      {/* <FilterDataItem
         dataKey={PAYMENT_METHOD_FILTER_KEY}
         type="dropdown"
         mode="single"
         options={PAYMENT_METHODS}
         placeholder="Select payment method..."
-      />
+      /> */}
     </>
   );
 };
