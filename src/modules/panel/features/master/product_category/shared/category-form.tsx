@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useParams, useNavigate, useLocation } from "react-router";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useEffect, useMemo, useState, useRef } from "react";
 import { Button } from "@/core/components/ui/button";
@@ -11,6 +11,8 @@ import {
   apiGetProductCategories,
   apiCreateProductCategory,
   apiUpdateProductCategory,
+  apiUploadMedia,
+  apiGetProductCategoryById,
 } from "@/modules/panel/services/http/product.service";
 import { categoryFormSchema, type CategoryFormData } from "./formSchema";
 import { MODE } from "@/core/types/base.type";
@@ -37,6 +39,7 @@ export default function CategoryForm({
   const { id } = useParams();
   const location = useLocation();
   const pathname = location.pathname;
+  const queryClient = useQueryClient();
   
   // Store the uploaded media ID
   const [uploadedMediaId, setUploadedMediaId] = useState<string | null>(null);
@@ -88,6 +91,20 @@ export default function CategoryForm({
     },
   });
 
+  // Upload category image function
+  const uploadCategoryImage = async (file: File): Promise<{ mediaId: string; url: string }> => {
+    const response = await apiUploadMedia(file, "image");
+    
+    if (response.success && response.data.media.length > 0) {
+      const media = response.data.media[0];
+      return {
+        mediaId: media._id,
+        url: media.url,
+      };
+    }
+    throw new Error("Failed to upload image");
+  };
+
   // Handle image upload when file is selected
   useEffect(() => {
     const handleImageUpload = async () => {
@@ -103,11 +120,44 @@ export default function CategoryForm({
             toast.loading("Uploading image...", { id: "upload-image" });
             const { mediaId, url } = await uploadCategoryImage(file);
             
-            // Store the media ID and update form
+            // Store the media ID and update form immediately with uploaded URL
             setUploadedMediaId(mediaId);
             setValue("image", url);
             lastUploadedFileRef.current = file; // Track this file as uploaded
             toast.success("Image uploaded successfully", { id: "upload-image" });
+            
+            // If in edit mode, fetch category data to get preview after upload
+            // This ensures we have the latest category data including the uploaded image
+            if (finalMode === MODE.EDIT && finalCategoryId) {
+              try {
+                const categoryResponse = await apiGetProductCategoryById(finalCategoryId);
+                // API response structure: { data: { data: { ...category } } } or { data: { ...category } }
+                const categoryData = categoryResponse?.data?.data || categoryResponse?.data;
+                if (categoryData) {
+                  // Extract thumbnail URL from the fetched category data
+                  let thumbnailUrl = url; // Default to uploaded URL
+                  if (categoryData.thumbnail) {
+                    if (typeof categoryData.thumbnail === "string") {
+                      thumbnailUrl = categoryData.thumbnail.startsWith("http") 
+                        ? categoryData.thumbnail 
+                        : url; // Use uploaded URL if thumbnail is just an ID
+                    } else if (categoryData.thumbnail?.url) {
+                      thumbnailUrl = categoryData.thumbnail.url;
+                    }
+                  }
+                  
+                  // Update the form with the fetched thumbnail URL to ensure preview is correct
+                  setValue("image", thumbnailUrl);
+                  console.log("Category preview fetched and updated:", categoryData);
+                  
+                  // Invalidate the query cache to ensure fresh data on next load
+                  queryClient.invalidateQueries({ queryKey: ["product-category", finalCategoryId] });
+                }
+              } catch (error) {
+                console.error("Error fetching category preview:", error);
+                // Continue with the uploaded URL if preview fetch fails
+              }
+            }
           } catch (error: any) {
             console.error("Error uploading image:", error);
             toast.error(
@@ -126,7 +176,7 @@ export default function CategoryForm({
     };
 
     handleImageUpload();
-  }, [imageFiles, setValue]);
+  }, [imageFiles, setValue, finalMode, finalCategoryId]);
 
   // Fetch parent categories for dropdown
   const { data: categoriesData } = useQuery({
@@ -150,14 +200,12 @@ export default function CategoryForm({
   // Fetch category data for edit/view mode
   const { data: categoryData, isLoading } = useQuery({
     queryKey: ["product-category", finalCategoryId],
-    queryFn: () => apiGetProductCategories({ page: 1, limit: 1000 }),
+    queryFn: () => apiGetProductCategoryById(finalCategoryId!),
     enabled:
       !!finalCategoryId && (finalMode === MODE.EDIT || finalMode === MODE.VIEW),
     select: (data: any) => {
-      if (!data?.data?.productCategories) return null;
-      return data.data.productCategories.find(
-        (cat: any) => cat._id === finalCategoryId,
-      );
+      // API response structure: { data: { data: { ...category } } } or { data: { ...category } }
+      return data?.data?.data || data?.data || null;
     },
   });
 
@@ -165,8 +213,37 @@ export default function CategoryForm({
   useEffect(() => {
     if (categoryData) {
       console.log("Populating form with category data:", categoryData);
-      const imageUrl =
-        categoryData.image || categoryData.imageUrl || categoryData.logo || "";
+      
+      // Extract image URL - check thumbnail (object or string), image, imageUrl, or logo
+      let imageUrl = "";
+      if (categoryData.thumbnail) {
+        if (typeof categoryData.thumbnail === "string") {
+          // Thumbnail is a string - could be URL or media ID
+          // If it looks like a URL (starts with http), use it directly
+          // Otherwise, it might be a media ID that needs to be resolved
+          if (categoryData.thumbnail.startsWith("http://") || categoryData.thumbnail.startsWith("https://")) {
+            imageUrl = categoryData.thumbnail;
+          } else {
+            // It's likely a media ID, but we'll try to use it as-is for now
+            // The API might return it as a populated object in some cases
+            imageUrl = categoryData.thumbnail;
+          }
+        } else if (categoryData.thumbnail?.url) {
+          // Thumbnail is an object with url property
+          imageUrl = categoryData.thumbnail.url;
+        } else if (categoryData.thumbnail?._id) {
+          // Thumbnail is an object with _id (media ID)
+          // If it also has url, prefer url, otherwise use _id
+          imageUrl = categoryData.thumbnail.url || categoryData.thumbnail._id;
+        }
+      }
+      
+      // Fallback to other image fields
+      if (!imageUrl) {
+        imageUrl = categoryData.image || categoryData.imageUrl || categoryData.logo || "";
+      }
+      
+      console.log("Extracted image URL:", imageUrl, "from categoryData:", categoryData);
 
       form.reset({
         name: categoryData.name || "",

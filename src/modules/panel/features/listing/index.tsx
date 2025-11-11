@@ -9,10 +9,12 @@ import { PageContent } from "@/core/components/ui/structure";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import {
   apiGetProducts,
+  apiPublishBulkProducts,
   type ApiParams,
 } from "@/modules/panel/services/http/product.service";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { NavLink, useParams, useSearchParams } from "react-router";
+import { toast } from "sonner";
 import type { Product } from "../../types/product.type";
 import { columns } from "./data";
 import { ProductCard } from "./ProductCard";
@@ -123,39 +125,9 @@ const useUrlFilters = () => {
   return filters;
 };
 
-// Delete button component
-const DeleteButton = () => {
+// Publish button component
+const PublishButton = () => {
   const { table, refetch } = useDataView<Product>();
-
-  const handleDelete = useCallback(async () => {
-    if (!table) return;
-
-    const selectedRows = table.getSelectedRowModel().rows;
-
-    if (selectedRows.length === 0) {
-      console.log("No rows selected");
-      return;
-    }
-
-    const selectedProducts = selectedRows.map((row) => row.original);
-    console.log("Selected products to delete:", selectedProducts);
-
-    // TODO: Implement delete logic
-    // - Show confirmation dialog
-    // - Call delete API (e.g., await apiDeleteProducts(selectedProducts.map(p => p._id)))
-
-    try {
-      // Example: await apiDeleteProducts(selectedProducts.map(p => p._id));
-
-      // Clear row selection
-      table.resetRowSelection();
-
-      // Refetch the table data
-      await refetch();
-    } catch (error) {
-      console.error("Error deleting products:", error);
-    }
-  }, [table, refetch]);
 
   if (!table) {
     return null;
@@ -168,9 +140,58 @@ const DeleteButton = () => {
     return null;
   }
 
+  // Filter only approved products
+  const selectedProducts = selectedRows.map((row) => row.original);
+  const approvedProducts = selectedProducts.filter(
+    (product) => product.status === "approved"
+  );
+  const approvedCount = approvedProducts.length;
+
+  // Show button only if there are approved products
+  if (approvedCount === 0) {
+    return null;
+  }
+
+  const handlePublish = useCallback(async () => {
+    if (!table) return;
+
+    const selectedRows = table.getSelectedRowModel().rows;
+    const selectedProducts = selectedRows.map((row) => row.original);
+    
+    // Filter only approved products
+    const approvedProducts = selectedProducts.filter(
+      (product) => product.status === "approved"
+    );
+
+    if (approvedProducts.length === 0) {
+      toast.error("Only approved products can be published");
+      return;
+    }
+
+    const productIds = approvedProducts.map((p) => p._id);
+    console.log("Selected approved products to publish:", approvedProducts);
+
+    try {
+      await apiPublishBulkProducts(productIds);
+      
+      toast.success(`Successfully published ${approvedProducts.length} product(s)`);
+
+      // Clear row selection
+      table.resetRowSelection();
+
+      // Refetch the table data
+      await refetch();
+    } catch (error: any) {
+      console.error("Error publishing products:", error);
+      toast.error(
+        error?.response?.data?.message || "Failed to publish products"
+      );
+    }
+  }, [table, refetch]);
+
   return (
-    <Button color="primary" onClick={handleDelete}>
-      Delete {selectedCount}
+    <Button color="primary" onClick={handlePublish}>
+      Publish {approvedCount}
     </Button>
   );
 };
@@ -222,7 +243,7 @@ const ProductList = () => {
         queryKeyPrefix={PANEL_ROUTES.LISTING.LIST}
         searchPlaceholder="Search products..."
         defaultFilters={filterValue}
-        additionalControls={<DeleteButton />}
+        additionalControls={<PublishButton />}
       />
     </PageContent>
   );

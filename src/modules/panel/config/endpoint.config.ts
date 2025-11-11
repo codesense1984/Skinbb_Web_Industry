@@ -68,6 +68,7 @@ export const ENDPOINTS = {
 
   MEDIA: {
     UPLOAD: `${API_PREFIX}/media/upload`,
+    UPLOAD_MEDIA: `${API_PREFIX}/media/upload-media`,
   },
 
   BRAND: {
