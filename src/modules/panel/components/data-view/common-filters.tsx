@@ -1,8 +1,9 @@
 import { FilterDataItem } from "@/core/components/dynamic-filter";
 import { STATUS_MAP } from "@/core/config/status";
 import type { Brand, Company } from "@/modules/panel/types";
+import type { CompanyLocation } from "@/modules/panel/types/company-location.type";
 import { useMemo } from "react";
-import { DEFAULT_PAGE_SIZE, createBrandFilter, companyFilter } from "./filters";
+import { DEFAULT_PAGE_SIZE, createBrandFilter, companyFilter, createLocationFilter } from "./filters";
 
 // Filter keys constants
 export const FILTER_KEYS = {
@@ -101,6 +102,45 @@ export const BrandFilter = ({
         }),
         queryKey: [
           "company-brand-filter",
+          ...(selectedCompanyId ? [selectedCompanyId] : []),
+        ],
+        pageSize: DEFAULT_PAGE_SIZE,
+      }}
+    />
+  );
+};
+
+// Location filter component (depends on company selection)
+interface LocationFilterProps {
+  dataKey?: string;
+  selectedCompanyId?: string;
+  placeholder?: string;
+}
+
+export const LocationFilter = ({
+  dataKey = FILTER_KEYS.LOCATION,
+  selectedCompanyId,
+  placeholder = "Select location...",
+}: LocationFilterProps) => {
+  const locationFilter = useMemo(
+    () => createLocationFilter(selectedCompanyId),
+    [selectedCompanyId],
+  );
+
+  return (
+    <FilterDataItem<"pagination", undefined, CompanyLocation>
+      dataKey={dataKey}
+      type="pagination"
+      mode="single"
+      placeholder={placeholder}
+      elementProps={{
+        apiFunction: locationFilter,
+        transform: (item) => ({
+          label: `${item.addressLine1} - ${item.city}`,
+          value: item._id ?? "",
+        }),
+        queryKey: [
+          "company-location-filter",
           ...(selectedCompanyId ? [selectedCompanyId] : []),
         ],
         pageSize: DEFAULT_PAGE_SIZE,

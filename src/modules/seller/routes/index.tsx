@@ -57,11 +57,11 @@ export const sellerRoutes: RouteObject = {
       ),
     },
 
-    // Product Management - Using simplified routes
+    // Product Management - Using simplified routes (redirected to unified listing)
     {
       path: "/products",
       Component: lazy(
-        () => import("@/modules/seller/features/products/SellerProductList"),
+        () => import("@/modules/seller/features/products/redirect"),
       ),
     },
     {
@@ -248,11 +248,11 @@ export const sellerRoutes: RouteObject = {
       ),
     },
 
-    // Company Location Product Management (Complex routes)
+    // Company Location Product Management (Complex routes - redirected to unified listing)
     {
       path: PANEL_ROUTES.COMPANY_LOCATION.PRODUCTS(),
       Component: lazy(
-        () => import("@/modules/panel/features/company-location-products/list"),
+        () => import("@/modules/seller/features/ProductListRedirect"),
       ),
     },
     {
@@ -275,13 +275,13 @@ export const sellerRoutes: RouteObject = {
       ),
     },
 
-    // Brand Product Management (Complex routes)
+    // Brand Product Management (Complex routes - redirected to unified listing)
     {
       path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_PRODUCTS(),
       Component: lazy(
         () =>
           import(
-            "@/modules/panel/features/company-location-brands/products/list"
+            "@/modules/panel/features/company-location-brands/products/list/redirect"
           ),
       ),
     },

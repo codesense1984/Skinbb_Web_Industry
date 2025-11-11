@@ -3,7 +3,6 @@ import {
   useDataView,
   type ServerDataFetcher,
 } from "@/core/components/data-view";
-import type { FilterOption } from "@/core/components/dynamic-filter";
 import { Button } from "@/core/components/ui/button";
 import { PageContent } from "@/core/components/ui/structure";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
@@ -16,27 +15,28 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { NavLink, useParams, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import type { Product } from "../../types/product.type";
-import { columns } from "./data";
+import { columns, initialStatsData } from "./data";
 import { ProductCard } from "./ProductCard";
 import {
   DEFAULT_PAGE_SIZE,
   StatusFilter,
   CompanyFilter,
   BrandFilter,
+  LocationFilter,
 } from "@/modules/panel/components/data-view";
+import { StatCard } from "@/core/components/ui/stat";
+import { formatNumber } from "@/core/utils";
+import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth";
 
 // Constants
 const GRID_CLASSES = "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3";
 
-type ProductFilters = {
-  status: FilterOption[];
-  company: FilterOption[];
-  brand: FilterOption[];
-  location: FilterOption[];
-};
-
-// Product fetcher for DataView component
-const createProductFetcher = (): ServerDataFetcher<Product> => {
+// Product fetcher factory that accepts locked filters
+const createProductFetcher = (lockedFilters?: {
+  companyId?: string;
+  locationId?: string;
+  brandId?: string;
+}): ServerDataFetcher<Product> => {
   return async ({
     pageIndex,
     pageSize,
@@ -59,17 +59,28 @@ const createProductFetcher = (): ServerDataFetcher<Product> => {
       params.order = sorting[0].desc ? "desc" : "asc";
     }
 
-    // Map filters to API params
+    // Apply locked filters first (from URL params)
+    if (lockedFilters?.companyId) {
+      params.companyId = lockedFilters.companyId;
+    }
+    if (lockedFilters?.locationId) {
+      params.locationId = lockedFilters.locationId;
+    }
+    if (lockedFilters?.brandId) {
+      params.brandId = lockedFilters.brandId;
+    }
+
+    // Map user-selected filters to API params (only if not locked)
     if (filters.status?.[0]?.value) {
       params.status = filters.status[0].value;
     }
-    if (filters.company?.[0]?.value) {
+    if (filters.company?.[0]?.value && !lockedFilters?.companyId) {
       params.companyId = filters.company[0].value;
     }
-    if (filters.brand?.[0]?.value) {
+    if (filters.brand?.[0]?.value && !lockedFilters?.brandId) {
       params.brandId = filters.brand[0].value;
     }
-    if (filters.location?.[0]?.value) {
+    if (filters.location?.[0]?.value && !lockedFilters?.locationId) {
       params.locationId = filters.location[0].value;
     }
 
@@ -94,35 +105,29 @@ const createProductFetcher = (): ServerDataFetcher<Product> => {
 const useUrlFilters = () => {
   const { companyId, locationId, brandId } = useParams();
   const [searchParams] = useSearchParams();
-  const [filters, setFilters] = useState<ProductFilters>({
-    status: [],
-    company: [],
-    brand: [],
-    location: [],
-  });
 
-  useEffect(() => {
-    const urlCompanyId = companyId || searchParams.get("companyId");
-    const urlLocationId = locationId || searchParams.get("locationId");
-    const urlBrandId = brandId || searchParams.get("brandId");
+  // Track which filters are locked from URL
+  const urlCompanyId = companyId || searchParams.get("companyId");
+  const urlLocationId = locationId || searchParams.get("locationId");
+  const urlBrandId = brandId || searchParams.get("brandId");
 
-    if (urlCompanyId || urlLocationId || urlBrandId) {
-      setFilters((prev) => ({
-        ...prev,
-        company: urlCompanyId
-          ? [{ label: "Company", value: urlCompanyId, disabled: false }]
-          : prev.company,
-        location: urlLocationId
-          ? [{ label: "Location", value: urlLocationId, disabled: false }]
-          : prev.location,
-        brand: urlBrandId
-          ? [{ label: "Brand", value: urlBrandId }]
-          : prev.brand,
-      }));
-    }
-  }, [companyId, locationId, brandId, searchParams]);
+  // Don't set locked filters in the filter context - they won't show as badges
+  // They'll be applied directly in the fetcher instead
+  // Only set non-locked filters that the user might have selected
 
-  return filters;
+  return {
+    filters: {}, // Empty - locked filters won't show as badges
+    lockedFilters: {
+      company: !!urlCompanyId,
+      location: !!urlLocationId,
+      brand: !!urlBrandId,
+    },
+    lockedFilterValues: {
+      companyId: urlCompanyId || undefined,
+      locationId: urlLocationId || undefined,
+      brandId: urlBrandId || undefined,
+    },
+  };
 };
 
 // Publish button component
@@ -199,24 +204,118 @@ const PublishButton = () => {
 // Filter components
 interface ProductFiltersProps {
   selectedCompanyId?: string;
+  lockedFilters?: {
+    company?: boolean;
+    location?: boolean;
+    brand?: boolean;
+  };
 }
 
-const ProductFilters = ({ selectedCompanyId }: ProductFiltersProps) => {
+const ProductFilters = ({ selectedCompanyId, lockedFilters = {} }: ProductFiltersProps) => {
   return (
     <>
       <StatusFilter module="product" />
-      <CompanyFilter />
-      <BrandFilter selectedCompanyId={selectedCompanyId} />
-      {/* Location filter can be added here if needed */}
+      {!lockedFilters.company && <CompanyFilter />}
+      {!lockedFilters.brand && <BrandFilter selectedCompanyId={selectedCompanyId} />}
+      {!lockedFilters.location && <LocationFilter selectedCompanyId={selectedCompanyId} />}
     </>
+  );
+};
+
+// Stats component for seller context
+const ProductStats = ({ companyId }: { companyId: string }) => {
+  const [stats, setStats] = useState(initialStatsData);
+
+  const fetchStats = useCallback(async () => {
+    if (!companyId) return;
+    
+    try {
+      const response = await apiGetProducts({ 
+        page: 1, 
+        limit: 1000,
+        companyId 
+      });
+
+      if (response && typeof response === "object" && "data" in response) {
+        const responseData = response.data as { 
+          products: Array<{ status: string; variants?: Array<unknown> }>; 
+          totalRecords: number 
+        };
+        const publishedProducts = responseData.products?.filter(
+          (p: { status: string }) => p.status === "publish",
+        ).length || 0;
+        const draftProducts = responseData.products?.filter(
+          (p: { status: string }) => p.status === "draft",
+        ).length || 0;
+        const totalVariants = responseData.products?.reduce(
+          (sum: number, product: { variants?: Array<unknown> }) => sum + (product.variants?.length || 0),
+          0,
+        ) || 0;
+
+        setStats([
+          {
+            title: "Total Products",
+            value: responseData.totalRecords || 0,
+            barColor: "bg-primary",
+            icon: true,
+          },
+          {
+            title: "Published Products",
+            value: publishedProducts,
+            barColor: "bg-blue-300",
+            icon: false,
+          },
+          {
+            title: "Draft Products",
+            value: draftProducts,
+            barColor: "bg-violet-300",
+            icon: false,
+          },
+          {
+            title: "Total Variants",
+            value: totalVariants,
+            barColor: "bg-red-300",
+            icon: true,
+          },
+        ]);
+      }
+    } catch (error) {
+      console.error("Failed to fetch product stats:", error);
+    }
+  }, [companyId]);
+
+  useEffect(() => {
+    if (companyId) {
+      fetchStats();
+    }
+  }, [fetchStats, companyId]);
+
+  return (
+    <section className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:gap-5 lg:grid-cols-4 mb-6">
+      {stats.map((item) => (
+        <StatCard
+          key={item.title}
+          title={item.title}
+          value={formatNumber(item.value)}
+          barColor={item.barColor}
+        />
+      ))}
+    </section>
   );
 };
 
 // Main component
 const ProductList = () => {
-  const filterValue = useUrlFilters();
-  const selectedCompanyId = filterValue.company?.[0]?.value;
-  const productFetcher = useMemo(() => createProductFetcher(), []);
+  const { filters: filterValue, lockedFilters, lockedFilterValues } = useUrlFilters();
+  const selectedCompanyId = filterValue.company?.[0]?.value || lockedFilterValues.companyId;
+  const productFetcher = useMemo(
+    () => createProductFetcher(lockedFilterValues),
+    [lockedFilterValues]
+  );
+  
+  // Check if we're in seller context
+  const { sellerInfo } = useSellerAuth();
+  const isSellerContext = !!sellerInfo?.companyId;
 
   return (
     <PageContent
@@ -231,12 +330,17 @@ const ProductList = () => {
         ),
       }}
     >
+      {/* Show stats cards only in seller context */}
+      {isSellerContext && sellerInfo.companyId && (
+        <ProductStats companyId={sellerInfo.companyId} />
+      )}
+      
       <DataView<Product>
         fetcher={productFetcher}
         columns={columns}
         renderCard={(product) => <ProductCard product={product} />}
         gridClassName={GRID_CLASSES}
-        filters={<ProductFilters selectedCompanyId={selectedCompanyId} />}
+        filters={<ProductFilters selectedCompanyId={selectedCompanyId} lockedFilters={lockedFilters} />}
         defaultViewMode="table"
         defaultPageSize={DEFAULT_PAGE_SIZE}
         enableUrlSync={false}

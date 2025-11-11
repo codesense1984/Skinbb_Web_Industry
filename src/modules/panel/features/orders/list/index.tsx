@@ -4,6 +4,7 @@ import {
   useDataView,
   type ServerDataFetcher,
 } from "@/core/components/data-view";
+import { OrderCard } from "./OrderCard";
 import {
   type FilterOption
 } from "@/core/components/dynamic-filter";
@@ -259,6 +260,8 @@ const OrderList = () => {
         <DataView<Order>
           fetcher={orderFetcher}
           columns={columns}
+          renderCard={(order) => <OrderCard order={order} />}
+          gridClassName="grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3"
           defaultViewMode="table"
           defaultPageSize={DEFAULT_PAGE_SIZE}
           enableUrlSync={false}
