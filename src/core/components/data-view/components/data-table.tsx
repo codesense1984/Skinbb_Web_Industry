@@ -82,7 +82,9 @@ export function DataTable<TData extends object>({
   renderCell,
   emptyMessage = "No data available",
   ariaLabel = "Data table",
+  isLoading = false,
   className,
+  loadingRows = 5,
 }: DataTableProps<TData>) {
   const tableRef = useRef<HTMLTableElement>(null);
   const [focusedCell, setFocusedCell] = React.useState<{
@@ -194,7 +196,17 @@ export function DataTable<TData extends object>({
         ))}
       </TableHeader>
       <TableBody>
-        {table.getRowModel().rows.length ? (
+        {isLoading ? (
+          Array.from({ length: loadingRows }).map((_, index) => (
+            <TableRow key={`loading-${index}`} className="animate-pulse">
+              {table.getAllColumns().map((column) => (
+                <TableCell key={`loading-cell-${index}-${column.id}`}>
+                  <div className="bg-muted h-6 w-full rounded"></div>
+                </TableCell>
+              ))}
+            </TableRow>
+          ))
+        ) : table.getRowModel().rows.length ? (
           rows.map((row, rowIndex) => (
             <TableRow
               key={row.id}
@@ -259,9 +271,9 @@ export function DataTableWithSkeleton<TData extends object>(
 ) {
   const { isLoading, ...tableProps } = props;
 
-  if (isLoading) {
-    return <DataSkeleton type="table" count={props.loadingRows} />;
-  }
+  // if (isLoading) {
+  //   return <DataSkeleton type="table" count={props.loadingRows} />;
+  // }
 
   return <DataTable {...tableProps} />;
 }

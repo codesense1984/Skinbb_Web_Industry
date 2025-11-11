@@ -158,6 +158,10 @@ export interface DataTableProps<TData> {
   ariaLabel?: string;
 
   className?: string;
+  /**
+   * Whether the table is loading
+   */
+  isLoading?: boolean;
 }
 
 /**

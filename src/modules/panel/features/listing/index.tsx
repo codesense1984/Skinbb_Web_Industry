@@ -16,7 +16,7 @@ import {
   apiGetProducts,
   type ApiParams,
 } from "@/modules/panel/services/http/product.service";
-import React from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { NavLink, useParams, useSearchParams } from "react-router";
 import { apiGetBrands } from "../../services/http/brand.service";
 import { apiGetCompaniesForFilter } from "../../services/http/company.service";
@@ -25,66 +25,76 @@ import type { Product } from "../../types/product.type";
 import { columns } from "./data";
 import { ProductCard } from "./ProductCard";
 
-// Create fetcher for DataView component
-const fetchProduct: ServerDataFetcher<Product> = async ({
-  pageIndex,
-  pageSize,
-  sorting,
-  globalFilter,
-  filters,
-  signal,
-}) => {
-  // Build API parameters
-  const params: ApiParams = {
-    page: pageIndex + 1, // API uses 1-based pagination
-    limit: pageSize,
-  };
+// Constants
+const FILTER_KEYS = {
+  STATUS: "status",
+  COMPANY: "company",
+  BRAND: "brand",
+  LOCATION: "location",
+} as const;
 
-  // Add search
-  if (globalFilter) {
-    params.search = globalFilter;
-  }
+const DEFAULT_PAGE_SIZE = 10;
+const GRID_CLASSES = "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3";
 
-  // Add sorting
-  if (sorting.length > 0) {
-    params.sortBy = sorting[0].id;
-    params.order = sorting[0].desc ? "desc" : "asc";
-  }
+type FilterKeys = (typeof FILTER_KEYS)[keyof typeof FILTER_KEYS];
+type ProductFilters = Record<FilterKeys, FilterOption[]>;
 
-  // Map filters from FilterProvider to API params
-  if (filters.status?.[0]?.value) {
-    params.status = filters.status[0].value;
-  }
-  if (filters.company?.[0]?.value) {
-    params.companyId = filters.company[0].value;
-  }
-  if (filters.brand?.[0]?.value) {
-    params.brandId = filters.brand[0].value;
-  }
-  if (filters.location?.[0]?.value) {
-    params.locationId = filters.location[0].value;
-  }
-
-  // Note: apiGetProducts doesn't accept signal directly, but we can pass it if needed
-  const response = await apiGetProducts(params, signal);
-
-  // Type assertion for API response
-  if (response && typeof response === "object" && "data" in response) {
-    const responseData = response.data as {
-      products?: Product[];
-      totalRecords?: number;
+// Product fetcher for DataView component
+const createProductFetcher = (): ServerDataFetcher<Product> => {
+  return async ({
+    pageIndex,
+    pageSize,
+    sorting,
+    globalFilter,
+    filters,
+    signal,
+  }) => {
+    const params: ApiParams = {
+      page: pageIndex + 1, // API uses 1-based pagination
+      limit: pageSize,
     };
-    return {
-      rows: responseData?.products || [],
-      total: responseData?.totalRecords || 0,
-    };
-  }
 
-  return {
-    rows: [],
-    total: 0,
+    if (globalFilter) {
+      params.search = globalFilter;
+    }
+
+    if (sorting.length > 0) {
+      params.sortBy = sorting[0].id;
+      params.order = sorting[0].desc ? "desc" : "asc";
+    }
+
+    // Map filters to API params
+    if (filters.status?.[0]?.value) {
+      params.status = filters.status[0].value;
+    }
+    if (filters.company?.[0]?.value) {
+      params.companyId = filters.company[0].value;
+    }
+    if (filters.brand?.[0]?.value) {
+      params.brandId = filters.brand[0].value;
+    }
+    if (filters.location?.[0]?.value) {
+      params.locationId = filters.location[0].value;
+    }
+
+    const response = await apiGetProducts(params, signal);
+
+    if (response && typeof response === "object" && "data" in response) {
+      const responseData = response.data as {
+        products?: Product[];
+        totalRecords?: number;
+      };
+      return {
+        rows: responseData?.products || [],
+        total: responseData?.totalRecords || 0,
+      };
+    }
+
+    return { rows: [], total: 0 };
   };
 };
+
+// Filter fetchers
 const companyFilter = createSimpleFetcher(apiGetCompaniesForFilter, {
   dataPath: "data.items",
   totalPath: "data.total",
@@ -93,11 +103,10 @@ const companyFilter = createSimpleFetcher(apiGetCompaniesForFilter, {
 const createBrandFilter = (companyId?: string) => {
   return createSimpleFetcher(
     (params: Record<string, unknown>) => {
-      const filterParams = {
+      return apiGetBrands({
         ...params,
         ...(companyId && { companyId }),
-      };
-      return apiGetBrands(filterParams);
+      });
     },
     {
       dataPath: "data.brands",
@@ -106,67 +115,24 @@ const createBrandFilter = (companyId?: string) => {
   );
 };
 
-/**
- * Delete button component that accesses selected rows
- */
-const DeleteButton = () => {
-  const { table } = useDataView<Product>();
-
-  const handleDelete = () => {
-    if (!table) return;
-
-    // Get selected rows
-    const selectedRows = table.getSelectedRowModel().rows;
-
-    if (selectedRows.length === 0) {
-      // Optionally show a message to the user
-      console.log("No rows selected");
-      return;
-    }
-
-    // Get the original data from selected rows
-    const selectedProducts = selectedRows.map((row) => row.original);
-
-    // Log or use the selected products
-    console.log("Selected products to delete:", selectedProducts);
-
-    // TODO: Implement your delete logic here
-    // For example:
-    // - Show a confirmation dialog
-    // - Call your delete API
-    // - Refetch data after deletion
-  };
-
-  return (
-    <Button color="primary" onClick={handleDelete}>
-      Delete
-    </Button>
-  );
-};
-
-const ProductList = () => {
-  const [filterValue, setFilterValue] = React.useState<
-    Record<"status" | "company" | "brand" | "location", FilterOption[]>
-  >({
+// Custom hook for URL parameter handling
+const useUrlFilters = () => {
+  const { companyId, locationId, brandId } = useParams();
+  const [searchParams] = useSearchParams();
+  const [filters, setFilters] = useState<ProductFilters>({
     status: [],
     company: [],
     brand: [],
     location: [],
   });
 
-  const { companyId, locationId, brandId } = useParams();
-  const [searchParams] = useSearchParams();
-
-  const selectedCompanyId = filterValue.company?.[0]?.value;
-
-  // Auto-fill from URL parameters on mount
-  React.useEffect(() => {
+  useEffect(() => {
     const urlCompanyId = companyId || searchParams.get("companyId");
     const urlLocationId = locationId || searchParams.get("locationId");
     const urlBrandId = brandId || searchParams.get("brandId");
 
     if (urlCompanyId || urlLocationId || urlBrandId) {
-      setFilterValue((prev) => ({
+      setFilters((prev) => ({
         ...prev,
         company: urlCompanyId
           ? [{ label: "Company", value: urlCompanyId, disabled: false }]
@@ -181,78 +147,151 @@ const ProductList = () => {
     }
   }, [companyId, locationId, brandId, searchParams]);
 
+  return filters;
+};
+
+// Delete button component
+const DeleteButton = () => {
+  const { table, refetch } = useDataView<Product>();
+
+  const handleDelete = useCallback(async () => {
+    if (!table) return;
+
+    const selectedRows = table.getSelectedRowModel().rows;
+
+    if (selectedRows.length === 0) {
+      console.log("No rows selected");
+      return;
+    }
+
+    const selectedProducts = selectedRows.map((row) => row.original);
+    console.log("Selected products to delete:", selectedProducts);
+
+    // TODO: Implement delete logic
+    // - Show confirmation dialog
+    // - Call delete API (e.g., await apiDeleteProducts(selectedProducts.map(p => p._id)))
+
+    try {
+      // Example: await apiDeleteProducts(selectedProducts.map(p => p._id));
+
+      // Clear row selection
+      table.resetRowSelection();
+
+      // Refetch the table data
+      await refetch();
+    } catch (error) {
+      console.error("Error deleting products:", error);
+    }
+  }, [table, refetch]);
+
+  if (!table) {
+    return null;
+  }
+
+  const selectedRows = table.getSelectedRowModel().rows;
+  const selectedCount = selectedRows.length;
+
+  if (selectedCount === 0) {
+    return null;
+  }
+
+  return (
+    <Button color="primary" onClick={handleDelete}>
+      Delete {selectedCount}
+    </Button>
+  );
+};
+
+// Filter components
+interface ProductFiltersProps {
+  selectedCompanyId?: string;
+}
+
+const ProductFilters = ({ selectedCompanyId }: ProductFiltersProps) => {
+  const brandFilter = useMemo(
+    () => createBrandFilter(selectedCompanyId),
+    [selectedCompanyId],
+  );
+
+  return (
+    <>
+      <FilterDataItem
+        dataKey={FILTER_KEYS.STATUS}
+        type="dropdown"
+        mode="single"
+        options={Object.values(STATUS_MAP.product)}
+        placeholder="Select status..."
+      />
+      <FilterDataItem<"pagination", undefined, Company>
+        dataKey={FILTER_KEYS.COMPANY}
+        type="pagination"
+        mode="single"
+        placeholder="Select company..."
+        elementProps={{
+          apiFunction: companyFilter,
+          transform: (item) => ({
+            label: item.companyName,
+            value: item._id ?? "",
+          }),
+          queryKey: ["company-list-filter"],
+          pageSize: DEFAULT_PAGE_SIZE,
+        }}
+      />
+      <FilterDataItem<"pagination", undefined, Brand>
+        dataKey={FILTER_KEYS.BRAND}
+        type="pagination"
+        mode="single"
+        placeholder="Select brand..."
+        elementProps={{
+          apiFunction: brandFilter,
+          transform: (item) => ({
+            label: item.name,
+            value: item._id ?? "",
+          }),
+          queryKey: [
+            "company-brand-filter",
+            ...(selectedCompanyId ? [selectedCompanyId] : []),
+          ],
+          pageSize: DEFAULT_PAGE_SIZE,
+        }}
+      />
+    </>
+  );
+};
+
+// Main component
+const ProductList = () => {
+  const filterValue = useUrlFilters();
+  const selectedCompanyId = filterValue.company?.[0]?.value;
+  const productFetcher = useMemo(() => createProductFetcher(), []);
+
   return (
     <PageContent
       header={{
-        title: "Product Listing",
+        title: "Mine Product ",
         description:
           "Manage your product catalog, pricing, descriptions and media assets.",
         actions: (
-          <Button color={"primary"} asChild>
+          <Button color="primary" asChild>
             <NavLink to={PANEL_ROUTES.LISTING.CREATE}>Add Product</NavLink>
           </Button>
         ),
       }}
     >
       <DataView<Product>
-        fetcher={fetchProduct}
+        fetcher={productFetcher}
         columns={columns}
         renderCard={(product) => <ProductCard product={product} />}
-        gridClassName="grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3"
-        filters={
-          <>
-            <FilterDataItem
-              dataKey="status"
-              type="dropdown"
-              mode="single"
-              options={Object.values(STATUS_MAP.product)}
-              placeholder="Select status..."
-            />
-            <FilterDataItem<"pagination", undefined, Company>
-              dataKey="company"
-              type="pagination"
-              mode="single"
-              placeholder="Select company..."
-              elementProps={{
-                apiFunction: companyFilter,
-                transform: (item) => {
-                  return {
-                    label: item.companyName,
-                    value: item._id ?? "",
-                  };
-                },
-                queryKey: ["company-list-filter"],
-                pageSize: 10,
-              }}
-            />
-            <FilterDataItem<"pagination", undefined, Brand>
-              dataKey="brand"
-              type="pagination"
-              mode="single"
-              placeholder="Select brand..."
-              elementProps={{
-                apiFunction: createBrandFilter(),
-                transform: (item) => {
-                  return {
-                    label: item.name,
-                    value: item._id ?? "",
-                  };
-                },
-                queryKey: ["company-brand-filter", selectedCompanyId],
-                pageSize: 10,
-              }}
-            />
-          </>
-        }
+        gridClassName={GRID_CLASSES}
+        filters={<ProductFilters selectedCompanyId={selectedCompanyId} />}
         defaultViewMode="table"
-        defaultPageSize={10}
+        defaultPageSize={DEFAULT_PAGE_SIZE}
         enableUrlSync={false}
         queryKeyPrefix={PANEL_ROUTES.LISTING.LIST}
         searchPlaceholder="Search products..."
         defaultFilters={filterValue}
         additionalControls={<DeleteButton />}
       />
-      {/* </FilterProvider> */}
     </PageContent>
   );
 };

@@ -17,6 +17,7 @@ import type {
 } from "./types";
 // import { useUrlStateSync } from "./hooks/use-url-state-sync";
 import type { FilterOption } from "../dynamic-filter";
+import { useUrlStateSync } from "./hooks/use-url-state-sync";
 
 const DataViewContext = React.createContext<DataViewContextValue<any> | null>(
   null,
@@ -44,8 +45,8 @@ export function DataViewProvider<TData extends object>({
   defaultPageSize = 10,
   searchDebounceMs = 400,
   queryKeyPrefix = "data-view",
-  // enableUrlSync = true,
-  // urlParams = {},
+  enableUrlSync = false,
+  urlParams = {},
 }: DataViewProviderProps<TData>) {
   // View mode state
   const [viewMode, setViewMode] = useState<"table" | "grid">(defaultViewMode);
@@ -68,21 +69,21 @@ export function DataViewProvider<TData extends object>({
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 
   // URL state sync
-  // useUrlStateSync({
-  //   enabled: enableUrlSync,
-  //   viewMode,
-  //   search: debouncedSearch,
-  //   pageIndex,
-  //   pageSize,
-  //   sorting,
-  //   filters,
-  //   urlParams,
-  //   onViewModeChange: setViewMode,
-  //   onPageIndexChange: setPageIndex,
-  //   onPageSizeChange: setPageSize,
-  //   onSortingChange: setSorting,
-  //   onSearchChange: setSearch,
-  // });
+  useUrlStateSync({
+    enabled: enableUrlSync,
+    viewMode,
+    search: debouncedSearch,
+    pageIndex,
+    pageSize,
+    sorting,
+    filters,
+    urlParams,
+    onViewModeChange: setViewMode,
+    onPageIndexChange: setPageIndex,
+    onPageSizeChange: setPageSize,
+    onSortingChange: setSorting,
+    onSearchChange: setSearch,
+  });
 
   // Build query key for react-query (shared between table and grid)
   const baseQueryKey = useMemo(
@@ -104,11 +105,12 @@ export function DataViewProvider<TData extends object>({
         signal,
       });
     },
-    enabled: viewMode === "table",
+    enabled: !!fetcher && viewMode === "table",
     staleTime: 30_000, // 30 seconds
     gcTime: 5 * 60_000, // 5 minutes
     // Remove placeholderData to ensure fresh data on page change
     refetchOnWindowFocus: false,
+    placeholderData: (prev) => prev,
   });
 
   // Grid view: use useInfiniteQuery for infinite scroll

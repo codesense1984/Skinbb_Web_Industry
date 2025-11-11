@@ -1,15 +1,15 @@
-import React from "react";
 import { FilterProvider } from "@/core/components/dynamic-filter/context";
-import { useDataView, DataViewProvider } from "./context";
-import { DataTableWithSkeleton } from "./components/data-table";
-import { DataGridWithSkeleton } from "./components/data-grid";
-import { DataViewControls } from "./components/data-view-controls";
-import { DataErrorState } from "./components/data-error-state";
-import { DataEmptyState } from "./components/data-empty-state";
-import { DataPagination } from "./components/data-pagination";
 import { FilterBadges } from "@/core/components/dynamic-filter/filter-badges";
-import type { DataViewColumnDef, ServerDataFetcher, ViewMode } from "./types";
 import type { FilterOption } from "@/core/components/dynamic-filter/types";
+import React from "react";
+import { DataEmptyState } from "./components/data-empty-state";
+import { DataErrorState } from "./components/data-error-state";
+import { DataGridWithSkeleton } from "./components/data-grid";
+import { DataPagination } from "./components/data-pagination";
+import { DataTable } from "./components/data-table";
+import { DataViewControls } from "./components/data-view-controls";
+import { DataViewProvider, useDataView } from "./context";
+import type { DataViewColumnDef, ServerDataFetcher, ViewMode } from "./types";
 
 export interface DataViewProps<TData extends object> {
   /**
@@ -183,7 +183,7 @@ function DataViewInner<TData extends object>({
   errorMessage,
   showPagination,
   showColumnVisibility,
-  loadingRows,
+  loadingRows = 5,
   ariaLabels,
   searchPlaceholder,
   additionalControls,
@@ -301,7 +301,7 @@ function DataViewInner<TData extends object>({
       </DataViewControls>
 
       {/* Filter Badges - Show active filters with remove functionality */}
-      {Object.keys(contextFilters).length > 0 && (
+      {Object.keys(contextFilters)?.length > 0 && (
         <FilterBadges
           filters={contextFilters}
           setFilterValue={setFilterValue}
@@ -313,7 +313,7 @@ function DataViewInner<TData extends object>({
         <>
           {table && (
             <>
-              <DataTableWithSkeleton
+              <DataTable
                 table={table}
                 renderCell={renderCell}
                 emptyMessage={emptyMessage}

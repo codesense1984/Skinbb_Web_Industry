@@ -36,7 +36,7 @@ export function DataViewControls<TData>({
   return (
     <div className="flex flex-wrap gap-2 md:gap-4">
       {filters && filters}
-
+      {children}
       <Input
         startIcon={<MagnifyingGlassIcon />}
         value={search}
@@ -47,22 +47,7 @@ export function DataViewControls<TData>({
         }}
         aria-label={searchAriaLabel}
       />
-      {children}
-      <Button
-        variant="outlined"
-        size={"icon"}
-        onClick={handleViewModeToggle}
-        aria-label={`Switch to ${viewMode === "table" ? "grid" : "table"} view`}
-        aria-pressed={viewMode === "grid"}
-      >
-        {viewMode === "table" ? (
-          <Squares2X2Icon className="h-4 w-4" />
-        ) : (
-          <TableCellsIcon className="h-4 w-4" />
-        )}
-      </Button>
-
-      {showColumnVisibility && table && (
+      {viewMode === "table" && showColumnVisibility && table && (
         <DropdownMenuRoot>
           <DropdownMenuTrigger asChild>
             <Button
@@ -91,6 +76,19 @@ export function DataViewControls<TData>({
           </DropdownMenuContent>
         </DropdownMenuRoot>
       )}
+      <Button
+        variant="outlined"
+        size={"icon"}
+        onClick={handleViewModeToggle}
+        aria-label={`Switch to ${viewMode === "table" ? "grid" : "table"} view`}
+        aria-pressed={viewMode === "grid"}
+      >
+        {viewMode === "table" ? (
+          <Squares2X2Icon className="h-4 w-4" />
+        ) : (
+          <TableCellsIcon className="h-4 w-4" />
+        )}
+      </Button>
     </div>
   );
 }

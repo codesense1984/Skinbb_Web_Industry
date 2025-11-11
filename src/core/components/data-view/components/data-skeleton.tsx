@@ -15,30 +15,28 @@ import {
  */
 function TableSkeleton({ count = 5 }: { count?: number }) {
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            {Array.from({ length: 5 }).map((_, i) => (
-              <TableHead key={i}>
-                <div className="h-4 w-24 animate-pulse rounded bg-muted" />
-              </TableHead>
+    <Table className="table-fixed">
+      <TableHeader>
+        <TableRow>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <TableHead key={i}>
+              <div className="bg-muted h-4 w-24 animate-pulse rounded" />
+            </TableHead>
+          ))}
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {Array.from({ length: count }).map((_, rowIndex) => (
+          <TableRow key={rowIndex}>
+            {Array.from({ length: 5 }).map((_, colIndex) => (
+              <TableCell key={colIndex}>
+                <div className="bg-muted h-4 min-h-[1rem] w-full animate-pulse rounded" />
+              </TableCell>
             ))}
           </TableRow>
-        </TableHeader>
-        <TableBody>
-          {Array.from({ length: count }).map((_, rowIndex) => (
-            <TableRow key={rowIndex}>
-              {Array.from({ length: 5 }).map((_, colIndex) => (
-                <TableCell key={colIndex}>
-                  <div className="h-4 w-full min-h-[1rem] animate-pulse rounded bg-muted" />
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+        ))}
+      </TableBody>
+    </Table>
   );
 }
 
@@ -69,10 +67,10 @@ function GridSkeleton({
           aria-label="Loading"
         >
           <div className="space-y-3">
-            <div className="h-48 w-full animate-pulse rounded bg-muted" />
+            <div className="bg-muted h-48 w-full animate-pulse rounded" />
             <div className="space-y-2">
-              <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
-              <div className="h-4 w-1/2 animate-pulse rounded bg-muted" />
+              <div className="bg-muted h-4 w-3/4 animate-pulse rounded" />
+              <div className="bg-muted h-4 w-1/2 animate-pulse rounded" />
             </div>
           </div>
         </div>
@@ -95,4 +93,3 @@ export function DataSkeleton({
 
   return <GridSkeleton count={count} columns={gridColumns} />;
 }
-
