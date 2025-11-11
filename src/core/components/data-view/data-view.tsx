@@ -1,15 +1,15 @@
-import { FilterProvider } from "@/core/components/dynamic-filter/context";
-import { FilterBadges } from "@/core/components/dynamic-filter/filter-badges";
-import type { FilterOption } from "@/core/components/dynamic-filter/types";
 import React from "react";
-import { DataEmptyState } from "./components/data-empty-state";
-import { DataErrorState } from "./components/data-error-state";
+import { FilterProvider } from "@/core/components/dynamic-filter/context";
+import { useDataView, DataViewProvider } from "./context";
 import { DataGridWithSkeleton } from "./components/data-grid";
-import { DataPagination } from "./components/data-pagination";
-import { DataTable } from "./components/data-table";
 import { DataViewControls } from "./components/data-view-controls";
-import { DataViewProvider, useDataView } from "./context";
+import { DataErrorState } from "./components/data-error-state";
+import { DataEmptyState } from "./components/data-empty-state";
+import { DataPagination } from "./components/data-pagination";
+import { FilterBadges } from "@/core/components/dynamic-filter/filter-badges";
 import type { DataViewColumnDef, ServerDataFetcher, ViewMode } from "./types";
+import type { FilterOption } from "@/core/components/dynamic-filter/types";
+import { DataTable } from "./components/data-table";
 
 export interface DataViewProps<TData extends object> {
   /**
@@ -17,13 +17,13 @@ export interface DataViewProps<TData extends object> {
    */
   fetcher: ServerDataFetcher<TData>;
   /**
-   * Column definitions for table view
+   * Column definitions for table view (required for table view)
    */
-  columns: DataViewColumnDef<TData>[];
+  columns?: DataViewColumnDef<TData>[];
   /**
-   * Custom card renderer for grid view
+   * Custom card renderer for grid view (required for grid view)
    */
-  renderCard: (row: TData, index: number) => React.ReactNode;
+  renderCard?: (row: TData, index: number) => React.ReactNode;
   /**
    * Custom cell renderer for table view (optional, falls back to column definition)
    */
@@ -141,12 +141,33 @@ export function DataView<TData extends object>({
   gridClassName,
   tableClassName,
 }: DataViewProps<TData>) {
+  // Determine available view modes
+  const hasTable = !!columns;
+  const hasGrid = !!renderCard;
+
+  // Auto-determine view mode if only one is available
+  const resolvedDefaultViewMode = React.useMemo(() => {
+    if (!hasTable && hasGrid) return "grid";
+    if (hasTable && !hasGrid) return "table";
+    return defaultViewMode;
+  }, [hasTable, hasGrid, defaultViewMode]);
+
+  // Hide toggle if only one view mode is available
+  const hideViewToggle = !hasTable || !hasGrid;
+
+  // Validate that at least one view mode is provided
+  if (!hasTable && !hasGrid) {
+    throw new Error(
+      "DataView requires either 'columns' (for table view) or 'renderCard' (for grid view), or both.",
+    );
+  }
+
   return (
     <FilterProvider defaultValue={defaultFilters}>
       <DataViewProvider
         fetcher={fetcher}
-        columns={columns}
-        defaultViewMode={defaultViewMode}
+        columns={columns || []}
+        defaultViewMode={resolvedDefaultViewMode}
         defaultPageSize={defaultPageSize}
         searchDebounceMs={searchDebounceMs}
         queryKeyPrefix={queryKeyPrefix}
@@ -166,6 +187,9 @@ export function DataView<TData extends object>({
           additionalControls={additionalControls}
           gridClassName={gridClassName}
           tableClassName={tableClassName}
+          hideViewToggle={hideViewToggle}
+          hasTable={hasTable}
+          hasGrid={hasGrid}
         />
       </DataViewProvider>
     </FilterProvider>
@@ -188,6 +212,9 @@ function DataViewInner<TData extends object>({
   searchPlaceholder,
   additionalControls,
   gridClassName,
+  hideViewToggle = false,
+  hasTable = true,
+  hasGrid = true,
 }: Omit<
   DataViewProps<TData>,
   | "fetcher"
@@ -198,7 +225,11 @@ function DataViewInner<TData extends object>({
   | "queryKeyPrefix"
   | "enableUrlSync"
   | "urlParams"
->) {
+> & {
+  hideViewToggle?: boolean;
+  hasTable?: boolean;
+  hasGrid?: boolean;
+}) {
   const {
     viewMode,
     setViewMode,
@@ -263,6 +294,7 @@ function DataViewInner<TData extends object>({
           onSearchChange={setSearch}
           filters={filters}
           searchAriaLabel={ariaLabels?.search}
+          hideViewToggle={hideViewToggle}
         >
           {additionalControls}
         </DataViewControls>
@@ -296,6 +328,7 @@ function DataViewInner<TData extends object>({
         filters={filters}
         searchPlaceholder={searchPlaceholder}
         searchAriaLabel={ariaLabels?.search}
+        hideViewToggle={hideViewToggle}
       >
         {additionalControls}
       </DataViewControls>
@@ -311,7 +344,7 @@ function DataViewInner<TData extends object>({
       {/* Content */}
       {viewMode === "table" ? (
         <>
-          {table && (
+          {hasTable && table && (
             <>
               <DataTable
                 table={table}
@@ -334,25 +367,29 @@ function DataViewInner<TData extends object>({
         </>
       ) : (
         <>
-          {isEmpty && hasFilters ? (
-            <DataEmptyState
-              message={emptyMessage}
-              onClearFilters={handleClearFilters}
-            />
-          ) : (
-            <DataGridWithSkeleton
-              rows={data ?? []}
-              renderCard={renderCard}
-              emptyMessage={emptyMessage}
-              loadingItems={(loadingRows ?? 5) * 2}
-              isLoading={isLoading}
-              hasNextPage={hasNextPage ?? false}
-              isFetchingNextPage={isFetchingNextPage ?? false}
-              onLoadMore={handleLoadMore}
-              ariaLabel={ariaLabels?.grid}
-              className={gridClassName}
-            />
-          )}
+          {hasGrid ? (
+            <>
+              {isEmpty && hasFilters ? (
+                <DataEmptyState
+                  message={emptyMessage}
+                  onClearFilters={handleClearFilters}
+                />
+              ) : (
+                <DataGridWithSkeleton
+                  rows={data ?? []}
+                  renderCard={renderCard!}
+                  emptyMessage={emptyMessage}
+                  loadingItems={(loadingRows ?? 5) * 2}
+                  isLoading={isLoading}
+                  hasNextPage={hasNextPage ?? false}
+                  isFetchingNextPage={isFetchingNextPage ?? false}
+                  onLoadMore={handleLoadMore}
+                  ariaLabel={ariaLabels?.grid}
+                  className={gridClassName}
+                />
+              )}
+            </>
+          ) : null}
         </>
       )}
 

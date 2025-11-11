@@ -254,6 +254,10 @@ export interface DataViewControlsProps<TData> {
    * ARIA label for search input
    */
   searchAriaLabel?: string;
+  /**
+   * Hide the view mode toggle button (grid/table)
+   */
+  hideViewToggle?: boolean;
 }
 
 /**

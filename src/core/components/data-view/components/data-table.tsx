@@ -11,7 +11,6 @@ import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
 import { flexRender, type Header } from "@tanstack/react-table";
 import React, { useCallback, useEffect, useRef } from "react";
 import type { DataTableProps } from "../types";
-import { DataSkeleton } from "./data-skeleton";
 
 /**
  * Sortable table header with keyboard navigation

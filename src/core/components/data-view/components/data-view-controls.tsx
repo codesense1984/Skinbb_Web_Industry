@@ -28,6 +28,7 @@ export function DataViewControls<TData>({
   filters,
   children,
   searchAriaLabel = "Search data",
+  hideViewToggle = false,
 }: DataViewControlsProps<TData>) {
   const handleViewModeToggle = () => {
     onViewModeChange(viewMode === "table" ? "grid" : "table");
@@ -76,19 +77,21 @@ export function DataViewControls<TData>({
           </DropdownMenuContent>
         </DropdownMenuRoot>
       )}
-      <Button
-        variant="outlined"
-        size={"icon"}
-        onClick={handleViewModeToggle}
-        aria-label={`Switch to ${viewMode === "table" ? "grid" : "table"} view`}
-        aria-pressed={viewMode === "grid"}
-      >
-        {viewMode === "table" ? (
-          <Squares2X2Icon className="h-4 w-4" />
-        ) : (
-          <TableCellsIcon className="h-4 w-4" />
-        )}
-      </Button>
+      {!hideViewToggle && (
+        <Button
+          variant="outlined"
+          size={"icon"}
+          onClick={handleViewModeToggle}
+          aria-label={`Switch to ${viewMode === "table" ? "grid" : "table"} view`}
+          aria-pressed={viewMode === "grid"}
+        >
+          {viewMode === "table" ? (
+            <Squares2X2Icon className="h-4 w-4" />
+          ) : (
+            <TableCellsIcon className="h-4 w-4" />
+          )}
+        </Button>
+      )}
     </div>
   );
 }

@@ -1,16 +1,11 @@
-import { createSimpleFetcher } from "@/core/components/data-table";
 import {
   DataView,
   useDataView,
   type ServerDataFetcher,
 } from "@/core/components/data-view";
-import {
-  FilterDataItem,
-  type FilterOption,
-} from "@/core/components/dynamic-filter";
+import type { FilterOption } from "@/core/components/dynamic-filter";
 import { Button } from "@/core/components/ui/button";
 import { PageContent } from "@/core/components/ui/structure";
-import { STATUS_MAP } from "@/core/config/status";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import {
   apiGetProducts,
@@ -18,26 +13,25 @@ import {
 } from "@/modules/panel/services/http/product.service";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { NavLink, useParams, useSearchParams } from "react-router";
-import { apiGetBrands } from "../../services/http/brand.service";
-import { apiGetCompaniesForFilter } from "../../services/http/company.service";
-import type { Brand, Company } from "../../types";
 import type { Product } from "../../types/product.type";
 import { columns } from "./data";
 import { ProductCard } from "./ProductCard";
+import {
+  DEFAULT_PAGE_SIZE,
+  StatusFilter,
+  CompanyFilter,
+  BrandFilter,
+} from "@/modules/panel/components/data-view";
 
 // Constants
-const FILTER_KEYS = {
-  STATUS: "status",
-  COMPANY: "company",
-  BRAND: "brand",
-  LOCATION: "location",
-} as const;
-
-const DEFAULT_PAGE_SIZE = 10;
 const GRID_CLASSES = "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3";
 
-type FilterKeys = (typeof FILTER_KEYS)[keyof typeof FILTER_KEYS];
-type ProductFilters = Record<FilterKeys, FilterOption[]>;
+type ProductFilters = {
+  status: FilterOption[];
+  company: FilterOption[];
+  brand: FilterOption[];
+  location: FilterOption[];
+};
 
 // Product fetcher for DataView component
 const createProductFetcher = (): ServerDataFetcher<Product> => {
@@ -92,27 +86,6 @@ const createProductFetcher = (): ServerDataFetcher<Product> => {
 
     return { rows: [], total: 0 };
   };
-};
-
-// Filter fetchers
-const companyFilter = createSimpleFetcher(apiGetCompaniesForFilter, {
-  dataPath: "data.items",
-  totalPath: "data.total",
-});
-
-const createBrandFilter = (companyId?: string) => {
-  return createSimpleFetcher(
-    (params: Record<string, unknown>) => {
-      return apiGetBrands({
-        ...params,
-        ...(companyId && { companyId }),
-      });
-    },
-    {
-      dataPath: "data.brands",
-      totalPath: "data.totalRecords",
-    },
-  );
 };
 
 // Custom hook for URL parameter handling
@@ -208,53 +181,12 @@ interface ProductFiltersProps {
 }
 
 const ProductFilters = ({ selectedCompanyId }: ProductFiltersProps) => {
-  const brandFilter = useMemo(
-    () => createBrandFilter(selectedCompanyId),
-    [selectedCompanyId],
-  );
-
   return (
     <>
-      <FilterDataItem
-        dataKey={FILTER_KEYS.STATUS}
-        type="dropdown"
-        mode="single"
-        options={Object.values(STATUS_MAP.product)}
-        placeholder="Select status..."
-      />
-      <FilterDataItem<"pagination", undefined, Company>
-        dataKey={FILTER_KEYS.COMPANY}
-        type="pagination"
-        mode="single"
-        placeholder="Select company..."
-        elementProps={{
-          apiFunction: companyFilter,
-          transform: (item) => ({
-            label: item.companyName,
-            value: item._id ?? "",
-          }),
-          queryKey: ["company-list-filter"],
-          pageSize: DEFAULT_PAGE_SIZE,
-        }}
-      />
-      <FilterDataItem<"pagination", undefined, Brand>
-        dataKey={FILTER_KEYS.BRAND}
-        type="pagination"
-        mode="single"
-        placeholder="Select brand..."
-        elementProps={{
-          apiFunction: brandFilter,
-          transform: (item) => ({
-            label: item.name,
-            value: item._id ?? "",
-          }),
-          queryKey: [
-            "company-brand-filter",
-            ...(selectedCompanyId ? [selectedCompanyId] : []),
-          ],
-          pageSize: DEFAULT_PAGE_SIZE,
-        }}
-      />
+      <StatusFilter module="product" />
+      <CompanyFilter />
+      <BrandFilter selectedCompanyId={selectedCompanyId} />
+      {/* Location filter can be added here if needed */}
     </>
   );
 };
@@ -268,7 +200,7 @@ const ProductList = () => {
   return (
     <PageContent
       header={{
-        title: "Mine Product ",
+        title: "Product Listing",
         description:
           "Manage your product catalog, pricing, descriptions and media assets.",
         actions: (

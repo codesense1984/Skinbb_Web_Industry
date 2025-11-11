@@ -1,6 +1,5 @@
 import { Button } from "@/core/components/ui/button";
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import React from "react";
 import type { DataEmptyStateProps } from "../types";
 
 /**
@@ -22,7 +21,7 @@ export function DataEmptyState({
       {onClearFilters && (
         <Button
           onClick={onClearFilters}
-          variant="outline"
+          variant="outlined"
           size="sm"
           aria-label="Clear all filters"
         >
