@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useParams, useNavigate, useLocation } from "react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { Button } from "@/core/components/ui/button";
 import { Form } from "@/core/components/ui/form";
 import { PageContent } from "@/core/components/ui/structure";
@@ -37,6 +37,11 @@ export default function CategoryForm({
   const { id } = useParams();
   const location = useLocation();
   const pathname = location.pathname;
+  
+  // Store the uploaded media ID
+  const [uploadedMediaId, setUploadedMediaId] = useState<string | null>(null);
+  // Track the last uploaded file to prevent re-uploading
+  const lastUploadedFileRef = useRef<File | null>(null);
 
   // Determine mode based on URL path (like brand form)
   let mode = MODE.ADD;
@@ -72,13 +77,56 @@ export default function CategoryForm({
   // Image preview setup
   const profileData = watch("image_files")?.[0];
   const existingImageUrl = watch("image");
+  const imageFiles = watch("image_files");
 
   const { element } = useImagePreview(profileData, existingImageUrl, {
     clear: () => {
       setValue("image_files", undefined);
       setValue("image", "");
+      setUploadedMediaId(null);
+      lastUploadedFileRef.current = null;
     },
   });
+
+  // Handle image upload when file is selected
+  useEffect(() => {
+    const handleImageUpload = async () => {
+      if (imageFiles && imageFiles.length > 0) {
+        const file = imageFiles[0];
+        if (file instanceof File) {
+          // Check if this is the same file we already uploaded
+          if (lastUploadedFileRef.current === file) {
+            return; // Already uploaded, skip
+          }
+          
+          try {
+            toast.loading("Uploading image...", { id: "upload-image" });
+            const { mediaId, url } = await uploadCategoryImage(file);
+            
+            // Store the media ID and update form
+            setUploadedMediaId(mediaId);
+            setValue("image", url);
+            lastUploadedFileRef.current = file; // Track this file as uploaded
+            toast.success("Image uploaded successfully", { id: "upload-image" });
+          } catch (error: any) {
+            console.error("Error uploading image:", error);
+            toast.error(
+              error?.response?.data?.message || "Failed to upload image",
+              { id: "upload-image" }
+            );
+            // Clear the file input on error
+            setValue("image_files", undefined);
+            lastUploadedFileRef.current = null;
+          }
+        }
+      } else {
+        // Reset when files are cleared
+        lastUploadedFileRef.current = null;
+      }
+    };
+
+    handleImageUpload();
+  }, [imageFiles, setValue]);
 
   // Fetch parent categories for dropdown
   const { data: categoriesData } = useQuery({
@@ -192,7 +240,7 @@ export default function CategoryForm({
       return;
     }
 
-    const jsonData = {
+    const jsonData: any = {
       name: data.name,
       slug: data.slug || "",
       description: data.description || "",
@@ -200,6 +248,13 @@ export default function CategoryForm({
         data.parentCategory === "none" ? "" : data.parentCategory || "",
       isActive: data.isActive,
     };
+
+    // Send thumbnail ID if available (from upload on file select or existing), otherwise send image URL as fallback
+    if (uploadedMediaId) {
+      jsonData.thumbnail = uploadedMediaId;
+    } else if (data.image) {
+      jsonData.image = data.image;
+    }
 
     console.log("Sending JSON data:", jsonData);
 
