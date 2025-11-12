@@ -1,3 +1,4 @@
+
 export type CookieOptions = {
   expires?: number | Date; // number = days, Date = exact expiration
   path?: string;
@@ -40,6 +41,8 @@ const cookieStorage = {
 
     // Check total cookie size including attributes
     const totalSize = cookieStr.length;
+
+    console.log("🚀 ~ cookieStorage.setItem ~ totalSize:", key, totalSize);
     if (totalSize > 4096) {
       throw new Error(
         `Cookie "${key}" exceeds browser size limit (${totalSize} bytes > 4096 bytes). Consider using localStorage for large values.`,

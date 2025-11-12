@@ -229,7 +229,6 @@ export async function onLoginSuccess(
   data: LoginSuccess,
   remember?: boolean,
 ) {
-  debugger;
   const u = Array.isArray(data.data.user) ? data.data.user[0] : data.data.user;
 
   await setAuthCookies({
