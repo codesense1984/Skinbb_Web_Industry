@@ -48,8 +48,9 @@ export const useSellerAuth = () => {
     if (sellerQuery.isError) {
       console.error("Seller info fetch failed:", sellerQuery.error);
       // Clear auth and redirect to login
-      logout(qc);
-      navigate(AUTH_ROUTES.SIGN_IN, { replace: true });
+      logout(qc).then(() => {
+        navigate(AUTH_ROUTES.SIGN_IN, { replace: true });
+      });
     }
   }, [sellerQuery.isError, sellerQuery.error, qc, navigate]);
 

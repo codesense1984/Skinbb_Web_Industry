@@ -12,7 +12,10 @@
     "preview": "vite preview",
     "lint": "eslint src --ext .ts,.tsx",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "env:switch": "./switch-env.sh",
+    "env:dev": "./switch-env.sh dev",
+    "env:prod": "./switch-env.sh prod"
   },
   "dependencies": {
     "@headless-tree/core": "^1.0.1",

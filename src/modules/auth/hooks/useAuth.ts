@@ -22,8 +22,8 @@ export const useAuth = () => {
     retry: 0,
   });
 
-  const signOut = () => {
-    logout(qc);
+  const signOut = async () => {
+    await logout(qc);
     navigate(AUTH_ROUTES.SIGN_IN, { replace: true });
   };
 

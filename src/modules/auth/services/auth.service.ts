@@ -26,18 +26,21 @@ export type AuthQueryData = Required<AuthSnapshot> & {
   sellerInfo?: SellerInfo;
 };
 
+const COOKIE_PREFIX = import.meta.env.VITE_COOKIE_PREFIX || "";
+const prefix = COOKIE_PREFIX ? `${COOKIE_PREFIX}_` : "skinbb_";
+
 export const COOKIE_KEY = {
-  ACCESS: "sb_at",
-  REFRESH: "sb_rt",
-  USER_ID: "sb_uid",
-  REMEMBER: "sb_remember",
+  ACCESS: `${prefix}at`,
+  REFRESH: `${prefix}rt`,
+  USER_ID: `${prefix}uid`,
+  REMEMBER: `${prefix}remember`,
 } as const;
 
 export const LS_KEY = {
-  USER: "sb_user",
+  USER: `${prefix}user`,
 } as const;
 
-export function setAuthCookies(
+export async function setAuthCookies(
   args: AuthSnapshot & {
     userId?: string;
     remember?: boolean;
@@ -49,34 +52,75 @@ export function setAuthCookies(
     ? { expires: 7, secure: true, sameSite: "Lax" }
     : { secure: true, sameSite: "Lax" };
 
+  // Try to save accessToken in cookie, fallback to localStorage if too large
   if (accessToken) {
-    cookieStorage.setItem(COOKIE_KEY.ACCESS, accessToken, opts);
+    try {
+      await cookieStorage.setItem(COOKIE_KEY.ACCESS, accessToken, opts);
+      // If cookie save succeeded, remove from localStorage if it exists there
+      localStorage.removeItem(COOKIE_KEY.ACCESS);
+    } catch (error) {
+      // Fallback to localStorage for large tokens
+      localStorage.setItem(COOKIE_KEY.ACCESS, accessToken);
+    }
   }
+
+  // Save other values in cookies
+  const promises: Promise<void>[] = [];
+
   if (refreshToken) {
-    cookieStorage.setItem(COOKIE_KEY.REFRESH, refreshToken, opts);
+    promises.push(
+      cookieStorage
+        .setItem(COOKIE_KEY.REFRESH, refreshToken, opts)
+        .catch((error) => {
+          console.error(`Failed to save refreshToken:`, error);
+          throw error;
+        }),
+    );
   }
   if (userId) {
-    cookieStorage.setItem(COOKIE_KEY.USER_ID, userId, opts);
+    promises.push(
+      cookieStorage.setItem(COOKIE_KEY.USER_ID, userId, opts).catch((error) => {
+        console.error(`Failed to save userId:`, error);
+        throw error;
+      }),
+    );
   }
-  if (remember) {
-    cookieStorage.setItem(COOKIE_KEY.REMEMBER, String(remember), opts);
+  if (remember !== undefined) {
+    promises.push(
+      cookieStorage
+        .setItem(COOKIE_KEY.REMEMBER, String(remember), opts)
+        .catch((error) => {
+          console.error(`Failed to save remember:`, error);
+          throw error;
+        }),
+    );
   }
+
+  await Promise.all(promises);
 }
 
 export function getAuthCookies() {
+  // Check cookie first, fallback to localStorage for accessToken (in case it was too large)
+  const accessTokenFromCookie = cookieStorage.getItem(COOKIE_KEY.ACCESS);
+  const accessTokenFromLS = localStorage.getItem(COOKIE_KEY.ACCESS);
+
   return {
-    accessToken: cookieStorage.getItem(COOKIE_KEY.ACCESS),
+    accessToken: accessTokenFromCookie || accessTokenFromLS,
     refreshToken: cookieStorage.getItem(COOKIE_KEY.REFRESH),
     userId: cookieStorage.getItem(COOKIE_KEY.USER_ID),
     remember: cookieStorage.getItem(COOKIE_KEY.REMEMBER),
   };
 }
 
-export function clearAuthCookies() {
-  cookieStorage.removeItem(COOKIE_KEY.ACCESS);
-  cookieStorage.removeItem(COOKIE_KEY.REFRESH);
-  cookieStorage.removeItem(COOKIE_KEY.USER_ID);
-  cookieStorage.removeItem(COOKIE_KEY.REMEMBER);
+export async function clearAuthCookies() {
+  await Promise.all([
+    cookieStorage.removeItem(COOKIE_KEY.ACCESS),
+    cookieStorage.removeItem(COOKIE_KEY.REFRESH),
+    cookieStorage.removeItem(COOKIE_KEY.USER_ID),
+    cookieStorage.removeItem(COOKIE_KEY.REMEMBER),
+  ]);
+  // Also clear from localStorage (in case accessToken was stored there)
+  localStorage.removeItem(COOKIE_KEY.ACCESS);
 }
 
 export function saveUserToLS(user: LoggedUser) {
@@ -169,7 +213,7 @@ async function fetchSellerInfoIfNeeded(
     //   throw error;
     // }
     // Clear auth and throw error to redirect to login
-    logout(qc);
+    await logout(qc);
     throw new Error(
       errorInstance?.message || "Authentication failed - please login again",
     );
@@ -185,9 +229,10 @@ export async function onLoginSuccess(
   data: LoginSuccess,
   remember?: boolean,
 ) {
+  debugger;
   const u = Array.isArray(data.data.user) ? data.data.user[0] : data.data.user;
 
-  setAuthCookies({
+  await setAuthCookies({
     accessToken: data.data.accessToken,
     refreshToken: data.data.refreshToken,
     userId: u?._id ?? "",
@@ -211,8 +256,8 @@ export async function onLoginSuccess(
   }
 }
 
-export function logout(qc?: QueryClient) {
-  clearAuthCookies();
+export async function logout(qc?: QueryClient) {
+  await clearAuthCookies();
   clearUserLS();
   qc?.removeQueries({ queryKey: QK.ME, exact: true });
   qc?.removeQueries({ queryKey: QK.SELLER_INFO, exact: true });
