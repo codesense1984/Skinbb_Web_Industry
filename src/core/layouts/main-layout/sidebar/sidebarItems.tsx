@@ -148,18 +148,18 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
         />
       </svg>
     ),
-    children: ["allCustomers", "customerSegments", "customerReviews", "customerRoutines"],
+    children: ["allCustomers", /* "customerSegments", */ "customerReviews", "customerRoutines"],
   },
   allCustomers: {
     name: "All Customers",
     href: PANEL_ROUTES.CUSTOMER.LIST,
     requiredRoles: [ROLE.ADMIN],
   },
-  customerSegments: {
-    name: "Segments",
-    href: PANEL_ROUTES.CUSTOMER.LIST + "?view=segments",
-    requiredRoles: [ROLE.ADMIN],
-  },
+  // customerSegments: {
+  //   name: "Segments",
+  //   href: PANEL_ROUTES.CUSTOMER.LIST + "?view=segments",
+  //   requiredRoles: [ROLE.ADMIN],
+  // },
   customerReviews: {
     name: "Reviews",
     href: PANEL_ROUTES.CUSTOMER.LIST + "?view=reviews",
@@ -362,16 +362,16 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
         />
       </svg>
     ),
-    children: ["companyManagement", "userRolesPermissions", "apiIntegrations", "notificationsEmailTemplates"],
+    children: [/* "companyManagement", */ "userRolesPermissions", /* "apiIntegrations", "notificationsEmailTemplates" */],
   },
-  companyManagement: {
-    name: "Company Management",
-    href: "/settings/company-management",
-    requiredPermission: {
-      page: PAGE.COMPANIES,
-      action: [PERMISSION.VIEW],
-    },
-  },
+  // companyManagement: {
+  //   name: "Company Management",
+  //   href: "/settings/company-management",
+  //   requiredPermission: {
+  //     page: PAGE.COMPANIES,
+  //     action: [PERMISSION.VIEW],
+  //   },
+  // },
   userRolesPermissions: {
     name: "User Roles & Permissions",
     href: "/settings/user-roles-permissions",
@@ -381,16 +381,16 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
     },
     requiredRoles: [ROLE.ADMIN],
   },
-  apiIntegrations: {
-    name: "API / Integrations",
-    href: "/api-integrations",
-    requiredRoles: [ROLE.ADMIN],
-  },
-  notificationsEmailTemplates: {
-    name: "Notifications / Email Templates",
-    href: "/notifications",
-    requiredRoles: [ROLE.ADMIN],
-  },
+  // apiIntegrations: {
+  //   name: "API / Integrations",
+  //   href: "/api-integrations",
+  //   requiredRoles: [ROLE.ADMIN],
+  // },
+  // notificationsEmailTemplates: {
+  //   name: "Notifications / Email Templates",
+  //   href: "/notifications",
+  //   requiredRoles: [ROLE.ADMIN],
+  // },
 };
 
 export const sellerSidebarItems: Readonly<Record<string, SidebarItem>> = {
