@@ -89,7 +89,7 @@ const StatChartCard = ({
   headerProps,
   actions,
 }: {
-  name: string;
+  name: string | React.ReactNode;
   className?: string;
   children: React.ReactNode;
   contentProps?: React.ComponentProps<"div">;

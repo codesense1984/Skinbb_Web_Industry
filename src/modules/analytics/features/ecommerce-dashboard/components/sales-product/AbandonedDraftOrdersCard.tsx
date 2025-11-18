@@ -11,25 +11,31 @@ interface AbandonedDraftOrdersCardProps {
   brandId?: string;
 }
 
-export const AbandonedDraftOrdersCard: React.FC<AbandonedDraftOrdersCardProps> = ({ 
-  className,
-  startDate,
-  endDate,
-  brandId,
-}) => {
+export const AbandonedDraftOrdersCard: React.FC<
+  AbandonedDraftOrdersCardProps
+> = ({ className, startDate, endDate, brandId }) => {
   // Calculate default date range (last 30 days)
   const defaultEndDate = React.useMemo(() => {
-    return new Date().toISOString().split('T')[0];
+    return new Date().toISOString().split("T")[0];
   }, []);
 
   const defaultStartDate = React.useMemo(() => {
     const date = new Date();
     date.setDate(date.getDate() - 30);
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split("T")[0];
   }, []);
 
-  const { data: abandonedData, isLoading, isError } = useQuery({
-    queryKey: ["abandoned-draft-orders", startDate || defaultStartDate, endDate || defaultEndDate, brandId],
+  const {
+    data: abandonedData,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: [
+      "abandoned-draft-orders",
+      startDate || defaultStartDate,
+      endDate || defaultEndDate,
+      brandId,
+    ],
     queryFn: async () => {
       const response = await apiGetAbandonedDraftOrders({
         startDate: startDate || defaultStartDate,
@@ -45,11 +51,11 @@ export const AbandonedDraftOrdersCard: React.FC<AbandonedDraftOrdersCardProps> =
   return (
     <div
       className={cn(
-        "bg-background flex items-center gap-4 rounded-md p-4 shadow-md md:px-4 md:py-6",
+        "bg-background flex items-center gap-4 rounded-md p-4 shadow-md md:px-6 md:py-4",
         className,
       )}
     >
-      <div className="h-full w-2 rounded-md bg-chart-1"></div>
+      {/* <div className="bg-chart-1 h-full w-2 rounded-md"></div> */}
       <div className="w-full flex-col">
         <p>Abandoned Draft Orders</p>
         {isLoading && <h4 className="font-bold">Loading...</h4>}
@@ -57,18 +63,18 @@ export const AbandonedDraftOrdersCard: React.FC<AbandonedDraftOrdersCardProps> =
         {!isLoading && !isError && abandonedData && (
           <>
             <h4 className="font-bold">{abandonedData.abandonedOrdersCount}</h4>
-            <div className="mt-1 space-y-0.5">
-              <p className="text-xs text-gray-500">
+            <div className="mt-1 flex gap-2 space-y-0.5">
+              <p className="text-sm">
                 Total: ₹{abandonedData.totalAbandonedValue.toLocaleString()}
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="text-sm">
                 Avg: ₹{abandonedData.averageAbandonedValue.toLocaleString()}
               </p>
             </div>
           </>
         )}
       </div>
-      <div className="bg-[var(--chart-1)]/20 rounded-full p-3 flex items-center justify-center flex-shrink-0">
+      <div className="flex flex-shrink-0 items-center justify-center rounded-full bg-[var(--chart-1)]/20 p-3">
         <ChartBarIcon className="h-6 w-6 text-[var(--chart-1)]" />
       </div>
     </div>

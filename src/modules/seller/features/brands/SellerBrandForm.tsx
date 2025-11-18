@@ -8,7 +8,11 @@ import {
 import { PageContent } from "@/core/components/ui/structure";
 import { useImagePreview } from "@/core/hooks/useImagePreview";
 import { MODE } from "@/core/types/base.type";
-import { apiGetBrandById, apiCreateBrand, apiUpdateBrandById } from "@/modules/panel/services/http/brand.service";
+import {
+  apiGetBrandById,
+  apiCreateBrand,
+  apiUpdateBrandById,
+} from "@/modules/panel/services/http/brand.service";
 import { useQuery } from "@tanstack/react-query";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { useParams, useLocation, useSearchParams } from "react-router";
@@ -19,6 +23,7 @@ import {
   type BrandFormData,
 } from "@/modules/panel/features/brands/brand-form/formSchema";
 import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth";
+import { Label } from "@/core/components/ui/label";
 
 // Interface for brand API response
 interface BrandApiResponse {
@@ -69,7 +74,9 @@ const SellerBrandForm = () => {
   }
 
   // State for location options
-  const [locationOptions, setLocationOptions] = useState<Array<{ label: string; value: string }>>([]);
+  const [locationOptions, setLocationOptions] = useState<
+    Array<{ label: string; value: string }>
+  >([]);
 
   const form = useForm<BrandFormData>({
     defaultValues: defaultValues,
@@ -109,7 +116,7 @@ const SellerBrandForm = () => {
     if (sellerInfo && mode === MODE.ADD) {
       // Always set company ID from seller info
       setValue("company_id", sellerInfo.companyId);
-      
+
       // Auto-fill location if only one location exists
       if (sellerInfo.addresses.length === 1) {
         setValue("location_id", sellerInfo.addresses[0].addressId);
@@ -256,29 +263,32 @@ const SellerBrandForm = () => {
 
   const onSubmit = async (data: BrandFormData) => {
     console.log("Brand form data:", data);
-    
+
     try {
       if (mode === MODE.ADD) {
         // Create new brand
         const formData = new FormData();
-        
+
         // Add form fields to FormData
         Object.entries(data).forEach(([key, value]) => {
-          if (key === 'brand_logo_files' || key === 'brand_authorization_letter_files') {
+          if (
+            key === "brand_logo_files" ||
+            key === "brand_authorization_letter_files"
+          ) {
             // Handle file arrays
             if (Array.isArray(value) && value.length > 0) {
               value.forEach((file, index) => {
                 formData.append(`${key}[${index}]`, file);
               });
             }
-          } else if (key === 'sellingOn') {
+          } else if (key === "sellingOn") {
             // Handle selling platforms array
             if (Array.isArray(value)) {
               formData.append(key, JSON.stringify(value));
             }
           } else {
             // Handle regular fields
-            formData.append(key, String(value || ''));
+            formData.append(key, String(value || ""));
           }
         });
 
@@ -298,7 +308,10 @@ const SellerBrandForm = () => {
   };
 
   // Show loading state while fetching seller info or brand data
-  if (sellerInfoLoading || (isLoadingBrand && (mode === MODE.EDIT || mode === MODE.VIEW))) {
+  if (
+    sellerInfoLoading ||
+    (isLoadingBrand && (mode === MODE.EDIT || mode === MODE.VIEW))
+  ) {
     return (
       <PageContent
         header={{
@@ -359,7 +372,9 @@ const SellerBrandForm = () => {
           <div className="bg-background rounded-xl border p-8 shadow-sm">
             <div className="flex items-center justify-center py-12">
               <div className="text-center">
-                <p className="mb-4 text-red-600">Company information not available</p>
+                <p className="mb-4 text-red-600">
+                  Company information not available
+                </p>
                 <p className="text-sm text-gray-600">Please contact support.</p>
               </div>
             </div>
@@ -382,8 +397,12 @@ const SellerBrandForm = () => {
           <div className="bg-background rounded-xl border p-8 shadow-sm">
             <div className="flex items-center justify-center py-12">
               <div className="text-center">
-                <p className="mb-4 text-red-600">No company locations available</p>
-                <p className="text-sm text-gray-600">Please contact support to set up company locations.</p>
+                <p className="mb-4 text-red-600">
+                  No company locations available
+                </p>
+                <p className="text-sm text-gray-600">
+                  Please contact support to set up company locations.
+                </p>
               </div>
             </div>
           </div>
@@ -445,9 +464,9 @@ const SellerBrandForm = () => {
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     {/* Company Field - Always disabled and autofilled */}
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-700">
-                        Company
-                      </label>
+                      <Label className="gap-0">
+                        Company<span className="text-destructive">*</span>
+                      </Label>
                       <div className="rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-900">
                         {sellerInfo.companyName}
                       </div>
@@ -472,7 +491,8 @@ const SellerBrandForm = () => {
                           {`${sellerInfo.addresses[0].addressLine1} - ${sellerInfo.addresses[0].city}`}
                         </div>
                         <p className="text-xs text-gray-500">
-                          Location is automatically set to your company's only location
+                          Location is automatically set to your company's only
+                          location
                         </p>
                         <input
                           type="hidden"
@@ -485,14 +505,16 @@ const SellerBrandForm = () => {
                       <div className="space-y-2">
                         <FormFieldsRenderer<BrandFormData>
                           control={control}
-                          fieldConfigs={[
-                            {
-                              ...brandFormSchema.company_location[1],
-                              options: locationOptions,
-                              disabled: mode === MODE.VIEW,
-                              placeholder: "Select location",
-                            },
-                          ] as FormFieldConfig<BrandFormData>[]}
+                          fieldConfigs={
+                            [
+                              {
+                                ...brandFormSchema.company_location[1],
+                                options: locationOptions,
+                                disabled: mode === MODE.VIEW,
+                                placeholder: "Select location",
+                              },
+                            ] as FormFieldConfig<BrandFormData>[]
+                          }
                           className="contents"
                         />
                         <p className="text-xs text-gray-500">
@@ -611,8 +633,11 @@ const SellerBrandForm = () => {
                   ))}
 
                   {sellingOn.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      <p>No platforms added yet. Click &quot;Add Platform&quot; to get started.</p>
+                    <div className="py-8 text-center text-gray-500">
+                      <p>
+                        No platforms added yet. Click &quot;Add Platform&quot;
+                        to get started.
+                      </p>
                     </div>
                   )}
 

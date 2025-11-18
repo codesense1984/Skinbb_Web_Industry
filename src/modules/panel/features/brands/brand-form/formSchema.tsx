@@ -151,6 +151,7 @@ export const brandFormSchema: BrandFormSchema = {
       label: "Company",
       placeholder: "Select company",
       options: [], // Will be populated dynamically
+      required: true,
       rules: {
         required: "Company is required",
       },
@@ -161,6 +162,7 @@ export const brandFormSchema: BrandFormSchema = {
       label: "Location",
       placeholder: "Select location",
       options: [], // Will be populated dynamically
+      required: true,
       rules: {
         required: "Location is required",
       },
@@ -173,6 +175,7 @@ export const brandFormSchema: BrandFormSchema = {
       name: "brand_name",
       label: "Brand Name",
       placeholder: "Enter brand name",
+      required: true,
       rules: {
         required: "Brand name is required",
       },
@@ -193,6 +196,10 @@ export const brandFormSchema: BrandFormSchema = {
         { label: "Active", value: "active" },
         { label: "Inactive", value: "inactive" },
       ],
+      required: true,
+      rules: {
+        required: "Brand name is required",
+      },
     },
     {
       type: "text",
@@ -271,6 +278,10 @@ export const brandFormSchema: BrandFormSchema = {
       name: "brand_authorization_letter_files",
       label: "Upload Brand Authorisation Letter",
       placeholder: "Upload file",
+      required: true,
+      rules: {
+        required: "Location is required",
+      },
     },
   ],
 };

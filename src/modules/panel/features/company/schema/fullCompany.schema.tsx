@@ -278,7 +278,10 @@ export function createCompanySchema(
       // Brand details
       brandName: createRequiredString("Brand name"),
       totalSkus: createOptionalString(),
-      brandType: z.array(z.string()).optional(),
+      brandType: z
+        .array(z.string())
+        .min(1, "At least one category is required")
+        .optional(),
       averageSellingPrice: createRequiredString("Average selling price"),
       sellingOn: z.array(sellingPlatformSchema).optional(),
 
@@ -678,8 +681,8 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
         label: "Address Type",
         type: INPUT_TYPES.SELECT,
         options: [
-          { label: "Registered", value: "registered" },
-          { label: "Office", value: "office" },
+          { label: "Registered Office", value: "registered" },
+          { label: "Branch Office", value: "office" },
         ],
         placeholder: "Enter address",
         disabled: disabled || disabledAddressType || mode === MODE.VIEW,

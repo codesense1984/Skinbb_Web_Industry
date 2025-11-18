@@ -14,7 +14,7 @@ interface TrendingCategoriesCardProps {
   brandId?: string;
 }
 
-export const TrendingCategoriesCard: React.FC<TrendingCategoriesCardProps> = ({ 
+export const TrendingCategoriesCard: React.FC<TrendingCategoriesCardProps> = ({
   className,
   startDate,
   endDate,
@@ -22,17 +22,26 @@ export const TrendingCategoriesCard: React.FC<TrendingCategoriesCardProps> = ({
 }) => {
   // Calculate default date range (last 30 days)
   const defaultEndDate = React.useMemo(() => {
-    return new Date().toISOString().split('T')[0];
+    return new Date().toISOString().split("T")[0];
   }, []);
 
   const defaultStartDate = React.useMemo(() => {
     const date = new Date();
     date.setDate(date.getDate() - 30);
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split("T")[0];
   }, []);
 
-  const { data: salesInsights, isLoading, isError } = useQuery({
-    queryKey: ["sales-insights", startDate || defaultStartDate, endDate || defaultEndDate, brandId],
+  const {
+    data: salesInsights,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: [
+      "sales-insights",
+      startDate || defaultStartDate,
+      endDate || defaultEndDate,
+      brandId,
+    ],
     queryFn: async () => {
       const response = await apiGetSalesInsights({
         startDate: startDate || defaultStartDate,
@@ -55,7 +64,10 @@ export const TrendingCategoriesCard: React.FC<TrendingCategoriesCardProps> = ({
   } satisfies ChartConfig;
 
   const categoryChartData = categories.map((category) => ({
-    key: category.categoryName.length > 15 ? category.categoryName.substring(0, 15) + "..." : category.categoryName,
+    key:
+      category.categoryName.length > 15
+        ? category.categoryName.substring(0, 15) + "..."
+        : category.categoryName,
     value: category.revenue,
     fullName: category.categoryName,
     orderCount: category.orderCount,
@@ -63,24 +75,34 @@ export const TrendingCategoriesCard: React.FC<TrendingCategoriesCardProps> = ({
   }));
 
   return (
-    <StatChartCard 
-      name="Trending Categories" 
+    <StatChartCard
+      name="Trending Categories"
       className={className}
-      actions={
-        <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-          <EyeIcon className="h-4 w-4 mr-1" />
-          View All
-        </Button>
-      }
+      // actions={
+      //   <Button
+      //     variant="ghost"
+      //     size="sm"
+      //     className="text-blue-600 hover:text-blue-700"
+      //   >
+      //     <EyeIcon className="mr-1 h-4 w-4" />
+      //     View All
+      //   </Button>
+      // }
     >
       {isLoading && (
-        <div className="text-center py-8 text-gray-500 text-sm">Loading categories...</div>
+        <div className="py-8 text-center text-sm text-gray-500">
+          Loading categories...
+        </div>
       )}
       {isError && (
-        <div className="text-center py-8 text-red-500 text-sm">Error loading categories</div>
+        <div className="py-8 text-center text-sm text-red-500">
+          Error loading categories
+        </div>
       )}
       {!isLoading && !isError && categories.length === 0 && (
-        <div className="text-center py-8 text-gray-500 text-sm">No categories found</div>
+        <div className="py-8 text-center text-sm text-gray-500">
+          No categories found
+        </div>
       )}
       {!isLoading && !isError && categories.length > 0 && (
         <BarChart
@@ -91,9 +113,9 @@ export const TrendingCategoriesCard: React.FC<TrendingCategoriesCardProps> = ({
           showTooltip={true}
           showGrid={true}
           yAxisProps={{
-            width: 100,
+            width: 70,
           }}
-          className="h-64"
+          className="max-h-64"
         />
       )}
     </StatChartCard>

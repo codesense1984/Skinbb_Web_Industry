@@ -1,12 +1,10 @@
-import React from "react";
+import {
+  StatChartCard
+} from "@/core/components/ui/card";
+import { cn, formatNumber } from "@/core/utils";
+import { TrophyIcon } from "@heroicons/react/24/outline";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
-import { Button } from "@/core/components/ui/button";
-import { 
-  TrophyIcon,
-  EyeIcon
-} from "@heroicons/react/24/outline";
-import { cn } from "@/core/utils";
+import React, { Fragment } from "react";
 import { apiGetSalesInsights } from "../../../ecommerce/services";
 
 interface TopSellingProductsCardProps {
@@ -17,7 +15,7 @@ interface TopSellingProductsCardProps {
   limit?: number;
 }
 
-export const TopSellingProductsCard: React.FC<TopSellingProductsCardProps> = ({ 
+export const TopSellingProductsCard: React.FC<TopSellingProductsCardProps> = ({
   className,
   startDate,
   endDate,
@@ -26,17 +24,27 @@ export const TopSellingProductsCard: React.FC<TopSellingProductsCardProps> = ({
 }) => {
   // Calculate default date range (last 30 days)
   const defaultEndDate = React.useMemo(() => {
-    return new Date().toISOString().split('T')[0];
+    return new Date().toISOString().split("T")[0];
   }, []);
 
   const defaultStartDate = React.useMemo(() => {
     const date = new Date();
     date.setDate(date.getDate() - 30);
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split("T")[0];
   }, []);
 
-  const { data: salesInsights, isLoading, isError } = useQuery({
-    queryKey: ["sales-insights", startDate || defaultStartDate, endDate || defaultEndDate, brandId, limit],
+  const {
+    data: salesInsights,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: [
+      "sales-insights",
+      startDate || defaultStartDate,
+      endDate || defaultEndDate,
+      brandId,
+      limit,
+    ],
     queryFn: async () => {
       const response = await apiGetSalesInsights({
         startDate: startDate || defaultStartDate,
@@ -59,61 +67,123 @@ export const TopSellingProductsCard: React.FC<TopSellingProductsCardProps> = ({
       case 1:
         return <TrophyIcon className={cn(iconSize, "text-yellow-500")} />;
       case 2:
-        return <div className={cn(iconSize, "rounded-full bg-gray-400 flex items-center justify-center text-xs text-white font-bold")}>2</div>;
+        return (
+          <div
+            className={cn(
+              iconSize,
+              "flex items-center justify-center rounded-full bg-gray-400 text-xs font-bold text-white",
+            )}
+          >
+            2
+          </div>
+        );
       case 3:
-        return <div className={cn(iconSize, "rounded-full bg-orange-400 flex items-center justify-center text-xs text-white font-bold")}>3</div>;
+        return (
+          <div
+            className={cn(
+              iconSize,
+              "flex items-center justify-center rounded-full bg-orange-400 text-xs font-bold text-white",
+            )}
+          >
+            3
+          </div>
+        );
       default:
-        return <div className={cn(iconSize, "rounded-full bg-gray-300 flex items-center justify-center text-xs text-gray-600 font-bold")}>{rank}</div>;
+        return (
+          <div
+            className={cn(
+              iconSize,
+              "flex items-center justify-center rounded-full bg-gray-300 text-xs font-bold text-gray-600",
+            )}
+          >
+            {rank}
+          </div>
+        );
     }
   };
 
   return (
-    <Card className={cn("bg-white border-gray-200", className)}>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-gray-900">
-            Top Selling Products
-          </CardTitle>
-          <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-            <EyeIcon className="h-4 w-4 mr-1" />
-            View All
-          </Button>
+    <StatChartCard name="Top Selling Products" className={className}>
+      {isLoading && (
+        <div className="py-8 text-center text-sm text-gray-500">
+          Loading products...
         </div>
-      </CardHeader>
-      <CardContent className="pt-0 space-y-2">
-        {isLoading && (
-          <div className="text-center py-4 text-gray-500 text-sm">Loading products...</div>
-        )}
-        {isError && (
-          <div className="text-center py-4 text-red-500 text-sm">Error loading products</div>
-        )}
-        {!isLoading && !isError && products.length === 0 && (
-          <div className="text-center py-4 text-gray-500 text-sm">No products found</div>
-        )}
-        {products.slice(0, limit).map((product, index) => (
-          <div
-            key={product._id}
-            className="flex items-center gap-3 p-2 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
-          >
-            <div className="flex-shrink-0">
-              {getRankIcon(index + 1)}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">
-                {product.productName}
-              </p>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-xs font-semibold text-gray-700">
-                  ₹{product.totalRevenue.toLocaleString()}
-                </span>
-                <span className="text-xs text-gray-500">
-                  Qty: {product.totalQuantity}
-                </span>
+      )}
+      {isError && (
+        <div className="py-8 text-center text-sm text-red-500">
+          Error loading products
+        </div>
+      )}
+      {!isLoading && !isError && products.length === 0 && (
+        <div className="py-8 text-center text-sm text-gray-500">
+          No products found
+        </div>
+      )}
+      <div className="space-y-2">
+        {[...products].slice(0, limit).map((product, index) => (
+          <Fragment key={product._id}>
+            <div key={product._id} className="flex items-center gap-3">
+              <div className="flex-shrink-0 ">{getRankIcon(index + 1)}</div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-medium">{product.productName}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm ">
+                    ₹{formatNumber(product.totalRevenue)}
+                  </p>
+                  <p className="text-sm">Qty: {product.totalQuantity}</p>
+                </div>
               </div>
             </div>
-          </div>
+            {[...products].length - 1 !== index && <hr />}
+          </Fragment>
         ))}
-      </CardContent>
-    </Card>
+      </div>
+    </StatChartCard>
   );
+
+  // return (
+  //   <Card className={cn("border-gray-200 bg-white", className)}>
+  //     <CardHeader className="">
+  //       <CardTitle className="text-lg">Top Selling Products</CardTitle>
+  //     </CardHeader>
+  //     <hr />
+  //     <CardContent className="space-y-2 px-0 pt-0">
+  //       {isLoading && (
+  //         <div className="py-4 text-center text-sm text-gray-500">
+  //           Loading products...
+  //         </div>
+  //       )}
+  //       {isError && (
+  //         <div className="py-4 text-center text-sm text-red-500">
+  //           Error loading products
+  //         </div>
+  //       )}
+  //       {!isLoading && !isError && products.length === 0 && (
+  //         <div className="py-4 text-center text-sm text-gray-500">
+  //           No products found
+  //         </div>
+  //       )}
+  //       {[...products].slice(0, limit).map((product, index) => (
+  //         <Fragment key={product._id}>
+  //           <div
+  //             key={product._id}
+  //             className="flex items-center gap-3 px-6 transition-colors hover:bg-gray-50"
+  //           >
+  //             <div className="flex-shrink-0">{getRankIcon(index + 1)}</div>
+  //             <div className="min-w-0 flex-1">
+  //               <p className="truncate">{product.productName}</p>
+  //               <div className="mt-1 flex items-center gap-2">
+  //                 <p className="text-sm">
+  //                   ₹{formatNumber(product.totalRevenue)}
+  //                 </p>
+  //                 <p className="text-sm">Qty: {product.totalQuantity}</p>
+  //               </div>
+  //             </div>
+  //           </div>
+  //           {products.length - 1 !== index && <hr />}
+  //         </Fragment>
+  //       ))}
+  //     </CardContent>
+  //   </Card>
+  // );
 };
