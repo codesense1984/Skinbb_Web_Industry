@@ -1,5 +1,6 @@
 import { hasRole, hasPermission, type MatchMode } from "@auth/components/guard";
 import {
+  doctorSidebarItems,
   panelSidebarItems,
   sellerSidebarItems,
   type SidebarItem,
@@ -120,6 +121,9 @@ export const getCurrentItemId = (
 export const getSidebarItems = (role: Role) => {
   if (role === ROLE.ADMIN) {
     return panelSidebarItems;
+  }
+  if (role === ROLE.DOCTOR) {
+    return doctorSidebarItems;
   }
   return sellerSidebarItems;
 };

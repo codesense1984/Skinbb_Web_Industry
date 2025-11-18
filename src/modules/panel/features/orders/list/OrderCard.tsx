@@ -27,9 +27,9 @@ export const OrderCard: FC<OrderCardProps> = ({ order }) => {
           <div className="min-w-0 flex-1">
             <h6 className="truncate font-medium">{order.orderNumber}</h6>
             <p className="text-muted-foreground text-sm">{order.fullName || "N/A"}</p>
-            {order.brand && (
+            {(order.brandName || order.brand?.name) && (
               <p className="text-muted-foreground mt-1 text-xs">
-                {order.brand.name}
+                {order.brandName || order.brand?.name}
               </p>
             )}
           </div>

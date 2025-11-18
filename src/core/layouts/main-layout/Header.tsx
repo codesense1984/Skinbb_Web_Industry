@@ -12,6 +12,7 @@ import { useAuth } from "@/modules/auth/hooks/useAuth";
 import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth";
 import { ROLE } from "@/modules/auth/types/permission.type.";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
+import { DOCTOR_ROUTES } from "@/modules/doctor/routes/constant";
 import { useEffect, useMemo } from "react";
 import { NavLink } from "react-router";
 
@@ -27,6 +28,19 @@ const Header = () => {
   const isSeller = useMemo(() => {
     return role === ROLE.SELLER || role === ROLE.SELLER_MEMBER;
   }, [role]);
+
+  // Check if user is a doctor
+  const isDoctor = useMemo(() => {
+    return role === ROLE.DOCTOR;
+  }, [role]);
+
+  // Get account route based on role
+  const accountRoute = useMemo(() => {
+    if (isDoctor) {
+      return DOCTOR_ROUTES.ACCOUNT.BASE;
+    }
+    return PANEL_ROUTES.ACCOUNT;
+  }, [isDoctor]);
 
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
@@ -153,7 +167,7 @@ const Header = () => {
               {
                 children: (
                   <NavLink
-                    to={PANEL_ROUTES.ACCOUNT}
+                    to={accountRoute}
                     className="flex w-full items-center gap-2"
                   >
                     Account

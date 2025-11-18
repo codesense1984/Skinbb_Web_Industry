@@ -26,8 +26,8 @@ import { apiGetOrderList } from "@/modules/panel/services/http/order.service";
 import { apiGetCustomerById } from "@/modules/panel/services/http/customer.service";
 import { useQuery } from "@tanstack/react-query";
 import type { Order } from "@/modules/panel/types/order.type";
-import { useCallback, useMemo, useEffect, useRef } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { useMemo, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router";
 
 // Constants
 const PAYMENT_METHOD_FILTER_KEY = FILTER_KEYS.PAYMENT_METHOD;
@@ -91,12 +91,6 @@ const createOrderFetcher = (): ServerDataFetcher<Order> => {
       params.customerId = filters.customer[0].value;
     }
 
-    console.log("🔍 Order Filter Params:", { 
-      filters, 
-      params,
-      customerFilter: filters.customer,
-      customerValue: filters.customer?.[0]?.value 
-    });
 
     const response = await apiGetOrderList(params, signal);
 
@@ -105,12 +99,21 @@ const createOrderFetcher = (): ServerDataFetcher<Order> => {
         orders?: Order[];
         totalRecords?: number;
       };
-      return {
-        rows: responseData?.orders || [],
+      const orders = responseData?.orders || [];
+      
+      // Return API response as-is
+      // Note: The API should filter by status on the backend, but if it doesn't,
+      // we trust the API response. Client-side filtering would only work for the current page,
+      // which is not ideal for pagination.
+      const result = {
+        rows: orders,
         total: responseData?.totalRecords || 0,
       };
+      
+      return result;
     }
 
+    console.log("❌ Invalid response structure");
     return { rows: [], total: 0 };
   };
 };
@@ -195,10 +198,7 @@ const OrderFilters = () => {
 };
 
 // Columns definition
-const getColumns = (
-  handleViewOrder: (id: string) => void,
-  handleDeleteOrder: (id: string) => void,
-) => [
+const getColumns = () => [
   {
     header: "Order Number",
     accessorKey: "orderNumber",
@@ -222,9 +222,10 @@ const getColumns = (
     header: "Brand",
     accessorKey: "brand",
     cell: ({ row }: { row: { original: Order } }) => {
-      const brand = row.original.brand;
+      const order = row.original;
+      const brandName = order.brandName || order.brand?.name;
       return (
-        <div className="text-sm text-gray-900">{brand?.name || "N/A"}</div>
+        <div className="text-sm text-gray-900">{brandName || "N/A"}</div>
       );
     },
   },
@@ -284,12 +285,8 @@ const getColumns = (
       return (
         <TableAction
           view={{
-            onClick: () => handleViewOrder(order._id),
+            to: PANEL_ROUTES.ORDER.VIEW(order._id),
             title: "View order details",
-          }}
-          delete={{
-            onClick: () => handleDeleteOrder(order._id),
-            title: "Delete order",
           }}
         />
       );
@@ -299,27 +296,9 @@ const getColumns = (
 
 // Main component
 const OrderList = () => {
-  const navigate = useNavigate();
   const orderFetcher = useMemo(() => createOrderFetcher(), []);
 
-  const handleViewOrder = useCallback(
-    (id: string) => {
-      navigate(PANEL_ROUTES.ORDER.VIEW(id));
-    },
-    [navigate],
-  );
-
-  const handleDeleteOrder = useCallback((id: string) => {
-    if (window.confirm(`Are you sure you want to delete order ${id}?`)) {
-      // TODO: Implement actual delete API call here
-      console.log("Delete order:", id);
-    }
-  }, []);
-
-  const columns = useMemo(
-    () => getColumns(handleViewOrder, handleDeleteOrder),
-    [handleViewOrder, handleDeleteOrder],
-  );
+  const columns = useMemo(() => getColumns(), []);
 
   return (
     <PageContent

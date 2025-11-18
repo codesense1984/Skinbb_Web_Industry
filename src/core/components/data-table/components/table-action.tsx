@@ -43,27 +43,34 @@ export const renderActionButton = (
     ...restProps
   } = action;
 
-  const ButtonElement = ({ ...rest }: ButtonProps) => (
-    <Button
-      variant={defaultVariant}
-      size={size}
-      className={cn("size-7 border", buttonClassName)}
-      startIcon={defaultIcon}
-      {...rest}
-      {...restProps}
-    />
-  );
-
-  // If 'to' prop is provided, wrap the button with Link
+  // If 'to' prop is provided, use Link with Button asChild
   if (to) {
     return (
-      <ButtonElement asChild>
+      <Button
+        variant={variant}
+        size={size}
+        className={cn("size-7 border", buttonClassName)}
+        startIcon={startIcon}
+        asChild
+        {...restProps}
+      >
         <Link to={to}>{children}</Link>
-      </ButtonElement>
+      </Button>
     );
   }
 
-  return <ButtonElement>{children}</ButtonElement>;
+  // Otherwise, use regular button with onClick
+  return (
+    <Button
+      variant={variant}
+      size={size}
+      className={cn("size-7 border", buttonClassName)}
+      startIcon={startIcon}
+      {...restProps}
+    >
+      {children}
+    </Button>
+  );
 };
 export function TableAction({
   view,
