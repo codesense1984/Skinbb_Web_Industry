@@ -1,9 +1,9 @@
 import { TableAction } from "@/core/components/data-table/components/table-action";
 import {
   DataView,
-  useDataView,
   type ServerDataFetcher,
 } from "@/core/components/data-view";
+import { OrderCard } from "./OrderCard";
 import {
   type FilterOption
 } from "@/core/components/dynamic-filter";
@@ -15,15 +15,19 @@ import { formatCurrency } from "@/core/utils/number";
 import {
   BrandFilter,
   CompanyFilter,
+  CustomerFilter,
   DEFAULT_PAGE_SIZE,
   FILTER_KEYS,
   StatusFilter,
 } from "@/modules/panel/components/data-view";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
+import { useDataView } from "@/core/components/data-view";
 import { apiGetOrderList } from "@/modules/panel/services/http/order.service";
+import { apiGetCustomerById } from "@/modules/panel/services/http/customer.service";
+import { useQuery } from "@tanstack/react-query";
 import type { Order } from "@/modules/panel/types/order.type";
-import { useCallback, useMemo } from "react";
-import { useNavigate } from "react-router";
+import { useMemo, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router";
 
 // Constants
 const PAYMENT_METHOD_FILTER_KEY = FILTER_KEYS.PAYMENT_METHOD;
@@ -43,6 +47,7 @@ type OrderFilters = {
   company: FilterOption[];
   brand: FilterOption[];
   paymentMethod: FilterOption[];
+  customer: FilterOption[];
 };
 
 // Order fetcher for DataView component
@@ -82,6 +87,10 @@ const createOrderFetcher = (): ServerDataFetcher<Order> => {
     if (filters.paymentMethod?.[0]?.value) {
       params.paymentMethod = filters.paymentMethod[0].value;
     }
+    if (filters.customer?.[0]?.value) {
+      params.customerId = filters.customer[0].value;
+    }
+
 
     const response = await apiGetOrderList(params, signal);
 
@@ -90,14 +99,80 @@ const createOrderFetcher = (): ServerDataFetcher<Order> => {
         orders?: Order[];
         totalRecords?: number;
       };
-      return {
-        rows: responseData?.orders || [],
+      const orders = responseData?.orders || [];
+      
+      // Return API response as-is
+      // Note: The API should filter by status on the backend, but if it doesn't,
+      // we trust the API response. Client-side filtering would only work for the current page,
+      // which is not ideal for pagination.
+      const result = {
+        rows: orders,
         total: responseData?.totalRecords || 0,
       };
+      
+      return result;
     }
 
+    console.log("❌ Invalid response structure");
     return { rows: [], total: 0 };
   };
+};
+
+// Component to handle URL-based customer filter
+const CustomerFilterFromUrl = () => {
+  const [searchParams] = useSearchParams();
+  const { setFilters } = useDataView<Order>();
+  const customerId = searchParams.get("customerId");
+  const hasSetFilterForCustomerRef = useRef<string | null>(null);
+  const lastCustomerNameRef = useRef<string | null>(null);
+
+  // Fetch customer data to get the actual name
+  const { data: customerData } = useQuery({
+    queryKey: ["customer", customerId],
+    queryFn: () => apiGetCustomerById(customerId!),
+    enabled: !!customerId,
+  });
+
+  useEffect(() => {
+    if (customerId) {
+      // Get customer name from fetched data or use a placeholder
+      const customerName = customerData?.data?.name 
+        || customerData?.data?.email 
+        || customerData?.data?.phoneNumber 
+        || "Customer";
+      
+      // Only set/update filter if:
+      // 1. We haven't set it for this customerId yet, OR
+      // 2. The customer name has changed (e.g., data just loaded)
+      const shouldUpdate = customerId !== hasSetFilterForCustomerRef.current || 
+        (customerName !== lastCustomerNameRef.current && hasSetFilterForCustomerRef.current === customerId);
+      
+      if (shouldUpdate) {
+        // Set the customer filter with actual customer name
+        const customerFilter: FilterOption[] = [
+          {
+            label: customerName,
+            value: customerId,
+          },
+        ];
+        setFilters({
+          customer: customerFilter,
+        });
+        hasSetFilterForCustomerRef.current = customerId;
+        lastCustomerNameRef.current = customerName;
+      }
+    } else if (!customerId && hasSetFilterForCustomerRef.current) {
+      // Clear the filter if customerId is removed from URL
+      setFilters({
+        customer: [],
+      });
+      hasSetFilterForCustomerRef.current = null;
+      lastCustomerNameRef.current = null;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customerId, customerData?.data]); // Depend on customerId and customerData.data
+
+  return null;
 };
 
 // Filter components
@@ -110,6 +185,7 @@ const OrderFilters = () => {
       <StatusFilter module="order" />
       <CompanyFilter />
       <BrandFilter selectedCompanyId={selectedCompanyId} />
+      <CustomerFilter />
       {/* <FilterDataItem
         dataKey={PAYMENT_METHOD_FILTER_KEY}
         type="dropdown"
@@ -122,10 +198,7 @@ const OrderFilters = () => {
 };
 
 // Columns definition
-const getColumns = (
-  handleViewOrder: (id: string) => void,
-  handleDeleteOrder: (id: string) => void,
-) => [
+const getColumns = () => [
   {
     header: "Order Number",
     accessorKey: "orderNumber",
@@ -149,9 +222,10 @@ const getColumns = (
     header: "Brand",
     accessorKey: "brand",
     cell: ({ row }: { row: { original: Order } }) => {
-      const brand = row.original.brand;
+      const order = row.original;
+      const brandName = order.brandName || order.brand?.name;
       return (
-        <div className="text-sm text-gray-900">{brand?.name || "N/A"}</div>
+        <div className="text-sm text-gray-900">{brandName || "N/A"}</div>
       );
     },
   },
@@ -211,12 +285,8 @@ const getColumns = (
       return (
         <TableAction
           view={{
-            onClick: () => handleViewOrder(order._id),
+            to: PANEL_ROUTES.ORDER.VIEW(order._id),
             title: "View order details",
-          }}
-          delete={{
-            onClick: () => handleDeleteOrder(order._id),
-            title: "Delete order",
           }}
         />
       );
@@ -226,27 +296,9 @@ const getColumns = (
 
 // Main component
 const OrderList = () => {
-  const navigate = useNavigate();
   const orderFetcher = useMemo(() => createOrderFetcher(), []);
 
-  const handleViewOrder = useCallback(
-    (id: string) => {
-      navigate(PANEL_ROUTES.ORDER.VIEW(id));
-    },
-    [navigate],
-  );
-
-  const handleDeleteOrder = useCallback((id: string) => {
-    if (window.confirm(`Are you sure you want to delete order ${id}?`)) {
-      // TODO: Implement actual delete API call here
-      console.log("Delete order:", id);
-    }
-  }, []);
-
-  const columns = useMemo(
-    () => getColumns(handleViewOrder, handleDeleteOrder),
-    [handleViewOrder, handleDeleteOrder],
-  );
+  const columns = useMemo(() => getColumns(), []);
 
   return (
     <PageContent
@@ -259,12 +311,19 @@ const OrderList = () => {
         <DataView<Order>
           fetcher={orderFetcher}
           columns={columns}
+          renderCard={(order) => <OrderCard order={order} />}
+          gridClassName="grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3"
           defaultViewMode="table"
           defaultPageSize={DEFAULT_PAGE_SIZE}
           enableUrlSync={false}
           queryKeyPrefix={PANEL_ROUTES.ORDER.LIST}
           searchPlaceholder="Search orders..."
-          filters={<OrderFilters />}
+          filters={
+            <>
+              <CustomerFilterFromUrl />
+              <OrderFilters />
+            </>
+          }
         />
       </div>
     </PageContent>

@@ -68,6 +68,7 @@ export const ENDPOINTS = {
 
   MEDIA: {
     UPLOAD: `${API_PREFIX}/media/upload`,
+    UPLOAD_MEDIA: `${API_PREFIX}/media/upload-media`,
   },
 
   BRAND: {
@@ -125,7 +126,6 @@ export const ENDPOINTS = {
     UPDATE_INFO: `${API_PREFIX}/sellers/info`,
     UPDATE_STATUS: (addressId: string) =>
       `${API_PREFIX}/sellers/admin/address/${addressId}/status`,
-    GET_PROFILE: `${API_PREFIX}/sellers/getProfile`,
   },
 
   // Company Location Brands

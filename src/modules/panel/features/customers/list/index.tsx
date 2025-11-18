@@ -1,30 +1,71 @@
-import { createSimpleFetcher, DataTable } from "@/core/components/data-table";
+import {
+  DataView,
+  type ServerDataFetcher,
+} from "@/core/components/data-view";
 import { StatCard } from "@/core/components/ui/stat";
 import { PageContent } from "@/core/components/ui/structure";
 import { Button } from "@/core/components/ui/button";
 import { ComingSoon } from "@/core/components/ui/coming-soon";
 import { formatNumber } from "@/core/utils";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { useSearchParams } from "react-router";
 import { columns, statsData } from "./data";
+import { CustomerCard } from "./CustomerCard";
 import { apiGetCustomers } from "@/modules/panel/services/http/customer.service";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
+import { DEFAULT_PAGE_SIZE } from "@/modules/panel/components/data-view";
+import type { Customer } from "@/modules/panel/types/customer.type";
+import type { PaginationParams } from "@/core/types";
 import Routines from "../Routines";
 
-// Create fetcher for server-side data
-const fetcher = () =>
-  createSimpleFetcher(apiGetCustomers, {
-    dataPath: "data.customers",
-    totalPath: "data.totalRecords",
-    filterMapping: {
-      query: "query",
-    },
-  });
+// Create fetcher for DataView component
+const createCustomerFetcher = (): ServerDataFetcher<Customer> => {
+  return async ({
+    pageIndex,
+    pageSize,
+    sorting,
+    globalFilter,
+    filters,
+    signal,
+  }) => {
+    const params: PaginationParams = {
+      page: pageIndex + 1,
+      limit: pageSize,
+    };
+
+    if (globalFilter) {
+      params.query = globalFilter;
+    }
+
+    if (sorting.length > 0) {
+      params.sort = {
+        key: sorting[0].id,
+        order: sorting[0].desc ? "desc" : "asc",
+      };
+    }
+
+    const response = await apiGetCustomers(params, signal);
+
+    if (response && typeof response === "object" && "data" in response) {
+      const responseData = response.data as {
+        customers?: Customer[];
+        totalRecords?: number;
+      };
+      return {
+        rows: responseData?.customers || [],
+        total: responseData?.totalRecords || 0,
+      };
+    }
+
+    return { rows: [], total: 0 };
+  };
+};
 
 const CustomerList = () => {
   const [searchParams] = useSearchParams();
   const view = searchParams.get("view");
   const [stats, setStats] = useState(statsData);
+  const customerFetcher = useMemo(() => createCustomerFetcher(), []);
 
   // Show ComingSoon for segments and reviews views
   if (view === "segments") {
@@ -119,11 +160,16 @@ const CustomerList = () => {
         ))}
       </section>
 
-      <DataTable
+      <DataView<Customer>
+        fetcher={customerFetcher}
         columns={columns}
-        isServerSide
-        fetcher={fetcher()}
+        renderCard={(customer) => <CustomerCard customer={customer} />}
+        gridClassName="grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3"
+        defaultViewMode="table"
+        defaultPageSize={DEFAULT_PAGE_SIZE}
+        enableUrlSync={false}
         queryKeyPrefix={PANEL_ROUTES.CUSTOMER.LIST}
+        searchPlaceholder="Search customers..."
       />
     </PageContent>
   );

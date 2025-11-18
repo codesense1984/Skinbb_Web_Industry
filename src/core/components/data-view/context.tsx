@@ -68,6 +68,24 @@ export function DataViewProvider<TData extends object>({
   // Row selection state
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 
+  // Build query key for react-query (shared between table and grid)
+  // Serialize filters to ensure query key changes when filter values change
+  const serializedFilters = useMemo(() => {
+    return JSON.stringify(
+      Object.entries(filters).reduce((acc, [key, values]) => {
+        acc[key] = values.map((v) => v.value).sort();
+        return acc;
+      }, {} as Record<string, string[]>),
+    );
+  }, [filters]);
+
+  // Reset pagination to page 1 when filters change
+  useEffect(() => {
+    if (pageIndex > 0) {
+      setPageIndex(0);
+    }
+  }, [serializedFilters]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // URL state sync
   useUrlStateSync({
     enabled: enableUrlSync,
@@ -85,10 +103,9 @@ export function DataViewProvider<TData extends object>({
     onSearchChange: setSearch,
   });
 
-  // Build query key for react-query (shared between table and grid)
   const baseQueryKey = useMemo(
-    () => [queryKeyPrefix, "data", sorting, debouncedSearch, filters],
-    [queryKeyPrefix, sorting, debouncedSearch, filters],
+    () => [queryKeyPrefix, "data", sorting, debouncedSearch, serializedFilters],
+    [queryKeyPrefix, sorting, debouncedSearch, serializedFilters],
   );
 
   // Table view: use useQuery with pagination
@@ -106,11 +123,10 @@ export function DataViewProvider<TData extends object>({
       });
     },
     enabled: !!fetcher && viewMode === "table",
-    staleTime: 30_000, // 30 seconds
+    staleTime: 0, // Always consider data stale to force refetch on filter changes
     gcTime: 5 * 60_000, // 5 minutes
-    // Remove placeholderData to ensure fresh data on page change
     refetchOnWindowFocus: false,
-    placeholderData: (prev) => prev,
+    // Don't use placeholderData to avoid showing stale cached data
   });
 
   // Grid view: use useInfiniteQuery for infinite scroll
