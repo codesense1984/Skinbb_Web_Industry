@@ -1,11 +1,20 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/core/components/ui/card";
 import { StatChartCard } from "@/core/components/ui/card";
 import { Button } from "@/core/components/ui/button";
 import { Badge, StatusBadge } from "@/core/components/ui/badge";
-import { Alert, AlertTitle, AlertDescription } from "@/core/components/ui/alert";
-import { 
+import {
+  Alert,
+  AlertTitle,
+  AlertDescription,
+} from "@/core/components/ui/alert";
+import {
   BuildingOfficeIcon,
   LinkIcon,
   BellIcon,
@@ -15,7 +24,8 @@ import {
   ClockIcon,
   CheckCircleIcon,
   XCircleIcon,
-  ExclamationCircleIcon
+  ExclamationCircleIcon,
+  CreditCardIcon,
 } from "@heroicons/react/24/outline";
 import { cn } from "@/core/utils";
 import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
@@ -35,9 +45,9 @@ interface PendingBrandOnboardingsCardProps {
   className?: string;
 }
 
-export const PendingBrandOnboardingsCard: React.FC<PendingBrandOnboardingsCardProps> = ({ 
-  className 
-}) => {
+export const PendingBrandOnboardingsCard: React.FC<
+  PendingBrandOnboardingsCardProps
+> = ({ className }) => {
   // Mock data - replace with actual API call to ENDPOINTS.BRAND.MAIN
   const onboardings: BrandOnboarding[] = [
     {
@@ -91,60 +101,69 @@ export const PendingBrandOnboardingsCard: React.FC<PendingBrandOnboardingsCardPr
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
   };
 
-  const pendingCount = onboardings.filter((b) => b.status === "pending" || b.status === "review").length;
+  const pendingCount = onboardings.filter(
+    (b) => b.status === "pending" || b.status === "review",
+  ).length;
 
   return (
-    <Card className={cn("bg-white border-gray-200", className)}>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <BuildingOfficeIcon className="h-5 w-5" />
-            Pending Brand Onboardings
-          </CardTitle>
-          <div className="flex items-center gap-2">
-            <Badge className="bg-yellow-100 text-yellow-700">
-              {pendingCount} Pending
-            </Badge>
-            <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-              <EyeIcon className="h-4 w-4 mr-1" />
-              View All
-            </Button>
-          </div>
+    <StatChartCard
+      name={
+        <div className="flex items-center gap-2">
+          <BuildingOfficeIcon className="h-5 w-5" />
+          Pending Brand Onboardings
         </div>
-      </CardHeader>
-      <CardContent className="pt-0 space-y-3">
+      }
+      className={cn("md:max-h-auto", className)}
+      actions={
+        <Badge className="bg-yellow-100 text-xs text-yellow-700">
+          {pendingCount} Pending
+        </Badge>
+      }
+    >
+      <div className="space-y-4">
         {onboardings.map((brand) => (
           <div
             key={brand.id}
-            className="p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
+            className="rounded-lg border border-gray-100 p-3 transition-colors"
           >
-            <div className="flex items-start justify-between mb-2">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
+            <div className="mb-2 flex items-start justify-between">
+              <div className="min-w-0 flex-1">
+                <p className="text-muted-foreground truncate font-medium">
                   {brand.brandName}
                 </p>
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-muted-foreground mt-1 text-sm">
                   Submitted by {brand.submittedBy}
                 </p>
               </div>
-              <Badge className={cn("text-xs", getStatusColor(brand.status))}>
+              <Badge
+                className={cn(
+                  "text-xs capitalize",
+                  getStatusColor(brand.status),
+                )}
+              >
                 {brand.status}
               </Badge>
             </div>
-            <div className="flex items-center justify-between mt-2">
-              <div className="flex items-center gap-1 text-xs text-gray-500">
-                <ClockIcon className="h-3 w-3" />
+            <div className="mt-2 flex items-center justify-between">
+              <div className="text-muted-foreground flex items-center gap-1 text-sm">
+                <ClockIcon className="h-4 w-4" />
                 {formatDate(brand.submittedDate)}
               </div>
-              <span className="text-xs text-gray-500">{brand.documents} documents</span>
+              <span className="text-muted-foreground text-sm">
+                {brand.documents} documents
+              </span>
             </div>
           </div>
         ))}
-      </CardContent>
-    </Card>
+      </div>
+    </StatChartCard>
   );
 };
 
@@ -162,7 +181,9 @@ interface ApiIntegrationStatusCardProps {
   className?: string;
 }
 
-export const ApiIntegrationStatusCard: React.FC<ApiIntegrationStatusCardProps> = ({ className }) => {
+export const ApiIntegrationStatusCard: React.FC<
+  ApiIntegrationStatusCardProps
+> = ({ className }) => {
   // Mock data - replace with actual API call
   const integrations: Integration[] = [
     {
@@ -216,7 +237,9 @@ export const ApiIntegrationStatusCard: React.FC<ApiIntegrationStatusCardProps> =
       case "error":
         return <XCircleIcon className="h-4 w-4 text-red-500" />;
       default:
-        return <ExclamationCircleIcon className="h-4 w-4 text-gray-500" />;
+        return (
+          <ExclamationCircleIcon className="text-muted-foreground h-4 w-4" />
+        );
     }
   };
 
@@ -246,56 +269,64 @@ export const ApiIntegrationStatusCard: React.FC<ApiIntegrationStatusCardProps> =
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
 
-  const connectedCount = integrations.filter((i) => i.status === "connected").length;
+  const connectedCount = integrations.filter(
+    (i) => i.status === "connected",
+  ).length;
   const totalCount = integrations.length;
 
   return (
-    <Card className={cn("bg-white border-gray-200", className)}>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <LinkIcon className="h-5 w-5" />
-            API / Integration Status
-          </CardTitle>
-          <div className="flex items-center gap-2">
-            <Badge className="bg-green-100 text-green-700">
-              {connectedCount}/{totalCount} Connected
-            </Badge>
-            <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-              <EyeIcon className="h-4 w-4 mr-1" />
-              View All
-            </Button>
-          </div>
+    <StatChartCard
+      name={
+        <div className="flex items-center gap-2">
+          <LinkIcon className="h-5 w-5" />
+          API / Integration Status
         </div>
-      </CardHeader>
-      <CardContent className="pt-0 space-y-3">
+      }
+      className={cn("md:max-h-auto", className)}
+      actions={
+        <Badge className="bg-green-100 text-xs text-green-700">
+          {connectedCount}/{totalCount} Connected
+        </Badge>
+      }
+    >
+      <div className="space-y-4">
         {integrations.map((integration) => (
           <div
             key={integration.id}
-            className="p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
+            className="rounded-lg border border-gray-100 p-3 transition-colors hover:bg-gray-50"
           >
-            <div className="flex items-start justify-between mb-2">
-              <div className="flex items-center gap-2 flex-1 min-w-0">
+            <div className="mb-2 flex items-start justify-between">
+              <div className="flex min-w-0 flex-1 items-center gap-2">
                 {getHealthIcon(integration.health)}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
+                <div className="min-w-0 flex-1">
+                  <p className="text-muted-foreground truncate font-medium">
                     {integration.name}
                   </p>
-                  <p className="text-xs text-gray-500 capitalize">{integration.type}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-muted-foreground flex items-center gap-1 text-sm capitalize">
+                      <CreditCardIcon className="h-4 w-4" />
+                      {integration.type}
+                    </p>
+                    <div className="text-muted-foreground flex items-center gap-1 text-sm">
+                      <ClockIcon className="h-4 w-4" />
+                      Last sync: {formatTimestamp(integration.lastSync)}
+                    </div>
+                  </div>
                 </div>
               </div>
-              <Badge className={cn("text-xs", getStatusColor(integration.status))}>
+              <Badge
+                className={cn(
+                  "text-xs capitalize",
+                  getStatusColor(integration.status),
+                )}
+              >
                 {integration.status}
               </Badge>
             </div>
-            <div className="flex items-center gap-1 text-xs text-gray-500 mt-2">
-              <ClockIcon className="h-3 w-3" />
-              Last sync: {formatTimestamp(integration.lastSync)}
-            </div>
           </div>
         ))}
-      </CardContent>
-    </Card>
+      </div>
+    </StatChartCard>
   );
 };
 
@@ -313,7 +344,9 @@ interface RecentNotificationsCardProps {
   className?: string;
 }
 
-export const RecentNotificationsCard: React.FC<RecentNotificationsCardProps> = ({ className }) => {
+export const RecentNotificationsCard: React.FC<
+  RecentNotificationsCardProps
+> = ({ className }) => {
   // Mock data - replace with actual API call
   const notifications: Notification[] = [
     {
@@ -373,27 +406,21 @@ export const RecentNotificationsCard: React.FC<RecentNotificationsCardProps> = (
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <Card className={cn("bg-white border-gray-200", className)}>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <BellIcon className="h-5 w-5" />
-            Recent Notifications
-          </CardTitle>
-          <div className="flex items-center gap-2">
-            {unreadCount > 0 && (
-              <Badge className="bg-blue-100 text-blue-700">
-                {unreadCount} New
-              </Badge>
-            )}
-            <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-              <EyeIcon className="h-4 w-4 mr-1" />
-              View All
-            </Button>
-          </div>
+    <StatChartCard
+      name={
+        <div className="flex items-center gap-2">
+          <BellIcon className="h-5 w-5" />
+          Recent Notifications
         </div>
-      </CardHeader>
-      <CardContent className="pt-0 space-y-2">
+      }
+      className={cn("md:max-h-auto", className)}
+      actions={
+        <Badge className="bg-blue-100 text-xs text-blue-700">
+          {unreadCount} New
+        </Badge>
+      }
+    >
+      <div className="space-y-4">
         {notifications.map((notification) => (
           <Alert
             key={notification.id}
@@ -401,28 +428,32 @@ export const RecentNotificationsCard: React.FC<RecentNotificationsCardProps> = (
               notification.type === "alert"
                 ? "destructive"
                 : notification.type === "warning"
-                ? "warning"
-                : notification.type === "success"
-                ? "success"
-                : "info"
+                  ? "warning"
+                  : notification.type === "success"
+                    ? "success"
+                    : "info"
             }
             className={cn(
-              "p-3 cursor-pointer hover:opacity-80 transition-opacity",
-              !notification.read && "ring-2 ring-blue-200"
+              "p-3",
+              // !notification.read && "ring-2",
             )}
           >
-            <AlertTitle className="text-sm font-medium">{notification.title}</AlertTitle>
-            <AlertDescription className="text-xs mt-1">
+            <AlertTitle className="font-medium">
+              {notification.title}
+            </AlertTitle>
+            <AlertDescription className="text-sm">
               {notification.message}
             </AlertDescription>
-            <div className="flex items-center gap-1 text-xs text-gray-500 mt-2">
+            <div className="ml-6 flex w-full items-center gap-1 text-sm">
               <ClockIcon className="h-3 w-3" />
-              {formatTimestamp(notification.timestamp)}
+              <span className="whitespace-nowrap">
+                {formatTimestamp(notification.timestamp)}
+              </span>
             </div>
           </Alert>
-        ))}
-      </CardContent>
-    </Card>
+        ))}{" "}
+      </div>
+    </StatChartCard>
   );
 };
 
@@ -441,7 +472,9 @@ interface SystemHealthCheckCardProps {
   className?: string;
 }
 
-export const SystemHealthCheckCard: React.FC<SystemHealthCheckCardProps> = ({ className }) => {
+export const SystemHealthCheckCard: React.FC<SystemHealthCheckCardProps> = ({
+  className,
+}) => {
   // Mock data - replace with actual API call
   const healthIssues: HealthIssue[] = [
     {
@@ -507,46 +540,57 @@ export const SystemHealthCheckCard: React.FC<SystemHealthCheckCardProps> = ({ cl
     });
   };
 
-  const criticalCount = healthIssues.filter((i) => i.severity === "critical" || i.severity === "high").length;
+  const criticalCount = healthIssues.filter(
+    (i) => i.severity === "critical" || i.severity === "high",
+  ).length;
   const openCount = healthIssues.filter((i) => i.status === "open").length;
 
   return (
-    <Card className={cn("bg-white border-gray-200", className)}>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <ExclamationTriangleIcon className="h-5 w-5" />
-            System Health Check
-          </CardTitle>
-          <div className="flex items-center gap-2">
-            {criticalCount > 0 && (
-              <Badge className="bg-red-100 text-red-700">
-                {criticalCount} Critical
-              </Badge>
-            )}
-            {openCount > 0 && (
-              <Badge className="bg-yellow-100 text-yellow-700">
-                {openCount} Open
-              </Badge>
-            )}
-            <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-              <EyeIcon className="h-4 w-4 mr-1" />
-              View Details
-            </Button>
-          </div>
+    <StatChartCard
+      name={
+        <div className="flex items-center gap-2">
+          <ExclamationTriangleIcon className="h-5 w-5" />
+          System Health Check
         </div>
-      </CardHeader>
-      <CardContent className="pt-0 space-y-3">
+      }
+      className={cn("md:max-h-auto", className)}
+      actions={
+        <div className="flex items-center gap-2">
+          {criticalCount > 0 && (
+            <Badge className="bg-red-100 text-xs text-red-700">
+              {criticalCount} Critical
+            </Badge>
+          )}
+          {openCount > 0 && (
+            <Badge className="bg-yellow-100 text-xs text-yellow-700">
+              {openCount} Open
+            </Badge>
+          )}
+        </div>
+      }
+    >
+      <div className="space-y-4">
         {healthIssues.map((issue) => (
           <Alert
             key={issue.id}
-            variant={issue.type === "error" ? "destructive" : issue.type === "warning" ? "warning" : "info"}
+            variant={
+              issue.type === "error"
+                ? "destructive"
+                : issue.type === "warning"
+                  ? "warning"
+                  : "info"
+            }
             className="p-3"
           >
             <div className="flex items-start gap-2">
-              <div className={cn("w-2 h-2 rounded-full mt-1.5 flex-shrink-0", getSeverityColor(issue.severity))} />
-              <div className="flex-1 min-w-0">
-                <AlertTitle className="text-sm font-medium flex items-center gap-2">
+              <div
+                className={cn(
+                  "mt-1.5 h-2 w-2 flex-shrink-0 rounded-full",
+                  getSeverityColor(issue.severity),
+                )}
+              />
+              <div className="min-w-0 flex-1">
+                <AlertTitle className="flex items-center gap-2 text-sm font-medium">
                   {issue.title}
                   <Badge variant="outline" className="text-xs capitalize">
                     {issue.severity}
@@ -555,10 +599,10 @@ export const SystemHealthCheckCard: React.FC<SystemHealthCheckCardProps> = ({ cl
                     {issue.status}
                   </Badge>
                 </AlertTitle>
-                <AlertDescription className="text-xs mt-1">
+                <AlertDescription className="mt-1 text-xs">
                   {issue.description}
                 </AlertDescription>
-                <div className="flex items-center gap-1 text-xs text-gray-500 mt-2">
+                <div className="text-muted-foreground mt-2 flex items-center gap-1 text-xs">
                   <ClockIcon className="h-3 w-3" />
                   {formatTimestamp(issue.timestamp)}
                 </div>
@@ -566,8 +610,8 @@ export const SystemHealthCheckCard: React.FC<SystemHealthCheckCardProps> = ({ cl
             </div>
           </Alert>
         ))}
-      </CardContent>
-    </Card>
+      </div>
+    </StatChartCard>
   );
 };
 
@@ -586,7 +630,9 @@ interface AdminActivitySummaryCardProps {
   className?: string;
 }
 
-export const AdminActivitySummaryCard: React.FC<AdminActivitySummaryCardProps> = ({ className }) => {
+export const AdminActivitySummaryCard: React.FC<
+  AdminActivitySummaryCardProps
+> = ({ className }) => {
   // Mock data - replace with actual API call
   const activities: AdminActivity[] = [
     {
@@ -660,44 +706,104 @@ export const AdminActivitySummaryCard: React.FC<AdminActivitySummaryCardProps> =
   };
 
   return (
-    <Card className={cn("bg-white border-gray-200", className)}>
+    <StatChartCard
+      name={
+        <div className="flex items-center gap-2">
+          <UserIcon className="h-5 w-5" />
+          Admin Activity Summary
+        </div>
+      }
+      className={cn("md:max-h-auto", className)}
+    >
+      <div className="space-y-4">
+        {activities.map((activity) => (
+          <div
+            key={activity.id}
+            className="rounded-lg border border-gray-100 p-3 transition-colors hover:bg-gray-50"
+          >
+            <div className="mb-2 flex items-start justify-between">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <p className="text-muted-foreground font-medium">
+                    {activity.adminName}
+                  </p>
+                  <Badge
+                    className={cn("text-sm", getStatusColor(activity.status))}
+                  >
+                    {activity.status}
+                  </Badge>
+                </div>
+                <p className="text-muted-foreground mt-1 text-sm">
+                  <span className="font-medium">{activity.action}</span>{" "}
+                  {activity.target}
+                </p>
+              </div>
+            </div>
+            <div className="mt-2 flex items-center justify-between">
+              <div className="text-muted-foreground flex items-center gap-1 text-sm">
+                <ClockIcon className="h-3 w-3" />
+                {formatTimestamp(activity.timestamp)}
+              </div>
+              <span className="text-sm text-gray-400">
+                {activity.ipAddress}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </StatChartCard>
+  );
+
+  return (
+    <Card className={cn("border-gray-200 bg-white", className)}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <CardTitle className="text-muted-foreground flex items-center gap-2 text-lg font-semibold">
             <UserIcon className="h-5 w-5" />
             Admin Activity Summary
           </CardTitle>
-          <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-            <EyeIcon className="h-4 w-4 mr-1" />
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-blue-600 hover:text-blue-700"
+          >
+            <EyeIcon className="mr-1 h-4 w-4" />
             View All
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="pt-0 space-y-3">
+      <CardContent className="space-y-3 pt-0">
         {activities.map((activity) => (
           <div
             key={activity.id}
-            className="p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
+            className="rounded-lg border border-gray-100 p-3 transition-colors hover:bg-gray-50"
           >
-            <div className="flex items-start justify-between mb-2">
-              <div className="flex-1 min-w-0">
+            <div className="mb-2 flex items-start justify-between">
+              <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-gray-900">{activity.adminName}</p>
-                  <Badge className={cn("text-xs", getStatusColor(activity.status))}>
+                  <p className="text-muted-foreground text-sm font-medium">
+                    {activity.adminName}
+                  </p>
+                  <Badge
+                    className={cn("text-xs", getStatusColor(activity.status))}
+                  >
                     {activity.status}
                   </Badge>
                 </div>
-                <p className="text-xs text-gray-600 mt-1">
-                  <span className="font-medium">{activity.action}</span> {activity.target}
+                <p className="text-muted-foreground mt-1 text-xs">
+                  <span className="font-medium">{activity.action}</span>{" "}
+                  {activity.target}
                 </p>
               </div>
             </div>
-            <div className="flex items-center justify-between mt-2">
-              <div className="flex items-center gap-1 text-xs text-gray-500">
+            <div className="mt-2 flex items-center justify-between">
+              <div className="text-muted-foreground flex items-center gap-1 text-xs">
                 <ClockIcon className="h-3 w-3" />
                 {formatTimestamp(activity.timestamp)}
               </div>
-              <span className="text-xs text-gray-400">{activity.ipAddress}</span>
+              <span className="text-xs text-gray-400">
+                {activity.ipAddress}
+              </span>
             </div>
           </div>
         ))}

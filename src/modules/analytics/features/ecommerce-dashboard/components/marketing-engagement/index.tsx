@@ -1,24 +1,27 @@
-import React from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
-import { StatChartCard } from "@/core/components/ui/card";
-import { Button } from "@/core/components/ui/button";
-import { Badge } from "@/core/components/ui/badge";
-import { 
-  MegaphoneIcon,
-  TicketIcon,
-  GiftIcon,
-  DocumentTextIcon,
-  SparklesIcon,
-  TrophyIcon,
-  EyeIcon,
-  ClockIcon,
-  ArrowTrendingUpIcon
-} from "@heroicons/react/24/outline";
-import { cn } from "@/core/utils";
-import { type ChartConfig } from "@/core/components/ui/chart";
-import LineChart from "@/core/components/charts/LineChart";
 import BarChart from "@/core/components/charts/BarChart";
+import { Badge } from "@/core/components/ui/badge";
+import { Button } from "@/core/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  StatChartCard,
+} from "@/core/components/ui/card";
+import { type ChartConfig } from "@/core/components/ui/chart";
+import { cn } from "@/core/utils";
+import {
+  ClockIcon,
+  DocumentTextIcon,
+  EyeIcon,
+  GiftIcon,
+  MegaphoneIcon,
+  SparklesIcon,
+  TicketIcon,
+  TrophyIcon,
+} from "@heroicons/react/24/outline";
+import { useQuery } from "@tanstack/react-query";
+import React from "react";
 import { apiGetAnalyticsOverview } from "../../../ecommerce/services";
 
 // Active Campaigns Card (Status Tile)
@@ -28,24 +31,32 @@ interface ActiveCampaignsCardProps {
   endDate?: string;
 }
 
-export const ActiveCampaignsCard: React.FC<ActiveCampaignsCardProps> = ({ 
+export const ActiveCampaignsCard: React.FC<ActiveCampaignsCardProps> = ({
   className,
   startDate,
   endDate,
 }) => {
   // Calculate default date range (last 30 days)
   const defaultEndDate = React.useMemo(() => {
-    return new Date().toISOString().split('T')[0];
+    return new Date().toISOString().split("T")[0];
   }, []);
 
   const defaultStartDate = React.useMemo(() => {
     const date = new Date();
     date.setDate(date.getDate() - 30);
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split("T")[0];
   }, []);
 
-  const { data: analyticsData, isLoading, isError } = useQuery({
-    queryKey: ["analytics-overview", startDate || defaultStartDate, endDate || defaultEndDate],
+  const {
+    data: analyticsData,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: [
+      "analytics-overview",
+      startDate || defaultStartDate,
+      endDate || defaultEndDate,
+    ],
     queryFn: async () => {
       const response = await apiGetAnalyticsOverview({
         startDate: startDate || defaultStartDate,
@@ -57,7 +68,8 @@ export const ActiveCampaignsCard: React.FC<ActiveCampaignsCardProps> = ({
     refetchOnWindowFocus: false,
   });
 
-  const activeCampaigns = analyticsData?.marketingEngagement?.activeCampaigns || { count: 0, campaigns: [] };
+  const activeCampaigns = analyticsData?.marketingEngagement
+    ?.activeCampaigns || { count: 0, campaigns: [] };
   const campaigns = activeCampaigns.campaigns || [];
 
   const getStatusColor = (status: string) => {
@@ -82,10 +94,70 @@ export const ActiveCampaignsCard: React.FC<ActiveCampaignsCardProps> = ({
   };
 
   return (
-    <Card className={cn("bg-white border-gray-200", className)}>
+    <StatChartCard
+      name={
+        <div className="flex items-center gap-2">
+          <MegaphoneIcon className="h-5 w-5" /> Active Campaigns
+        </div>
+      }
+      className={cn("md:max-h-auto", className)}
+    >
+      <div>
+        {isLoading && (
+          <div className="text-muted-foreground py-4 text-center text-sm">
+            Loading campaigns...
+          </div>
+        )}
+        {isError && (
+          <div className="py-4 text-center text-sm text-red-500">
+            Error loading campaigns
+          </div>
+        )}
+        {!isLoading && !isError && campaigns.length === 0 && (
+          <div className="text-muted-foreground py-4 text-center text-sm">
+            No active campaigns
+          </div>
+        )}
+        {campaigns.slice(0, 4).map((campaign) => (
+          <div
+            key={campaign._id}
+            className="rounded-lg border border-gray-100 p-3 transition-colors hover:bg-gray-50"
+          >
+            <div className="mb-2 flex items-start justify-between">
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-medium">{campaign.title || ""}</p>
+                {campaign.subtitle && (
+                  <p className="text-sm capitalize">{campaign.subtitle}</p>
+                )}
+              </div>
+              {campaign.status && (
+                <Badge
+                  className={cn(
+                    "text-xs capitalize",
+                    getStatusColor(campaign.status || "active"),
+                  )}
+                >
+                  {campaign.status || "active"}
+                </Badge>
+              )}
+            </div>
+            {(campaign.startAt || campaign.endAt) && (
+              <div className="text-muted-foreground mt-2 flex items-center gap-1 text-xs">
+                <ClockIcon className="h-3 w-3" />
+                {formatDate(campaign.startAt)} - {formatDate(campaign.endAt)}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </StatChartCard>
+  );
+
+  return (
+    <Card className={cn("border-gray-200 bg-white", className)}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
             <MegaphoneIcon className="h-5 w-5" />
             Active Campaigns
           </CardTitle>
@@ -93,45 +165,63 @@ export const ActiveCampaignsCard: React.FC<ActiveCampaignsCardProps> = ({
             <Badge className="bg-green-100 text-green-700">
               {activeCampaigns.count} Active
             </Badge>
-            <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-              <EyeIcon className="h-4 w-4 mr-1" />
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-blue-600 hover:text-blue-700"
+            >
+              <EyeIcon className="mr-1 h-4 w-4" />
               View All
             </Button>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="pt-0 space-y-3">
+      <CardContent className="space-y-3 pt-0">
         {isLoading && (
-          <div className="text-center py-4 text-gray-500 text-sm">Loading campaigns...</div>
+          <div className="text-muted-foreground py-4 text-center text-sm">
+            Loading campaigns...
+          </div>
         )}
         {isError && (
-          <div className="text-center py-4 text-red-500 text-sm">Error loading campaigns</div>
+          <div className="py-4 text-center text-sm text-red-500">
+            Error loading campaigns
+          </div>
         )}
         {!isLoading && !isError && campaigns.length === 0 && (
-          <div className="text-center py-4 text-gray-500 text-sm">No active campaigns</div>
+          <div className="text-muted-foreground py-4 text-center text-sm">
+            No active campaigns
+          </div>
         )}
         {campaigns.slice(0, 4).map((campaign) => (
           <div
             key={campaign._id}
-            className="p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
+            className="rounded-lg border border-gray-100 p-3 transition-colors hover:bg-gray-50"
           >
-            <div className="flex items-start justify-between mb-2">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
+            <div className="mb-2 flex items-start justify-between">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-gray-900">
                   {campaign.name || "Unnamed Campaign"}
                 </p>
                 {campaign.type && (
-                  <p className="text-xs text-gray-500 capitalize mt-1">{campaign.type}</p>
+                  <p className="text-muted-foreground mt-1 text-xs capitalize">
+                    {campaign.type}
+                  </p>
                 )}
               </div>
-              <Badge className={cn("text-xs", getStatusColor(campaign.status || "active"))}>
+              <Badge
+                className={cn(
+                  "text-xs",
+                  getStatusColor(campaign.status || "active"),
+                )}
+              >
                 {campaign.status || "active"}
               </Badge>
             </div>
             {(campaign.startDate || campaign.endDate) && (
-              <div className="flex items-center gap-1 text-xs text-gray-500 mt-2">
+              <div className="text-muted-foreground mt-2 flex items-center gap-1 text-xs">
                 <ClockIcon className="h-3 w-3" />
-                {formatDate(campaign.startDate)} - {formatDate(campaign.endDate)}
+                {formatDate(campaign.startDate)} -{" "}
+                {formatDate(campaign.endDate)}
               </div>
             )}
           </div>
@@ -148,24 +238,32 @@ interface CouponUsageRateCardProps {
   endDate?: string;
 }
 
-export const CouponUsageRateCard: React.FC<CouponUsageRateCardProps> = ({ 
+export const CouponUsageRateCard: React.FC<CouponUsageRateCardProps> = ({
   className,
   startDate,
   endDate,
 }) => {
   // Calculate default date range (last 30 days)
   const defaultEndDate = React.useMemo(() => {
-    return new Date().toISOString().split('T')[0];
+    return new Date().toISOString().split("T")[0];
   }, []);
 
   const defaultStartDate = React.useMemo(() => {
     const date = new Date();
     date.setDate(date.getDate() - 30);
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split("T")[0];
   }, []);
 
-  const { data: analyticsData, isLoading, isError } = useQuery({
-    queryKey: ["analytics-overview", startDate || defaultStartDate, endDate || defaultEndDate],
+  const {
+    data: analyticsData,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: [
+      "analytics-overview",
+      startDate || defaultStartDate,
+      endDate || defaultEndDate,
+    ],
     queryFn: async () => {
       const response = await apiGetAnalyticsOverview({
         startDate: startDate || defaultStartDate,
@@ -178,12 +276,16 @@ export const CouponUsageRateCard: React.FC<CouponUsageRateCardProps> = ({
   });
 
   const couponUsageStats = analyticsData?.marketingEngagement?.couponUsageStats;
-  const couponUsageRate = analyticsData?.marketingEngagement?.couponUsageRate || 0;
+  const couponUsageRate =
+    analyticsData?.marketingEngagement?.couponUsageRate || 0;
   const topUsedCoupons = couponUsageStats?.topUsedCoupons || [];
 
   // Create chart data from top used coupons
   const couponChartData = topUsedCoupons.map((coupon) => ({
-    key: coupon.couponCode.length > 12 ? coupon.couponCode.substring(0, 12) + "..." : coupon.couponCode,
+    key:
+      coupon.couponCode.length > 12
+        ? coupon.couponCode.substring(0, 12) + "..."
+        : coupon.couponCode,
     value: coupon.usageCount,
     fullCode: coupon.couponCode,
     title: coupon.couponTitle,
@@ -198,30 +300,38 @@ export const CouponUsageRateCard: React.FC<CouponUsageRateCardProps> = ({
   } satisfies ChartConfig;
 
   return (
-    <StatChartCard 
-      name="Coupon Usage Rate" 
-      className={className}
-      actions={
-        <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-          <EyeIcon className="h-4 w-4 mr-1" />
-          View Details
-        </Button>
-      }
+    <StatChartCard
+      name="Coupon Usage Rate"
+      className={cn("md:max-h-auto", className)}
+      // actions={
+      //   <Button
+      //     variant="ghost"
+      //     size="sm"
+      //     className="text-blue-600 hover:text-blue-700"
+      //   >
+      //     <EyeIcon className="mr-1 h-4 w-4" />
+      //     View Details
+      //   </Button>
+      // }
     >
       {isLoading && (
-        <div className="text-center py-8 text-gray-500 text-sm">Loading coupon data...</div>
+        <div className="text-muted-foreground py-8 text-center text-sm">
+          Loading coupon data...
+        </div>
       )}
       {isError && (
-        <div className="text-center py-8 text-red-500 text-sm">Error loading coupon data</div>
+        <div className="py-8 text-center text-sm text-red-500">
+          Error loading coupon data
+        </div>
       )}
       {!isLoading && !isError && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Usage Rate</p>
-              <p className="text-3xl font-bold text-gray-900">{couponUsageRate}%</p>
+              <p className="text-2xl font-bold">{couponUsageRate}%</p>
+              <p className="text-muted-foreground text-sm">Usage Rate</p>
             </div>
-            <div className="bg-green-100 rounded-full p-3">
+            <div className="rounded-full bg-green-100 p-2">
               <TicketIcon className="h-6 w-6 text-green-600" />
             </div>
           </div>
@@ -235,18 +345,18 @@ export const CouponUsageRateCard: React.FC<CouponUsageRateCardProps> = ({
                 showTooltip={true}
                 showGrid={true}
                 yAxisProps={{
-                  width: 100,
+                  width: 50,
                 }}
-                className="h-48"
+                className="h-32"
               />
-              <div className="grid grid-cols-2 gap-2 mt-2">
-                <div className="text-center p-2 rounded-lg bg-gray-50">
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <div className="rounded-lg bg-gray-50 p-2 text-center">
                   <p className="text-xs text-gray-600">Total Coupons</p>
                   <p className="text-sm font-semibold text-gray-900">
                     {couponUsageStats?.totalCoupons || 0}
                   </p>
                 </div>
-                <div className="text-center p-2 rounded-lg bg-gray-50">
+                <div className="rounded-lg bg-gray-50 p-2 text-center">
                   <p className="text-xs text-gray-600">Used Coupons</p>
                   <p className="text-sm font-semibold text-gray-900">
                     {couponUsageStats?.usedCoupons || 0}
@@ -255,8 +365,10 @@ export const CouponUsageRateCard: React.FC<CouponUsageRateCardProps> = ({
               </div>
             </>
           ) : (
-            <div className="h-48 flex items-center justify-center bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500">No coupon usage data available</p>
+            <div className="flex h-48 items-center justify-center rounded-lg bg-gray-50">
+              <p className="text-muted-foreground text-sm">
+                No coupon usage data available
+              </p>
             </div>
           )}
         </div>
@@ -272,24 +384,32 @@ interface OngoingPromotionsCardProps {
   endDate?: string;
 }
 
-export const OngoingPromotionsCard: React.FC<OngoingPromotionsCardProps> = ({ 
+export const OngoingPromotionsCard: React.FC<OngoingPromotionsCardProps> = ({
   className,
   startDate,
   endDate,
 }) => {
   // Calculate default date range (last 30 days)
   const defaultEndDate = React.useMemo(() => {
-    return new Date().toISOString().split('T')[0];
+    return new Date().toISOString().split("T")[0];
   }, []);
 
   const defaultStartDate = React.useMemo(() => {
     const date = new Date();
     date.setDate(date.getDate() - 30);
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split("T")[0];
   }, []);
 
-  const { data: analyticsData, isLoading, isError } = useQuery({
-    queryKey: ["analytics-overview", startDate || defaultStartDate, endDate || defaultEndDate],
+  const {
+    data: analyticsData,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: [
+      "analytics-overview",
+      startDate || defaultStartDate,
+      endDate || defaultEndDate,
+    ],
     queryFn: async () => {
       const response = await apiGetAnalyticsOverview({
         startDate: startDate || defaultStartDate,
@@ -309,43 +429,112 @@ export const OngoingPromotionsCard: React.FC<OngoingPromotionsCardProps> = ({
   };
 
   const promotionItems = [
-    { label: "Ongoing", count: promotions.ongoing, color: "bg-green-100 text-green-700" },
-    { label: "Scheduled", count: promotions.scheduled, color: "bg-blue-100 text-blue-700" },
-    { label: "Expired", count: promotions.expired, color: "bg-gray-100 text-gray-700" },
-  ].filter(item => item.count > 0);
+    {
+      label: "Ongoing",
+      count: promotions.ongoing,
+      color: "bg-green-100 text-green-700",
+    },
+    {
+      label: "Scheduled",
+      count: promotions.scheduled,
+      color: "bg-blue-100 text-blue-700",
+    },
+    {
+      label: "Expired",
+      count: promotions.expired,
+      color: "bg-gray-100 text-gray-700",
+    },
+  ].filter((item) => item.count > 0);
 
   return (
-    <Card className={cn("bg-white border-gray-200", className)}>
+    <StatChartCard name="Ongoing Promotions" className={className}>
+      {isLoading && (
+        <div className="text-muted-foreground py-4 text-center text-sm">
+          Loading promotions...
+        </div>
+      )}
+      {isError && (
+        <div className="py-4 text-center text-sm text-red-500">
+          Error loading promotions
+        </div>
+      )}
+      {!isLoading && !isError && promotions.total === 0 && (
+        <div className="text-muted-foreground py-4 text-center text-sm">
+          No promotions found
+        </div>
+      )}
+      {!isLoading && !isError && promotions.total > 0 && (
+        <div className="space-y-4">
+          {promotionItems.map((item, index) => (
+            <div
+              key={index}
+              className="rounded-lg border border-gray-100 p-3 transition-colors hover:bg-gray-50"
+            >
+              <div className="flex items-center justify-between">
+                <div className="min-w-0 flex-1">
+                  <p className="text-muted-foreground">
+                    {item.label} Promotions
+                  </p>
+                </div>
+                <Badge className={cn("text-sm", item.color)}>
+                  {item.count}
+                </Badge>
+              </div>
+            </div>
+          ))}
+          <div className="rounded-lg border border-gray-100 bg-gray-50 p-3">
+            <div className="flex items-center justify-between">
+              <p className="text-muted-foreground">Total Promotions</p>
+              <Badge className={cn("text-sm")}>{promotions.total}</Badge>
+            </div>
+          </div>
+        </div>
+      )}
+    </StatChartCard>
+  );
+
+  return (
+    <Card className={cn("border-gray-200 bg-white", className)}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold text-gray-900">
             Ongoing Promotions
           </CardTitle>
-          <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-            <EyeIcon className="h-4 w-4 mr-1" />
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-blue-600 hover:text-blue-700"
+          >
+            <EyeIcon className="mr-1 h-4 w-4" />
             View All
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="pt-0 space-y-3">
+      <CardContent className="space-y-3 pt-0">
         {isLoading && (
-          <div className="text-center py-4 text-gray-500 text-sm">Loading promotions...</div>
+          <div className="text-muted-foreground py-4 text-center text-sm">
+            Loading promotions...
+          </div>
         )}
         {isError && (
-          <div className="text-center py-4 text-red-500 text-sm">Error loading promotions</div>
+          <div className="py-4 text-center text-sm text-red-500">
+            Error loading promotions
+          </div>
         )}
         {!isLoading && !isError && promotions.total === 0 && (
-          <div className="text-center py-4 text-gray-500 text-sm">No promotions found</div>
+          <div className="text-muted-foreground py-4 text-center text-sm">
+            No promotions found
+          </div>
         )}
         {!isLoading && !isError && promotions.total > 0 && (
           <>
             {promotionItems.map((item, index) => (
               <div
                 key={index}
-                className="p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
+                className="rounded-lg border border-gray-100 p-3 transition-colors hover:bg-gray-50"
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0">
+                  <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-gray-900">
                       {item.label} Promotions
                     </p>
@@ -356,10 +545,14 @@ export const OngoingPromotionsCard: React.FC<OngoingPromotionsCardProps> = ({
                 </div>
               </div>
             ))}
-            <div className="p-3 rounded-lg border border-gray-100 bg-gray-50">
+            <div className="rounded-lg border border-gray-100 bg-gray-50 p-3">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold text-gray-900">Total Promotions</p>
-                <p className="text-lg font-bold text-gray-900">{promotions.total}</p>
+                <p className="text-sm font-semibold text-gray-900">
+                  Total Promotions
+                </p>
+                <p className="text-lg font-bold text-gray-900">
+                  {promotions.total}
+                </p>
               </div>
             </div>
           </>
@@ -376,24 +569,32 @@ interface SurveyResponsesCardProps {
   endDate?: string;
 }
 
-export const SurveyResponsesCard: React.FC<SurveyResponsesCardProps> = ({ 
+export const SurveyResponsesCard: React.FC<SurveyResponsesCardProps> = ({
   className,
   startDate,
   endDate,
 }) => {
   // Calculate default date range (last 30 days)
   const defaultEndDate = React.useMemo(() => {
-    return new Date().toISOString().split('T')[0];
+    return new Date().toISOString().split("T")[0];
   }, []);
 
   const defaultStartDate = React.useMemo(() => {
     const date = new Date();
     date.setDate(date.getDate() - 30);
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split("T")[0];
   }, []);
 
-  const { data: analyticsData, isLoading, isError } = useQuery({
-    queryKey: ["analytics-overview", startDate || defaultStartDate, endDate || defaultEndDate],
+  const {
+    data: analyticsData,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: [
+      "analytics-overview",
+      startDate || defaultStartDate,
+      endDate || defaultEndDate,
+    ],
     queryFn: async () => {
       const response = await apiGetAnalyticsOverview({
         startDate: startDate || defaultStartDate,
@@ -413,38 +614,48 @@ export const SurveyResponsesCard: React.FC<SurveyResponsesCardProps> = ({
   };
 
   return (
-    <Card className={cn("bg-white border-gray-200", className)}>
+    <Card className={cn("border-gray-200 bg-white", className)}>
       <CardContent className="pt-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-4 flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-600">Survey Responses</p>
-            <h3 className="text-3xl font-bold text-gray-900 mt-1">
+            <p className="text-muted-foreground">Survey Responses</p>
+            <h3 className="mt-1 text-3xl font-bold">
               {surveyData.totalResponses.toLocaleString()}
             </h3>
           </div>
-          <div className="bg-[var(--chart-1)]/20 rounded-full p-3 flex items-center justify-center">
+          <div className="flex items-center justify-center rounded-full bg-[var(--chart-1)]/20 p-2">
             <DocumentTextIcon className="h-6 w-6 text-[var(--chart-1)]" />
           </div>
         </div>
         {isLoading && (
-          <div className="text-center py-4 text-gray-500 text-xs">Loading...</div>
+          <div className="text-muted-foreground py-4 text-center text-xs">
+            Loading...
+          </div>
         )}
         {isError && (
-          <div className="text-center py-4 text-red-500 text-xs">Error loading data</div>
+          <div className="py-4 text-center text-xs text-red-500">
+            Error loading data
+          </div>
         )}
         {!isLoading && !isError && (
-          <div className="space-y-2 pt-4 border-t border-gray-100">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-600">Total Surveys</span>
-              <span className="font-semibold text-gray-900">{surveyData.totalSurveys}</span>
+          <div className="border-border space-y-2 border-t pt-4">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Total Surveys</span>
+              <span className="text-muted-foreground font-semibold">
+                {surveyData.totalSurveys}
+              </span>
             </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-600">Active Surveys</span>
-              <span className="font-semibold text-gray-900">{surveyData.activeSurveys}</span>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Active Surveys</span>
+              <span className="text-muted-foreground font-semibold">
+                {surveyData.activeSurveys}
+              </span>
             </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-600">Completion Rate</span>
-              <span className="font-semibold text-gray-900">{surveyData.completionRate}%</span>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Completion Rate</span>
+              <span className="text-muted-foreground font-semibold">
+                {surveyData.completionRate}%
+              </span>
             </div>
           </div>
         )}
@@ -460,24 +671,32 @@ interface RewardRedemptionsCardProps {
   endDate?: string;
 }
 
-export const RewardRedemptionsCard: React.FC<RewardRedemptionsCardProps> = ({ 
+export const RewardRedemptionsCard: React.FC<RewardRedemptionsCardProps> = ({
   className,
   startDate,
   endDate,
 }) => {
   // Calculate default date range (last 30 days)
   const defaultEndDate = React.useMemo(() => {
-    return new Date().toISOString().split('T')[0];
+    return new Date().toISOString().split("T")[0];
   }, []);
 
   const defaultStartDate = React.useMemo(() => {
     const date = new Date();
     date.setDate(date.getDate() - 30);
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split("T")[0];
   }, []);
 
-  const { data: analyticsData, isLoading, isError } = useQuery({
-    queryKey: ["analytics-overview", startDate || defaultStartDate, endDate || defaultEndDate],
+  const {
+    data: analyticsData,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: [
+      "analytics-overview",
+      startDate || defaultStartDate,
+      endDate || defaultEndDate,
+    ],
     queryFn: async () => {
       const response = await apiGetAnalyticsOverview({
         startDate: startDate || defaultStartDate,
@@ -489,7 +708,8 @@ export const RewardRedemptionsCard: React.FC<RewardRedemptionsCardProps> = ({
     refetchOnWindowFocus: false,
   });
 
-  const redemptionData = analyticsData?.marketingEngagement?.rewardRedemptions || {
+  const redemptionData = analyticsData?.marketingEngagement
+    ?.rewardRedemptions || {
     totalRedeemed: 0,
     redemptionCount: 0,
     uniqueUsers: 0,
@@ -497,41 +717,47 @@ export const RewardRedemptionsCard: React.FC<RewardRedemptionsCardProps> = ({
   };
 
   return (
-    <Card className={cn("bg-white border-gray-200", className)}>
+    <Card className={cn("bg-white", className)}>
       <CardContent className="pt-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-4 flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-600">Reward Redemptions</p>
-            <h3 className="text-3xl font-bold text-gray-900 mt-1">
+            <p className="text-muted-foreground">Reward Redemptions</p>
+            <h3 className="text-foreground mt-1 text-3xl font-bold">
               {redemptionData.redemptionCount.toLocaleString()}
             </h3>
           </div>
-          <div className="bg-[var(--chart-2)]/20 rounded-full p-3 flex items-center justify-center">
+          <div className="flex items-center justify-center rounded-full bg-[var(--chart-2)]/20 p-2">
             <GiftIcon className="h-6 w-6 text-[var(--chart-2)]" />
           </div>
         </div>
         {isLoading && (
-          <div className="text-center py-4 text-gray-500 text-xs">Loading...</div>
+          <div className="text-muted-foreground py-4 text-center text-xs">
+            Loading...
+          </div>
         )}
         {isError && (
-          <div className="text-center py-4 text-red-500 text-xs">Error loading data</div>
+          <div className="py-4 text-center text-xs text-red-500">
+            Error loading data
+          </div>
         )}
         {!isLoading && !isError && (
-          <div className="space-y-2 pt-4 border-t border-gray-100">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-600">Total Redeemed</span>
-              <span className="font-semibold text-gray-900">
+          <div className="border-border space-y-2 border-t pt-4">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Total Redeemed</span>
+              <span className="text-muted-foreground font-semibold">
                 {redemptionData.totalRedeemed.toLocaleString()} pts
               </span>
             </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-600">Unique Users</span>
-              <span className="font-semibold text-gray-900">{redemptionData.uniqueUsers}</span>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Unique Users</span>
+              <span className="text-muted-foreground font-semibold">
+                {redemptionData.uniqueUsers}
+              </span>
             </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-600">Period</span>
-              <span className="font-semibold text-gray-900 capitalize">
-                {redemptionData.period.replace('_', ' ')}
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Period</span>
+              <span className="text-muted-foreground font-semibold capitalize">
+                {redemptionData.period.replace("_", " ")}
               </span>
             </div>
           </div>
@@ -548,24 +774,32 @@ interface TopRewardEarnersCardProps {
   endDate?: string;
 }
 
-export const TopRewardEarnersCard: React.FC<TopRewardEarnersCardProps> = ({ 
+export const TopRewardEarnersCard: React.FC<TopRewardEarnersCardProps> = ({
   className,
   startDate,
   endDate,
 }) => {
   // Calculate default date range (last 30 days)
   const defaultEndDate = React.useMemo(() => {
-    return new Date().toISOString().split('T')[0];
+    return new Date().toISOString().split("T")[0];
   }, []);
 
   const defaultStartDate = React.useMemo(() => {
     const date = new Date();
     date.setDate(date.getDate() - 30);
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split("T")[0];
   }, []);
 
-  const { data: analyticsData, isLoading, isError } = useQuery({
-    queryKey: ["analytics-overview", startDate || defaultStartDate, endDate || defaultEndDate],
+  const {
+    data: analyticsData,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: [
+      "analytics-overview",
+      startDate || defaultStartDate,
+      endDate || defaultEndDate,
+    ],
     queryFn: async () => {
       const response = await apiGetAnalyticsOverview({
         startDate: startDate || defaultStartDate,
@@ -598,50 +832,145 @@ export const TopRewardEarnersCard: React.FC<TopRewardEarnersCardProps> = ({
       case 1:
         return <TrophyIcon className="h-5 w-5 text-yellow-500" />;
       case 2:
-        return <div className="h-5 w-5 rounded-full bg-gray-400 flex items-center justify-center text-xs text-white font-bold">2</div>;
+        return (
+          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-gray-400 text-xs font-bold text-white">
+            2
+          </div>
+        );
       case 3:
-        return <div className="h-5 w-5 rounded-full bg-orange-400 flex items-center justify-center text-xs text-white font-bold">3</div>;
+        return (
+          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-orange-400 text-xs font-bold text-white">
+            3
+          </div>
+        );
       default:
-        return <div className="h-5 w-5 rounded-full bg-gray-300 flex items-center justify-center text-xs text-gray-600 font-bold">{rank}</div>;
+        return (
+          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-gray-300 text-xs font-bold text-gray-600">
+            {rank}
+          </div>
+        );
     }
   };
 
   return (
-    <Card className={cn("bg-white border-gray-200", className)}>
+    <StatChartCard
+      name={
+        <div className="flex items-center gap-2">
+          {" "}
+          <SparklesIcon className="h-5 w-5" />
+          Top Reward Earners
+        </div>
+      }
+      className={cn("md:max-h-auto", className)}
+    >
+      {isLoading && (
+        <div className="text-muted-foreground py-4 text-center text-sm">
+          Loading earners...
+        </div>
+      )}
+      {isError && (
+        <div className="py-4 text-center text-sm text-red-500">
+          Error loading earners
+        </div>
+      )}
+      {!isLoading && !isError && earners.length === 0 && (
+        <div className="text-muted-foreground py-4 text-center text-sm">
+          No reward earners found
+        </div>
+      )}
+      <div className="space-y-4">
+        {earners.slice(0, 5).map((earner, index) => (
+          <div
+            key={earner.userId || index}
+            className="rounded-lg border border-gray-100 p-3 transition-colors hover:bg-gray-50"
+          >
+            <div className="flex gap-3">
+              <div className="mt-1 flex-shrink-0">{getRankIcon(index + 1)}</div>
+              <div className="min-w-0 flex-1">
+                <div className="mb-1 flex items-center gap-2">
+                  <p className="text-muted-foreground truncate font-medium">
+                    {earner.userName || "Anonymous"}
+                  </p>
+                  <Badge className={cn("text-xs", getTierColor(earner.badges))}>
+                    {getTierLabel(earner.badges)}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-1">
+                    <SparklesIcon className="h-4 w-4 fill-blue-500 text-blue-500" />
+                    <span className="text-muted-foreground text-sm font-semibold">
+                      {earner.currentBalance.toLocaleString()} pts
+                    </span>
+                  </div>
+                  <span className="text-muted-foreground text-sm">
+                    {earner.badges} badges
+                  </span>
+                </div>
+                <div className="text-muted-foreground mt-1 flex items-center gap-2 text-sm">
+                  <span>
+                    Lifetime: {earner.lifetimeEarned.toLocaleString()} pts
+                  </span>
+                  {earner.lifetimeRedeemed > 0 && (
+                    <>
+                      <span>•</span>
+                      <span>
+                        Redeemed: {earner.lifetimeRedeemed.toLocaleString()} pts
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </StatChartCard>
+  );
+
+  return (
+    <Card className={cn("border-gray-200 bg-white", className)}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
             <SparklesIcon className="h-5 w-5" />
             Top Reward Earners
           </CardTitle>
-          <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-            <EyeIcon className="h-4 w-4 mr-1" />
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-blue-600 hover:text-blue-700"
+          >
+            <EyeIcon className="mr-1 h-4 w-4" />
             View All
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="pt-0 space-y-3">
+      <CardContent className="space-y-3 pt-0">
         {isLoading && (
-          <div className="text-center py-4 text-gray-500 text-sm">Loading earners...</div>
+          <div className="text-muted-foreground py-4 text-center text-sm">
+            Loading earners...
+          </div>
         )}
         {isError && (
-          <div className="text-center py-4 text-red-500 text-sm">Error loading earners</div>
+          <div className="py-4 text-center text-sm text-red-500">
+            Error loading earners
+          </div>
         )}
         {!isLoading && !isError && earners.length === 0 && (
-          <div className="text-center py-4 text-gray-500 text-sm">No reward earners found</div>
+          <div className="text-muted-foreground py-4 text-center text-sm">
+            No reward earners found
+          </div>
         )}
         {earners.slice(0, 5).map((earner, index) => (
           <div
             key={earner.userId || index}
-            className="p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
+            className="rounded-lg border border-gray-100 p-3 transition-colors hover:bg-gray-50"
           >
             <div className="flex items-center gap-3">
-              <div className="flex-shrink-0">
-                {getRankIcon(index + 1)}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <p className="text-sm font-medium text-gray-900 truncate">
+              <div className="flex-shrink-0">{getRankIcon(index + 1)}</div>
+              <div className="min-w-0 flex-1">
+                <div className="mb-1 flex items-center gap-2">
+                  <p className="truncate text-sm font-medium text-gray-900">
                     {earner.userName || "Anonymous"}
                   </p>
                   <Badge className={cn("text-xs", getTierColor(earner.badges))}>
@@ -655,16 +984,20 @@ export const TopRewardEarnersCard: React.FC<TopRewardEarnersCardProps> = ({
                       {earner.currentBalance.toLocaleString()} pts
                     </span>
                   </div>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-muted-foreground text-xs">
                     {earner.badges} badges
                   </span>
                 </div>
-                <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
-                  <span>Lifetime: {earner.lifetimeEarned.toLocaleString()} pts</span>
+                <div className="text-muted-foreground mt-1 flex items-center gap-2 text-xs">
+                  <span>
+                    Lifetime: {earner.lifetimeEarned.toLocaleString()} pts
+                  </span>
                   {earner.lifetimeRedeemed > 0 && (
                     <>
                       <span>•</span>
-                      <span>Redeemed: {earner.lifetimeRedeemed.toLocaleString()} pts</span>
+                      <span>
+                        Redeemed: {earner.lifetimeRedeemed.toLocaleString()} pts
+                      </span>
                     </>
                   )}
                 </div>

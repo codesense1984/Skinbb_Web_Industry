@@ -8,7 +8,10 @@ interface AverageOrderValueCardProps {
   data?: AnalyticsOverviewData;
 }
 
-export const AverageOrderValueCard: React.FC<AverageOrderValueCardProps> = ({ className, data }) => {
+export const AverageOrderValueCard: React.FC<AverageOrderValueCardProps> = ({
+  className,
+  data,
+}) => {
   const averageOrderValue = data?.averageOrderValue ?? 0;
   const currency = "INR";
 
@@ -25,7 +28,7 @@ export const AverageOrderValueCard: React.FC<AverageOrderValueCardProps> = ({ cl
       value={formattedValue}
       barColor="bg-chart-1"
       icon={
-        <div className="bg-[var(--chart-1)]/20 rounded-full p-3 flex items-center justify-center">
+        <div className="flex items-center justify-center rounded-full bg-[var(--chart-1)]/20 p-3">
           <ChartBarIcon className="h-6 w-6 text-[var(--chart-1)]" />
         </div>
       }
