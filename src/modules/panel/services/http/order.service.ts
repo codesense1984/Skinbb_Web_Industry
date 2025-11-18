@@ -106,3 +106,33 @@ export async function apiCancelOrderByAdmin(
     data,
   );
 }
+
+export interface RefundOrderRequest {
+  amount?: number;
+  reason: string;
+  notes?: {
+    [key: string]: string;
+  };
+  receipt?: string;
+}
+
+export interface RefundOrderResponse {
+  statusCode: number;
+  success: boolean;
+  message: string;
+  data: {
+    id: string;
+    status: string;
+    amount: number;
+  };
+}
+
+export async function apiRefundOrderByAdmin(
+  orderIdOrNumber: string,
+  data: RefundOrderRequest,
+): Promise<RefundOrderResponse> {
+  return api.post<RefundOrderResponse>(
+    `/api/v1/orders/admin/${orderIdOrNumber}/refund`,
+    data,
+  );
+}

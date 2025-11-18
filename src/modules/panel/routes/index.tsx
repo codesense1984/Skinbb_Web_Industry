@@ -96,7 +96,7 @@ export const panelRoutes: RouteObject = {
       Component: lazy(
         () =>
           import(
-            "@/modules/panel/features/company-location-brands/products/list"
+            "@/modules/panel/features/company-location-brands/products/list/redirect"
           ),
       ),
     },
@@ -132,7 +132,7 @@ export const panelRoutes: RouteObject = {
     {
       path: PANEL_ROUTES.COMPANY_LOCATION.PRODUCTS(),
       Component: lazy(
-        () => import("@/modules/panel/features/company-location-products/list"),
+        () => import("@/modules/panel/features/company-location-products/list/redirect"),
       ),
     },
     {

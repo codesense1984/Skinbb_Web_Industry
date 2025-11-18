@@ -20,9 +20,12 @@ import {
   DialogTitle,
 } from "@/core/components/ui/dialog";
 import { Textarea } from "@/core/components/ui/textarea";
+import { Input } from "@/core/components/ui/input";
 import {
   apiGetOrderDetails,
   apiCancelOrderByAdmin,
+  apiRefundOrderByAdmin,
+  apiGetOrderStatus,
 } from "@/modules/panel/services/http/order.service";
 import type { OrderDetails } from "@/modules/panel/types/order.type";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
@@ -34,6 +37,7 @@ import {
   ShoppingBagIcon,
   CalendarIcon,
   XMarkIcon,
+  ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 import { formatDate, formatTime } from "@/core/utils/date";
 import { formatCurrency } from "@/core/utils/number";
@@ -45,6 +49,10 @@ export default function OrderView() {
   const queryClient = useQueryClient();
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
+  const [isRefundDialogOpen, setIsRefundDialogOpen] = useState(false);
+  const [refundReason, setRefundReason] = useState("");
+  const [refundAmount, setRefundAmount] = useState<number | "">("");
+  const [refundNotes, setRefundNotes] = useState("");
 
   const {
     data: orderResponse,
@@ -56,7 +64,18 @@ export default function OrderView() {
     enabled: !!id,
   });
 
+  // Also fetch order status to get the most current status
+  const {
+    data: statusResponse,
+  } = useQuery({
+    queryKey: ["order-status", id],
+    queryFn: () => apiGetOrderStatus(id!),
+    enabled: !!id,
+  });
+
   const order = orderResponse?.data as OrderDetails | undefined;
+  // Use currentStatus from status API if available, otherwise fall back to orderStatus
+  const currentOrderStatus = statusResponse?.data?.currentStatus || order?.orderStatus;
 
   const cancelOrderMutation = useMutation({
     mutationFn: (reason: string) => apiCancelOrderByAdmin(id!, { reason }),
@@ -81,12 +100,77 @@ export default function OrderView() {
     }
   };
 
-  // Orders cannot be cancelled if they are already cancelled, shipped, or delivered
+  const refundOrderMutation = useMutation({
+    mutationFn: (data: {
+      amount?: number;
+      reason: string;
+      notes?: { [key: string]: string };
+      receipt?: string;
+    }) => apiRefundOrderByAdmin(id!, data),
+    onSuccess: (response) => {
+      toast.success(response.data.message || "Refund initiated successfully");
+      queryClient.invalidateQueries({ queryKey: ["order-details", id] });
+      queryClient.invalidateQueries({ queryKey: ["order-status", id] });
+      setIsRefundDialogOpen(false);
+      setRefundReason("");
+      setRefundAmount("");
+      setRefundNotes("");
+    },
+    onError: (error: any) => {
+      toast.error(
+        error?.response?.data?.message ||
+          "Failed to initiate refund. Please try again.",
+      );
+    },
+  });
+
+  const handleRefundOrder = () => {
+    if (refundReason.trim()) {
+      const refundData: {
+        amount?: number;
+        reason: string;
+        notes?: { [key: string]: string };
+        receipt?: string;
+      } = {
+        reason: refundReason.trim(),
+      };
+
+      // If amount is specified, use it (API expects amount in base currency unit)
+      // If not specified, API will process full refund
+      if (refundAmount && typeof refundAmount === "number" && refundAmount > 0) {
+        // Ensure amount doesn't exceed order total
+        const maxAmount = order.totalAmount;
+        refundData.amount = Math.min(refundAmount, maxAmount);
+      }
+
+      if (refundNotes.trim()) {
+        refundData.notes = {
+          notes: refundNotes.trim(),
+        };
+      }
+
+      refundData.receipt = `Refund-${order.orderNumber}`;
+
+      refundOrderMutation.mutate(refundData);
+    }
+  };
+
+  // Orders cannot be cancelled if they are already cancelled, shipped, delivered, or refunded
   const canCancelOrder =
     order &&
-    order.orderStatus !== "cancelled" &&
-    order.orderStatus !== "shipped" &&
-    order.orderStatus !== "delivered";
+    currentOrderStatus !== "cancelled" &&
+    currentOrderStatus !== "shipped" &&
+    currentOrderStatus !== "delivered" &&
+    order.paymentStatus !== "refunded";
+
+  // Check if order can be refunded (only for delivered orders, not already refunded)
+  // Show refund button only when:
+  // 1. Shipment status is "delivered" (not pending, placed, shipped, cancelled, or refunded)
+  // 2. Payment status is not "refunded"
+  const canRefundOrder =
+    !!order &&
+    currentOrderStatus?.toLowerCase() === "delivered" &&
+    order.paymentStatus !== "refunded";
 
   if (isLoading) {
     return (
@@ -201,7 +285,11 @@ export default function OrderView() {
           <div className="bg-background flex items-center gap-4 rounded-md p-4 shadow-md">
             <div className="w-full flex flex-col">
               <p className="text-sm font-medium text-gray-600">Payment</p>
-              <p className="text-xl font-bold text-gray-900 uppercase">{order.payment}</p>
+              <p className="text-xl font-bold text-gray-900 uppercase">
+                {typeof order.payment === "string" 
+                  ? order.payment 
+                  : order.payment?.paymentGateway || order.payment?.paymentMethod || "N/A"}
+              </p>
             </div>
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-200">
               <CreditCardIcon className="h-5 w-5 text-orange-600" />
@@ -244,6 +332,16 @@ export default function OrderView() {
                   {order.paymentStatus}
                 </Badge>
               </div>
+              {order.paymentStatus === "refunded" && (
+                <div className="flex items-center justify-between border-b border-gray-100 py-3">
+                  <span className="text-sm font-medium text-gray-600">
+                    Refund Status
+                  </span>
+                  <Badge variant="outline" className="capitalize bg-green-50 text-green-700 border-green-200">
+                    Refunded
+                  </Badge>
+                </div>
+              )}
               {order.orderStatus === "cancelled" && (
                 order.cancellationReason || 
                 (order as any).cancelReason || 
@@ -491,17 +589,30 @@ export default function OrderView() {
                 <CardTitle className="text-lg font-semibold text-gray-900">
                   Shipment Status
                 </CardTitle>
-                {canCancelOrder && (
-                  <Button
-                    variant="outlined"
-                    color="destructive"
-                    onClick={() => setIsCancelDialogOpen(true)}
-                    className="flex items-center gap-2"
-                  >
-                    <XMarkIcon className="h-4 w-4" />
-                    Cancel Order
-                  </Button>
-                )}
+                <div className="flex items-center gap-2">
+                  {canRefundOrder && (
+                    <Button
+                      variant="outlined"
+                      color="warning"
+                      onClick={() => setIsRefundDialogOpen(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <ArrowPathIcon className="h-4 w-4" />
+                      Issue Refund
+                    </Button>
+                  )}
+                  {canCancelOrder && (
+                    <Button
+                      variant="outlined"
+                      color="destructive"
+                      onClick={() => setIsCancelDialogOpen(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <XMarkIcon className="h-4 w-4" />
+                      Cancel Order
+                    </Button>
+                  )}
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -574,6 +685,111 @@ export default function OrderView() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Refund Order Dialog */}
+      {order && (
+        <Dialog open={isRefundDialogOpen} onOpenChange={setIsRefundDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Issue Refund</DialogTitle>
+              <DialogDescription>
+                Initiate a Razorpay refund for this order. The refund will be processed through Razorpay.
+                <br />
+                <span className="text-sm font-medium text-orange-600 mt-1 block">
+                  Note: Only Razorpay payments can be refunded. Leave amount empty for full refund.
+                </span>
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label
+                  htmlFor="refund-amount"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  Refund Amount (₹)
+                  <span className="text-gray-500 text-xs ml-1">
+                    (Leave empty for full refund: {formatCurrency(order.totalAmount)})
+                  </span>
+                </label>
+                <Input
+                  id="refund-amount"
+                  type="number"
+                  placeholder="Enter refund amount"
+                  value={refundAmount}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setRefundAmount(value === "" ? "" : parseFloat(value));
+                  }}
+                  min="0"
+                  max={order.totalAmount}
+                  step="0.01"
+                />
+              </div>
+            <div className="space-y-2">
+              <label
+                htmlFor="refund-reason"
+                className="text-sm font-medium text-gray-700"
+              >
+                Refund Reason <span className="text-red-500">*</span>
+              </label>
+              <Textarea
+                id="refund-reason"
+                placeholder="Enter the reason for refund (e.g., Customer requested refund)"
+                value={refundReason}
+                onChange={(e) => setRefundReason(e.target.value)}
+                rows={4}
+                className="resize-none"
+              />
+            </div>
+            <div className="space-y-2">
+              <label
+                htmlFor="refund-notes"
+                className="text-sm font-medium text-gray-700"
+              >
+                Additional Notes (Optional)
+              </label>
+              <Textarea
+                id="refund-notes"
+                placeholder="Enter any additional notes or case information"
+                value={refundNotes}
+                onChange={(e) => setRefundNotes(e.target.value)}
+                rows={3}
+                className="resize-none"
+              />
+            </div>
+            {refundOrderMutation.isError && (
+              <div className="rounded-md bg-red-50 p-3 text-sm text-red-800">
+                {refundOrderMutation.error instanceof Error
+                  ? refundOrderMutation.error.message
+                  : "Failed to initiate refund. Please try again."}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outlined"
+              onClick={() => {
+                setIsRefundDialogOpen(false);
+                setRefundReason("");
+                setRefundAmount("");
+                setRefundNotes("");
+              }}
+              disabled={refundOrderMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              color="warning"
+              onClick={handleRefundOrder}
+              disabled={!refundReason.trim() || refundOrderMutation.isPending}
+              loading={refundOrderMutation.isPending}
+            >
+              Initiate Refund
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      )}
     </PageContent>
   );
 }

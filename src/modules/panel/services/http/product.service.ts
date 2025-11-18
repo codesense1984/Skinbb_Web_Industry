@@ -73,6 +73,35 @@ export async function apiToggleProductCategoryStatus(id: string) {
   return api.put(`${ENDPOINTS.PRODUCT.CATEGORY_TOGGLE_STATUS}/${id}`, { id });
 }
 
+export async function apiGetProductCategoryById(id: string) {
+  return api.get(`${ENDPOINTS.PRODUCT.CATEGORY}/${id}`);
+}
+
+// Media Upload API
+export interface MediaUploadResponse {
+  statusCode: number;
+  data: {
+    media: Array<{
+      _id: string;
+      url: string;
+    }>;
+  };
+  message: string;
+  success: boolean;
+}
+
+export async function apiUploadMedia(file: File, type: string = "image"): Promise<MediaUploadResponse> {
+  const formData = new FormData();
+  formData.append("type", type);
+  formData.append("files", file);
+
+  return api.post<MediaUploadResponse>(ENDPOINTS.MEDIA.UPLOAD_MEDIA, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+}
+
 // Product Tag APIs
 export async function apiGetProductTags(params?: ApiParams) {
   console.log("apiGetProductTags called with endpoint:", ENDPOINTS.PRODUCT.TAG_LIST, "params:", params);
@@ -232,6 +261,13 @@ export async function apiGetProductAttributeValues(attributeId?: string) {
 
 export async function apiGetProductById(id: string) {
   return api.get(`${ENDPOINTS.PRODUCT.MAIN}/${id}`);
+}
+
+// Publish bulk products API
+export async function apiPublishBulkProducts(productIds: string[]) {
+  return api.post(ENDPOINTS.PRODUCT.PUBLISH_BULK, {
+    productIds,
+  });
 }
 
 export async function apiGetProducts(params?: ApiParams, signal?: AbortSignal) {

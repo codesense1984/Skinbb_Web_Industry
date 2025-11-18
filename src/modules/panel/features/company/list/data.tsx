@@ -143,6 +143,7 @@ export const columns: ColumnDef<CompanyListItem>[] = [
     header: "Company Name",
     accessorKey: "companyName",
     size: 250,
+    enableHiding: false,
     cell: ({ row }) => (
       <div className="flex items-center gap-3 font-medium">
         <span className="break-all">

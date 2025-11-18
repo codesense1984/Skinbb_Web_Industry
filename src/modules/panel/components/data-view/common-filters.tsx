@@ -1,8 +1,10 @@
 import { FilterDataItem } from "@/core/components/dynamic-filter";
 import { STATUS_MAP } from "@/core/config/status";
 import type { Brand, Company } from "@/modules/panel/types";
+import type { CompanyLocation } from "@/modules/panel/types/company-location.type";
+import type { Customer } from "@/modules/panel/types/customer.type";
 import { useMemo } from "react";
-import { DEFAULT_PAGE_SIZE, createBrandFilter, companyFilter } from "./filters";
+import { DEFAULT_PAGE_SIZE, createBrandFilter, companyFilter, createLocationFilter, customerFilter } from "./filters";
 
 // Filter keys constants
 export const FILTER_KEYS = {
@@ -11,6 +13,7 @@ export const FILTER_KEYS = {
   BRAND: "brand",
   LOCATION: "location",
   PAYMENT_METHOD: "paymentMethod",
+  CUSTOMER: "customer",
 } as const;
 
 // Status filter component
@@ -103,6 +106,74 @@ export const BrandFilter = ({
           "company-brand-filter",
           ...(selectedCompanyId ? [selectedCompanyId] : []),
         ],
+        pageSize: DEFAULT_PAGE_SIZE,
+      }}
+    />
+  );
+};
+
+// Location filter component (depends on company selection)
+interface LocationFilterProps {
+  dataKey?: string;
+  selectedCompanyId?: string;
+  placeholder?: string;
+}
+
+export const LocationFilter = ({
+  dataKey = FILTER_KEYS.LOCATION,
+  selectedCompanyId,
+  placeholder = "Select location...",
+}: LocationFilterProps) => {
+  const locationFilter = useMemo(
+    () => createLocationFilter(selectedCompanyId),
+    [selectedCompanyId],
+  );
+
+  return (
+    <FilterDataItem<"pagination", undefined, CompanyLocation>
+      dataKey={dataKey}
+      type="pagination"
+      mode="single"
+      placeholder={placeholder}
+      elementProps={{
+        apiFunction: locationFilter,
+        transform: (item) => ({
+          label: `${item.addressLine1} - ${item.city}`,
+          value: item._id ?? "",
+        }),
+        queryKey: [
+          "company-location-filter",
+          ...(selectedCompanyId ? [selectedCompanyId] : []),
+        ],
+        pageSize: DEFAULT_PAGE_SIZE,
+      }}
+    />
+  );
+};
+
+// Customer filter component
+interface CustomerFilterProps {
+  dataKey?: string;
+  placeholder?: string;
+}
+
+export const CustomerFilter = ({
+  dataKey = FILTER_KEYS.CUSTOMER,
+  placeholder = "Select customer...",
+}: CustomerFilterProps) => {
+  return (
+    <FilterDataItem<"pagination", undefined, Customer>
+      dataKey={dataKey}
+      type="pagination"
+      mode="single"
+      placeholder={placeholder}
+      elementProps={{
+        apiFunction: customerFilter,
+        transform: (item) => ({
+          label: item.name || item.email || item.phoneNumber || "Unknown Customer",
+          value: item._id ?? "",
+        }),
+        queryKey: ["customer-list-filter"],
         pageSize: DEFAULT_PAGE_SIZE,
       }}
     />

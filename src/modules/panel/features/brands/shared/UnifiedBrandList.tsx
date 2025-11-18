@@ -1,8 +1,16 @@
-import React, { useCallback, useEffect, useRef, useMemo } from "react";
-import { useParams, useNavigate } from "react-router";
-import { createSimpleFetcher, DataTable } from "@/core/components/data-table";
-import { TableAction } from "@/core/components/data-table/components/table-action";
-import { StatusFilter } from "@/core/components/data-table/components/table-filter";
+import React, { useMemo } from "react";
+import { useNavigate } from "react-router";
+import {
+  DataView,
+  type ServerDataFetcher,
+} from "@/core/components/data-view";
+import { BrandCard } from "../brand-list/BrandCard";
+import {
+  DEFAULT_PAGE_SIZE,
+  StatusFilter,
+  CompanyFilter,
+  LocationFilter,
+} from "@/modules/panel/components/data-view";
 import {
   AvatarRoot,
   AvatarImage,
@@ -11,19 +19,16 @@ import {
 import { StatusBadge } from "@/core/components/ui/badge";
 import { Button } from "@/core/components/ui/button";
 import { PageContent } from "@/core/components/ui/structure";
-import { FilterDropdown } from "@/core/components/filters/FilterDropdown";
-import { formatDate, formatCurrency, capitalize } from "@/core/utils";
+import { formatDate } from "@/core/utils";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { apiGetBrands } from "@/modules/panel/services/http/brand.service";
 import { apiGetCompanyLocationBrands } from "@/modules/panel/services/http/company.service";
-import { apiGetCompanyList, apiGetCompanyLocations } from "@/modules/panel/services/http/company.service";
 import type { Brand, CompanyLocationBrand } from "@/modules/panel/types/brand.type";
-import type { CompanyListItem, CompanyAddressInfo } from "@/modules/panel/types/company.type";
 import type { ColumnDef } from "@tanstack/react-table";
 import { NavLink } from "react-router";
-import { useUrlFilters } from "@/core/hooks/use-url-filters";
 import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
 import { STATUS_MAP } from "@/core/config/status";
+import type { PaginationParams } from "@/core/types";
 import {
   DropdownMenu,
   type DropdownMenuItemType,
@@ -196,46 +201,87 @@ const createUnifiedBrandColumns = (
   },
 ];
 
-// Create fetchers based on mode
-const createFetcher = (config: BrandListConfig, companyId?: string, locationId?: string, userId?: string) => {
-  switch (config.mode) {
-    case 'global':
-      return createSimpleFetcher(
-        (params: Record<string, unknown>) => apiGetBrands(params),
-        {
-          dataPath: "data.brands",
-          totalPath: "data.totalRecords",
-          filterMapping: {
-            isActive: "isActive",
-            status: "status",
-            companyId: "companyId",
-            locationId: "locationId",
-          },
+// Create fetchers based on mode for DataView
+const createBrandFetcher = (
+  config: BrandListConfig,
+  companyId?: string,
+  locationId?: string,
+  userId?: string,
+): ServerDataFetcher<Brand | CompanyLocationBrand> => {
+  return async ({
+    pageIndex,
+    pageSize,
+    sorting,
+    globalFilter,
+    filters,
+    signal,
+  }) => {
+    const params: PaginationParams = {
+      page: pageIndex + 1,
+      limit: pageSize,
+    };
+
+    if (globalFilter) {
+      params.search = globalFilter;
+    }
+
+    if (sorting.length > 0) {
+      params.sortBy = sorting[0].id;
+      params.order = sorting[0].desc ? "desc" : "asc";
+    }
+
+    switch (config.mode) {
+      case 'global':
+        // Map filters to API params
+        if (filters.status?.[0]?.value) {
+          params.status = filters.status[0].value;
         }
-      );
-    
-    case 'location':
-      return createSimpleFetcher(
-        (params: Record<string, unknown>) => 
-          apiGetCompanyLocationBrands(companyId!, locationId!, { ...params, userId: userId! }),
-        {
-          dataPath: "data",
+        if (filters.company?.[0]?.value) {
+          params.companyId = filters.company[0].value;
         }
-      );
-    
-    case 'company':
-      // Placeholder for company-specific brands
-      return createSimpleFetcher(
-        () => Promise.resolve({ data: [], total: 0 }),
-        { dataPath: "data", totalPath: "total" }
-      );
-    
-    default:
-      return createSimpleFetcher(
-        () => Promise.resolve({ data: [], total: 0 }),
-        { dataPath: "data", totalPath: "total" }
-      );
-  }
+        if (filters.location?.[0]?.value) {
+          params.locationId = filters.location[0].value;
+        }
+
+        const response = await apiGetBrands(params, signal);
+        if (response && typeof response === "object" && "data" in response) {
+          const responseData = response.data as {
+            brands?: Brand[];
+            totalRecords?: number;
+          };
+          return {
+            rows: responseData?.brands || [],
+            total: responseData?.totalRecords || 0,
+          };
+        }
+        return { rows: [], total: 0 };
+
+      case 'location':
+        if (!companyId || !locationId) {
+          return { rows: [], total: 0 };
+        }
+        const locationResponse = await apiGetCompanyLocationBrands(
+          companyId,
+          locationId,
+          { ...params, userId: userId || "" },
+          signal,
+        );
+        if (locationResponse && typeof locationResponse === "object" && "data" in locationResponse) {
+          return {
+            rows: (locationResponse.data as CompanyLocationBrand[]) || [],
+            total: (locationResponse.data as CompanyLocationBrand[])?.length || 0,
+          };
+        }
+        return { rows: [], total: 0 };
+
+      case 'company':
+        // TODO: Implement company-specific brand fetching
+        return { rows: [], total: 0 };
+
+      default:
+        return { rows: [], total: 0 };
+    }
+  };
 };
 
 const UnifiedBrandList: React.FC<UnifiedBrandListProps> = ({
@@ -246,80 +292,15 @@ const UnifiedBrandList: React.FC<UnifiedBrandListProps> = ({
   userId,
 }) => {
   const navigate = useNavigate();
-  const { filters, updateFilter, updateFilters } = useUrlFilters([
-    "companyId",
-    "locationId",
-  ]);
-  const tableRef = useRef<any>(null);
-
-  // Memoize API functions for filters
-  const companyApi = useMemo(
-    () =>
-      createSimpleFetcher((params) => apiGetCompanyList(params), {
-        dataPath: "data.items",
-        totalPath: "data.total",
-      }),
-    []
-  );
-
-  const locationApi = useMemo(
-    () =>
-      createSimpleFetcher(
-        (params) => {
-          if (!filters.companyId) {
-            return Promise.resolve({ rows: [], total: 0 });
-          }
-          return apiGetCompanyLocations(filters.companyId, params);
-        },
-        { dataPath: "data.items", totalPath: "data.totalPages" }
-      ),
-    [filters.companyId]
-  );
-
-  // Handle company change
-  const handleCompanyChange = useCallback(
-    (companyId: string) => {
-      updateFilters({
-        companyId: companyId,
-        locationId: "",
-      });
-    },
-    [updateFilters]
-  );
-
-  // Handle location change
-  const handleLocationChange = useCallback(
-    (locationId: string) => {
-      updateFilter("locationId", locationId);
-    },
-    [updateFilter]
-  );
-
-  // Sync table filters with URL state
-  useEffect(() => {
-    if (tableRef.current && config.mode === 'global') {
-      const timeoutId = setTimeout(() => {
-        const tableFilters = [];
-        if (filters.companyId) {
-          tableFilters.push({ id: "companyId", value: filters.companyId });
-        }
-        if (filters.locationId) {
-          tableFilters.push({ id: "locationId", value: filters.locationId });
-        }
-        tableRef.current.table.setColumnFilters(tableFilters);
-      }, 100);
-      return () => clearTimeout(timeoutId);
-    }
-  }, [filters.companyId, filters.locationId, config.mode]);
 
   // Get columns - unified for all modes
-  const getColumns = (): ColumnDef<any>[] => {
+  const columns = useMemo(() => {
     return createUnifiedBrandColumns(companyId, locationId);
-  };
+  }, [companyId, locationId]);
 
   // Get fetcher based on mode
   const fetcher = useMemo(() => {
-    return createFetcher(config, companyId, locationId, userId);
+    return createBrandFetcher(config, companyId, locationId, userId);
   }, [config, companyId, locationId, userId]);
 
   // Get query key prefix
@@ -343,16 +324,6 @@ const UnifiedBrandList: React.FC<UnifiedBrandListProps> = ({
     }
   };
 
-  // Auto-select filters based on context
-  useEffect(() => {
-    if (config.autoSelectCompany && !filters.companyId) {
-      updateFilter("companyId", config.autoSelectCompany);
-    }
-    if (config.autoSelectLocation && !filters.locationId) {
-      updateFilter("locationId", config.autoSelectLocation);
-    }
-  }, [config.autoSelectCompany, config.autoSelectLocation, filters.companyId, filters.locationId, updateFilter]);
-
   // Render filters based on mode
   const renderFilters = () => {
     if (!config.showFilters) {
@@ -360,44 +331,15 @@ const UnifiedBrandList: React.FC<UnifiedBrandListProps> = ({
     }
 
     return (
-      <div className="flex flex-wrap items-center gap-4">
-        <div className="flex items-center gap-2">
-          <span className="hidden text-sm font-medium md:block">Company:</span>
-          <FilterDropdown<CompanyListItem>
-            apiFunction={companyApi}
-            transform={(val) => ({
-              value: val._id,
-              label: val.companyName,
-            })}
-            value={filters.companyId || ""}
-            onChange={handleCompanyChange}
-            placeholder="Filter by company..."
-            queryKey={[ENDPOINTS.COMPANY.MAIN]}
-            enabled={!config.disableFilterEditing}
-            componentEnabled={!config.disableFilterEditing}
-            disabled={config.disableFilterEditing}
-          />
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span className="hidden text-sm font-medium md:block">Location:</span>
-          <FilterDropdown<CompanyAddressInfo>
-            key={`location-${filters.companyId}`}
-            apiFunction={locationApi}
-            transform={(val) => ({
-              value: val._id ?? val.addressId ?? "",
-              label: `${val.city}, ${val.state}`,
-            })}
-            value={filters.locationId || ""}
-            onChange={handleLocationChange}
-            placeholder="Filter by location..."
-            disabled={!filters.companyId || config.disableFilterEditing}
-            enabled={!!filters.companyId && !config.disableFilterEditing}
-            componentEnabled={!!filters.companyId && !config.disableFilterEditing}
-            queryKey={[ENDPOINTS.COMPANY.LOCATION(filters.companyId)]}
-          />
-        </div>
-      </div>
+      <>
+        {config.mode === 'global' && (
+          <>
+            <CompanyFilter />
+            <LocationFilter />
+          </>
+        )}
+        <StatusFilter module="brand" />
+      </>
     );
   };
 
@@ -424,6 +366,26 @@ const UnifiedBrandList: React.FC<UnifiedBrandListProps> = ({
     );
   };
 
+  // Render card for grid view - handle both Brand and CompanyLocationBrand types
+  const renderBrandCard = (brand: Brand | CompanyLocationBrand) => {
+    // Convert CompanyLocationBrand to Brand-like format for BrandCard
+    const brandForCard: Brand = {
+      ...brand,
+      _id: brand._id,
+      name: brand.name,
+      slug: brand.slug,
+      aboutTheBrand: (brand as CompanyLocationBrand).aboutTheBrand || "",
+      logoImage: typeof brand.logoImage === 'string' 
+        ? { _id: '', url: brand.logoImage }
+        : brand.logoImage,
+      isActive: (brand as CompanyLocationBrand).isActive ?? true,
+      associatedProductsCount: (brand as CompanyLocationBrand).totalSKU || 0,
+      associatedUsers: 0,
+      createdAt: brand.createdAt,
+    };
+    return <BrandCard brand={brandForCard} />;
+  };
+
   return (
     <PageContent
       header={{
@@ -432,29 +394,17 @@ const UnifiedBrandList: React.FC<UnifiedBrandListProps> = ({
         actions: renderAddButton(),
       }}
     >
-      <DataTable
-        columns={getColumns()}
-        isServerSide={config.mode === 'global'}
+      <DataView<Brand | CompanyLocationBrand>
         fetcher={fetcher}
+        columns={columns}
+        renderCard={renderBrandCard}
+        gridClassName="grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3"
+        filters={renderFilters()}
+        defaultViewMode="table"
+        defaultPageSize={DEFAULT_PAGE_SIZE}
+        enableUrlSync={false}
         queryKeyPrefix={getQueryKeyPrefix()}
-        initialColumnFilters={
-          config.mode === 'global'
-            ? [
-                ...(filters.companyId
-                  ? [{ id: "companyId", value: filters.companyId }]
-                  : []),
-                ...(filters.locationId
-                  ? [{ id: "locationId", value: filters.locationId }]
-                  : []),
-              ]
-            : []
-        }
-        actionProps={(tableState) => {
-          tableRef.current = tableState;
-          return {
-            children: renderFilters(),
-          };
-        }}
+        searchPlaceholder="Search brands..."
       />
     </PageContent>
   );
