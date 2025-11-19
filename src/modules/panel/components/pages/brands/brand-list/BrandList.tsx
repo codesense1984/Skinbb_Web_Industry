@@ -11,6 +11,11 @@ import {
   type DropdownMenuItemType,
 } from "@/core/components/ui/dropdown-menu";
 import { STATUS_MAP } from "@/core/config/status";
+import {
+  useCompanyName,
+  useLocationName,
+  useUserName,
+} from "@/core/store/hooks/useEntityCache";
 import { formatDate } from "@/core/utils";
 import {
   CompanyFilter,
@@ -68,7 +73,12 @@ export const BrandList: React.FC<BrandListProps> = ({
   defaultPageSize = DEFAULT_PAGE_SIZE,
   searchPlaceholder = "Search brands...",
 }) => {
-  const fetcher = useBrandListFetcher({ companyId, locationId, userId });
+  const fetcher = useBrandListFetcher();
+
+  // Get names from store
+  const companyName = useCompanyName(companyId);
+  const locationName = useLocationName(locationId);
+  const userName = useUserName(userId);
 
   // Create columns based on context
   const columns = useMemo(() => {
@@ -93,12 +103,12 @@ export const BrandList: React.FC<BrandListProps> = ({
     const filters: React.ReactNode[] = [];
 
     if (showCompanyFilter) {
-      filters.push(<CompanyFilter key="company" />);
+      filters.push(<CompanyFilter dataKey="companyId" />);
     }
 
     if (showLocationFilter) {
       filters.push(
-        <LocationFilter key="location" selectedCompanyId={companyId} />,
+        <LocationFilter dataKey="locationId" selectedCompanyId={companyId} />,
       );
     }
 
@@ -137,6 +147,41 @@ export const BrandList: React.FC<BrandListProps> = ({
       renderCard={renderBrandCard}
       gridClassName="grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3"
       filters={renderFilters()}
+      defaultFilters={{
+        companyId: companyId
+          ? [
+              {
+                label: companyName,
+                value: companyId,
+                disabled: !showCompanyFilter,
+                displayValue: "Company",
+                hidden: !companyName,
+              },
+            ]
+          : [],
+        locationId: locationId
+          ? [
+              {
+                label: locationName,
+                value: locationId,
+                disabled: !showLocationFilter,
+                displayValue: "Location",
+                hidden: !locationName,
+              },
+            ]
+          : [],
+        userId: userId
+          ? [
+              {
+                label: userName,
+                value: userId,
+                disabled: true,
+                displayValue: "User",
+                hidden: !userName,
+              },
+            ]
+          : [],
+      }}
       defaultViewMode={defaultViewMode}
       defaultPageSize={defaultPageSize}
       enableUrlSync={false}
@@ -230,11 +275,8 @@ const createBrandColumns = (
           type: "link",
           to:
             companyId && locationId
-              ? PANEL_ROUTES.COMPANY_LOCATION.BRAND_VIEW(
-                  companyId,
-                  locationId,
-                  brandId,
-                )
+              ? PANEL_ROUTES.BRAND.VIEW(brandId) +
+                `?companyId=${companyId}&locationId=${locationId}`
               : PANEL_ROUTES.BRAND.VIEW(brandId),
           title: "View brand details",
           children: (
@@ -275,11 +317,8 @@ const createBrandColumns = (
         type: "link",
         to:
           companyId && locationId
-            ? PANEL_ROUTES.COMPANY_LOCATION.BRAND_EDIT(
-                companyId,
-                locationId,
-                brandId,
-              )
+            ? PANEL_ROUTES.BRAND.EDIT(brandId) +
+              `?companyId=${companyId}&locationId=${locationId}`
             : PANEL_ROUTES.BRAND.EDIT(brandId),
         title: "Edit brand",
         children: (

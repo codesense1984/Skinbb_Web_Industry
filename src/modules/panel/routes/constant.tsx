@@ -135,46 +135,46 @@ export const PANEL_ROUTES = {
     //   locationId: string = ":locationId",
     // ) =>
     //   ROUTE.build(COMPANY_BASE, companyId, "locations", locationId, "brands"), // /company/:companyId/locations/:locationId/brands
-    BRAND_CREATE: (
-      companyId: string = ":companyId",
-      locationId: string = ":locationId",
-    ) =>
-      ROUTE.build(
-        COMPANY_BASE,
-        companyId,
-        "locations",
-        locationId,
-        "brands",
-        ROUTE.seg.create,
-      ), // /company/:companyId/locations/:locationId/brands/create
-    BRAND_EDIT: (
-      companyId: string = ":companyId",
-      locationId: string = ":locationId",
-      brandId: string = ":brandId",
-    ) =>
-      ROUTE.build(
-        COMPANY_BASE,
-        companyId,
-        "locations",
-        locationId,
-        "brands",
-        brandId,
-        ROUTE.seg.edit,
-      ), // /company/:companyId/locations/:locationId/brands/:brandId/edit
-    BRAND_VIEW: (
-      companyId: string = ":companyId",
-      locationId: string = ":locationId",
-      brandId: string = ":brandId",
-    ) =>
-      ROUTE.build(
-        COMPANY_BASE,
-        companyId,
-        "locations",
-        locationId,
-        "brands",
-        brandId,
-        ROUTE.seg.view,
-      ), // /company/:companyId/locations/:locationId/brands/:brandId/view
+    // BRAND_CREATE: (
+    //   companyId: string = ":companyId",
+    //   locationId: string = ":locationId",
+    // ) =>
+    //   ROUTE.build(
+    //     COMPANY_BASE,
+    //     companyId,
+    //     "locations",
+    //     locationId,
+    //     "brands",
+    //     ROUTE.seg.create,
+    //   ), // /company/:companyId/locations/:locationId/brands/create
+    // BRAND_EDIT: (
+    //   companyId: string = ":companyId",
+    //   locationId: string = ":locationId",
+    //   brandId: string = ":brandId",
+    // ) =>
+    //   ROUTE.build(
+    //     COMPANY_BASE,
+    //     companyId,
+    //     "locations",
+    //     locationId,
+    //     "brands",
+    //     brandId,
+    //     ROUTE.seg.edit,
+    //   ), // /company/:companyId/locations/:locationId/brands/:brandId/edit
+    // BRAND_VIEW: (
+    //   companyId: string = ":companyId",
+    //   locationId: string = ":locationId",
+    //   brandId: string = ":brandId",
+    // ) =>
+    //   ROUTE.build(
+    //     COMPANY_BASE,
+    //     companyId,
+    //     "locations",
+    //     locationId,
+    //     "brands",
+    //     brandId,
+    //     ROUTE.seg.view,
+    //   ), // /company/:companyId/locations/:locationId/brands/:brandId/view
     BRAND_PRODUCTS: (
       companyId: string = ":companyId",
       locationId: string = ":locationId",

@@ -1,34 +1,10 @@
-import { useMemo } from "react";
 import type { ServerDataFetcher } from "@/core/components/data-view";
-import { apiGetBrands } from "@/modules/panel/services/http/brand.service";
-import { apiGetCompanyLocationBrands } from "@/modules/panel/services/http/company.service";
-import type {
-  Brand,
-  CompanyLocationBrand,
-} from "@/modules/panel/types/brand.type";
 import type { PaginationParams } from "@/core/types";
+import { apiGetBrands } from "@/modules/panel/services/http/brand.service";
+import type { Brand } from "@/modules/panel/types/brand.type";
+import { useMemo } from "react";
 
-interface UseBrandListFetcherProps {
-  companyId?: string;
-  locationId?: string;
-  userId?: string;
-}
-
-/**
- * Hook that creates a brand list fetcher based on the provided context.
- *
- * Business Logic:
- * - If both companyId and locationId are provided: fetches brands for that specific location
- * - If only companyId is provided: fetches brands filtered by company
- * - If neither is provided: fetches all brands (admin view)
- */
-export const useBrandListFetcher = ({
-  companyId,
-  locationId,
-  userId,
-}: UseBrandListFetcherProps): ServerDataFetcher<
-  Brand 
-> => {
+export const useBrandListFetcher = (): ServerDataFetcher<Brand> => {
   return useMemo(() => {
     return async ({
       pageIndex,
@@ -38,14 +14,6 @@ export const useBrandListFetcher = ({
       filters,
       signal,
     }) => {
-      console.log("🚀 ~ useBrandListFetcher , ", {
-        pageIndex,
-        pageSize,
-        sorting,
-        globalFilter,
-        filters,
-        signal,
-      });
       const params: PaginationParams = {
         page: pageIndex + 1,
         limit: pageSize,
@@ -62,21 +30,17 @@ export const useBrandListFetcher = ({
         params.order = sorting[0].desc ? "desc" : "asc";
       }
 
-      // Otherwise, use the global brands endpoint with filters
-      // Add filter params
       if (filters.status?.[0]?.value) {
         params.status = filters.status[0].value;
       }
-      if (filters.company?.[0]?.value) {
-        params.companyId = filters.company[0].value;
+      if (filters.companyId?.[0]?.value) {
+        params.companyId = filters.companyId[0].value;
       }
-      if (filters.location?.[0]?.value) {
-        params.locationId = filters.location[0].value;
+      if (filters.locationId?.[0]?.value) {
+        params.locationId = filters.locationId[0].value;
       }
-
-      // If companyId is provided (but not locationId), add it to params
-      if (companyId) {
-        params.companyId = companyId;
+      if (filters.userId?.[0]?.value) {
+        params.userId = filters.userId[0].value;
       }
 
       const response = await apiGetBrands(params, signal);
@@ -92,5 +56,5 @@ export const useBrandListFetcher = ({
       }
       return { rows: [], total: 0 };
     };
-  }, [companyId, locationId, userId]);
+  }, []);
 };

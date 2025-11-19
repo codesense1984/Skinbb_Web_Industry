@@ -21,21 +21,15 @@ export const panelRoutes: RouteObject = {
     },
     {
       path: PANEL_ROUTES.BRAND.CREATE,
-      Component: lazy(
-        () => import("@/modules/panel/features/brands/brand-form"),
-      ),
+      Component: lazy(() => import("@/modules/panel/features/brands/create")),
     },
     {
       path: PANEL_ROUTES.BRAND.VIEW(),
-      Component: lazy(
-        () => import("@/modules/panel/features/brands/brand-form"),
-      ),
+      Component: lazy(() => import("@/modules/panel/features/brands/view")),
     },
     {
       path: PANEL_ROUTES.BRAND.EDIT(),
-      Component: lazy(
-        () => import("@/modules/panel/features/brands/brand-form"),
-      ),
+      Component: lazy(() => import("@/modules/panel/features/brands/edit")),
     },
 
     // company
@@ -79,18 +73,18 @@ export const panelRoutes: RouteObject = {
     //     () => import("@/modules/panel/features/company-location-brands/create"),
     //   ),
     // },
-    {
-      path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_EDIT(),
-      Component: lazy(
-        () => import("@/modules/panel/features/company-location-brands/edit"),
-      ),
-    },
-    {
-      path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_VIEW(),
-      Component: lazy(
-        () => import("@/modules/panel/features/company-location-brands/view"),
-      ),
-    },
+    // {
+    //   path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_EDIT(),
+    //   Component: lazy(
+    //     () => import("@/modules/panel/features/company-location-brands/edit"),
+    //   ),
+    // },
+    // {
+    //   path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_VIEW(),
+    //   Component: lazy(
+    //     () => import("@/modules/panel/features/company-location-brands/view"),
+    //   ),
+    // },
     {
       path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_PRODUCTS(),
       Component: lazy(

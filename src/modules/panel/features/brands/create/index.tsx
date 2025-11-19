@@ -4,7 +4,7 @@ import {
   BrandPageWrapper,
   useBrandCreateMutation,
   type BrandFormData,
-} from "../../company-location-brands";
+} from "../../../components/pages/brands/brand-form";
 
 const BrandForm = () => {
   const { id } = useParams();
@@ -16,8 +16,20 @@ const BrandForm = () => {
 
   const brandMutation = useBrandCreateMutation();
 
-  const handleSubmit = (data: BrandFormData) => {
-    brandMutation.mutate(data);
+  const handleSubmit = ({
+    companyId,
+    locationId,
+    data,
+  }: {
+    companyId: string;
+    locationId: string;
+    data: BrandFormData;
+  }) => {
+    brandMutation.mutate({
+      companyId: companyId || "",
+      locationId: locationId || "",
+      data,
+    });
   };
 
   // Determine mode based on URL path
@@ -55,26 +67,16 @@ const BrandForm = () => {
   };
 
   return (
-    <>
-      Brand Form
-      <BrandPageWrapper
-        mode={mode}
-        title={getTitle()}
-        description={getDescription()}
-        companyId={companyId || undefined}
-        locationId={locationId || undefined}
-        onSubmit={handleSubmit}
-        submitting={brandMutation.isPending}
-      />
-      {/* <UnifiedBrandForm
-        mode={mode}
-        title={getTitle()}
-        description={getDescription()}
-        companyId={companyId}
-        locationId={locationId}
-        brandId={id}
-      /> */}
-    </>
+    <BrandPageWrapper
+      mode={mode}
+      title={getTitle()}
+      description={getDescription()}
+      companyId={companyId || undefined}
+      locationId={locationId || undefined}
+      brandId={id || undefined}
+      onSubmit={handleSubmit}
+      submitting={brandMutation.isPending}
+    />
   );
 };
 

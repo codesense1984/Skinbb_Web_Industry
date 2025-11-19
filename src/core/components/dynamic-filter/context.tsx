@@ -88,7 +88,6 @@ export function FilterProvider({
   const [state, dispatch] = React.useReducer(filterReducer, {
     value: defaultValue ?? {},
   });
-  console.log("🚀 ~ FilterProvider ~ state:", state, defaultValue);
 
   // Validate defaultValue on mount
   React.useEffect(() => {

@@ -18,9 +18,9 @@ import {
 // Filter keys constants
 export const FILTER_KEYS = {
   STATUS: "status",
-  COMPANY: "company",
-  BRAND: "brand",
-  LOCATION: "location",
+  COMPANY: "companyId",
+  BRAND: "brandId",
+  LOCATION: "locationId",
   PAYMENT_METHOD: "paymentMethod",
   CUSTOMER: "customer",
 } as const;
@@ -57,17 +57,20 @@ export const StatusFilter = ({
 interface CompanyFilterProps {
   dataKey?: string;
   placeholder?: string;
+  label?: string;
 }
 
 export const CompanyFilter = ({
   dataKey = FILTER_KEYS.COMPANY,
   placeholder = "Select company...",
+  label = "Company",
 }: CompanyFilterProps) => {
   return (
     <FilterDataItem<"pagination", undefined, Company>
       dataKey={dataKey}
       type="pagination"
       mode="single"
+      label={label}
       placeholder={placeholder}
       elementProps={{
         apiFunction: companyFilter,
@@ -77,6 +80,7 @@ export const CompanyFilter = ({
         }),
         queryKey: ["company-list-filter"],
         pageSize: DEFAULT_PAGE_SIZE,
+        fetchOnMount: true,
       }}
     />
   );
@@ -87,12 +91,14 @@ interface BrandFilterProps {
   dataKey?: string;
   selectedCompanyId?: string;
   placeholder?: string;
+  label?: string;
 }
 
 export const BrandFilter = ({
   dataKey = FILTER_KEYS.BRAND,
   selectedCompanyId,
   placeholder = "Select brand...",
+  label = "Brand",
 }: BrandFilterProps) => {
   const brandFilter = useMemo(
     () => createBrandFilter(selectedCompanyId),
@@ -104,6 +110,7 @@ export const BrandFilter = ({
       dataKey={dataKey}
       type="pagination"
       mode="single"
+      label={label}
       placeholder={placeholder}
       elementProps={{
         apiFunction: brandFilter,
@@ -116,6 +123,7 @@ export const BrandFilter = ({
           ...(selectedCompanyId ? [selectedCompanyId] : []),
         ],
         pageSize: DEFAULT_PAGE_SIZE,
+        fetchOnMount: true,
       }}
     />
   );
@@ -126,16 +134,18 @@ interface LocationFilterProps {
   dataKey?: string;
   selectedCompanyId?: string;
   placeholder?: string;
+  label?: string;
 }
 
 export const LocationFilter = ({
   dataKey = FILTER_KEYS.LOCATION,
   selectedCompanyId,
   placeholder = "Select location...",
+  label = "Location",
 }: LocationFilterProps) => {
   const { value } = useFilterContext();
 
-  const companyId = value.company?.[0]?.value || selectedCompanyId;
+  const companyId = value.companyId?.[0]?.value || selectedCompanyId;
 
   const locationFilter = useMemo(
     () => createLocationFilter(companyId),
@@ -147,6 +157,7 @@ export const LocationFilter = ({
       dataKey={dataKey}
       type="pagination"
       mode="single"
+      label={label}
       placeholder={placeholder}
       elementProps={{
         apiFunction: locationFilter,

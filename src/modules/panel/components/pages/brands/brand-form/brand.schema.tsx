@@ -32,7 +32,7 @@ export const brandFormSchema = z.object({
       }),
     )
     .optional(),
-  authorizationLetter: z.string().optional(),
+  authorizationLetter: z.any().optional(),
   authorizationLetter_files: z.any().optional(),
 });
 

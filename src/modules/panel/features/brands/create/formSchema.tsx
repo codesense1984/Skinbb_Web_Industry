@@ -13,8 +13,8 @@ export type BrandFormData = {
   // Brand Information
   brand_name: string;
   description: string;
-  status: string;
   total_skus: string;
+  website_url: string;
   marketing_budget: string;
   product_category: string;
   average_selling_price: string;
@@ -33,6 +33,11 @@ export type BrandFormData = {
   // Brand Authorization Letter
   brand_authorization_letter_files: File[];
   brand_authorization_letter: string;
+
+  // Additional fields for edit mode
+  _id?: string;
+  companyName?: string;
+  locationAddress?: string;
 };
 
 // OLD BRAND FORM DATA TYPE - COMMENTED OUT
@@ -82,7 +87,7 @@ export const defaultValues: BrandFormData = {
   // Brand Information
   brand_name: "",
   description: "",
-  status: "active",
+  website_url:"",
   total_skus: "",
   marketing_budget: "",
   product_category: "",
@@ -99,6 +104,11 @@ export const defaultValues: BrandFormData = {
   // Brand Authorization Letter
   brand_authorization_letter_files: [],
   brand_authorization_letter: "",
+
+  // Additional fields for edit mode
+  _id: "",
+  companyName: "",
+  locationAddress: "",
 };
 
 // OLD DEFAULT VALUES - COMMENTED OUT
@@ -133,6 +143,9 @@ export const defaultValues: BrandFormData = {
 
 export type BrandFormSchema = Record<string, FormFieldConfig<BrandFormData>[]>;
 
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/jpg"];
+const ACCEPTED_FILE_TYPES = ["application/pdf"];
+
 // NEW BRAND FORM SCHEMA BASED ON IMAGES
 export const brandFormSchema: BrandFormSchema = {
   uploadbrandImage: [
@@ -140,7 +153,12 @@ export const brandFormSchema: BrandFormSchema = {
       type: "file",
       name: "brand_logo_files",
       label: "Brand Logo",
-      placeholder: "Upload brand logo",
+      placeholder: "Upload",
+      className: "w-fit",
+
+      inputProps: {
+        accept: ACCEPTED_IMAGE_TYPES.join(", "),
+      },
     },
   ],
 
@@ -188,30 +206,28 @@ export const brandFormSchema: BrandFormSchema = {
       className: "col-span-full",
     },
     {
-      type: "select",
-      name: "status",
-      label: "Status",
-      placeholder: "Select status",
-      options: [
-        { label: "Active", value: "active" },
-        { label: "Inactive", value: "inactive" },
-      ],
-      required: true,
-      rules: {
-        required: "Brand name is required",
-      },
+      type: "text",
+      name: "website_url",
+      label: "Website URL",
+      placeholder: "Enter website URL",
     },
     {
       type: "text",
       name: "total_skus",
       label: "Total No of SKUs",
       placeholder: "Enter number of SKUs",
+      inputProps: {
+        keyfilter: "int",
+      },
     },
     {
       type: "text",
       name: "marketing_budget",
       label: "Marketing Budget",
       placeholder: "Enter marketing budget",
+      inputProps: {
+        keyfilter: "int",
+      },
     },
     {
       type: "select",
@@ -275,12 +291,11 @@ export const brandFormSchema: BrandFormSchema = {
   brand_authorization_letter: [
     {
       type: "file",
-      name: "brand_authorization_letter_files",
+      name: "brand_authorization_letter",
       label: "Upload Brand Authorisation Letter",
       placeholder: "Upload file",
-      required: true,
-      rules: {
-        required: "Location is required",
+      inputProps: {
+        accept: ACCEPTED_FILE_TYPES.join(", "),
       },
     },
   ],

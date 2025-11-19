@@ -1,6 +1,6 @@
 import { MODE } from "@/core/types";
 import { useParams } from "react-router";
-import { BrandPageWrapper } from "../BrandPageWrapper";
+import { BrandPageWrapper } from "../../../components/pages/brands/brand-form/BrandPageWrapper";
 
 const CompanyLocationBrandView = () => {
   const { companyId, locationId, brandId } = useParams();

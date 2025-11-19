@@ -5,7 +5,6 @@ import { toast } from 'sonner';
 import ProductForm from '../components/product-form/ProductForm';
 import { apiCreateProduct } from '../services/product.service';
 import type { ProductFormSchema, ProductReqData } from '../types/product.types';
-import { transformApiResponseToFormData } from '../utils/product.utils';
 
 const ProductCreate = () => {
   const navigate = useNavigate();

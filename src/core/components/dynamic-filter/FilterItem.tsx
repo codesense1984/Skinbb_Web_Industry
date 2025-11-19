@@ -75,6 +75,7 @@ export interface FilterItemBaseProps {
   type: FilterType;
   mode?: SelectionMode; // default "single"
   className?: string;
+  label?: string | React.ReactNode;
 
   // Data & options
   options?: FilterOption[];
@@ -136,6 +137,7 @@ function FilterItemInner<
     parseInput,
     serialize,
     validate,
+    label,
   } = props as FilterItemBaseProps & {
     elementProps?: BuiltInElementPropsMap<TPaginationItem>[keyof BuiltInElementPropsMap<TPaginationItem>];
     component?: ElementType;
@@ -229,7 +231,9 @@ function FilterItemInner<
       if (!parseInput) {
         // Default: create option from input value
         if (raw.trim()) {
-          handleChange([{ label: raw, value: raw }]);
+          handleChange([
+            { label: raw, value: raw, displayValue: label ?? raw },
+          ]);
         } else {
           handleChange([]);
         }
@@ -237,7 +241,7 @@ function FilterItemInner<
         const parsed = parseInput(raw);
         if (parsed) {
           assertFilterOption(parsed, `parseInput result for "${dataKey}"`);
-          handleChange([parsed]);
+          handleChange([{ ...parsed, displayValue: label }]);
         } else {
           handleChange([]);
         }
@@ -331,10 +335,16 @@ function FilterItemInner<
               (o) => o.value === opt.value,
             );
             if (filterOpt) {
-              handleChange([filterOpt]);
+              handleChange([{ ...filterOpt, displayValue: label }]);
             } else {
               // Fallback: create FilterOption from ComboBox Option
-              handleChange([{ label: opt.label as string, value: opt.value }]);
+              handleChange([
+                {
+                  label: opt.label as string,
+                  value: opt.value,
+                  displayValue: label,
+                },
+              ]);
             }
           } else {
             handleChange([]);
@@ -357,6 +367,7 @@ function FilterItemInner<
               opts.map((opt) => ({
                 label: opt.label as string,
                 value: opt.value,
+                displayValue: label,
               })),
               "multi",
             );
@@ -435,7 +446,7 @@ function FilterItemInner<
     const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const dateStr = e.target.value;
       if (dateStr) {
-        handleChange([{ label: dateStr, value: dateStr }]);
+        handleChange([{ label: dateStr, value: dateStr, displayValue: label }]);
       } else {
         handleChange([]);
       }
@@ -500,7 +511,13 @@ function FilterItemInner<
         if (mode === "single") {
           const opt = option as Option | undefined;
           if (opt) {
-            handleChange([{ label: opt.label as string, value: opt.value }]);
+            handleChange([
+              {
+                label: opt.label as string,
+                value: opt.value,
+                displayValue: label,
+              },
+            ]);
           } else {
             handleChange([]);
           }
@@ -510,6 +527,7 @@ function FilterItemInner<
             opts.map((opt) => ({
               label: opt.label as string,
               value: opt.value,
+              displayValue: label,
             })),
             "multi",
           );

@@ -1,8 +1,7 @@
 import { MODE } from "@/core/types";
-import UnifiedBrandForm from "../brands/shared/UnifiedBrandForm";
-import type { BrandFormData as UnifiedBrandFormData } from "../brands/brand-form/formSchema";
-import type { BrandFormData as CompanyLocationBrandFormData } from "./brand.schema";
-import { useBrandUpdateMutation } from "./useBrandMutations";
+import type { BrandFormData as UnifiedBrandFormData } from "../../../../features/brands/create/formSchema";
+import type { BrandFormData } from "./brand.schema";
+import UnifiedBrandForm from "./UnifiedBrandForm";
 
 interface BrandPageWrapperProps {
   mode: MODE;
@@ -10,7 +9,17 @@ interface BrandPageWrapperProps {
   description: string;
   companyId?: string;
   locationId?: string;
-  onSubmit?: (data: CompanyLocationBrandFormData) => void;
+  onSubmit?: ({
+    companyId,
+    locationId,
+    brandId,
+    data,
+  }: {
+    companyId: string;
+    locationId: string;
+    brandId: string;
+    data: BrandFormData;
+  }) => void;
   submitting?: boolean;
   brandId?: string;
 }
@@ -29,19 +38,14 @@ export const BrandPageWrapper = ({
   submitting = false,
   brandId,
 }: BrandPageWrapperProps) => {
-  const brandMutation = useBrandUpdateMutation();
-
   const handleSubmit = (data: UnifiedBrandFormData) => {
     // Convert UnifiedBrandFormData to CompanyLocationBrandFormData
     const dataRecord = data as Record<string, unknown>;
-    const convertedData: CompanyLocationBrandFormData = {
+    const convertedData = {
       name:
         (dataRecord.brand_name as string) || (dataRecord.name as string) || "",
       aboutTheBrand: (dataRecord.description as string) || "",
-      websiteUrl:
-        (dataRecord.website_url as string) ||
-        (dataRecord.websiteUrl as string) ||
-        "",
+      websiteUrl: (dataRecord.website_url as string) || "",
       totalSKU: (dataRecord.total_skus as string) || "",
       marketingBudget: (dataRecord.marketing_budget as string) || "",
       instagramUrl: (dataRecord.instagram_url as string) || "",
@@ -55,23 +59,23 @@ export const BrandPageWrapper = ({
       sellingOn: Array.isArray(dataRecord.sellingOn)
         ? (dataRecord.sellingOn as Array<{ platform: string; url: string }>)
         : [],
-      authorizationLetter:
-        (dataRecord.brand_authorization_letter as string) || "",
-      logo_files: Array.isArray(dataRecord.brand_logo_files)
-        ? (dataRecord.brand_logo_files as File[])
-        : undefined,
-      logo: (dataRecord.brand_logo as string) || "",
-      authorizationLetter_files: Array.isArray(
+      authorizationLetter: Array.isArray(
         dataRecord.brand_authorization_letter_files,
       )
-        ? (dataRecord.brand_authorization_letter_files as File[])
+        ? (dataRecord.brand_authorization_letter_files[0] as File[])
+        : undefined,
+      logoImage: Array.isArray(dataRecord.brand_logo_files)
+        ? (dataRecord.brand_logo_files as File[])
         : undefined,
     };
 
     if (onSubmit) {
-      onSubmit(convertedData);
-    } else {
-      brandMutation.mutate(convertedData);
+      onSubmit({
+        brandId: dataRecord._id as string,
+        companyId: dataRecord.company_id as string,
+        locationId: dataRecord.location_id as string,
+        data: convertedData,
+      });
     }
   };
 
@@ -84,7 +88,7 @@ export const BrandPageWrapper = ({
       locationId={locationId}
       brandId={brandId}
       onSubmit={handleSubmit}
-      submitting={submitting || brandMutation.isPending}
+      submitting={submitting}
     />
   );
 };

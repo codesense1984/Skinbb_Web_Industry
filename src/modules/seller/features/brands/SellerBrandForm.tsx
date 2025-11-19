@@ -23,7 +23,7 @@ import {
   brandFormSchema,
   defaultValues,
   type BrandFormData,
-} from "@/modules/panel/features/brands/brand-form/formSchema";
+} from "@/modules/panel/features/brands/create/formSchema";
 import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth";
 import { Label } from "@/core/components/ui/label";
 

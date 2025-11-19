@@ -1,45 +1,56 @@
-import React, { useEffect, useState } from "react";
-import { useForm, useWatch, useFieldArray } from "react-hook-form";
-import { useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { createSimpleFetcher } from "@/core/components/data-table";
 import { Alert } from "@/core/components/ui/alert";
 import { Button } from "@/core/components/ui/button";
 import { Form } from "@/core/components/ui/form";
 import {
   FormFieldsRenderer,
+  FormInput,
   type FormFieldConfig,
 } from "@/core/components/ui/form-input";
+import PaginationComboBox from "@/core/components/ui/pagination-combo-box";
 import { PageContent } from "@/core/components/ui/structure";
-import { useImagePreview } from "@/core/hooks/useImagePreview";
-import { MODE } from "@/core/types/base.type";
-import { apiGetBrandById, apiCreateBrand, apiUpdateBrandById } from "@/modules/panel/services/http/brand.service";
-import { 
-  apiGetCompanyLocationBrandById, 
-  apiUpdateBrandStatus,
-  apiGetCompaniesForFilter, 
-  apiGetCompanyLocations,
-  apiGetCompanyDetailById
-} from "@/modules/panel/services/http/company.service";
 import { STATUS_MAP } from "@/core/config/status";
-import { StatusBadge } from "@/core/components/ui/badge";
-import { WithAccess } from "@/modules/auth/components/guard";
-import { ROLE } from "@/modules/auth/types/permission.type.";
-import { BrandApprovalDialog } from "../../company/brands/components/BrandApprovalDialog";
-import { useAuth } from "@/modules/auth/hooks/useAuth";
-import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth";
-import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "@/core/utils";
-import type { AxiosError } from "axios";
+import { useImagePreview } from "@/core/hooks/useImagePreview";
 import { normalizeAxiosError } from "@/core/services/http";
+import { MODE, type ApiResponse } from "@/core/types/base.type";
+import { queryClient } from "@/core/utils";
+import { handleFormErrors } from "@/core/utils/react-hook-form.utils";
+import { WithAccess } from "@/modules/auth/components/guard";
+import { useAuth } from "@/modules/auth/hooks/useAuth";
+import { ROLE } from "@/modules/auth/types/permission.type.";
+import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
+import {
+  apiCreateBrand,
+  apiGetBrandById,
+  apiUpdateBrandById,
+} from "@/modules/panel/services/http/brand.service";
+import {
+  apiGetCompaniesForFilter,
+  apiGetCompanyLocations,
+  apiUpdateBrandStatus,
+} from "@/modules/panel/services/http/company.service";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import type { AxiosError } from "axios";
+import React, { useEffect, useState } from "react";
+import {
+  useFieldArray,
+  useForm,
+  useWatch,
+  type FieldErrors,
+} from "react-hook-form";
+import { toast } from "sonner";
+import { BrandApprovalDialog } from "../../../../features/company/brands/components/BrandApprovalDialog";
+import { createBrandZodSchema } from "../../../../features/brands/create/brandZodSchema";
 import {
   brandFormSchema,
   defaultValues,
   type BrandFormData,
-} from "../brand-form/formSchema";
-import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
+} from "../../../../features/brands/create/formSchema";
 
 // Interface for brand API response
 interface BrandApiResponse {
+  _id?: string;
   name?: string;
   aboutTheBrand?: string;
   isActive?: boolean;
@@ -77,8 +88,12 @@ interface BrandApiResponse {
   brand_authorization_letter?: string;
   authorization_letter?: string;
   status?: string;
-  company?: { _id: string; companyName: string };
-  location?: { _id: string; addressLine1: string; city: string; state: string };
+  // company?: { _id: string; companyName: string };
+  // location?: { _id: string; addressLine1: string; city: string; state: string };
+  companyId?: string;
+  companyName?: string;
+  locationId?: string;
+  locationAddress?: string;
 }
 
 interface UnifiedBrandFormProps {
@@ -103,85 +118,99 @@ const UnifiedBrandForm: React.FC<UnifiedBrandFormProps> = ({
   submitting = false,
 }) => {
   const { userId } = useAuth();
-  const { getCompanyId, getPrimaryAddress } = useSellerAuth();
+  // const { getCompanyId, getPrimaryAddress } = useSellerAuth();
   const [isApprovalDialogOpen, setIsApprovalDialogOpen] = useState(false);
-  const [companyOptions, setCompanyOptions] = useState<Array<{ label: string; value: string }>>([]);
-  const [locationOptions, setLocationOptions] = useState<Array<{ label: string; value: string }>>([]);
-  const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
-
-  const form = useForm<BrandFormData>({
-    defaultValues: defaultValues,
-  });
-
-  const { control, setValue, handleSubmit, reset, watch } = form;
-
-  // Watch company_id to update location options
-  const watchedCompanyId = watch("company_id");
+  // const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
 
   // Auto-determine company and location based on context
-  const companyId = propCompanyId || getCompanyId();
-  const primaryAddress = getPrimaryAddress();
-  const locationId = propLocationId || primaryAddress?.addressId;
+  const companyId = propCompanyId;
+  const locationId = propLocationId;
+
+  // Create zod schema based oncompanyId props and mode
+  const zodSchema = createBrandZodSchema({
+    companyId: propCompanyId,
+    locationId: propLocationId,
+    isEdit: mode === MODE.EDIT,
+  });
+
+  // Initialize form with default values, including company_id and location_id if provided
+  const initialDefaultValues: BrandFormData = {
+    ...defaultValues,
+    ...(propCompanyId && { company_id: propCompanyId }),
+    ...(propLocationId && { location_id: propLocationId }),
+  };
+
+  const form = useForm<BrandFormData>({
+    resolver: zodResolver(zodSchema),
+    defaultValues: initialDefaultValues,
+  });
+
+  const { control, setValue, handleSubmit, reset, watch, getValues } = form;
+  console.log("🚀 ~ UnifiedBrandForm ~ watch:", watch());
+
+  // Watch company_id to update location options
+  const watchedCompanyId = useWatch({ control, name: "company_id" });
+  // const watchedLocationId = useWatch({ control, name: "location_id" });
 
   // Determine if we're in company-location context
   const isCompanyLocationContext = !!(companyId && locationId);
 
-  // Fetch companies for dropdown (only if not in company context)
-  const {
-    data: companiesData,
-  } = useQuery({
-    queryKey: ["companies-for-brand-form"],
-    queryFn: () =>
-      apiGetCompaniesForFilter<
-        {
-          statusCode: number;
-          data: {
-            items: Array<{ _id: string; companyName: string }>;
-            page: number;
-            limit: number;
-            total: number;
-          };
-          message: string;
-        },
-        {
-          page: number;
-          limit: number;
-          search?: string;
-        }
-      >({
-        page: 1,
-        limit: 100,
-      }),
-    select: (data) => data?.data?.items || [],
-    retry: 1,
-    enabled: !isCompanyLocationContext, // Only fetch if not in company context
-  });
+  // Fetch companies for dropdown (only if companyId is not provided in props)
+  // const { data: companiesData } = useQuery({
+  //   queryKey: ["companies-for-brand-form"],
+  //   queryFn: () =>
+  //     apiGetCompaniesForFilter<
+  //       {
+  //         statusCode: number;
+  //         data: {
+  //           items: Array<{ _id: string; companyName: string }>;
+  //           page: number;
+  //           limit: number;
+  //           total: number;
+  //         };
+  //         message: string;
+  //       },
+  //       {
+  //         page?: number;
+  //         limit?: number;
+  //         search?: string;
+  //       }
+  //     >({
+  //       page: 1,
+  //       limit: 10,
+  //       // search:""
+  //     }),
+  //   select: (data) => data?.data?.items || [],
+  //   retry: 1,
+  //   // enabled: !propCompanyId, // Only fetch if companyId is not provided in props
+  // });
 
-  // Fetch locations for selected company (only if not in location context)
-  const {
-    data: locationsData,
-  } = useQuery({
-    queryKey: ["company-locations-for-brand-form", watchedCompanyId],
-    queryFn: () =>
-      apiGetCompanyLocations<
-        {
-          statusCode: number;
-          data: {
-            items: Array<{ _id: string; addressLine1: string; city: string; state: string }>;
-            page: number;
-            limit: number;
-            total: number;
-          };
-          message: string;
-        }
-      >(watchedCompanyId!, {
-        page: 1,
-        limit: 100,
-      }),
-    select: (data) => data?.data?.items || [],
-    enabled: !!watchedCompanyId && !isCompanyLocationContext,
-    retry: 1,
-  });
+  // Fetch locations for selected company (only if locationId is not provided in props)
+  // const { data: locationsData } = useQuery({
+  //   queryKey: ["company-locations-for-brand-form", watchedCompanyId],
+  //   queryFn: () =>
+  //     apiGetCompanyLocations<{
+  //       statusCode: number;
+  //       data: {
+  //         items: Array<{
+  //           _id: string;
+  //           addressLine1: string;
+  //           city: string;
+  //           state: string;
+  //         }>;
+  //         page: number;
+  //         limit: number;
+  //         total: number;
+  //       };
+  //       message: string;
+  //     }>(watchedCompanyId!, {
+  //       page: 1,
+  //       limit: 100,
+  //     }),
+  //   select: (data) => data?.data?.items || [],
+  //   enabled: !!watchedCompanyId && !propLocationId, // Only fetch if locationId is not provided in props
+  //   retry: 1,
+  // });
 
   // Fetch brand data for edit and view modes
   const {
@@ -191,30 +220,9 @@ const UnifiedBrandForm: React.FC<UnifiedBrandFormProps> = ({
   } = useQuery({
     queryKey: ["brand", brandId],
     queryFn: async () => {
-      if (isCompanyLocationContext) {
-        return await apiGetCompanyLocationBrandById(companyId!, locationId!, brandId!);
-      } else {
-        return await apiGetBrandById<{ data: BrandApiResponse }>(brandId!);
-      }
+      return await apiGetBrandById<ApiResponse<BrandApiResponse>>(brandId!);
     },
     enabled: !!brandId && (mode === MODE.EDIT || mode === MODE.VIEW),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-
-  // Fetch company details to display company name
-  const { data: companyData } = useQuery({
-    queryKey: ["company", companyId],
-    queryFn: () => apiGetCompanyDetailById<{ data: { companyName: string } }>(companyId!, userId!),
-    enabled: !!companyId && !!userId && isCompanyLocationContext,
-    staleTime: 5 * 60 * 1000,
-  });
-
-  // Fetch location details to display location name
-  const { data: locationData } = useQuery({
-    queryKey: ["location", companyId, locationId],
-    queryFn: () => apiGetCompanyLocations<{ data: { items: Array<{ _id: string; addressLine1: string; city: string; state: string }> } }>(companyId!, { page: 1, limit: 100 }),
-    enabled: !!companyId && !!locationId && isCompanyLocationContext,
-    staleTime: 5 * 60 * 1000,
   });
 
   // Update status mutation
@@ -225,7 +233,7 @@ const UnifiedBrandForm: React.FC<UnifiedBrandFormProps> = ({
     onSuccess: (response) => {
       toast.success(response.message || "Brand status updated successfully!");
       queryClient.invalidateQueries({
-        queryKey: isCompanyLocationContext 
+        queryKey: isCompanyLocationContext
           ? [ENDPOINTS.COMPANY_LOCATION_BRANDS.LIST(companyId!, locationId!)]
           : [ENDPOINTS.BRAND.MAIN],
       });
@@ -239,7 +247,10 @@ const UnifiedBrandForm: React.FC<UnifiedBrandFormProps> = ({
     },
   });
 
-  const handleApproval = async (data: { status: string; statusChangeReason?: string }) => {
+  const handleApproval = async (data: {
+    status: string;
+    statusChangeReason?: string;
+  }) => {
     if (!userId) {
       throw new Error("Admin ID not found");
     }
@@ -247,119 +258,106 @@ const UnifiedBrandForm: React.FC<UnifiedBrandFormProps> = ({
   };
 
   // Populate company options
-  useEffect(() => {
-    if (companiesData) {
-      const options = companiesData.map((company) => ({
-        label: company.companyName,
-        value: company._id,
-      }));
-      setCompanyOptions(options);
-    }
-  }, [companiesData]);
+  // useEffect(() => {
+  //   if (companiesData) {
+  //     const options = companiesData.map((company) => ({
+  //       label: company.companyName,
+  //       value: company._id,
+  //     }));
+  //     setCompanyOptions(options);
+  //   }
+  // }, [companiesData]);
 
   // Populate location options when company changes
-  useEffect(() => {
-    if (locationsData) {
-      const options = locationsData.map((location) => ({
-        label: `${location.addressLine1} - ${location.city}, ${location.state}`,
-        value: location._id,
-      }));
-      setLocationOptions(options);
-    } else {
-      setLocationOptions([]);
-    }
-  }, [locationsData]);
+  // useEffect(() => {
+  //   if (locationsData) {
+  //     const options = locationsData.map((location) => ({
+  //       label: `${location.addressLine1} - ${location.city}, ${location.state}`,
+  //       value: location._id,
+  //     }));
+  //     setLocationOptions(options);
+  //   } else {
+  //     setLocationOptions([]);
+  //   }
+  // }, [locationsData]);
 
   // Auto-fill company and location from context or URL parameters
-  useEffect(() => {
-    if (isCompanyLocationContext) {
-      // In company-location context, set the values directly
-      setValue("company_id", companyId!);
-      setValue("location_id", locationId!);
-      setSelectedCompanyId(companyId!);
-    } else if (companyId) {
-      // In company context only, set company
-      setValue("company_id", companyId);
-      setSelectedCompanyId(companyId);
-    }
-  }, [companyId, locationId, isCompanyLocationContext, setValue]);
+  // This effect only runs when props change, not when form values change
+  // useEffect(() => {
+  //   const currentCompanyId = getValues("company_id");
+  //   const currentLocationId = getValues("location_id");
+
+  //   // If propCompanyId is provided, always set it (field will be disabled)
+  //   if (propCompanyId && propCompanyId !== currentCompanyId) {
+  //     setValue("company_id", propCompanyId, { shouldDirty: false });
+  //     // setSelectedCompanyId(propCompanyId);
+  //   }
+  //   // If propCompanyId is NOT provided, only set from context if form is empty
+  //   else if (!propCompanyId && companyId && !currentCompanyId) {
+  //     setValue("company_id", companyId, { shouldDirty: false });
+  //     // setSelectedCompanyId(companyId);
+  //   }
+
+  //   // If propLocationId is provided, always set it (field will be disabled)
+  //   if (propLocationId && propLocationId !== currentLocationId) {
+  //     setValue("location_id", propLocationId, { shouldDirty: false });
+  //   }
+  //   // If propLocationId is NOT provided, only set from context if form is empty
+  //   else if (
+  //     !propLocationId &&
+  //     locationId &&
+  //     !currentLocationId &&
+  //     currentCompanyId
+  //   ) {
+  //     setValue("location_id", locationId, { shouldDirty: false });
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [propCompanyId, propLocationId, setValue, getValues]); // Only depend on props, not form values
 
   // Reset location when company changes
-  useEffect(() => {
-    if (watchedCompanyId !== selectedCompanyId && !isCompanyLocationContext) {
-      setValue("location_id", "");
-      setSelectedCompanyId(watchedCompanyId);
-    }
-  }, [watchedCompanyId, selectedCompanyId, setValue, isCompanyLocationContext]);
+  // useEffect(() => {
+  //   if (watchedCompanyId !== selectedCompanyId && !isCompanyLocationContext) {
+  //     // setValue("location_id", "");
+  //     // setSelectedCompanyId(watchedCompanyId);
+  //   }
+  // }, [watchedCompanyId, selectedCompanyId, setValue, isCompanyLocationContext]);
 
   // Populate form with existing data when in edit or view mode
   useEffect(() => {
     if (brandData && (mode === MODE.EDIT || mode === MODE.VIEW)) {
-      const brand = (brandData as { data?: BrandApiResponse }).data || brandData as BrandApiResponse;
+      const brand = brandData.data;
 
       const formData = {
         brand_logo_files: [],
         brand_logo:
-          (typeof brand.logoImage === "string" ? brand.logoImage : brand.logoImage?.url) ||
-          brand.brand_logo ||
-          brand.logo ||
-          "",
-        brand_name: brand.name || brand.brand_name || "",
-        description: brand.aboutTheBrand || brand.description || "",
-        status: brand.isActive ? "active" : "inactive",
-        // Handle both camelCase (from API) and snake_case (legacy) field names
-        total_skus: brand.totalSKU !== undefined 
-          ? String(brand.totalSKU) 
-          : brand.total_skus !== undefined 
-            ? String(brand.total_skus) 
-            : brand.skus !== undefined 
-              ? String(brand.skus) 
-              : "",
+          typeof brand.logoImage === "string"
+            ? brand.logoImage
+            : brand.logoImage?.url || "",
+        brand_name: brand.name || "",
+        description: brand.aboutTheBrand || "",
+        total_skus: brand.totalSKU !== undefined ? String(brand.totalSKU) : "",
+        website_url: brand.websiteUrl || "",
         marketing_budget:
           brand.marketingBudget !== undefined
             ? String(brand.marketingBudget)
-            : brand.marketing_budget !== undefined
-              ? String(brand.marketing_budget)
-              : brand.budget !== undefined
-                ? String(brand.budget)
-                : "",
+            : "",
         product_category:
           Array.isArray(brand.brandType) && brand.brandType.length > 0
             ? brand.brandType[0]
-            : Array.isArray(brand.productCategory)
-              ? brand.productCategory[0] || ""
-              : Array.isArray(brand.product_category)
-                ? brand.product_category[0] || ""
-                : (typeof brand.productCategory === "string" 
-                    ? brand.productCategory 
-                    : typeof brand.product_category === "string"
-                      ? brand.product_category
-                      : typeof brand.category === "string"
-                        ? brand.category
-                        : Array.isArray(brand.category)
-                          ? brand.category[0] || ""
-                          : ""),
-        website_url:
-          brand.websiteUrl || brand.website_url || brand.website || "",
-        instagram_url:
-          brand.instagramUrl || brand.instagram_url || brand.instagram || "",
-        facebook_url:
-          brand.facebookUrl || brand.facebook_url || brand.facebook || "",
-        youtube_url: brand.youtubeUrl || brand.youtube_url || brand.youtube || "",
-        sellingOn: brand.sellingOn || brand.platforms || [],
-        brand_authorization_letter_files: [],
+            : "",
+        instagram_url: brand.instagramUrl || "",
+        facebook_url: brand.facebookUrl || "",
+        youtube_url: brand.youtubeUrl || "",
+        sellingOn: Array.isArray(brand.sellingOn) ? brand.sellingOn : [],
         brand_authorization_letter:
-          // Handle authorizationLetter from API (can be string URL or object with url property)
-          (typeof brand.authorizationLetter === "string" && brand.authorizationLetter
-            ? brand.authorizationLetter 
-            : typeof brand.authorizationLetter === "object" && brand.authorizationLetter?.url
-              ? brand.authorizationLetter.url
-              : "") ||
-          // Fallback to other possible field names
-          (brand.brand_authorization_letter || brand.authorization_letter || ""),
-        // Set company and location from context or data
-        company_id: companyId || brand.company?._id || "",
-        location_id: locationId || brand.location?._id || "",
+          typeof brand.authorizationLetter === "string"
+            ? brand.authorizationLetter
+            : brand.authorizationLetter?.url || "",
+        company_id: companyId || brand.companyId || "",
+        location_id: locationId || brand.locationId || "",
+        companyName: brand.companyName || "",
+        locationAddress: brand.locationAddress || "",
+        _id: brand._id || "",
       };
 
       reset(formData);
@@ -400,55 +398,12 @@ const UnifiedBrandForm: React.FC<UnifiedBrandFormProps> = ({
     },
   });
 
-  // Authorization letter preview
-  const authorizationLetterFiles = useWatch({
-    control,
-    name: "brand_authorization_letter_files",
-  });
-
-  const authorizationLetterData = authorizationLetterFiles
-    ? authorizationLetterFiles instanceof FileList
-      ? authorizationLetterFiles[0] || null
-      : Array.isArray(authorizationLetterFiles) && authorizationLetterFiles.length > 0
-        ? authorizationLetterFiles[0] || null
-        : authorizationLetterFiles instanceof File
-          ? authorizationLetterFiles
-          : null
-    : null;
-
-  const existingAuthorizationLetterUrl = useWatch({
-    control,
-    name: "brand_authorization_letter",
-  });
-
-  const { element: authorizationLetterPreview } = useImagePreview(
-    authorizationLetterData,
-    existingAuthorizationLetterUrl,
-    {
-      clear: () => {
-        setValue("brand_authorization_letter_files", []);
-        setValue("brand_authorization_letter", "");
-      },
-    },
-  );
-
   const { remove, append } = useFieldArray({
     control,
     name: "sellingOn",
   });
 
-  const hasEmptyPlatforms = sellingOn.some(
-    (field) => !field?.platform || !field?.url,
-  );
-
   const addPlatform = () => {
-    const hasEmptyPlatforms = sellingOn.some(
-      (platform) => !platform?.platform || !platform?.url,
-    );
-    if (hasEmptyPlatforms) {
-      return;
-    }
-
     if (hasDuplicatePlatforms()) {
       return;
     }
@@ -490,9 +445,6 @@ const UnifiedBrandForm: React.FC<UnifiedBrandFormProps> = ({
   };
 
   const onSubmitForm = async (data: BrandFormData) => {
-    console.log(
-      "onSubmitForm", data
-    );
     if (onSubmit) {
       onSubmit(data);
       return;
@@ -501,9 +453,12 @@ const UnifiedBrandForm: React.FC<UnifiedBrandFormProps> = ({
     try {
       if (mode === MODE.ADD) {
         const formData = new FormData();
-        
+
         Object.entries(data).forEach(([key, value]) => {
-          if (key === "brand_logo_files" || key === "brand_authorization_letter_files") {
+          if (
+            key === "brand_logo_files" ||
+            key === "brand_authorization_letter_files"
+          ) {
             if (Array.isArray(value) && value.length > 0) {
               value.forEach((file, index) => {
                 if (file instanceof File) {
@@ -532,12 +487,18 @@ const UnifiedBrandForm: React.FC<UnifiedBrandFormProps> = ({
     }
   };
 
-  // Show loading state while fetching brand data
+  const onError = (errors: FieldErrors<BrandFormData>, data: BrandFormData) => {
+    console.error("Error submitting brand form:", errors, data, watch());
+    handleFormErrors(errors);
+    // toast.error("Failed to save brand. Please try again.");
+  };
+
+  // // Show loading state while fetching brand data
   if (isLoadingBrand && (mode === MODE.EDIT || mode === MODE.VIEW)) {
     return (
       <PageContent
         header={{
-          title: "Loading...",
+          title: "Brand",
           description: "Fetching brand data",
         }}
       >
@@ -555,7 +516,7 @@ const UnifiedBrandForm: React.FC<UnifiedBrandFormProps> = ({
     );
   }
 
-  // Show error state if fetching failed
+  // // Show error state if fetching failed
   if (brandError && (mode === MODE.EDIT || mode === MODE.VIEW)) {
     return (
       <PageContent
@@ -584,17 +545,19 @@ const UnifiedBrandForm: React.FC<UnifiedBrandFormProps> = ({
   // Extract brand data from different response structures
   const currentBrandData = (() => {
     if (!brandData) return null;
-    
+
     // Handle CompanyLocationBrandResponse structure
     if ("data" in brandData && typeof brandData.data === "object") {
       return brandData.data;
     }
-    
+
     // Handle direct brand data
     return brandData;
   })();
-  
-  const brandStatus = (currentBrandData as BrandApiResponse)?.status || ((currentBrandData as BrandApiResponse)?.isActive ? "active" : "inactive");
+
+  const brandStatus =
+    (currentBrandData as BrandApiResponse)?.status ||
+    ((currentBrandData as BrandApiResponse)?.isActive ? "active" : "inactive");
 
   return (
     <Form {...form}>
@@ -604,15 +567,6 @@ const UnifiedBrandForm: React.FC<UnifiedBrandFormProps> = ({
           description,
           actions: (
             <div className="flex flex-wrap gap-3">
-              {(mode === MODE.VIEW || mode === MODE.EDIT) && (
-                <StatusBadge
-                  status={brandStatus}
-                  module="brand"
-                  variant="badge"
-                >
-                  {brandStatus}
-                </StatusBadge>
-              )}
               {mode === MODE.VIEW &&
                 [
                   STATUS_MAP.brand.pending.value,
@@ -632,7 +586,10 @@ const UnifiedBrandForm: React.FC<UnifiedBrandFormProps> = ({
         }}
       >
         <div className="w-full">
-          <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-8">
+          <form
+            onSubmit={handleSubmit(onSubmitForm, onError)}
+            className="space-y-8"
+          >
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
               {/* Left Card - Brand Details */}
               <div className="space-y-6 rounded-xl border bg-white p-8 shadow-sm">
@@ -642,10 +599,10 @@ const UnifiedBrandForm: React.FC<UnifiedBrandFormProps> = ({
                     Brand Logo
                   </h2>
                   <div className="flex items-center justify-start gap-6">
-                    <div className="left-0 col-span-1 flex">{element}</div>
-                    <div className="left-0 col-span-1 flex">
+                    <div className="flex">{element}</div>
+                    <div className="w-full">
                       <FormFieldsRenderer<BrandFormData>
-                        className="w-full grid-cols-1"
+                        className="w-full md:grid-cols-1 lg:grid-cols-1"
                         control={control}
                         fieldConfigs={
                           brandFormSchema.uploadbrandImage.map((field) => ({
@@ -663,52 +620,132 @@ const UnifiedBrandForm: React.FC<UnifiedBrandFormProps> = ({
                   <h2 className="text-xl font-semibold text-gray-900">
                     Company & Location
                   </h2>
-                  
-                  {/* Show company and location as read-only when auto-determined */}
-                  {companyId ? (
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <div className="space-y-2">
-                        <div className="text-sm font-medium text-gray-700">Company</div>
-                        <div className="rounded-md border bg-gray-50 px-3 py-2 text-sm text-gray-900">
-                          {(currentBrandData as BrandApiResponse)?.company?.companyName || 
-                           companyData?.data?.companyName || 
-                           (propCompanyId ? "Selected Company" : "Your Company")}
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="text-sm font-medium text-gray-700">Location</div>
-                        <div className="rounded-md border bg-gray-50 px-3 py-2 text-sm text-gray-900">
-                          {(currentBrandData as BrandApiResponse)?.location ? 
-                            `${(currentBrandData as BrandApiResponse).location!.addressLine1} - ${(currentBrandData as BrandApiResponse).location!.city}, ${(currentBrandData as BrandApiResponse).location!.state}` : 
-                            (() => {
-                              const location = locationData?.data?.items?.find(loc => loc._id === locationId);
-                              return location ? `${location.addressLine1} - ${location.city}, ${location.state}` : 
-                                     (locationId ? "Selected Location" : "Your Primary Location");
-                            })()
-                          }
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <FormFieldsRenderer<BrandFormData>
+
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    {mode === MODE.ADD ? (
+                      <FormInput
                         control={control}
-                        fieldConfigs={[
-                          {
-                            ...brandFormSchema.company_location[0],
-                            options: companyOptions,
-                            disabled: mode === MODE.VIEW,
-                          },
+                        name="company_id"
+                        type="custom"
+                        label="Company"
+                        placeholder="Select company"
+                        required
+                        render={({ field }) => (
+                          <PaginationComboBox
+                            apiFunction={createSimpleFetcher(
+                              apiGetCompaniesForFilter,
+                              {
+                                dataPath: "data.items",
+                                totalPath: "data.totalRecords",
+                              },
+                            )}
+                            transform={(company: {
+                              _id: string;
+                              companyName: string;
+                            }) => ({
+                              label: company.companyName,
+                              value: company._id,
+                            })}
+                            placeholder="Select company"
+                            value={field.value || ""}
+                            queryKey={["companies-for-brand-form"]}
+                            pageSize={100}
+                            disabled={!!propCompanyId}
+                            onChange={(value) => {
+                              const newValue = value as string;
+                              field.onChange(newValue);
+                              setSelectedCompanyId(newValue); // Keep selectedCompanyId in sync
+                              field.onBlur(); // Trigger validation
+                            }}
+                          />
+                        )}
+                      />
+                    ) : (
+                      <FormInput
+                        control={control}
+                        name="companyName"
+                        type="text"
+                        label="Company"
+                        placeholder="Enter company"
+                        disabled
+                        required
+                      />
+                    )}
+
+                    {mode === MODE.ADD ? (
+                      <FormInput
+                        control={control}
+                        name="location_id"
+                        type="custom"
+                        label="Location"
+                        placeholder="Select location"
+                        required
+                        render={({ field }) => (
+                          <PaginationComboBox
+                            apiFunction={createSimpleFetcher(
+                              (params: Record<string, unknown>) =>
+                                apiGetCompanyLocations(watchedCompanyId!, {
+                                  page: (params.pageIndex as number) + 1,
+                                  limit: params.pageSize as number,
+                                }),
+                              {
+                                dataPath: "data.items",
+                                totalPath: "data.totalRecords",
+                              },
+                            )}
+                            pageSize={100}
+                            enabled={!!watchedCompanyId}
+                            transform={(company: {
+                              _id: string;
+                              addressLine1: string;
+                              city: string;
+                            }) => ({
+                              label: `${company.addressLine1} - ${company.city}`,
+                              value: company._id,
+                            })}
+                            placeholder="Select location"
+                            value={field.value || ""}
+                            queryKey={[
+                              "company-locations-for-brand-form",
+                              watchedCompanyId,
+                            ]}
+                            disabled={!!propCompanyId && !!propLocationId}
+                            onChange={(value) => {
+                              const newValue = value as string;
+                              field.onChange(newValue);
+                              field.onBlur(); // Trigger validation
+                            }}
+                          />
+                        )}
+                      />
+                    ) : (
+                      <FormInput
+                        control={control}
+                        name="locationAddress"
+                        type="text"
+                        label="Location"
+                        placeholder="Enter location"
+                        disabled
+                        required
+                      />
+                    )}
+                    {/* <FormFieldsRenderer<BrandFormData>
+                      control={control}
+                      fieldConfigs={
+                        [
                           {
                             ...brandFormSchema.company_location[1],
                             options: locationOptions,
-                            disabled: mode === MODE.VIEW || !watchedCompanyId,
+                            disabled:
+                              mode === MODE.VIEW ||
+                              !!propLocationId ||
+                              !watchedCompanyId,
                           },
-                        ] as FormFieldConfig<BrandFormData>[]}
-                        className="contents"
-                      />
-                    </div>
-                  )}
+                        ] as FormFieldConfig<BrandFormData>[]
+                      }
+                      className="contents"
+                    /> */}
+                  </div>
                 </div>
 
                 {/* Brand Information Section */}
@@ -769,7 +806,7 @@ const UnifiedBrandForm: React.FC<UnifiedBrandFormProps> = ({
                       variant="outlined"
                       color={"primary"}
                       onClick={addPlatform}
-                      disabled={hasEmptyPlatforms || mode === MODE.VIEW}
+                      disabled={mode === MODE.VIEW}
                       className="px-4 py-2 text-sm"
                     >
                       + Add Platform
@@ -819,8 +856,11 @@ const UnifiedBrandForm: React.FC<UnifiedBrandFormProps> = ({
                   ))}
 
                   {sellingOn.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      <p>No platforms added yet. Click &quot;Add Platform&quot; to get started.</p>
+                    <div className="py-8 text-center text-gray-500">
+                      <p>
+                        No platforms added yet. Click &quot;Add Platform&quot;
+                        to get started.
+                      </p>
                     </div>
                   )}
 
@@ -855,9 +895,13 @@ const UnifiedBrandForm: React.FC<UnifiedBrandFormProps> = ({
                 <div className="space-y-4">
                   <h2 className="text-xl font-semibold text-gray-900">
                     Brand Authorization Letter
+                    {mode === MODE.EDIT && (
+                      <span className="ml-2 text-sm font-normal text-gray-500">
+                        (Optional)
+                      </span>
+                    )}
                   </h2>
                   <div className="flex items-center justify-start gap-6">
-                    <div className="left-0 col-span-1 flex">{authorizationLetterPreview}</div>
                     <div className="left-0 col-span-1 flex">
                       <FormFieldsRenderer<BrandFormData>
                         control={control}
@@ -866,10 +910,11 @@ const UnifiedBrandForm: React.FC<UnifiedBrandFormProps> = ({
                             (field) => ({
                               ...field,
                               disabled: mode === MODE.VIEW,
+                              required: mode === MODE.ADD,
                             }),
                           ) as FormFieldConfig<BrandFormData>[]
                         }
-                        className="w-full !sm:grid-cols-2 !grid !grid-cols-1 !gap-4"
+                        className="!sm:grid-cols-2 !grid w-full !grid-cols-1 !gap-4"
                       />
                     </div>
                   </div>
@@ -888,13 +933,17 @@ const UnifiedBrandForm: React.FC<UnifiedBrandFormProps> = ({
                 >
                   Cancel
                 </Button>
-                <Button 
-                  type="submit" 
-                  color="primary" 
+                <Button
+                  type="submit"
+                  color="primary"
                   className="px-6 py-2"
                   disabled={submitting}
                 >
-                  {submitting ? "Saving..." : mode === MODE.EDIT ? "Update Brand" : "Create Brand"}
+                  {submitting
+                    ? "Saving..."
+                    : mode === MODE.EDIT
+                      ? "Update Brand"
+                      : "Create Brand"}
                 </Button>
               </div>
             )}

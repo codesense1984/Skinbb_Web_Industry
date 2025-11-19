@@ -129,10 +129,10 @@ export const BrandDropdown: React.FC<BrandDropdownProps> = ({
               <p className="mt-2 text-sm text-gray-600">No brands found</p>
               <Button asChild variant="outlined" size="sm" className="mt-2">
                 <Link
-                  to={PANEL_ROUTES.COMPANY_LOCATION.BRAND_CREATE(
-                    companyId,
-                    locationId,
-                  )}
+                  to={
+                    PANEL_ROUTES.BRAND.CREATE +
+                    `?companyId=${companyId}&locationId=${locationId}`
+                  }
                 >
                   Add Brand
                 </Link>
@@ -231,11 +231,10 @@ export const BrandDropdown: React.FC<BrandDropdownProps> = ({
                     onClick={(e) => e.stopPropagation()}
                   >
                     <Link
-                      to={PANEL_ROUTES.COMPANY_LOCATION.BRAND_VIEW(
-                        companyId,
-                        locationId,
-                        brand._id,
-                      )}
+                      to={
+                        PANEL_ROUTES.BRAND.VIEW(brand._id) +
+                        `?companyId=${companyId}&locationId=${locationId}`
+                      }
                     >
                       View
                     </Link>

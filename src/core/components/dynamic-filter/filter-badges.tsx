@@ -9,7 +9,7 @@ interface ActiveFilterChip {
   key: string;
   label: string;
   value: string | string[];
-  displayValue?: string | string[]; // Optional display value (e.g., name instead of ID)
+  displayValue?: string | React.ReactNode; // Optional display value (e.g., name instead of ID)
   onRemove: () => void;
 }
 
@@ -46,22 +46,26 @@ export const ActiveFilters: React.FC<ActiveFiltersProps> = ({
         <div
           key={`${filter.key}-${value}-${index}`}
           className={cn(
-            "border-border inline-flex items-center gap-1.5 rounded-md border bg-white px-3 py-1.5 text-sm shadow-sm",
+            "border-border inline-flex h-8 items-center gap-1.5 rounded-md border bg-white py-0.5 pr-0.5 pl-3 text-sm shadow-sm",
             className,
           )}
         >
-          <span className="text-muted-foreground">
+          <span className="text-muted-foreground max-w-[200px] truncate">
             {capitalize((filter.displayValue ?? "") as string)} :{" "}
-            <span className="font-medium">{filter.label}</span>
+            <span className="font-medium" title={filter.label}>
+              {filter.label}
+            </span>
           </span>
-          {!filter.disabled && <Button
-            variant={"ghost"}
-            className="h-auto p-0"
-            onClick={filter.onRemove}
-            aria-label={`Remove ${filter.label} filter: ${displayValue}`}
-          >
-            <XMarkIcon className="size-4" />
-          </Button>}
+          {!filter.disabled && (
+            <Button
+              variant={"ghost"}
+              className="aspect-square h-full rounded-sm p-1"
+              onClick={filter.onRemove}
+              aria-label={`Remove ${filter.label} filter: ${displayValue}`}
+            >
+              <XMarkIcon className="size-4" />
+            </Button>
+          )}
         </div>
       );
     });
@@ -85,20 +89,22 @@ export const FilterBadges: React.FC<FilterBadgesProps> = ({
       {Object.entries(filters).map(([key, value]) => (
         <ActiveFilters
           key={key}
-          filters={value.map((item) => ({
-            key,
-            label: item.label,
-            value: item.value,
-            displayValue: key,
-            disabled: item.disabled,
-            onRemove: () => {
-              setFilterValue((prev) => {
-                const newFilters = { ...prev };
-                delete newFilters[key];
-                return newFilters;
-              });
-            },
-          }))}
+          filters={value
+            .filter((item) => !item.hidden)
+            .map((item) => ({
+              key,
+              label: item.label,
+              value: item.value,
+              displayValue: item.displayValue || key,
+              disabled: item.disabled,
+              onRemove: () => {
+                setFilterValue((prev) => {
+                  const newFilters = { ...prev };
+                  delete newFilters[key];
+                  return newFilters;
+                });
+              },
+            }))}
         />
       ))}
     </div>

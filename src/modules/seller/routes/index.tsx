@@ -279,18 +279,18 @@ export const sellerRoutes: RouteObject = {
     //     () => import("@/modules/panel/features/company-location-brands/create"),
     //   ),
     // },
-    {
-      path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_VIEW(),
-      Component: lazy(
-        () => import("@/modules/panel/features/company-location-brands/view"),
-      ),
-    },
-    {
-      path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_EDIT(),
-      Component: lazy(
-        () => import("@/modules/panel/features/company-location-brands/edit"),
-      ),
-    },
+    // {
+    //   path: PANEL_ROUTES.BRAND.BRAND_VIEW(),
+    //   Component: lazy(
+    //     () => import("@/modules/panel/features/company-location-brands/view"),
+    //   ),
+    // },
+    // {
+    //   path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_EDIT(),
+    //   Component: lazy(
+    //     () => import("@/modules/panel/features/company-location-brands/edit"),
+    //   ),
+    // },
 
     // Company Location Product Management (Complex routes - redirected to unified listing)
     {

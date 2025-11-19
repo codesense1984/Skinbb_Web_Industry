@@ -1,4 +1,5 @@
 import chatReducer from "@/core/store/slices/chatSlice";
+import entityCacheReducer from "@/core/store/slices/entityCacheSlice";
 // import authReducer from "@/modules/auth/store/slices/authSlice";
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 // import storage from "redux-persist/lib/storage";
@@ -12,6 +13,7 @@ import { combineReducers, configureStore } from "@reduxjs/toolkit";
 const rootReducer = combineReducers({
   // auth: authReducer,
   chat: chatReducer,
+  entityCache: entityCacheReducer,
 });
 // const persistedReducer = persistReducer(persistConfig, rootReducer);
 

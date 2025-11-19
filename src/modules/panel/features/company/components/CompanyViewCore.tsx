@@ -15,6 +15,7 @@ import {
 import { DropdownMenu } from "@/core/components/ui/dropdown-menu";
 import { PageContent } from "@/core/components/ui/structure";
 import { STATUS_MAP } from "@/core/config/status";
+import { useEntityCacheActions } from "@/core/store/hooks";
 import { formatDate } from "@/core/utils";
 import { hasAccess } from "@/modules/auth/components/guard";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
@@ -107,7 +108,12 @@ interface LocationAccordionItemProps {
     companyDescription?: string;
     establishedIn?: string;
   }; // Add company data prop
-  onViewBrands: (companyId: string, locationId: string) => void;
+  onViewBrands: (props: {
+    companyId: string;
+    locationId: string;
+    companyName: string;
+    locationName: string;
+  }) => void;
   onViewProducts: (companyId: string, locationId: string) => void;
   onViewLocation?: (companyId: string, locationId: string) => void;
   onEditLocation?: (companyId: string, locationId: string) => void;
@@ -225,7 +231,12 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                       {
                         type: "item" as const,
                         onClick: () => {
-                          onViewBrands(companyId, locationId || "");
+                          onViewBrands({
+                            companyId,
+                            locationId: locationId || "",
+                            companyName: companyData?.companyName || "",
+                            locationName: address.addressLine1 || "",
+                          });
                         },
                         children: (
                           <>
@@ -292,7 +303,9 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
             <Button
               onClick={(e) => {
                 e.stopPropagation();
-                onViewBrands(companyId, locationId || "");
+                onViewBrands
+                
+                (companyId, locationId || "");
               }}
               variant="outlined"
               size="sm"
@@ -595,7 +608,12 @@ interface CompanyViewCoreProps {
     description?: string;
     actions?: React.ReactNode;
   };
-  onViewBrands?: (companyId: string, locationId: string) => void;
+  onViewBrands?: (props: {
+    companyId: string;
+    locationId: string;
+    companyName: string;
+    locationName: string;
+  }) => void;
   onViewProducts?: (companyId: string, locationId: string) => void;
   onViewUsers?: (companyId: string) => void;
   onViewLocation?: (companyId: string, locationId: string) => void;
@@ -615,7 +633,7 @@ export const CompanyViewCore: React.FC<CompanyViewCoreProps> = ({
   const navigate = useNavigate();
   const { userId } = useAuth();
   const [expandedAddress, setExpandedAddress] = useState<string | null>(null);
-
+  const { setCompany, setLocation } = useEntityCacheActions();
   const {
     data: companyData,
     isLoading: companyLoading,
@@ -628,13 +646,23 @@ export const CompanyViewCore: React.FC<CompanyViewCoreProps> = ({
 
   const company = companyData?.data;
 
-  const handleViewBrands = (companyId: string, locationId: string) => {
+  const handleViewBrands = (props: {
+    companyId: string;
+    locationId: string;
+    companyName: string;
+    locationName: string;
+  }) => {
     if (onViewBrands) {
-      onViewBrands(companyId, locationId);
+      onViewBrands(props);
     } else {
+      setCompany({ id: companyId, name: company?.companyName || "" });
+      setLocation({
+        id: props.locationId,
+        name: props.locationName,
+      });
       navigate(
         PANEL_ROUTES.BRAND.LIST +
-          `?companyId=${companyId}&locationId=${locationId}`,
+          `?companyId=${props.companyId}&locationId=${props.locationId}`,
       );
     }
   };
@@ -664,6 +692,8 @@ export const CompanyViewCore: React.FC<CompanyViewCoreProps> = ({
         <Button
           onClick={() => {
             navigate(PANEL_ROUTES.BRAND.LIST + `?companyId=${companyId}`);
+            setCompany({ id: companyId, name: company?.companyName || "" });
+
             // Get the primary location ID from company data
             // const primaryLocation = company?.addresses?.find(
             //   (addr) => addr.isPrimary,
