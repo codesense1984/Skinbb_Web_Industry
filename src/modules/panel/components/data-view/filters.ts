@@ -3,7 +3,7 @@ import { apiGetBrands } from "@/modules/panel/services/http/brand.service";
 import { apiGetCompaniesForFilter, apiGetCompanyLocations } from "@/modules/panel/services/http/company.service";
 import { apiGetCustomers } from "@/modules/panel/services/http/customer.service";
 
-export const DEFAULT_PAGE_SIZE = 10;
+export const DEFAULT_PAGE_SIZE = 5;
 
 // Company filter fetcher
 export const companyFilter = createSimpleFetcher(apiGetCompaniesForFilter, {

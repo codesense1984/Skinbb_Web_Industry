@@ -1,10 +1,23 @@
 import React, { useState } from "react";
 import { Button } from "@/core/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/core/components/ui/card";
 import { Badge } from "@/core/components/ui/badge";
 import { StatusBadge } from "@/core/components/ui/badge";
-import { AvatarRoot, AvatarImage, AvatarFallback } from "@/core/components/ui/avatar";
-import { ChevronDownIcon, ChevronUpIcon, TagIcon } from "@heroicons/react/24/outline";
+import {
+  AvatarRoot,
+  AvatarImage,
+  AvatarFallback,
+} from "@/core/components/ui/avatar";
+import {
+  ChevronDownIcon,
+  ChevronUpIcon,
+  TagIcon,
+} from "@heroicons/react/24/outline";
 import { formatCurrency } from "@/core/utils";
 import { Link } from "react-router";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
@@ -55,7 +68,7 @@ export const BrandDropdown: React.FC<BrandDropdownProps> = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedBrand, setSelectedBrand] = useState<Brand | null>(
-    brands.find(brand => brand._id === selectedBrandId) || null
+    brands.find((brand) => brand._id === selectedBrandId) || null,
   );
 
   const handleBrandSelect = (brand: Brand | null) => {
@@ -82,13 +95,13 @@ export const BrandDropdown: React.FC<BrandDropdownProps> = ({
             </Badge>
           </CardTitle>
           <div className="flex items-center gap-2">
-            <Button
-              asChild
-              variant="outlined"
-              size="sm"
-              className="text-xs"
-            >
-              <Link to={PANEL_ROUTES.COMPANY_LOCATION.BRANDS(companyId, locationId)}>
+            <Button asChild variant="outlined" size="sm" className="text-xs">
+              <Link
+                to={
+                  PANEL_ROUTES.BRAND.LIST +
+                  `?companyId=${companyId}&locationId=${locationId}`
+                }
+              >
                 View All
               </Link>
             </Button>
@@ -107,20 +120,20 @@ export const BrandDropdown: React.FC<BrandDropdownProps> = ({
           </div>
         </div>
       </CardHeader>
-      
+
       {isExpanded && (
         <CardContent className="pt-4">
           {brands.length === 0 ? (
-            <div className="text-center py-8">
+            <div className="py-8 text-center">
               <TagIcon className="mx-auto h-12 w-12 text-gray-400" />
               <p className="mt-2 text-sm text-gray-600">No brands found</p>
-              <Button
-                asChild
-                variant="outlined"
-                size="sm"
-                className="mt-2"
-              >
-                <Link to={PANEL_ROUTES.COMPANY_LOCATION.BRAND_CREATE(companyId, locationId)}>
+              <Button asChild variant="outlined" size="sm" className="mt-2">
+                <Link
+                  to={PANEL_ROUTES.COMPANY_LOCATION.BRAND_CREATE(
+                    companyId,
+                    locationId,
+                  )}
+                >
                   Add Brand
                 </Link>
               </Button>
@@ -129,25 +142,29 @@ export const BrandDropdown: React.FC<BrandDropdownProps> = ({
             <div className="space-y-3">
               {/* All Brands Option */}
               <div
-                className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors hover:bg-gray-50 ${
-                  !selectedBrand ? 'bg-blue-50 border-blue-200' : ''
+                className={`flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-gray-50 ${
+                  !selectedBrand ? "border-blue-200 bg-blue-50" : ""
                 }`}
                 onClick={() => handleBrandSelect(null)}
               >
-                <div className="size-10 rounded-md border bg-gray-100 flex items-center justify-center">
+                <div className="flex size-10 items-center justify-center rounded-md border bg-gray-100">
                   <TagIcon className="h-5 w-5 text-gray-600" />
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-medium text-sm">All Brands</h4>
-                  <p className="text-xs text-gray-600">Show products from all brands</p>
+                  <h4 className="text-sm font-medium">All Brands</h4>
+                  <p className="text-xs text-gray-600">
+                    Show products from all brands
+                  </p>
                 </div>
               </div>
 
               {displayBrands.map((brand: Brand) => (
                 <div
                   key={brand._id}
-                  className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors hover:bg-gray-50 ${
-                    selectedBrand?._id === brand._id ? 'bg-blue-50 border-blue-200' : ''
+                  className={`flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-gray-50 ${
+                    selectedBrand?._id === brand._id
+                      ? "border-blue-200 bg-blue-50"
+                      : ""
                   }`}
                   onClick={() => handleBrandSelect(brand)}
                 >
@@ -161,10 +178,10 @@ export const BrandDropdown: React.FC<BrandDropdownProps> = ({
                       {brand.name?.charAt(0)}
                     </AvatarFallback>
                   </AvatarRoot>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-medium text-sm truncate">
+
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-1 flex items-center gap-2">
+                      <h4 className="truncate text-sm font-medium">
                         {brand.name}
                       </h4>
                       {brand.status && (
@@ -176,22 +193,24 @@ export const BrandDropdown: React.FC<BrandDropdownProps> = ({
                         />
                       )}
                     </div>
-                    
+
                     <div className="flex items-center gap-2 text-xs text-gray-600">
-                      {brand.totalSKU && (
-                        <span>SKU: {brand.totalSKU}</span>
-                      )}
+                      {brand.totalSKU && <span>SKU: {brand.totalSKU}</span>}
                       {brand.averageSellingPrice && (
                         <span>
                           Avg: {formatCurrency(brand.averageSellingPrice)}
                         </span>
                       )}
                     </div>
-                    
+
                     {brand.brandType && brand.brandType.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-1">
+                      <div className="mt-1 flex flex-wrap gap-1">
                         {brand.brandType.slice(0, 2).map((type, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
+                          <Badge
+                            key={index}
+                            variant="outline"
+                            className="text-xs"
+                          >
                             {type}
                           </Badge>
                         ))}
@@ -203,7 +222,7 @@ export const BrandDropdown: React.FC<BrandDropdownProps> = ({
                       </div>
                     )}
                   </div>
-                  
+
                   <Button
                     asChild
                     variant="outlined"
@@ -211,22 +230,33 @@ export const BrandDropdown: React.FC<BrandDropdownProps> = ({
                     className="text-xs"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <Link to={PANEL_ROUTES.COMPANY_LOCATION.BRAND_VIEW(companyId, locationId, brand._id)}>
+                    <Link
+                      to={PANEL_ROUTES.COMPANY_LOCATION.BRAND_VIEW(
+                        companyId,
+                        locationId,
+                        brand._id,
+                      )}
+                    >
                       View
                     </Link>
                   </Button>
                 </div>
               ))}
-              
+
               {brands.length > maxBrands && (
-                <div className="text-center pt-2">
+                <div className="pt-2 text-center">
                   <Button
                     asChild
                     variant="outlined"
                     size="sm"
                     className="text-xs"
                   >
-                    <Link to={PANEL_ROUTES.COMPANY_LOCATION.BRANDS(companyId, locationId)}>
+                    <Link
+                      to={
+                        PANEL_ROUTES.BRAND.LIST +
+                        `?companyId=${companyId}&locationId=${locationId}`
+                      }
+                    >
                       View All Brands
                     </Link>
                   </Button>

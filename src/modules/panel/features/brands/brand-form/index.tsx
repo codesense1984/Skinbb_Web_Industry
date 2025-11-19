@@ -1,11 +1,24 @@
-import { useParams, useLocation } from "react-router";
 import { MODE } from "@/core/types/base.type";
-import UnifiedBrandForm from "../shared/UnifiedBrandForm";
+import { useLocation, useParams, useSearchParams } from "react-router";
+import {
+  BrandPageWrapper,
+  useBrandCreateMutation,
+  type BrandFormData,
+} from "../../company-location-brands";
 
 const BrandForm = () => {
-  const { id, companyId, locationId } = useParams();
+  const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const companyId = searchParams.get("companyId");
+  const locationId = searchParams.get("locationId");
   const location = useLocation();
   const pathname = location.pathname;
+
+  const brandMutation = useBrandCreateMutation();
+
+  const handleSubmit = (data: BrandFormData) => {
+    brandMutation.mutate(data);
+  };
 
   // Determine mode based on URL path
   let mode = MODE.ADD;
@@ -42,14 +55,26 @@ const BrandForm = () => {
   };
 
   return (
-    <UnifiedBrandForm
-      mode={mode}
-      title={getTitle()}
-      description={getDescription()}
-      companyId={companyId}
-      locationId={locationId}
-      brandId={id}
-    />
+    <>
+      Brand Form
+      <BrandPageWrapper
+        mode={mode}
+        title={getTitle()}
+        description={getDescription()}
+        companyId={companyId || undefined}
+        locationId={locationId || undefined}
+        onSubmit={handleSubmit}
+        submitting={brandMutation.isPending}
+      />
+      {/* <UnifiedBrandForm
+        mode={mode}
+        title={getTitle()}
+        description={getDescription()}
+        companyId={companyId}
+        locationId={locationId}
+        brandId={id}
+      /> */}
+    </>
   );
 };
 

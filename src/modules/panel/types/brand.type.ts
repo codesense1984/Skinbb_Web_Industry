@@ -56,7 +56,7 @@ export interface CompanyLocationBrandResponse {
   success: boolean;
 }
 
-export interface Brand {
+export interface Brand extends Omit<CompanyLocationBrand, "logoImage"> {
   _id: string;
   name: string;
   slug: string;

@@ -29,7 +29,7 @@ export const useBrandCreateMutation = () => {
       if (!companyId || !locationId) {
         throw new Error(BRAND_ERROR_MESSAGES.MISSING_IDS);
       }
-      
+
       const formData = createBrandFormData(data);
       return apiCreateCompanyLocationBrandJson(companyId, locationId, formData);
     },
@@ -44,7 +44,10 @@ export const useBrandCreateMutation = () => {
       });
 
       // Navigate back to brands list
-      navigate(PANEL_ROUTES.COMPANY_LOCATION.BRANDS(companyId!, locationId!));
+      navigate(
+        PANEL_ROUTES.BRAND.LIST +
+          `?companyId=${companyId}&locationId=${locationId}`,
+      );
     },
     onError: (error: AxiosError<{ message?: string; error?: string }>) => {
       toast.error(error?.message ?? BRAND_MESSAGES.CREATE_ERROR);
@@ -83,7 +86,10 @@ export const useBrandUpdateMutation = () => {
         ],
       });
       // Navigate back to brands list
-      navigate(PANEL_ROUTES.COMPANY_LOCATION.BRANDS(companyId!, locationId!));
+      navigate(
+        PANEL_ROUTES.BRAND.LIST +
+          `?companyId=${companyId}&locationId=${locationId}`,
+      );
     },
     onError: (error: AxiosError<{ message?: string; error?: string }>) => {
       toast.error(error?.message ?? BRAND_MESSAGES.UPDATE_ERROR);

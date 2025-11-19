@@ -1,9 +1,6 @@
 import React, { useMemo } from "react";
 import { useNavigate } from "react-router";
-import {
-  DataView,
-  type ServerDataFetcher,
-} from "@/core/components/data-view";
+import { DataView, type ServerDataFetcher } from "@/core/components/data-view";
 import { BrandCard } from "../brand-list/BrandCard";
 import {
   DEFAULT_PAGE_SIZE,
@@ -23,7 +20,10 @@ import { formatDate } from "@/core/utils";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { apiGetBrands } from "@/modules/panel/services/http/brand.service";
 import { apiGetCompanyLocationBrands } from "@/modules/panel/services/http/company.service";
-import type { Brand, CompanyLocationBrand } from "@/modules/panel/types/brand.type";
+import type {
+  Brand,
+  CompanyLocationBrand,
+} from "@/modules/panel/types/brand.type";
 import type { ColumnDef } from "@tanstack/react-table";
 import { NavLink } from "react-router";
 import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
@@ -42,7 +42,7 @@ import {
 
 // Configuration types
 export interface BrandListConfig {
-  mode: 'global' | 'company' | 'location' | 'products';
+  mode: "global" | "company" | "location" | "products";
   title: string;
   description: string;
   showFilters?: boolean;
@@ -97,16 +97,13 @@ const createUnifiedBrandColumns = (
     header: "Status",
     cell: ({ row }) => {
       // Handle both isActive boolean and status string
-      const status = row.original.status || (row.original.isActive ? "active" : "inactive");
+      const status =
+        row.original.status || (row.original.isActive ? "active" : "inactive");
       const statusChangeReason = row.original.statusChangeReason;
-      
+
       return (
         <div className="space-y-1">
-          <StatusBadge
-            module="brand"
-            status={status}
-            variant="badge"
-          >
+          <StatusBadge module="brand" status={status} variant="badge">
             {status}
           </StatusBadge>
           {status === "rejected" && statusChangeReason && (
@@ -121,7 +118,8 @@ const createUnifiedBrandColumns = (
       );
     },
     filterFn: (row, id, value) => {
-      const status = row.original.status || (row.original.isActive ? "active" : "inactive");
+      const status =
+        row.original.status || (row.original.isActive ? "active" : "inactive");
       return value.includes(status);
     },
   },
@@ -141,14 +139,20 @@ const createUnifiedBrandColumns = (
     size: 80,
     cell: ({ row }) => {
       const brandId = row.original._id;
-      const status = row.original.status || (row.original.isActive ? "active" : "inactive");
-      
+      const status =
+        row.original.status || (row.original.isActive ? "active" : "inactive");
+
       const items: DropdownMenuItemType[] = [
         {
           type: "link",
-          to: companyId && locationId 
-            ? PANEL_ROUTES.COMPANY_LOCATION.BRAND_VIEW(companyId, locationId, brandId)
-            : PANEL_ROUTES.BRAND.VIEW(brandId),
+          to:
+            companyId && locationId
+              ? PANEL_ROUTES.COMPANY_LOCATION.BRAND_VIEW(
+                  companyId,
+                  locationId,
+                  brandId,
+                )
+              : PANEL_ROUTES.BRAND.VIEW(brandId),
           title: "View brand details",
           children: (
             <>
@@ -159,14 +163,21 @@ const createUnifiedBrandColumns = (
       ];
 
       // Show View Products action for approved brands (only in location context)
-      if (companyId && locationId && 
-          ![
-            STATUS_MAP.brand.pending.value,
-            STATUS_MAP.brand.rejected.value,
-          ].includes(status)) {
+      if (
+        companyId &&
+        locationId &&
+        ![
+          STATUS_MAP.brand.pending.value,
+          STATUS_MAP.brand.rejected.value,
+        ].includes(status)
+      ) {
         items.push({
           type: "link",
-          to: PANEL_ROUTES.COMPANY_LOCATION.BRAND_PRODUCTS(companyId, locationId, brandId),
+          to: PANEL_ROUTES.COMPANY_LOCATION.BRAND_PRODUCTS(
+            companyId,
+            locationId,
+            brandId,
+          ),
           title: "View products for this brand",
           children: (
             <>
@@ -179,9 +190,14 @@ const createUnifiedBrandColumns = (
       // Edit action - preserve context
       items.push({
         type: "link",
-        to: companyId && locationId 
-          ? PANEL_ROUTES.COMPANY_LOCATION.BRAND_EDIT(companyId, locationId, brandId)
-          : PANEL_ROUTES.BRAND.EDIT(brandId),
+        to:
+          companyId && locationId
+            ? PANEL_ROUTES.COMPANY_LOCATION.BRAND_EDIT(
+                companyId,
+                locationId,
+                brandId,
+              )
+            : PANEL_ROUTES.BRAND.EDIT(brandId),
         title: "Edit brand",
         children: (
           <>
@@ -231,7 +247,7 @@ const createBrandFetcher = (
     }
 
     switch (config.mode) {
-      case 'global':
+      case "global":
         // Map filters to API params
         if (filters.status?.[0]?.value) {
           params.status = filters.status[0].value;
@@ -256,7 +272,7 @@ const createBrandFetcher = (
         }
         return { rows: [], total: 0 };
 
-      case 'location':
+      case "location":
         if (!companyId || !locationId) {
           return { rows: [], total: 0 };
         }
@@ -266,15 +282,20 @@ const createBrandFetcher = (
           { ...params, userId: userId || "" },
           signal,
         );
-        if (locationResponse && typeof locationResponse === "object" && "data" in locationResponse) {
+        if (
+          locationResponse &&
+          typeof locationResponse === "object" &&
+          "data" in locationResponse
+        ) {
           return {
             rows: (locationResponse.data as CompanyLocationBrand[]) || [],
-            total: (locationResponse.data as CompanyLocationBrand[])?.length || 0,
+            total:
+              (locationResponse.data as CompanyLocationBrand[])?.length || 0,
           };
         }
         return { rows: [], total: 0 };
 
-      case 'company':
+      case "company":
         // TODO: Implement company-specific brand fetching
         return { rows: [], total: 0 };
 
@@ -306,14 +327,14 @@ const UnifiedBrandList: React.FC<UnifiedBrandListProps> = ({
   // Get query key prefix
   const getQueryKeyPrefix = () => {
     switch (config.mode) {
-      case 'global':
+      case "global":
         return PANEL_ROUTES.BRAND.LIST;
-      case 'location':
+      case "location":
         return ENDPOINTS.COMPANY_LOCATION_BRANDS.LIST(companyId!, locationId!);
-      case 'company':
+      case "company":
         return `company-brands-${companyId}`;
       default:
-        return 'brands';
+        return "brands";
     }
   };
 
@@ -332,7 +353,7 @@ const UnifiedBrandList: React.FC<UnifiedBrandListProps> = ({
 
     return (
       <>
-        {config.mode === 'global' && (
+        {config.mode === "global" && (
           <>
             <CompanyFilter />
             <LocationFilter />
@@ -375,9 +396,10 @@ const UnifiedBrandList: React.FC<UnifiedBrandListProps> = ({
       name: brand.name,
       slug: brand.slug,
       aboutTheBrand: (brand as CompanyLocationBrand).aboutTheBrand || "",
-      logoImage: typeof brand.logoImage === 'string' 
-        ? { _id: '', url: brand.logoImage }
-        : brand.logoImage,
+      logoImage:
+        typeof brand.logoImage === "string"
+          ? { _id: "", url: brand.logoImage }
+          : brand.logoImage,
       isActive: (brand as CompanyLocationBrand).isActive ?? true,
       associatedProductsCount: (brand as CompanyLocationBrand).totalSKU || 0,
       associatedUsers: 0,

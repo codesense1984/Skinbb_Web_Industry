@@ -5,7 +5,7 @@ import type { BrandFormData } from "../brand.schema";
 import { useParams } from "react-router";
 
 const CompanyLocationBrandEdit = () => {
-  const { brandId } = useParams();
+  const { companyId, locationId, brandId } = useParams();
   const brandMutation = useBrandUpdateMutation();
 
   const handleSubmit = (data: BrandFormData) => {
@@ -17,6 +17,8 @@ const CompanyLocationBrandEdit = () => {
       mode={MODE.EDIT}
       title="Edit Brand"
       description="Update brand information and details"
+      companyId={companyId}
+      locationId={locationId}
       onSubmit={handleSubmit}
       submitting={brandMutation.isPending}
       brandId={brandId}

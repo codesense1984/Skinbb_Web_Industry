@@ -66,15 +66,21 @@ export const sellerRoutes: RouteObject = {
     },
     {
       path: "/products/create",
-      Component: lazy(() => import("@/modules/panel/features/listing/ProductCreate")),
+      Component: lazy(
+        () => import("@/modules/panel/features/listing/ProductCreate"),
+      ),
     },
     {
       path: "/product/:id/view",
-      Component: lazy(() => import("@/modules/panel/features/listing/ProductCreate")),
+      Component: lazy(
+        () => import("@/modules/panel/features/listing/ProductCreate"),
+      ),
     },
     {
       path: "/product/:id/edit",
-      Component: lazy(() => import("@/modules/panel/features/listing/ProductCreate")),
+      Component: lazy(
+        () => import("@/modules/panel/features/listing/ProductCreate"),
+      ),
     },
 
     // Order Management
@@ -100,19 +106,27 @@ export const sellerRoutes: RouteObject = {
     // Marketing Routes - Seller-specific components
     {
       path: SELLER_ROUTES.MARKETING.DISCOUNT_COUPONS.LIST,
-      Component: lazy(() => import("@/modules/seller/features/marketing/DiscountCouponsList")),
+      Component: lazy(
+        () => import("@/modules/seller/features/marketing/DiscountCouponsList"),
+      ),
     },
     {
       path: SELLER_ROUTES.MARKETING.DISCOUNT_COUPONS.CREATE,
-      Component: lazy(() => import("@/modules/seller/features/marketing/DiscountCouponForm")),
+      Component: lazy(
+        () => import("@/modules/seller/features/marketing/DiscountCouponForm"),
+      ),
     },
     {
       path: SELLER_ROUTES.MARKETING.DISCOUNT_COUPONS.VIEW(),
-      Component: lazy(() => import("@/modules/seller/features/marketing/DiscountCouponForm")),
+      Component: lazy(
+        () => import("@/modules/seller/features/marketing/DiscountCouponForm"),
+      ),
     },
     {
       path: SELLER_ROUTES.MARKETING.DISCOUNT_COUPONS.EDIT(),
-      Component: lazy(() => import("@/modules/seller/features/marketing/DiscountCouponForm")),
+      Component: lazy(
+        () => import("@/modules/seller/features/marketing/DiscountCouponForm"),
+      ),
     },
     // TODO: Uncomment when survey functionality is ready
     // {
@@ -134,59 +148,85 @@ export const sellerRoutes: RouteObject = {
     // Promotions Routes
     {
       path: SELLER_ROUTES.MARKETING.PROMOTIONS.LIST,
-      Component: lazy(() => import("@/modules/seller/features/marketing/PromotionsList")),
+      Component: lazy(
+        () => import("@/modules/seller/features/marketing/PromotionsList"),
+      ),
     },
     {
       path: SELLER_ROUTES.MARKETING.PROMOTIONS.CREATE,
-      Component: lazy(() => import("@/modules/seller/features/marketing/PromotionsList")),
+      Component: lazy(
+        () => import("@/modules/seller/features/marketing/PromotionsList"),
+      ),
     },
     {
       path: SELLER_ROUTES.MARKETING.PROMOTIONS.VIEW(),
-      Component: lazy(() => import("@/modules/seller/features/marketing/PromotionsList")),
+      Component: lazy(
+        () => import("@/modules/seller/features/marketing/PromotionsList"),
+      ),
     },
     {
       path: SELLER_ROUTES.MARKETING.PROMOTIONS.EDIT(),
-      Component: lazy(() => import("@/modules/seller/features/marketing/PromotionsList")),
+      Component: lazy(
+        () => import("@/modules/seller/features/marketing/PromotionsList"),
+      ),
     },
 
     // Analytics Routes
     {
       path: SELLER_ROUTES.ANALYTICS.SALES_INSIGHTS.BASE,
-      Component: lazy(() => import("@/modules/seller/features/analytics/SalesInsights")),
+      Component: lazy(
+        () => import("@/modules/seller/features/analytics/SalesInsights"),
+      ),
     },
     {
       path: SELLER_ROUTES.ANALYTICS.INGREDIENT_INSIGHTS.BASE,
-      Component: lazy(() => import("@/modules/seller/features/analytics/IngredientInsights")),
+      Component: lazy(
+        () => import("@/modules/seller/features/analytics/IngredientInsights"),
+      ),
     },
     {
       path: SELLER_ROUTES.ANALYTICS.BRAND_INSIGHTS.BASE,
-      Component: lazy(() => import("@/modules/seller/features/analytics/BrandInsights")),
+      Component: lazy(
+        () => import("@/modules/seller/features/analytics/BrandInsights"),
+      ),
     },
     {
       path: SELLER_ROUTES.ANALYTICS.CUSTOMER_INSIGHTS.BASE,
-      Component: lazy(() => import("@/modules/seller/features/analytics/CustomerInsights")),
+      Component: lazy(
+        () => import("@/modules/seller/features/analytics/CustomerInsights"),
+      ),
     },
     {
       path: SELLER_ROUTES.ANALYTICS.MARKET_TRENDS.BASE,
-      Component: lazy(() => import("@/modules/seller/features/analytics/MarketTrends")),
+      Component: lazy(
+        () => import("@/modules/seller/features/analytics/MarketTrends"),
+      ),
     },
     {
       path: SELLER_ROUTES.ANALYTICS.ECOMMERCE.BASE,
-      Component: lazy(() => import("@/modules/analytics/features/ecommerce-dashboard")),
+      Component: lazy(
+        () => import("@/modules/analytics/features/ecommerce-dashboard"),
+      ),
     },
 
     // User Settings Routes
     {
       path: SELLER_ROUTES.USER_SETTINGS.BASE,
-      Component: lazy(() => import("@/modules/seller/features/settings/Settings")),
+      Component: lazy(
+        () => import("@/modules/seller/features/settings/Settings"),
+      ),
     },
     {
       path: SELLER_ROUTES.USER_SETTINGS.PERMISSIONS.BASE,
-      Component: lazy(() => import("@/modules/seller/features/settings/PermissionsSettings")),
+      Component: lazy(
+        () => import("@/modules/seller/features/settings/PermissionsSettings"),
+      ),
     },
     {
       path: SELLER_ROUTES.USER_SETTINGS.PREFERENCES.BASE,
-      Component: lazy(() => import("@/modules/seller/features/settings/PreferencesSettings")),
+      Component: lazy(
+        () => import("@/modules/seller/features/settings/PreferencesSettings"),
+      ),
     },
 
     // Account Route
@@ -213,28 +253,32 @@ export const sellerRoutes: RouteObject = {
     },
     {
       path: "/listing/catalog",
-      Component: lazy(() => import("@/modules/panel/features/listing/AddCatalog")),
+      Component: lazy(
+        () => import("@/modules/panel/features/listing/AddCatalog"),
+      ),
     },
-    
+
     // Catalog Management - Dedicated catalog list
     {
       path: "/catalog",
-      Component: lazy(() => import("@/modules/panel/features/listing/CatalogList")),
+      Component: lazy(
+        () => import("@/modules/panel/features/listing/CatalogList"),
+      ),
     },
 
     // Company Location Brand Management (Complex routes)
-    {
-      path: PANEL_ROUTES.COMPANY_LOCATION.BRANDS(),
-      Component: lazy(
-        () => import("@/modules/panel/features/company-location-brands/list"),
-      ),
-    },
-    {
-      path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_CREATE(),
-      Component: lazy(
-        () => import("@/modules/panel/features/company-location-brands/create"),
-      ),
-    },
+    // {
+    //   path: PANEL_ROUTES.COMPANY_LOCATION.BRANDS(),
+    //   Component: lazy(
+    //     () => import("@/modules/panel/features/company-location-brands/list"),
+    //   ),
+    // },
+    // {
+    //   path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_CREATE(),
+    //   Component: lazy(
+    //     () => import("@/modules/panel/features/company-location-brands/create"),
+    //   ),
+    // },
     {
       path: PANEL_ROUTES.COMPANY_LOCATION.BRAND_VIEW(),
       Component: lazy(

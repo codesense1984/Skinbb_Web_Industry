@@ -79,6 +79,12 @@ export const STATUS_MAP: Record<ModuleType, Record<string, StatusStyle>> = {
       textColor: "text-red-700",
       bgColor: "bg-red-100",
     },
+    publish: {
+      label: "Publish",
+      value: "publish",
+      textColor: "text-green-700",
+      bgColor: "bg-green-100",
+    },
   },
   company: {
     approved: {

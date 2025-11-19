@@ -497,7 +497,10 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                       <InfoItem
                         icon={<DocumentTextIcon className="h-5 w-5" />}
                         label="COI Certificate"
-                        value={location?.cinNumber ?? "-"}
+                        value={
+                          (location as unknown as { cinNumber: string })
+                            ?.cinNumber ?? "-"
+                        }
                         className="rounded-lg border p-3"
                       >
                         <Link
@@ -515,7 +518,10 @@ const LocationAccordionItem: React.FC<LocationAccordionItemProps> = ({
                       <InfoItem
                         icon={<DocumentTextIcon className="h-5 w-5" />}
                         label="MSME Certificate"
-                        value={location?.msmeNumber ?? "-"}
+                        value={
+                          (location as unknown as { msmeNumber: string })
+                            ?.msmeNumber ?? "-"
+                        }
                         className="rounded-lg border p-3"
                       >
                         <Link
@@ -626,7 +632,10 @@ export const CompanyViewCore: React.FC<CompanyViewCoreProps> = ({
     if (onViewBrands) {
       onViewBrands(companyId, locationId);
     } else {
-      navigate(PANEL_ROUTES.COMPANY_LOCATION.BRANDS(companyId, locationId));
+      navigate(
+        PANEL_ROUTES.BRAND.LIST +
+          `?companyId=${companyId}&locationId=${locationId}`,
+      );
     }
   };
 
@@ -654,28 +663,29 @@ export const CompanyViewCore: React.FC<CompanyViewCoreProps> = ({
       <div className="ml-6 flex flex-shrink-0 gap-3">
         <Button
           onClick={() => {
+            navigate(PANEL_ROUTES.BRAND.LIST + `?companyId=${companyId}`);
             // Get the primary location ID from company data
-            const primaryLocation = company?.addresses?.find(
-              (addr) => addr.isPrimary,
-            );
-            if (primaryLocation) {
-              const locationId = primaryLocation.addressId;
-              // Navigate to company-location-brand route
-              navigate(
-                PANEL_ROUTES.COMPANY_LOCATION.BRANDS(companyId, locationId),
-              );
-            } else {
-              // Fallback to general brand list with company and location context
-              const firstLocation = company?.addresses?.[0];
-              const locationId = firstLocation?.addressId;
-              if (locationId) {
-                navigate(
-                  `${PANEL_ROUTES.BRAND.LIST}?companyId=${companyId}&locationId=${locationId}`,
-                );
-              } else {
-                navigate(`${PANEL_ROUTES.BRAND.LIST}?companyId=${companyId}`);
-              }
-            }
+            // const primaryLocation = company?.addresses?.find(
+            //   (addr) => addr.isPrimary,
+            // );
+            // if (primaryLocation) {
+            //   const locationId = primaryLocation.addressId;
+            //   // Navigate to company-location-brand route
+            //   navigate(
+            //     PANEL_ROUTES.COMPANY_LOCATION.BRANDS(companyId, locationId),
+            //   );
+            // } else {
+            //   // Fallback to general brand list with company and location context
+            //   const firstLocation = company?.addresses?.[0];
+            //   const locationId = firstLocation?.addressId;
+            //   if (locationId) {
+            //     navigate(
+            //       `${PANEL_ROUTES.BRAND.LIST}?companyId=${companyId}&locationId=${locationId}`,
+            //     );
+            //   } else {
+            //     navigate(`${PANEL_ROUTES.BRAND.LIST}?companyId=${companyId}`);
+            //   }
+            // }
           }}
           variant="outlined"
           className="border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50"

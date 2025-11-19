@@ -3,13 +3,15 @@ import { useParams } from "react-router";
 import { BrandPageWrapper } from "../BrandPageWrapper";
 
 const CompanyLocationBrandView = () => {
-  const { brandId } = useParams();
+  const { companyId, locationId, brandId } = useParams();
 
   return (
     <BrandPageWrapper
       mode={MODE.VIEW}
       title="View Brand"
       description="View brand information and details"
+      companyId={companyId}
+      locationId={locationId}
       brandId={brandId}
     />
   );
