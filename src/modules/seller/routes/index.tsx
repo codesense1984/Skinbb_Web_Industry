@@ -114,23 +114,23 @@ export const sellerRoutes: RouteObject = {
       path: SELLER_ROUTES.MARKETING.DISCOUNT_COUPONS.EDIT(),
       Component: lazy(() => import("@/modules/seller/features/marketing/DiscountCouponForm")),
     },
-    // TODO: Uncomment when survey functionality is ready
-    // {
-    //   path: SELLER_ROUTES.MARKETING.SURVEYS.LIST,
-    //   Component: lazy(() => import("@/modules/seller/features/marketing/SurveysList")),
-    // },
-    // {
-    //   path: SELLER_ROUTES.MARKETING.SURVEYS.CREATE,
-    //   Component: lazy(() => import("@/modules/survey/features/market-research-create")),
-    // },
-    // {
-    //   path: SELLER_ROUTES.MARKETING.SURVEYS.VIEW(),
-    //   Component: lazy(() => import("@/modules/survey/features/market-research-detail")),
-    // },
-    // {
-    //   path: SELLER_ROUTES.MARKETING.SURVEYS.EDIT(),
-    //   Component: lazy(() => import("@/modules/survey/features/market-research-create")),
-    // },
+    // Survey Routes
+    {
+      path: SELLER_ROUTES.MARKETING.SURVEYS.LIST,
+      Component: lazy(() => import("@/modules/survey/features/panel/survey-list")),
+    },
+    {
+      path: SELLER_ROUTES.MARKETING.SURVEYS.CREATE,
+      Component: lazy(() => import("@/modules/survey/features/panel/survey-form-wizard")),
+    },
+    {
+      path: SELLER_ROUTES.MARKETING.SURVEYS.VIEW(),
+      Component: lazy(() => import("@/modules/survey/features/panel/survey-detail")),
+    },
+    {
+      path: SELLER_ROUTES.MARKETING.SURVEYS.EDIT(),
+      Component: lazy(() => import("@/modules/survey/features/panel/survey-form-wizard")),
+    },
     // Promotions Routes
     {
       path: SELLER_ROUTES.MARKETING.PROMOTIONS.LIST,

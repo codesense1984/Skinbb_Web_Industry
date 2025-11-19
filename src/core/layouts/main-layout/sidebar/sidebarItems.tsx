@@ -467,17 +467,16 @@ export const sellerSidebarItems: Readonly<Record<string, SidebarItem>> = {
         />
       </svg>
     ),
-    children: ["discount-coupons"],
+    children: ["discount-coupons", "surveys"],
   },
   "discount-coupons": {
     name: "Discount Coupons",
     href: SELLER_ROUTES.MARKETING.DISCOUNT_COUPONS.LIST,
   },
-  // TODO: Uncomment when survey functionality is ready
-  // surveys: {
-  //   name: "Surveys",
-  //   href: SELLER_ROUTES.MARKETING.SURVEYS.LIST,
-  // },
+  surveys: {
+    name: "Surveys",
+    href: SELLER_ROUTES.MARKETING.SURVEYS.LIST,
+  },
   // TODO: Uncomment when promotion functionality is ready
   // promotions: {
   //   name: "Promotions",

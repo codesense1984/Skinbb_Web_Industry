@@ -9,25 +9,25 @@ export const surveyRoutes: RouteObject = {
     {
       path: SURVEY_ROUTES.LIST,
       Component: lazy(
-        () => import("@/modules/survey/features/market-research-list"),
+        () => import("@/modules/survey/features/panel/survey-list"),
       ),
     },
     {
       path: SURVEY_ROUTES.CREATE,
       Component: lazy(
-        () => import("@/modules/survey/features/market-research-create"),
+        () => import("@/modules/survey/features/panel/survey-form-wizard"),
       ),
     },
     {
       path: SURVEY_ROUTES.EDIT(),
       Component: lazy(
-        () => import("@/modules/survey/features/market-research-create"),
+        () => import("@/modules/survey/features/panel/survey-form-wizard"),
       ),
     },
     {
       path: SURVEY_ROUTES.DETAIL(),
       Component: lazy(
-        () => import("@/modules/survey/features/market-research-detail"),
+        () => import("@/modules/survey/features/panel/survey-detail"),
       ),
     },
   ],

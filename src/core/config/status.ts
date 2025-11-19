@@ -114,11 +114,17 @@ export const STATUS_MAP: Record<ModuleType, Record<string, StatusStyle>> = {
       textColor: "text-gray-700",
       bgColor: "bg-gray-100",
     },
-    running: {
-      label: "Running",
-      value: "running",
-      textColor: "text-green-700",
-      bgColor: "bg-green-100",
+    active: {
+      label: "Active",
+      value: "active",
+      textColor: "text-blue-700",
+      bgColor: "bg-blue-100",
+    },
+    paused: {
+      label: "Paused",
+      value: "paused",
+      textColor: "text-yellow-700",
+      bgColor: "bg-yellow-100",
     },
     completed: {
       label: "Completed",
@@ -126,11 +132,11 @@ export const STATUS_MAP: Record<ModuleType, Record<string, StatusStyle>> = {
       textColor: "text-indigo-700",
       bgColor: "bg-indigo-100",
     },
-    paused: {
-      label: "Paused",
-      value: "paused",
-      textColor: "text-yellow-700",
-      bgColor: "bg-yellow-100",
+    running: {
+      label: "Running",
+      value: "running",
+      textColor: "text-green-700",
+      bgColor: "bg-green-100",
     },
     cancelled: {
       label: "Cancelled",
@@ -141,12 +147,6 @@ export const STATUS_MAP: Record<ModuleType, Record<string, StatusStyle>> = {
     scheduled: {
       label: "Scheduled",
       value: "scheduled",
-      textColor: "text-blue-700",
-      bgColor: "bg-blue-100",
-    },
-    active: {
-      label: "Active",
-      value: "active",
       textColor: "text-blue-700",
       bgColor: "bg-blue-100",
     },

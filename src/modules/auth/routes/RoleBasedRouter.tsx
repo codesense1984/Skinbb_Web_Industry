@@ -8,6 +8,7 @@ import { useAuth } from "../hooks/useAuth";
 import { ROLE } from "../types/permission.type.";
 import { surveyRoutes } from "@/modules/survey/routes";
 import { analyticsRoutes } from "@/modules/analytics/routes";
+import { appUserSurveyRoutes } from "@/modules/app-user/routes";
 
 const RoleBasedRouter: React.FC = () => {
   const { user, isLoading, isError, signOut, role } = useAuth();
@@ -29,7 +30,7 @@ const RoleBasedRouter: React.FC = () => {
   } else if (role === ROLE.SELLER) {
     routes = [sellerRoutes];
   } else {
-    // Default customer routes or unauthorized
+    // Customer routes - include survey routes
     routes = [
       {
         path: "/",
@@ -40,6 +41,7 @@ const RoleBasedRouter: React.FC = () => {
           </div>
         ),
       },
+      appUserSurveyRoutes,
       {
         path: "*",
         element: (
