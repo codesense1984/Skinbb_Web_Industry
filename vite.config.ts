@@ -10,35 +10,14 @@ export default defineConfig({
     port: 5174,
   },
   build: {
-    chunkSizeWarningLimit: 2000,
-    target: "esnext",
+    // chunkSizeWarningLimit: 2000,
+    // target: "esnext",
     // Reduce memory usage during build
-    assetsInlineLimit: 4096,
-    rollupOptions: {
-      output: {
-        // Limit concurrent chunk processing
-        manualChunks: (id) => {
-          // Vendor chunks
-          if (id.includes("node_modules")) {
-            if (
-              id.includes("react") ||
-              id.includes("react-dom") ||
-              id.includes("react-router")
-            ) {
-              return "vendor-react";
-            }
-            if (id.includes("@radix-ui")) {
-              return "vendor-ui";
-            }
-            if (id.includes("@tanstack")) {
-              return "vendor-query";
-            }
-            return "vendor";
-          }
-        },
-      },
-    },
+    // assetsInlineLimit: 4096,
+    // rollupOptions: {
+    // output: {},
   },
+
   resolve: {
     alias: {
       "@": "/src",
