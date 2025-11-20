@@ -10,12 +10,32 @@ export default defineConfig({
     port: 5174,
   },
   build: {
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 2000,
+    target: "esnext",
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router'],
-          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
+        manualChunks: (id) => {
+          // Separate large JSON data into its own chunk
+          if (id.includes("cleaned-data.json")) {
+            return "data";
+          }
+          // Vendor chunks
+          if (id.includes("node_modules")) {
+            if (
+              id.includes("react") ||
+              id.includes("react-dom") ||
+              id.includes("react-router")
+            ) {
+              return "vendor-react";
+            }
+            if (id.includes("@radix-ui")) {
+              return "vendor-ui";
+            }
+            if (id.includes("@tanstack")) {
+              return "vendor-query";
+            }
+            return "vendor";
+          }
         },
       },
     },
