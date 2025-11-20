@@ -42,12 +42,6 @@ export const OrderTimeline: React.FC<OrderTimelineProps> = ({
   const currentStatus = statusResponse?.data?.currentStatus;
   const statusDescription = statusResponse?.data?.statusDescription;
   const nextStep = statusResponse?.data?.nextStep;
-  // Try multiple possible field names for cancellation reason
-  const cancellationReason =
-    statusResponse?.data?.cancellationReason ||
-    statusResponse?.data?.cancelReason ||
-    statusResponse?.data?.cancellation_reason ||
-    statusResponse?.data?.cancel_reason;
   const cancellationReason = statusResponse?.data?.cancellationReason;
 
   const formatTimelineDate = (timestamp: string) => {
@@ -156,20 +150,6 @@ export const OrderTimeline: React.FC<OrderTimelineProps> = ({
                               </div>
                             )}
                           </div>
-                    return (
-                      <div key={index} className={`relative flex items-start gap-4 ${isLast ? "" : "pb-6"}`}>
-                        {/* Timeline node */}
-                        <div className="relative z-10 flex-shrink-0">
-                          {isCompleted ? (
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-600">
-                              <CheckCircleIcon className="h-5 w-5 text-white" />
-                            </div>
-                          ) : (
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-gray-300 bg-white">
-                              <ClockIcon className="h-4 w-4 text-gray-400" />
-                            </div>
-                          )}
-                        </div>
 
                           {/* Content */}
                           <div className="flex-1">
@@ -273,12 +253,6 @@ export const OrderTimelineInline: React.FC<OrderTimelineInlineProps> = ({
   const currentStatus = statusResponse?.data?.currentStatus;
   const statusDescription = statusResponse?.data?.statusDescription;
   const nextStep = statusResponse?.data?.nextStep;
-  // Try multiple possible field names for cancellation reason
-  const cancellationReason =
-    statusResponse?.data?.cancellationReason ||
-    statusResponse?.data?.cancelReason ||
-    statusResponse?.data?.cancellation_reason ||
-    statusResponse?.data?.cancel_reason;
   const cancellationReason = statusResponse?.data?.cancellationReason;
 
   const formatTimelineDate = (timestamp: string) => {
@@ -371,7 +345,6 @@ export const OrderTimelineInline: React.FC<OrderTimelineInlineProps> = ({
                   key={index}
                   className={`relative flex items-start gap-4 ${isLast ? "" : "pb-6"}`}
                 >
-                <div key={index} className={`relative flex items-start gap-4 ${isLast ? "" : "pb-6"}`}>
                   {/* Timeline node */}
                   <div className="relative z-10 flex-shrink-0">
                     {isCompleted ? (

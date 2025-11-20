@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
+import type { AxiosError } from "axios";
 import { Button } from "@/core/components/ui/button";
 import {
   Card,
@@ -85,7 +86,7 @@ export default function OrderView() {
       setIsCancelDialogOpen(false);
       setCancelReason("");
     },
-    onError: (error: any) => {
+    onError: (error: AxiosError<{ message?: string }>) => {
       toast.error(
         error?.response?.data?.message ||
           "Failed to cancel order. Please try again.",
@@ -107,7 +108,7 @@ export default function OrderView() {
       receipt?: string;
     }) => apiRefundOrderByAdmin(id!, data),
     onSuccess: (response) => {
-      toast.success(response.data.message || "Refund initiated successfully");
+      toast.success(response.message || "Refund initiated successfully");
       queryClient.invalidateQueries({ queryKey: ["order-details", id] });
       queryClient.invalidateQueries({ queryKey: ["order-status", id] });
       setIsRefundDialogOpen(false);
@@ -115,7 +116,7 @@ export default function OrderView() {
       setRefundAmount("");
       setRefundNotes("");
     },
-    onError: (error: any) => {
+    onError: (error: AxiosError<{ message?: string }>) => {
       toast.error(
         error?.response?.data?.message ||
           "Failed to initiate refund. Please try again.",
@@ -142,7 +143,7 @@ export default function OrderView() {
         refundAmount > 0
       ) {
         // Ensure amount doesn't exceed order total
-        const maxAmount = order.totalAmount;
+        const maxAmount = order?.totalAmount || 0;
         refundData.amount = Math.min(refundAmount, maxAmount);
       }
 
@@ -152,7 +153,7 @@ export default function OrderView() {
         };
       }
 
-      refundData.receipt = `Refund-${order.orderNumber}`;
+      refundData.receipt = `Refund-${order?.orderNumber || ""}`;
 
       refundOrderMutation.mutate(refundData);
     }
@@ -270,16 +271,9 @@ export default function OrderView() {
                   {order.orderStatus}
                 </p>
                 {order.orderStatus === "cancelled" &&
-                  (order.cancellationReason ||
-                    (order as any).cancelReason ||
-                    (order as any).cancellation_reason ||
-                    (order as any).cancel_reason) && (
+                  order.cancellationReason && (
                     <p className="text-xs text-gray-600 italic">
-                      Reason:{" "}
-                      {order.cancellationReason ||
-                        (order as any).cancelReason ||
-                        (order as any).cancellation_reason ||
-                        (order as any).cancel_reason}
+                      Reason: {order.cancellationReason}
                     </p>
                   )}
               </div>
@@ -355,19 +349,13 @@ export default function OrderView() {
                 </div>
               )}
               {order.orderStatus === "cancelled" &&
-                (order.cancellationReason ||
-                  (order as any).cancelReason ||
-                  (order as any).cancellation_reason ||
-                  (order as any).cancel_reason) && (
+                order.cancellationReason && (
                   <div className="flex items-start justify-between border-b border-gray-100 py-3">
                     <span className="text-sm font-medium text-gray-600">
                       Cancellation Reason
                     </span>
                     <span className="max-w-[60%] text-right text-sm text-gray-900">
-                      {order.cancellationReason ||
-                        (order as any).cancelReason ||
-                        (order as any).cancellation_reason ||
-                        (order as any).cancel_reason}
+                      {order.cancellationReason}
                     </span>
                   </div>
                 )}
