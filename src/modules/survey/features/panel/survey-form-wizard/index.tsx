@@ -113,6 +113,22 @@ const SurveyFormWizard = () => {
     },
   });
 
+  // Check if survey is paid and prevent editing
+  useEffect(() => {
+    if (isEdit && surveyData?.data?.data && !isLoadingSurvey) {
+      const survey = surveyData.data.data;
+      const isPaid = survey.paymentStatus === "paid";
+      
+      if (isPaid) {
+        toast.error("Cannot edit survey after payment is completed. You can only view the survey.");
+        const viewRoute = isSellerRoute && id
+          ? SELLER_ROUTES.MARKETING.SURVEYS.VIEW(id)
+          : id ? SURVEY_ROUTES.DETAIL(id) : listRoute;
+        navigate(viewRoute);
+      }
+    }
+  }, [isEdit, surveyData, isLoadingSurvey, isSellerRoute, id, navigate, listRoute]);
+
   const form = useForm<SurveyFormData>({
     resolver: zodResolver(surveyFormSchema),
     mode: "onChange",
@@ -139,10 +155,10 @@ const SurveyFormWizard = () => {
   // Load survey data for edit
   useEffect(() => {
     if (isEdit && surveyData?.data && !isLoadingSurvey) {
-      const survey = surveyData.data;
+      const surveyD = surveyData.data;
       
       // Ensure questions array has at least default values for options if MCQ
-      const mappedQuestions = survey.questions?.map((q: Question) => {
+      const mappedQuestions = surveyD.questions?.map((q: Question) => {
         const questionData: {
           questionText: string;
           type: string;
@@ -177,11 +193,13 @@ const SurveyFormWizard = () => {
         return questionData;
       }) || [];
 
+      const survey = surveyD.survey;
+
       form.reset({
         title: survey.title || "",
         description: survey.description || "",
         type: survey.type || SURVEY_DEFAULTS.surveyType,
-        startDate: undefined, // Start date not in backend model, can be added later
+        startDate: survey.createdAt, // Start date not in backend model, can be added later
         priceMultiplier: survey.priceMultiplier ?? SURVEY_DEFAULTS.priceMultiplier,
         reward: survey.reward ?? SURVEY_DEFAULTS.reward,
         locationTarget: survey.locationTarget || SURVEY_DEFAULTS.locationTarget,
@@ -232,6 +250,7 @@ const SurveyFormWizard = () => {
   const handleSubmit = async (): Promise<string | null> => {
     const isValid = await form.trigger();
     if (!isValid) {
+        console.log("Form is not valid", form.formState.errors, form.getValues());
       toast.error("Please fix all errors before submitting");
       return null;
     }
@@ -268,7 +287,18 @@ const SurveyFormWizard = () => {
       } else {
         // Use the launch mutation to avoid auto-navigation
         const response = await createMutationForLaunch.mutateAsync(payload);
-        return response.data._id;
+        // Response structure from API: { statusCode, success, message, data: { survey: { _id or id, ... } } }
+        // The response from mutation is: { statusCode, success, message, data: { survey: {...} } }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const responseData = (response as any)?.data;
+        // Handle nested survey object or direct survey data
+        const survey = responseData?.survey || responseData;
+        const surveyId = survey?._id || survey?.id;
+        if (!surveyId) {
+          console.error("Survey ID not found in response:", response);
+          throw new Error("Failed to get survey ID from response");
+        }
+        return surveyId;
       }
     } catch (error) {
       console.error("Error saving survey:", error);
@@ -340,7 +370,7 @@ const SurveyFormWizard = () => {
             <div className="flex justify-between items-center mt-8 pt-6 border-t">
               <Button
                 type="button"
-                variant="outline"
+                variant="outlined"
                 onClick={handleBack}
                 disabled={createMutation.isPending || createMutationForLaunch.isPending || updateMutation.isPending}
               >

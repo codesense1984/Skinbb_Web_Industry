@@ -15,9 +15,10 @@ import { apiGetSurveys } from "@/modules/survey/services/survey.service";
 import type { Survey, SurveyListParams } from "@/modules/survey/types/survey.types";
 import { SURVEY_ROUTES } from "@/modules/survey/routes/constant";
 import { useCallback, useMemo } from "react";
-import { useLocation } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { DEFAULT_PAGE_SIZE } from "@/modules/panel/components/data-view";
 import { SELLER_ROUTES } from "@/modules/seller/routes/constant";
+import { PencilSquareIcon } from "@heroicons/react/24/outline";
 
 // Survey fetcher for DataView component
 const createSurveyFetcher = (): ServerDataFetcher<Survey> => {
@@ -84,6 +85,7 @@ const SurveyFilters = () => {
 const getColumns = (
   handleDeleteSurvey: (id: string) => void,
   isSellerRoute: boolean,
+  navigate: (path: string) => void,
 ) => [
   {
     header: "Title",
@@ -191,6 +193,10 @@ const getColumns = (
         isSellerRoute 
           ? SELLER_ROUTES.MARKETING.SURVEYS.VIEW(id)
           : SURVEY_ROUTES.DETAIL(id);
+      const getRespondRoute = (id: string) => 
+        isSellerRoute 
+          ? undefined // Sellers don't have respond route
+          : SURVEY_ROUTES.RESPOND(id);
       
       return (
         <TableAction
@@ -204,7 +210,18 @@ const getColumns = (
             onClick: () => handleDeleteSurvey(survey._id),
             title: "Delete survey",
           }}
-        />
+        >
+          {!isSellerRoute && getRespondRoute(survey._id) && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate(getRespondRoute(survey._id)!)}
+              title="Respond to survey"
+            >
+              <PencilSquareIcon className="h-4 w-4" />
+            </Button>
+          )}
+        </TableAction>
       );
     },
   },
@@ -214,6 +231,7 @@ const getColumns = (
 const SurveyList = () => {
   const deleteSurveyMutation = useDeleteSurvey();
   const location = useLocation();
+  const navigate = useNavigate();
   
   // Detect if we're in seller routes
   const isSellerRoute = location.pathname.includes("/marketing/surveys");
@@ -234,8 +252,8 @@ const SurveyList = () => {
   );
 
   const columns = useMemo(
-    () => getColumns(handleDeleteSurvey, isSellerRoute),
-    [handleDeleteSurvey, isSellerRoute],
+    () => getColumns(handleDeleteSurvey, isSellerRoute, navigate),
+    [handleDeleteSurvey, isSellerRoute, navigate],
   );
 
   return (

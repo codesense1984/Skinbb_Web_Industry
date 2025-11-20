@@ -10,4 +10,5 @@ export const SURVEY_ROUTES = {
   EDIT: (id: string = ROUTE.seg.id) =>
     ROUTE.build(SURVEY_BASE, id, ROUTE.seg.edit), // /survey/:id/edit
   DETAIL: (id: string = ROUTE.seg.id) => ROUTE.build(SURVEY_BASE, id), // /survey/:id
+  RESPOND: (id: string = ROUTE.seg.id) => ROUTE.build(SURVEY_BASE, id, "respond"), // /survey/:id/respond
 };

@@ -30,5 +30,11 @@ export const surveyRoutes: RouteObject = {
         () => import("@/modules/survey/features/panel/survey-detail"),
       ),
     },
+    {
+      path: SURVEY_ROUTES.RESPOND(),
+      Component: lazy(
+        () => import("@/modules/survey/features/panel/survey-respond"),
+      ),
+    },
   ],
 };

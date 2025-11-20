@@ -148,14 +148,16 @@ export async function apiVerifySurveyPayment(
 
 export async function apiGetSurveyPaymentStatus(
   surveyId: string,
+  entityId?: string,
   signal?: AbortSignal,
 ): Promise<{
   statusCode: number;
   success: boolean;
   message: string;
-  data: PaymentStatusResponse;
+  data: PaymentStatusResponse & { survey?: Survey };
 }> {
-  return api.get(`${SURVEY_BASE}/${surveyId}/payment/status`, { signal });
+  const params = entityId ? { entityId } : undefined;
+  return api.get(`${SURVEY_BASE}/${surveyId}/payment/status`, { params, signal });
 }
 
 // Respondent/App APIs

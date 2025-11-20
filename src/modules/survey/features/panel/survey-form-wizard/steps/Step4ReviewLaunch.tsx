@@ -2,7 +2,6 @@ import { useForm } from "react-hook-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
 import { StatusBadge } from "@/core/components/ui/badge";
 import { formatCurrency } from "@/core/utils/number";
-import { formatDate } from "@/core/utils/date";
 import { Button } from "@/core/components/ui/button";
 import {
   AlertDialog,
@@ -16,8 +15,9 @@ import {
 } from "@/core/components/ui/alert-dialog";
 import { useState, useEffect } from "react";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
-import { useInitiateSurveyPayment, useVerifySurveyPayment } from "@/modules/survey/hooks";
+import { useInitiateSurveyPayment, useVerifySurveyPayment, useSurvey } from "@/modules/survey/hooks";
 import { useRazorpayPayment } from "@/modules/survey/hooks/useRazorpayPayment";
+import { razorpayKeyId } from "@/core/config/baseUrls";
 import { toast } from "sonner";
 import type { SurveyFormData } from "../index";
 
@@ -27,24 +27,38 @@ interface Step4ReviewLaunchProps {
   surveyId?: string;
 }
 
-const Step4ReviewLaunch = ({ form, onSubmit, surveyId }: Step4ReviewLaunchProps) => {
+const Step4ReviewLaunch = ({ form, onSubmit }: Step4ReviewLaunchProps) => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showSuccessScreen, setShowSuccessScreen] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [savedSurveyId, setSavedSurveyId] = useState<string | null>(null);
+  const [paymentInfo, setPaymentInfo] = useState<{
+    amount: number;
+    status: string;
+    needsPayment: boolean;
+  } | null>(null);
 
   const initiateMutation = useInitiateSurveyPayment();
   const verifyMutation = useVerifySurveyPayment();
   const { openRazorpayCheckout } = useRazorpayPayment();
+  
+  // Fetch saved survey to get backend-calculated totalPrice and entityId
+  const { data: savedSurveyResponse } = useSurvey(savedSurveyId || undefined, !!savedSurveyId);
+  const savedSurvey = savedSurveyResponse?.data;
 
   const formData = form.getValues();
-  const estimatedCost = formData.questions.reduce((sum, q) => {
+  
+  // Use payment info totalPrice if available, otherwise use backend-calculated totalPrice, or calculate estimate
+  const totalPriceToPay = paymentInfo?.amount ?? savedSurvey?.totalPrice ?? (formData.questions.reduce((sum, q) => {
     return sum + (q.basePrice || 0);
-  }, 0) * (formData.priceMultiplier || 1);
+  }, 0) * (formData.priceMultiplier || 1));
 
   // Expose dialog trigger to parent
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window as any).__triggerLaunchDialog = () => setShowConfirmDialog(true);
     return () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (window as any).__triggerLaunchDialog;
     };
   }, []);
@@ -56,6 +70,8 @@ const Step4ReviewLaunch = ({ form, onSubmit, surveyId }: Step4ReviewLaunchProps)
     try {
       // First, save the survey (create or update) and get the survey ID
       const savedId = await onSubmit();
+
+      console.log("Saved ID:", savedId);
       
       if (!savedId) {
         setIsProcessingPayment(false);
@@ -63,7 +79,10 @@ const Step4ReviewLaunch = ({ form, onSubmit, surveyId }: Step4ReviewLaunchProps)
         return;
       }
 
-      // Then initiate payment
+      // Set saved survey ID to fetch backend-calculated totalPrice
+      setSavedSurveyId(savedId);
+      
+      // Initiate payment - the backend will calculate the correct amount
       await initiatePayment(savedId);
     } catch (error) {
       console.error("Error launching survey:", error);
@@ -80,41 +99,53 @@ const Step4ReviewLaunch = ({ form, onSubmit, surveyId }: Step4ReviewLaunchProps)
       console.log("Payment initiation response:", response);
       
       // Extract payment data from the response structure
-      // Response structure: { statusCode, success, message, data: { payment: {...}, razorpayOrder: {...} } }
-      const responseData = response?.data?.data || response?.data;
+      // Actual API response: { statusCode, success, message, data: { payment: {...}, razorpayOrder: {...} } }
+      // The response from the service is: { statusCode, success, message, data: { payment, razorpayOrder } }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const responseData = (response as any)?.data;
       
       if (!responseData) {
         throw new Error("Invalid payment response from server");
       }
 
-      const payment = responseData.payment;
-      const razorpayOrder = responseData.razorpayOrder;
+      // Handle both possible response structures
+      const payment = responseData.payment || responseData.data?.payment;
+      const razorpayOrder = responseData.razorpayOrder || responseData.data?.razorpayOrder;
 
       if (!payment || !razorpayOrder) {
+        console.error("Response structure:", responseData);
         throw new Error("Missing payment or razorpay order information");
       }
 
       // Extract payment details from the actual API response structure
       // Response: { statusCode, data: { payment: {...}, razorpayOrder: {...} }, message, success }
       const razorpayOrderId = razorpayOrder.id || payment.paymentDetails?.razorpayOrderId;
-      const amount = razorpayOrder.amount; // Amount in paise (e.g., 500 = ₹5)
+      const amount = razorpayOrder.amount; // Amount in paise (e.g., 250 = ₹2.50)
       const currency = razorpayOrder.currency || payment.currency || "INR";
       
+      // Update payment info with the actual Razorpay amount (convert from paise to rupees for display)
+      const amountInRupees = amount / 100;
+      setPaymentInfo({
+        amount: amountInRupees,
+        status: payment.status || "pending",
+        needsPayment: true,
+      });
+      
       // Razorpay key - check multiple possible locations in response
-      // The backend should include this in the response, but we check multiple places
+      // Fallback to environment variable if backend doesn't provide it
       const razorpayKey = 
         responseData.razorpayKey || 
         payment.razorpayKey || 
         payment.paymentDetails?.razorpayKey ||
-        responseData.razorpay?.key;
+        responseData.razorpay?.key ||
+        razorpayKeyId; // Fallback to environment variable
       
       console.log("Extracted payment info:", {
         razorpayOrderId,
         amount,
         currency,
         hasKey: !!razorpayKey,
-        responseDataKeys: responseData ? Object.keys(responseData) : [],
-        paymentKeys: payment ? Object.keys(payment) : [],
+        keySource: responseData.razorpayKey ? "response" : payment.razorpayKey ? "payment" : "env",
       });
 
       // Validate payment info
@@ -128,7 +159,7 @@ const Step4ReviewLaunch = ({ form, onSubmit, surveyId }: Step4ReviewLaunchProps)
       }
 
       if (!razorpayKey) {
-        console.error("Razorpay key not found in response. Backend should include razorpayKey in the payment initiation response.");
+        console.error("Razorpay key not found. Checked response, payment object, and environment variable.");
         throw new Error("Razorpay configuration missing. Please contact support.");
       }
 
@@ -158,10 +189,11 @@ const Step4ReviewLaunch = ({ form, onSubmit, surveyId }: Step4ReviewLaunchProps)
             setShowSuccessScreen(true);
             setIsProcessingPayment(false);
             toast.success("Payment completed successfully! Survey will go live in 24 hours.");
-          } catch (error: any) {
+          } catch (error) {
             console.error("Payment verification failed:", error);
             setIsProcessingPayment(false);
-            toast.error(error?.message || "Payment verification failed. Please contact support.");
+            const errorMessage = error instanceof Error ? error.message : "Payment verification failed. Please contact support.";
+            toast.error(errorMessage);
           }
         },
         onError: (error: Error) => {
@@ -170,10 +202,17 @@ const Step4ReviewLaunch = ({ form, onSubmit, surveyId }: Step4ReviewLaunchProps)
           toast.error(error.message || "Payment failed");
         },
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Payment initiation error:", error);
       setIsProcessingPayment(false);
-      const errorMessage = error?.response?.data?.message || error?.message || "Failed to initiate payment";
+      let errorMessage = "Failed to initiate payment";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (error && typeof error === "object" && "response" in error) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const axiosError = error as any;
+        errorMessage = axiosError?.response?.data?.message || axiosError?.message || errorMessage;
+      }
       toast.error(errorMessage);
     }
   };
@@ -194,7 +233,7 @@ const Step4ReviewLaunch = ({ form, onSubmit, surveyId }: Step4ReviewLaunchProps)
           <CardContent className="pt-6 space-y-4">
             <div className="flex justify-between">
               <span className="text-gray-600">Total Amount</span>
-              <span className="font-semibold">{formatCurrency(estimatedCost)}</span>
+              <span className="font-semibold">{formatCurrency(totalPriceToPay)}</span>
             </div>
             <div className="pt-4 border-t">
               <p className="text-sm text-gray-500">
@@ -229,22 +268,22 @@ const Step4ReviewLaunch = ({ form, onSubmit, surveyId }: Step4ReviewLaunchProps)
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-gray-500">Title</label>
+                <div className="text-sm font-medium text-gray-500">Title</div>
                 <p className="text-lg font-semibold">{formData.title}</p>
               </div>
               {formData.description && (
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Description</label>
+                  <div className="text-sm font-medium text-gray-500">Description</div>
                   <p className="text-sm">{formData.description}</p>
                 </div>
               )}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Type</label>
+                  <div className="text-sm font-medium text-gray-500">Type</div>
                   <p className="text-sm capitalize">{formData.type}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Location Target</label>
+                  <div className="text-sm font-medium text-gray-500">Location Target</div>
                   <p className="text-sm">
                     {formData.locationTarget}
                     {formData.locationTarget === "Metro" && formData.targetMetro
@@ -306,7 +345,7 @@ const Step4ReviewLaunch = ({ form, onSubmit, surveyId }: Step4ReviewLaunchProps)
               <div>
                 <p className="text-sm text-gray-500">Estimated Cost</p>
                 <p className="text-2xl font-bold text-primary">
-                  {formatCurrency(estimatedCost)}
+                  {formatCurrency(totalPriceToPay)}
                 </p>
               </div>
               <div>
@@ -329,6 +368,12 @@ const Step4ReviewLaunch = ({ form, onSubmit, surveyId }: Step4ReviewLaunchProps)
                     : ""}
                 </p>
               </div>
+              <div className="pt-4 border-t">
+                <p className="text-sm font-medium text-gray-700 mb-1">Total Price to be paid</p>
+                <p className="text-2xl font-bold text-primary">
+                  {formatCurrency(totalPriceToPay)}
+                </p>
+              </div>
               <div>
                 <p className="text-sm text-gray-500">Payment Status</p>
                 <StatusBadge module="payment" status="pending" variant="badge">
@@ -345,12 +390,16 @@ const Step4ReviewLaunch = ({ form, onSubmit, surveyId }: Step4ReviewLaunchProps)
         </div>
       </div>
 
+      <Button onClick={() => setShowConfirmDialog(true)}>
+        Launch Survey
+      </Button>
+
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirm Survey Launch</AlertDialogTitle>
             <AlertDialogDescription>
-              You're about to launch this survey. You'll be redirected to complete the payment ({formatCurrency(estimatedCost)}). Once payment is completed, the survey will go live in 24 hours. Do you want to proceed?
+              You&apos;re about to launch this survey. You&apos;ll be redirected to complete the payment ({formatCurrency(totalPriceToPay)}). Once payment is completed, the survey will go live in 24 hours. Do you want to proceed?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
