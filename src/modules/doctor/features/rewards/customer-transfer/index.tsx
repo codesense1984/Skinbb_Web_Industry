@@ -5,4 +5,3 @@ const CustomerTransferRewards = () => {
 };
 
 export default CustomerTransferRewards;
-

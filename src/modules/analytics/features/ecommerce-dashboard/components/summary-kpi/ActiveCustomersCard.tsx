@@ -8,7 +8,10 @@ interface ActiveCustomersCardProps {
   data?: AnalyticsOverviewData;
 }
 
-export const ActiveCustomersCard: React.FC<ActiveCustomersCardProps> = ({ className, data }) => {
+export const ActiveCustomersCard: React.FC<ActiveCustomersCardProps> = ({
+  className,
+  data,
+}) => {
   const activeCustomers = data?.activeCustomers ?? 0;
   const formattedCount = activeCustomers.toLocaleString();
 
@@ -18,7 +21,7 @@ export const ActiveCustomersCard: React.FC<ActiveCustomersCardProps> = ({ classN
       value={formattedCount}
       barColor="bg-chart-1"
       icon={
-        <div className="bg-[var(--chart-1)]/20 rounded-full p-3 flex items-center justify-center">
+        <div className="flex items-center justify-center rounded-full bg-[var(--chart-1)]/20 p-3">
           <UsersIcon className="h-6 w-6 text-[var(--chart-1)]" />
         </div>
       }

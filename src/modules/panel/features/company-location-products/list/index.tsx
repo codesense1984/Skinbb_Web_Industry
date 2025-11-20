@@ -37,11 +37,14 @@ const CompanyLocationProductsList: React.FC = () => {
       <PageContent
         header={{
           title: "Products",
-          description: "Company ID and Location ID are required to view products.",
+          description:
+            "Company ID and Location ID are required to view products.",
         }}
       >
         <div className="py-8 text-center">
-          <p className="text-gray-500">Invalid company or location ID provided.</p>
+          <p className="text-gray-500">
+            Invalid company or location ID provided.
+          </p>
         </div>
       </PageContent>
     );
@@ -54,7 +57,12 @@ const CompanyLocationProductsList: React.FC = () => {
         description: "Manage products for this company location.",
         actions: (
           <Button color={"primary"} asChild>
-            <NavLink to={PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_CREATE(companyId, locationId)}>
+            <NavLink
+              to={PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_CREATE(
+                companyId,
+                locationId,
+              )}
+            >
               Add Product
             </NavLink>
           </Button>

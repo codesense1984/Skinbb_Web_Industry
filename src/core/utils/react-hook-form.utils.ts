@@ -21,7 +21,8 @@ export const handleFormErrors = (error: unknown) => {
         typeof (fieldError as Record<string, unknown>).message === "string"
       ) {
         const displayName = fieldNames[fieldName] || fieldName;
-        const message = (fieldError as Record<string, unknown>).message as string;
+        const message = (fieldError as Record<string, unknown>)
+          .message as string;
         errorMessages.push(`${displayName}: ${message}`);
       }
     });

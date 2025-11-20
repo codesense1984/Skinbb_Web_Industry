@@ -21,7 +21,7 @@ const OrdersButton = ({ customerId }: { customerId: string }) => {
 
   return (
     <Button
-      variant="outline"
+      variant="outlined"
       size="sm"
       onClick={handleViewOrders}
       className="w-max"
@@ -43,7 +43,10 @@ const CustomerActions = ({ customerId }: { customerId: string }) => {
         className="size-7 border"
         startIcon={<EyeIcon className="!size-4" />}
         onClick={() => {
-          console.log("View clicked, navigating to:", PANEL_ROUTES.CUSTOMER.VIEW(customerId));
+          console.log(
+            "View clicked, navigating to:",
+            PANEL_ROUTES.CUSTOMER.VIEW(customerId),
+          );
           navigate(PANEL_ROUTES.CUSTOMER.VIEW(customerId));
         }}
         title="View customer details"

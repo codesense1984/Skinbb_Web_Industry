@@ -14,7 +14,7 @@ export const columns = (): ColumnDef<ProductAttributeValueResponse>[] => [
           <div className="font-medium">{value.label}</div>
           {value.colorCode && (
             <div
-              className="w-4 h-4 rounded-full border border-gray-300"
+              className="h-4 w-4 rounded-full border border-gray-300"
               style={{ backgroundColor: value.colorCode }}
               title={`Color: ${value.colorCode}`}
             />

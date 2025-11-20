@@ -110,7 +110,9 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
   });
 
   // Filter out email field from rawInfoFields since we'll render it separately
-  const filteredInfoFields = rawInfoFields.filter((field) => field.name !== "email");
+  const filteredInfoFields = rawInfoFields.filter(
+    (field) => field.name !== "email",
+  );
 
   return (
     <>
@@ -174,7 +176,9 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
               ) : undefined,
           }}
           disabled={
-            mode === MODE.EDIT || emailVerified || sendEmailOtpMutation.isPending
+            mode === MODE.EDIT ||
+            emailVerified ||
+            sendEmailOtpMutation.isPending
           }
         />
 

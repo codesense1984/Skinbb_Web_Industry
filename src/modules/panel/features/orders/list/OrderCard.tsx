@@ -26,7 +26,9 @@ export const OrderCard: FC<OrderCardProps> = ({ order }) => {
         <header className="flex items-center justify-between">
           <div className="min-w-0 flex-1">
             <h6 className="truncate font-medium">{order.orderNumber}</h6>
-            <p className="text-muted-foreground text-sm">{order.fullName || "N/A"}</p>
+            <p className="text-muted-foreground text-sm">
+              {order.fullName || "N/A"}
+            </p>
             {(order.brandName || order.brand?.name) && (
               <p className="text-muted-foreground mt-1 text-xs">
                 {order.brandName || order.brand?.name}
@@ -41,10 +43,7 @@ export const OrderCard: FC<OrderCardProps> = ({ order }) => {
         </header>
 
         <div className="grid grid-cols-2 gap-4 border-t pt-2">
-          <Stat
-            label="Amount"
-            value={formatCurrency(order.totalAmount || 0)}
-          />
+          <Stat label="Amount" value={formatCurrency(order.totalAmount || 0)} />
           <Stat
             label="Payment"
             value={(order.paymentMethod || "N/A").toUpperCase()}
@@ -58,4 +57,3 @@ export const OrderCard: FC<OrderCardProps> = ({ order }) => {
     </NavLink>
   );
 };
-

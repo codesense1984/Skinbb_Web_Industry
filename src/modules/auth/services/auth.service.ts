@@ -75,7 +75,7 @@ export async function setAuthCookies(
       cookieStorage
         .setItem(COOKIE_KEY.REFRESH, refreshToken, opts)
         .catch((error) => {
-          console.error(`Failed to save refreshToken:`, error);
+          console.error("Failed to save refreshToken:", error);
           throw error;
         }),
     );
@@ -83,7 +83,7 @@ export async function setAuthCookies(
   if (userId) {
     promises.push(
       cookieStorage.setItem(COOKIE_KEY.USER_ID, userId, opts).catch((error) => {
-        console.error(`Failed to save userId:`, error);
+        console.error("Failed to save userId:", error);
         throw error;
       }),
     );
@@ -93,7 +93,7 @@ export async function setAuthCookies(
       cookieStorage
         .setItem(COOKIE_KEY.REMEMBER, String(remember), opts)
         .catch((error) => {
-          console.error(`Failed to save remember:`, error);
+          console.error("Failed to save remember:", error);
           throw error;
         }),
     );

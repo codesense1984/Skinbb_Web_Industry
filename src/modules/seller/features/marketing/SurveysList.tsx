@@ -51,13 +51,7 @@ const columns: ColumnDef<Survey>[] = [
     header: "Status",
     cell: ({ row }) => {
       const status = row.getValue("status") as string;
-      return (
-        <StatusBadge
-          module="survey"
-          status={status}
-          variant="badge"
-        />
-      );
+      return <StatusBadge module="survey" status={status} variant="badge" />;
     },
   },
   {
@@ -92,12 +86,16 @@ const columns: ColumnDef<Survey>[] = [
       return (
         <div className="flex items-center gap-2">
           <Button variant="outlined" size="sm" asChild>
-            <NavLink to={`${SELLER_ROUTES.MARKETING.SURVEYS.EDIT(survey.id || "1")}`}>
+            <NavLink
+              to={`${SELLER_ROUTES.MARKETING.SURVEYS.EDIT(survey.id || "1")}`}
+            >
               Edit
             </NavLink>
           </Button>
           <Button variant="outlined" size="sm" asChild>
-            <NavLink to={`${SELLER_ROUTES.MARKETING.SURVEYS.VIEW(survey.id || "1")}`}>
+            <NavLink
+              to={`${SELLER_ROUTES.MARKETING.SURVEYS.VIEW(survey.id || "1")}`}
+            >
               <EyeIcon className="h-4 w-4" />
             </NavLink>
           </Button>

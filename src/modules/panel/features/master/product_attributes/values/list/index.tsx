@@ -21,11 +21,17 @@ export default function ProductAttributeValuesList() {
           description: "Manage attribute values",
         }}
       >
-        <div className="flex items-center justify-center h-64">
+        <div className="flex h-64 items-center justify-center">
           <div className="text-center">
-            <h3 className="text-lg font-medium text-gray-900">Invalid attribute</h3>
-            <p className="text-gray-500">The attribute ID or name is missing.</p>
-            <p className="text-gray-500">ID: {id}, Name: {name}</p>
+            <h3 className="text-lg font-medium text-gray-900">
+              Invalid attribute
+            </h3>
+            <p className="text-gray-500">
+              The attribute ID or name is missing.
+            </p>
+            <p className="text-gray-500">
+              ID: {id}, Name: {name}
+            </p>
           </div>
         </div>
       </PageContent>

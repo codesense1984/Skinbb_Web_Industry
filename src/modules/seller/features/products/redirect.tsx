@@ -15,7 +15,7 @@ const SellerProductsRedirect = () => {
     if (sellerInfo?.companyId) {
       navigate(
         `${PANEL_ROUTES.LISTING.LIST}?companyId=${sellerInfo.companyId}`,
-        { replace: true }
+        { replace: true },
       );
     } else {
       // If company info is not available, just go to listing page
@@ -27,4 +27,3 @@ const SellerProductsRedirect = () => {
 };
 
 export default SellerProductsRedirect;
-

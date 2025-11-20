@@ -5,4 +5,3 @@ const DoctorChatroom = () => {
 };
 
 export default DoctorChatroom;
-

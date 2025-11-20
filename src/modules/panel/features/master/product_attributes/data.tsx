@@ -9,9 +9,7 @@ export const columns = (): ColumnDef<ProductAttributeResponse>[] => [
     header: "NAME",
     cell: ({ row }) => {
       const attribute = row.original;
-      return (
-        <div className="font-medium">{attribute.name}</div>
-      );
+      return <div className="font-medium">{attribute.name}</div>;
     },
   },
   {
@@ -53,7 +51,7 @@ export const columns = (): ColumnDef<ProductAttributeResponse>[] => [
               meta.onConfigure(attribute._id, attribute.name);
             }
           }}
-          className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+          className="text-sm font-medium text-blue-600 hover:text-blue-800"
         >
           Configure
         </button>

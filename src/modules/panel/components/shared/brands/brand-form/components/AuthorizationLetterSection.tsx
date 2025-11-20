@@ -1,4 +1,7 @@
-import { FormFieldsRenderer, type FormFieldConfig } from "@/core/components/ui/form-input";
+import {
+  FormFieldsRenderer,
+  type FormFieldConfig,
+} from "@/core/components/ui/form-input";
 import { MODE } from "@/core/types";
 import type { Control } from "react-hook-form";
 import { brandFormSchema, type BrandFormData } from "../brand.schema";
@@ -8,10 +11,9 @@ interface AuthorizationLetterSectionProps {
   mode: MODE;
 }
 
-export const AuthorizationLetterSection: React.FC<AuthorizationLetterSectionProps> = ({
-  control,
-  mode,
-}) => {
+export const AuthorizationLetterSection: React.FC<
+  AuthorizationLetterSectionProps
+> = ({ control, mode }) => {
   const fieldConfigs = brandFormSchema.brand_authorization_letter.map(
     (field) => ({
       ...field,
@@ -42,4 +44,3 @@ export const AuthorizationLetterSection: React.FC<AuthorizationLetterSectionProp
     </div>
   );
 };
-

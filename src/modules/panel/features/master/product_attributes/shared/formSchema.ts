@@ -11,9 +11,14 @@ export const productAttributeFormSchema = z.object({
     .min(1, "Slug is required")
     .min(2, "Slug must be at least 2 characters")
     .max(100, "Slug must be less than 100 characters")
-    .regex(/^[a-z0-9-]+$/, "Slug must contain only lowercase letters, numbers, and hyphens"),
+    .regex(
+      /^[a-z0-9-]+$/,
+      "Slug must contain only lowercase letters, numbers, and hyphens",
+    ),
   dataType: z.enum(["array", "string", "number", "boolean"]).optional(),
-  fieldType: z.enum(["multi-select", "single-select", "text", "number", "boolean"]).optional(),
+  fieldType: z
+    .enum(["multi-select", "single-select", "text", "number", "boolean"])
+    .optional(),
   isFilterable: z.boolean().optional(),
   isRequired: z.boolean().optional(),
   isVariantField: z.boolean().optional(),
@@ -21,7 +26,9 @@ export const productAttributeFormSchema = z.object({
   sortOrder: z.number().min(0).optional(),
 });
 
-export type ProductAttributeFormData = z.infer<typeof productAttributeFormSchema>;
+export type ProductAttributeFormData = z.infer<
+  typeof productAttributeFormSchema
+>;
 
 // Helper function to generate slug from name
 export const generateSlug = (name: string): string => {

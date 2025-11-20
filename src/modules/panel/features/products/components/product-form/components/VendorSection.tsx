@@ -1,21 +1,20 @@
-import { useEffect } from 'react';
-import { useFormContext, useWatch } from 'react-hook-form';
-import { FormInput, INPUT_TYPES } from '@/core/components/ui/form-input';
-import type { FormSectionBaseProps } from '../types';
+import { FormInput, INPUT_TYPES } from "@/core/components/ui/form-input";
+import { useFormContext, useWatch } from "react-hook-form";
+import type { FormSectionBaseProps } from "../types";
 
 type VendorSectionProps = FormSectionBaseProps;
 
 const VendorSection = ({ control, errors }: VendorSectionProps) => {
   const { setValue, getValues } = useFormContext();
 
-  const importedByValue = useWatch({ control, name: 'importedBy' });
-  const marketedByValue = useWatch({ control, name: 'marketedBy' });
-  const manufacturedByValue = useWatch({ control, name: 'manufacturedBy' });
+  const importedByValue = useWatch({ control, name: "importedBy" });
+  const marketedByValue = useWatch({ control, name: "marketedBy" });
+  const manufacturedByValue = useWatch({ control, name: "manufacturedBy" });
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border">
-      <h3 className="text-lg font-semibold mb-4">Vendor Information</h3>
-      
+    <div className="rounded-lg border bg-white p-6 shadow-sm">
+      <h3 className="mb-4 text-lg font-semibold">Vendor Information</h3>
+
       <div className="space-y-4">
         <FormInput
           control={control}
@@ -34,7 +33,7 @@ const VendorSection = ({ control, errors }: VendorSectionProps) => {
           placeholder="Enter brand description"
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormInput
             control={control}
             name="marketedBy"
@@ -53,7 +52,7 @@ const VendorSection = ({ control, errors }: VendorSectionProps) => {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormInput
             control={control}
             name="manufacturedBy"
@@ -72,7 +71,7 @@ const VendorSection = ({ control, errors }: VendorSectionProps) => {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormInput
             control={control}
             name="importedBy"
@@ -91,7 +90,7 @@ const VendorSection = ({ control, errors }: VendorSectionProps) => {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormInput
             control={control}
             name="capturedBy"
@@ -108,7 +107,7 @@ const VendorSection = ({ control, errors }: VendorSectionProps) => {
             type={INPUT_TYPES.DATEPICKER}
             label="Captured Date"
             placeholder="Select captured date"
-            inputProps={{ mode: 'single' }}
+            inputProps={{ mode: "single" }}
             disabled
           />
         </div>
@@ -118,4 +117,3 @@ const VendorSection = ({ control, errors }: VendorSectionProps) => {
 };
 
 export default VendorSection;
-

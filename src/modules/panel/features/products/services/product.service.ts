@@ -1,20 +1,26 @@
 // import { apiClient } from '@/core/services/api-client';
-import type { ProductReqData } from '../types/product.types';
+import type { ProductReqData } from "../types/product.types";
 
 // Mock API client for now - replace with actual implementation
 const apiClient = {
-  post: async (_url: string, _data: any) => ({ data: { message: 'Product created successfully' } }),
-  put: async (_url: string, _data: any) => ({ data: { message: 'Product updated successfully' } }),
-  get: async (_url: string, _config?: any) => ({ data: { productAttributes: [] } }),
+  post: async (_url: string, _data: any) => ({
+    data: { message: "Product created successfully" },
+  }),
+  put: async (_url: string, _data: any) => ({
+    data: { message: "Product updated successfully" },
+  }),
+  get: async (_url: string, _config?: any) => ({
+    data: { productAttributes: [] },
+  }),
 };
 
 const PRODUCT_ENDPOINTS = {
-  CREATE: '/products',
+  CREATE: "/products",
   UPDATE: (id: string) => `/products/${id}`,
   GET_BY_ID: (id: string) => `/products/${id}`,
-  GET_ATTRIBUTES: '/product-attributes',
-  GET_ATTRIBUTE_VALUES: '/product-attribute-values',
-  GET_META_FIELDS: '/product-meta-fields',
+  GET_ATTRIBUTES: "/product-attributes",
+  GET_ATTRIBUTE_VALUES: "/product-attribute-values",
+  GET_META_FIELDS: "/product-meta-fields",
 } as const;
 
 export const apiCreateProduct = async (data: ProductReqData) => {
@@ -37,33 +43,28 @@ export const apiGetProductAttributes = async (params?: {
   page?: number;
   limit?: number;
 }) => {
-  const response = await apiClient.get(
-    PRODUCT_ENDPOINTS.GET_ATTRIBUTES,
-    { params }
-  );
+  const response = await apiClient.get(PRODUCT_ENDPOINTS.GET_ATTRIBUTES, {
+    params,
+  });
   return response.data;
 };
 
 export const apiGetProductAttributeValues = async (params: {
   attributeId: string;
 }) => {
-  const response = await apiClient.get(
-    PRODUCT_ENDPOINTS.GET_ATTRIBUTE_VALUES,
-    { params }
-  );
+  const response = await apiClient.get(PRODUCT_ENDPOINTS.GET_ATTRIBUTE_VALUES, {
+    params,
+  });
   return response.data;
 };
 
-export const apiGetProductMetaFieldAttributes = async (
-  params?: {
-    isMetadataField?: number;
-    page?: number;
-    limit?: number;
-  }
-) => {
-  const response = await apiClient.get(
-    PRODUCT_ENDPOINTS.GET_META_FIELDS,
-    { params }
-  );
+export const apiGetProductMetaFieldAttributes = async (params?: {
+  isMetadataField?: number;
+  page?: number;
+  limit?: number;
+}) => {
+  const response = await apiClient.get(PRODUCT_ENDPOINTS.GET_META_FIELDS, {
+    params,
+  });
   return response.data;
 };

@@ -34,4 +34,3 @@ export async function apiGetSellerProfile(
 ): Promise<SellerProfileResponse> {
   return api.get<SellerProfileResponse>("/api/v1/sellers/profile", { signal });
 }
-

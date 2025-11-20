@@ -84,7 +84,10 @@ const cardData: CardConfig[] = [
     title: "Marketing",
     description: "Manage discount coupons and promotional campaigns",
     buttons: [
-      { name: "Discount Coupons", href: SELLER_ROUTES.MARKETING.DISCOUNT_COUPONS.LIST },
+      {
+        name: "Discount Coupons",
+        href: SELLER_ROUTES.MARKETING.DISCOUNT_COUPONS.LIST,
+      },
       // TODO: Uncomment when survey functionality is ready
       // { name: "Surveys", href: SELLER_ROUTES.MARKETING.SURVEYS.LIST },
       // TODO: Uncomment when promotion functionality is ready
@@ -114,7 +117,10 @@ const cardData: CardConfig[] = [
     title: "Analytics",
     description: "View comprehensive insights and performance metrics",
     buttons: [
-      { name: "Seller Analytics", href: SELLER_ROUTES.ANALYTICS.SALES_INSIGHTS.BASE },
+      {
+        name: "Seller Analytics",
+        href: SELLER_ROUTES.ANALYTICS.SALES_INSIGHTS.BASE,
+      },
     ],
     requiredPermissions: {
       page: PAGE.PRODUCTS,
@@ -138,7 +144,8 @@ const cardData: CardConfig[] = [
   },
   {
     title: "Catalog Management",
-    description: "Upload and manage your product catalogs with bulk import functionality",
+    description:
+      "Upload and manage your product catalogs with bulk import functionality",
     buttons: [
       { name: "View Catalogs", href: "/catalog" },
       { name: "Add Catalog", href: "/listing/catalog" },
@@ -280,8 +287,14 @@ const cardData: CardConfig[] = [
     title: "User Settings",
     description: "Manage your permissions and account preferences",
     buttons: [
-      { name: "Permissions", href: SELLER_ROUTES.USER_SETTINGS.PERMISSIONS.BASE },
-      { name: "Preferences", href: SELLER_ROUTES.USER_SETTINGS.PREFERENCES.BASE },
+      {
+        name: "Permissions",
+        href: SELLER_ROUTES.USER_SETTINGS.PERMISSIONS.BASE,
+      },
+      {
+        name: "Preferences",
+        href: SELLER_ROUTES.USER_SETTINGS.PREFERENCES.BASE,
+      },
     ],
     icon: (
       <svg

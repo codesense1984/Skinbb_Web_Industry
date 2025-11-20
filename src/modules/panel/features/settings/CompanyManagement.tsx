@@ -5,4 +5,3 @@ const CompanyManagement = () => {
 };
 
 export default CompanyManagement;
-

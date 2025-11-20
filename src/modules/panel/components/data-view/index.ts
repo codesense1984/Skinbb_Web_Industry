@@ -1,5 +1,11 @@
 // Filter fetchers
-export { DEFAULT_PAGE_SIZE, companyFilter, createBrandFilter, createLocationFilter, customerFilter } from "./filters";
+export {
+  DEFAULT_PAGE_SIZE,
+  companyFilter,
+  createBrandFilter,
+  createLocationFilter,
+  customerFilter,
+} from "./filters";
 
 // Common filter components
 export {

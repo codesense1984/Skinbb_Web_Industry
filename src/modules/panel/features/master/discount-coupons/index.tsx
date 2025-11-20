@@ -5,4 +5,3 @@ export { columns } from "./list/data";
 export { CouponForm } from "./shared/coupon-form";
 export { couponFormSchema, type CouponFormData } from "./shared/formSchema";
 export { default as ViewDiscountCoupon } from "./view";
-

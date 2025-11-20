@@ -1,16 +1,14 @@
-import { PageContent } from "@/core/components/ui/structure";
-import { useQuery } from "@tanstack/react-query";
-import { apiGetSellerProfile } from "../../services/http/profile.service";
-import { FullLoader } from "@/core/components/ui/loader";
 import { Alert } from "@/core/components/ui/alert";
 import {
   AvatarFallback,
   AvatarImage,
   AvatarRoot,
 } from "@/core/components/ui/avatar";
+import { FullLoader } from "@/core/components/ui/loader";
+import { PageContent } from "@/core/components/ui/structure";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
-import { Button } from "@/core/components/ui/button";
-import { PencilIcon } from "@heroicons/react/24/outline";
+import { useQuery } from "@tanstack/react-query";
+import { apiGetSellerProfile } from "../../services/http/profile.service";
 
 const AccountPage = () => {
   const { user } = useAuth();
@@ -141,4 +139,3 @@ const AccountPage = () => {
 };
 
 export default AccountPage;
-

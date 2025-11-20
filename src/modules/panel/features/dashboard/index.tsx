@@ -244,7 +244,7 @@ const Dashboard = () => {
       {/* Coming Soon Banner */}
       <motion.div
         {...fadeInUp}
-        className="mb-6 w-full bg-background flex flex-col items-center gap-3 rounded-lg py-7 px-6 shadow-md"
+        className="bg-background mb-6 flex w-full flex-col items-center gap-3 rounded-lg px-6 py-7 shadow-md"
       >
         <BlobIcon size="lg">
           <svg
@@ -263,7 +263,9 @@ const Dashboard = () => {
         </BlobIcon>
         <div className="flex flex-col items-center text-center">
           <h5 className="mb-1 font-medium">Coming Soon</h5>
-          <p>This banner space is reserved for future features and announcements.</p>
+          <p>
+            This banner space is reserved for future features and announcements.
+          </p>
         </div>
       </motion.div>
 

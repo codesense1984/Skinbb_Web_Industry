@@ -38,29 +38,41 @@ export const doctorRoutes: RouteObject = {
     // BrandConnect - Survey Routes
     {
       path: DOCTOR_ROUTES.BRANDCONNECT.SURVEY.LIST,
-      Component: lazy(() => import("@/modules/doctor/features/brandconnect/survey")),
+      Component: lazy(
+        () => import("@/modules/doctor/features/brandconnect/survey"),
+      ),
     },
     {
       path: DOCTOR_ROUTES.BRANDCONNECT.SURVEY.CREATE,
-      Component: lazy(() => import("@/modules/doctor/features/brandconnect/survey")),
+      Component: lazy(
+        () => import("@/modules/doctor/features/brandconnect/survey"),
+      ),
     },
     {
       path: DOCTOR_ROUTES.BRANDCONNECT.SURVEY.VIEW(),
-      Component: lazy(() => import("@/modules/doctor/features/brandconnect/survey")),
+      Component: lazy(
+        () => import("@/modules/doctor/features/brandconnect/survey"),
+      ),
     },
 
     // BrandConnect - Inquiry Routes
     {
       path: DOCTOR_ROUTES.BRANDCONNECT.INQUIRY.LIST,
-      Component: lazy(() => import("@/modules/doctor/features/brandconnect/inquiry")),
+      Component: lazy(
+        () => import("@/modules/doctor/features/brandconnect/inquiry"),
+      ),
     },
     {
       path: DOCTOR_ROUTES.BRANDCONNECT.INQUIRY.CREATE,
-      Component: lazy(() => import("@/modules/doctor/features/brandconnect/inquiry")),
+      Component: lazy(
+        () => import("@/modules/doctor/features/brandconnect/inquiry"),
+      ),
     },
     {
       path: DOCTOR_ROUTES.BRANDCONNECT.INQUIRY.VIEW(),
-      Component: lazy(() => import("@/modules/doctor/features/brandconnect/inquiry")),
+      Component: lazy(
+        () => import("@/modules/doctor/features/brandconnect/inquiry"),
+      ),
     },
 
     // Promotion Routes
@@ -132,7 +144,9 @@ export const doctorRoutes: RouteObject = {
     // Rewards - Customer Transfer Routes
     {
       path: DOCTOR_ROUTES.REWARDS.CUSTOMER_TRANSFER.LIST,
-      Component: lazy(() => import("@/modules/doctor/features/rewards/customer-transfer")),
+      Component: lazy(
+        () => import("@/modules/doctor/features/rewards/customer-transfer"),
+      ),
     },
 
     // Account Route
@@ -148,4 +162,3 @@ export const doctorRoutes: RouteObject = {
     },
   ],
 };
-

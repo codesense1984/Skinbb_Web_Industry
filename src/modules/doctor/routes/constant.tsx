@@ -94,4 +94,3 @@ export const DOCTOR_ROUTES = {
     BASE: "/account",
   },
 } as const;
-

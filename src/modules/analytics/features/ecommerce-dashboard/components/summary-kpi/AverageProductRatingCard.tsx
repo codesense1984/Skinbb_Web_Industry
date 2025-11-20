@@ -8,7 +8,9 @@ interface AverageProductRatingCardProps {
   data?: AnalyticsOverviewData;
 }
 
-export const AverageProductRatingCard: React.FC<AverageProductRatingCardProps> = ({ className, data }) => {
+export const AverageProductRatingCard: React.FC<
+  AverageProductRatingCardProps
+> = ({ className, data }) => {
   const averageProductRating = data?.averageProductRating ?? 0;
   const formattedRating = averageProductRating.toFixed(1);
 
@@ -18,7 +20,7 @@ export const AverageProductRatingCard: React.FC<AverageProductRatingCardProps> =
       value={formattedRating}
       barColor="bg-chart-1"
       icon={
-        <div className="bg-[var(--chart-1)]/20 rounded-full p-3 flex items-center justify-center">
+        <div className="flex items-center justify-center rounded-full bg-[var(--chart-1)]/20 p-3">
           <StarIcon className="h-6 w-6 text-[var(--chart-1)]" />
         </div>
       }

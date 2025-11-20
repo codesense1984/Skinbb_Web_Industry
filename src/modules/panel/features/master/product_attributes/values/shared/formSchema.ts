@@ -11,10 +11,15 @@ export const productAttributeValueFormSchema = z.object({
     .min(1, "Attribute value is required")
     .min(2, "Attribute value must be at least 2 characters")
     .max(100, "Attribute value must be less than 100 characters")
-    .regex(/^[a-z0-9-]+$/, "Attribute value must contain only lowercase letters, numbers, and hyphens"),
+    .regex(
+      /^[a-z0-9-]+$/,
+      "Attribute value must contain only lowercase letters, numbers, and hyphens",
+    ),
 });
 
-export type ProductAttributeValueFormData = z.infer<typeof productAttributeValueFormSchema>;
+export type ProductAttributeValueFormData = z.infer<
+  typeof productAttributeValueFormSchema
+>;
 
 // Helper function to generate value from label
 export const generateValue = (label: string): string => {

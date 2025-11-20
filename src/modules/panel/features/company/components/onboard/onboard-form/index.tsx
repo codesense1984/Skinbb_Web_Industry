@@ -140,7 +140,9 @@ const OnBoardForm = ({
     [currentValue],
   );
 
-  const isFormStep = currentItem?.step !== undefined && (FormSteps as readonly number[]).includes(currentItem.step);
+  const isFormStep =
+    currentItem?.step !== undefined &&
+    (FormSteps as readonly number[]).includes(currentItem.step);
   const isThankYou = currentItem.step === 6; // Thank you step
 
   const {

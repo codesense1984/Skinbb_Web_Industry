@@ -98,7 +98,7 @@ const OrderView: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" asChild>
+          <Button variant="outlined" size="sm" asChild>
             <Link to={SELLER_ROUTES.ORDERS.LIST}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Orders
@@ -115,7 +115,7 @@ const OrderView: React.FC = () => {
           <Badge className={getStatusColor(order.status)}>{order.status}</Badge>
           <div className="flex gap-2">
             {getStatusActions(order.status).map((action) => (
-              <Button key={action} size="sm" variant="outline">
+              <Button key={action} size="sm" variant="outlined">
                 {action}
               </Button>
             ))}

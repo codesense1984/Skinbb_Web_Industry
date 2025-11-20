@@ -1,7 +1,4 @@
-import {
-  DataView,
-  type ServerDataFetcher,
-} from "@/core/components/data-view";
+import { DataView, type ServerDataFetcher } from "@/core/components/data-view";
 import { StatCard } from "@/core/components/ui/stat";
 import { PageContent } from "@/core/components/ui/structure";
 import { Button } from "@/core/components/ui/button";

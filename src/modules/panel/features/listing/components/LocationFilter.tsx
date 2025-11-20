@@ -11,18 +11,19 @@ interface LocationFilterProps {
   disabled?: boolean;
 }
 
-const locationFilter = (companyId: string) => createSimpleFetcher(
-  (params: Record<string, unknown>) => {
-    return apiGetCompanyLocations(companyId, {
-      page: (params.pageIndex as number) + 1,
-      limit: params.pageSize as number,
-    });
-  },
-  {
-    dataPath: "data.items",
-    totalPath: "data.total",
-  }
-);
+const locationFilter = (companyId: string) =>
+  createSimpleFetcher(
+    (params: Record<string, unknown>) => {
+      return apiGetCompanyLocations(companyId, {
+        page: (params.pageIndex as number) + 1,
+        limit: params.pageSize as number,
+      });
+    },
+    {
+      dataPath: "data.items",
+      totalPath: "data.total",
+    },
+  );
 
 export const LocationFilter = ({
   companyId,
@@ -34,7 +35,7 @@ export const LocationFilter = ({
   // Don't render the component if companyId is not valid
   if (!companyId || companyId === "all" || companyId === "") {
     return (
-      <div className="w-[150px] h-10 px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-500 flex items-center">
+      <div className="flex h-10 w-[150px] items-center rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-gray-500">
         {placeholder}
       </div>
     );
@@ -50,7 +51,9 @@ export const LocationFilter = ({
       placeholder={placeholder}
       value={value === "all" ? "" : value}
       onChange={(selectedValue: string | string[]) => {
-        const stringValue = Array.isArray(selectedValue) ? selectedValue[0] : selectedValue;
+        const stringValue = Array.isArray(selectedValue)
+          ? selectedValue[0]
+          : selectedValue;
         onValueChange(stringValue || "all");
       }}
       className="w-[150px]"

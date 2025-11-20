@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 const optionSchema = z.object({
   label: z.string(),
@@ -8,24 +8,22 @@ const optionSchema = z.object({
 const metaFieldValueSchema = z.object({
   key: z.string(),
   value: z.union([z.string(), optionSchema, z.null()]),
-  type: z.enum(['string', 'array', 'objectId', 'rich-text-box']),
+  type: z.enum(["string", "array", "objectId", "rich-text-box"]),
   ref: z.boolean(),
 });
 
-const SIMPLE_PRODUCT_ID = '685a4f3f2d20439677a5e89d';
+const SIMPLE_PRODUCT_ID = "685a4f3f2d20439677a5e89d";
 
 export const productValidationSchema = z
   .object({
     // Basic Information
-    productName: z
-      .string()
-      .min(1, { message: 'This is a required field.' }),
+    productName: z.string().min(1, { message: "This is a required field." }),
     slug: z
       .string()
-      .min(1, { message: 'This is a required field.' })
+      .min(1, { message: "This is a required field." })
       .regex(/^[a-z0-9-]+$/, {
         message:
-          'Slug must contain only lowercase letters, numbers, and hyphens.',
+          "Slug must contain only lowercase letters, numbers, and hyphens.",
       }),
     description: z.string().optional(),
     productCategory: z.array(optionSchema).nullable().optional(),
@@ -135,21 +133,15 @@ export const productValidationSchema = z
           sku: z.string().optional(),
           dimensions: z
             .object({
-              length: z
-                .union([z.string(), z.number()])
-                .optional(),
+              length: z.union([z.string(), z.number()]).optional(),
               width: z.union([z.string(), z.number()]).optional(),
-              height: z
-                .union([z.string(), z.number()])
-                .optional(),
+              height: z.union([z.string(), z.number()]).optional(),
             })
             .optional(),
           price: z.union([z.string(), z.number()]).optional(),
           salePrice: z.union([z.string(), z.number()]).optional(),
           quantity: z.union([z.string(), z.number()]).optional(),
-          manufacturingDate: z
-            .union([z.string(), z.date()])
-            .optional(),
+          manufacturingDate: z.union([z.string(), z.date()]).optional(),
           expiryDate: z.union([z.string(), z.date()]).optional(),
           options: z.array(
             z.object({
