@@ -2,8 +2,8 @@ import { MODE } from "@/core/types";
 import {
   UnifiedBrandForm,
   useBrandUpdateMutation,
-} from "@/modules/panel/components/pages/brands/brand-form";
-import type { BrandSubmitRequest } from "@/modules/panel/components/pages/brands/brand-form/types";
+} from "@/modules/panel/components/shared/brands/brand-form";
+import type { BrandSubmitRequest } from "@/modules/panel/components/shared/brands/brand-form/types";
 import { useParams } from "react-router";
 import { SELLER_ROUTES } from "../../routes/constant";
 

@@ -1,8 +1,8 @@
 import { Button } from "@/core/components/ui/button";
 import { PageContent } from "@/core/components/ui/structure";
-import { BrandList as CommonBrandList } from "@/modules/panel/components/pages/brands/brand-list";
-import { BrandCard } from "@/modules/panel/components/pages/brands/brand-list/BrandCard";
-import { createBrandColumns } from "@/modules/panel/components/pages/brands/brand-list/brandColumns";
+import { BrandList as CommonBrandList } from "@/modules/panel/components/shared/brands/brand-list";
+import { BrandCard } from "@/modules/panel/components/shared/brands/brand-list/BrandCard";
+import { createBrandColumns } from "@/modules/panel/components/shared/brands/brand-list/brandColumns";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import type {
   Brand,

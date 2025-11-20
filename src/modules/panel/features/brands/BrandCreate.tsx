@@ -1,10 +1,10 @@
 import { MODE } from "@/core/types/base.type";
-import type { BrandSubmitRequest } from "@/modules/panel/components/pages/brands/brand-form/types";
+import type { BrandSubmitRequest } from "@/modules/panel/components/shared/brands/brand-form/types";
 import { useParams, useSearchParams } from "react-router";
 import {
   UnifiedBrandForm,
   useBrandCreateMutation,
-} from "../../components/pages/brands/brand-form";
+} from "../../components/shared/brands/brand-form";
 
 const BrandCreate = () => {
   const { id } = useParams();
