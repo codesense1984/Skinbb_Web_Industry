@@ -35,15 +35,9 @@ export const OrderTimeline: React.FC<OrderTimelineProps> = ({
   const currentStatus = statusResponse?.data?.currentStatus;
   const statusDescription = statusResponse?.data?.statusDescription;
   const nextStep = statusResponse?.data?.nextStep;
-  // Try multiple possible field names for cancellation reason
-  const cancellationReason = 
-    statusResponse?.data?.cancellationReason || 
-    statusResponse?.data?.cancelReason ||
-    statusResponse?.data?.cancellation_reason ||
-    statusResponse?.data?.cancel_reason;
+  const cancellationReason = statusResponse?.data?.cancellationReason;
 
   const formatTimelineDate = (timestamp: string) => {
-    const date = new Date(timestamp);
     return {
       date: formatDate(timestamp),
       time: formatTime(timestamp),
@@ -122,7 +116,7 @@ export const OrderTimeline: React.FC<OrderTimelineProps> = ({
                     const isLast = index === timeline.length - 1;
 
                     return (
-                      <div key={index} className={`relative flex items-start gap-4 ${isLast ? '' : 'pb-6'}`}>
+                      <div key={index} className={`relative flex items-start gap-4 ${isLast ? "" : "pb-6"}`}>
                         {/* Timeline node */}
                         <div className="relative z-10 flex-shrink-0">
                           {isCompleted ? (
@@ -217,12 +211,7 @@ export const OrderTimelineInline: React.FC<OrderTimelineInlineProps> = ({
   const currentStatus = statusResponse?.data?.currentStatus;
   const statusDescription = statusResponse?.data?.statusDescription;
   const nextStep = statusResponse?.data?.nextStep;
-  // Try multiple possible field names for cancellation reason
-  const cancellationReason = 
-    statusResponse?.data?.cancellationReason || 
-    statusResponse?.data?.cancelReason ||
-    statusResponse?.data?.cancellation_reason ||
-    statusResponse?.data?.cancel_reason;
+  const cancellationReason = statusResponse?.data?.cancellationReason;
 
   const formatTimelineDate = (timestamp: string) => {
     return {
@@ -306,7 +295,7 @@ export const OrderTimelineInline: React.FC<OrderTimelineInlineProps> = ({
               const isLast = index === timeline.length - 1;
 
               return (
-                <div key={index} className={`relative flex items-start gap-4 ${isLast ? '' : 'pb-6'}`}>
+                <div key={index} className={`relative flex items-start gap-4 ${isLast ? "" : "pb-6"}`}>
                   {/* Timeline node */}
                   <div className="relative z-10 flex-shrink-0">
                     {isCompleted ? (
