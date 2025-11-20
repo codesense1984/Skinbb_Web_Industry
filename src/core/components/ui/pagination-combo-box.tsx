@@ -347,7 +347,7 @@ export const PaginationComboBox = <T = unknown,>({
         return (
           <div
             className={cn(
-              "text-muted-foreground hover:bg-muted flex cursor-pointer items-center justify-center py-2 text-center text-sm transition-colors",
+              "text-muted-foreground hover:bg-muted -my-2 flex w-full cursor-pointer items-center justify-center py-2 text-center text-sm transition-colors",
               !isPaginationLoading && "text-primary",
               className,
             )}
@@ -506,7 +506,7 @@ export const PaginationComboBox = <T = unknown,>({
       />
 
       {/* Optional loading indicator for infinite scroll - uncomment if needed */}
-      {isPaginationLoading && allOptions.length > 0 && (
+      {!renderButton && isPaginationLoading && allOptions.length > 0 && (
         <div
           className="bg-background text-muted-foreground absolute right-2 bottom-2 flex items-center gap-2 rounded-md border px-2 py-1 text-xs shadow-sm"
           role="status"

@@ -3,8 +3,8 @@ import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth";
 import {
   UnifiedBrandForm,
   useBrandCreateMutation,
-} from "@/modules/panel/components/pages/brands/brand-form";
-import type { BrandSubmitRequest } from "@/modules/panel/components/pages/brands/brand-form/types";
+} from "@/modules/panel/components/shared/brands/brand-form";
+import type { BrandSubmitRequest } from "@/modules/panel/components/shared/brands/brand-form/types";
 import { SELLER_ROUTES } from "../../routes/constant";
 
 const BrandCreate = () => {

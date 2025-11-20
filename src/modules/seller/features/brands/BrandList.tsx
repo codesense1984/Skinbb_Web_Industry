@@ -5,12 +5,12 @@ import {
 } from "@/core/components/ui/dropdown-menu";
 import { PageContent } from "@/core/components/ui/structure";
 import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth";
-import { BrandList as CommonBrandList } from "@/modules/panel/components/pages/brands/brand-list";
-import { BrandCard } from "@/modules/panel/components/pages/brands/brand-list/BrandCard";
+import { BrandList as CommonBrandList } from "@/modules/panel/components/shared/brands/brand-list";
+import { BrandCard } from "@/modules/panel/components/shared/brands/brand-list/BrandCard";
 import {
   createBrandColumns,
   getBrandStatus,
-} from "@/modules/panel/components/pages/brands/brand-list/brandColumns";
+} from "@/modules/panel/components/shared/brands/brand-list/brandColumns";
 import type {
   Brand,
   CompanyLocationBrand,

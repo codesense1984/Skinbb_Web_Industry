@@ -1,6 +1,6 @@
 import { MODE } from "@/core/types";
 import { useParams, useSearchParams } from "react-router";
-import { UnifiedBrandForm } from "../../components/pages/brands/brand-form";
+import { UnifiedBrandForm } from "../../components/shared/brands/brand-form";
 
 const BrandView = () => {
   const { id: brandId } = useParams();

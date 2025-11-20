@@ -1,5 +1,5 @@
 import { MODE } from "@/core/types";
-import { UnifiedBrandForm } from "@/modules/panel/components/pages/brands/brand-form";
+import { UnifiedBrandForm } from "@/modules/panel/components/shared/brands/brand-form";
 import { useParams } from "react-router";
 
 const BrandView = () => {

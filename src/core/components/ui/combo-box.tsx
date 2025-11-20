@@ -466,12 +466,16 @@ export const ComboBox = <T extends boolean = false>({
                     ? Array.isArray(value) && value.includes(option.value)
                     : value === option.value;
 
+                  const isReadMore = option.value === "__load_more__";
                   return (
                     <CommandItem
                       disabled={option.disabled}
                       key={option.value}
                       value={option.value}
                       onSelect={() => {
+                        if (isReadMore) {
+                          return;
+                        }
                         if (multi) {
                           const currentValues = Array.isArray(value)
                             ? value
