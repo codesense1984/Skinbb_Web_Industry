@@ -1,10 +1,9 @@
-import MainLayout from "@/core/layouts/main-layout";
 import { lazy } from "react";
 import type { RouteObject } from "react-router";
 import { ANALYTICS_ROUTES } from "./constants";
 
 export const analyticsRoutes: RouteObject = {
-  Component: MainLayout,
+  Component: lazy(() => import("@/core/layouts/main-layout")),
   // Component: lazy(() => import("@/features/analytics/dashboard")),
   children: [
     {
@@ -21,11 +20,15 @@ export const analyticsRoutes: RouteObject = {
     },
     {
       path: ANALYTICS_ROUTES.ECOMMERCE.BASE,
-      Component: lazy(() => import("@/modules/analytics/features/ecommerce-dashboard")),
+      Component: lazy(
+        () => import("@/modules/analytics/features/ecommerce-dashboard"),
+      ),
     },
     {
       path: ANALYTICS_ROUTES.ECOMMERCE.DASHBOARD,
-      Component: lazy(() => import("@/modules/analytics/features/ecommerce-dashboard")),
+      Component: lazy(
+        () => import("@/modules/analytics/features/ecommerce-dashboard"),
+      ),
     },
   ],
 };

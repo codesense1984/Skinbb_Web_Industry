@@ -1,12 +1,15 @@
-import MainLayout from "@/core/layouts/main-layout";
 import IngredientDetail from "@/features/ingredient-detail";
-import { lazy } from "react";
+import React, { lazy } from "react";
 import type { RouteObject } from "react-router";
 import { PANEL_ROUTES } from "./constant";
-import { NotFoundComponent } from "@/core/features/not-found";
+
+const NotFoundPage = lazy(async () => {
+  const module = await import("@/core/features/not-found");
+  return { default: () => React.createElement(module.NotFoundComponent) };
+});
 
 export const panelRoutes: RouteObject = {
-  Component: MainLayout,
+  Component: lazy(() => import("@/core/layouts/main-layout")),
   children: [
     {
       index: true,
@@ -476,7 +479,7 @@ export const panelRoutes: RouteObject = {
     },
     {
       path: "*",
-      element: <NotFoundComponent />,
+      Component: NotFoundPage,
     },
   ],
 };

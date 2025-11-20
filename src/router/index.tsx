@@ -1,11 +1,13 @@
-import PageNotFound from "@/core/features/not-found";
 import { authRoutes } from "@/modules/auth/routes";
 import PrivateRoute from "@/modules/auth/routes/PrivateRoute";
 import PublicRoute from "@/modules/auth/routes/PublicRoute";
 import RoleBasedRouter from "@/modules/auth/routes/RoleBasedRouter";
 import { infoRoutes } from "@/modules/info/routes";
 import { panelOpenRoutes } from "@/modules/panel/routes";
+import { lazy } from "react";
 import { createBrowserRouter, type RouteObject } from "react-router";
+
+const PageNotFound = lazy(() => import("@/core/features/not-found"));
 
 /* ----------------------------- helpers ----------------------------- */
 
