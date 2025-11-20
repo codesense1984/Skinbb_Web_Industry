@@ -36,7 +36,7 @@ export function DataPagination<TData>({
   total,
   showEntryCount = true,
   showPageSizeOptions = true,
-  pageSizeOptions = [10, 20, 50, 100],
+  pageSizeOptions = [5, 10, 20, 50, 100],
   ariaLabel = "Table pagination",
 }: DataPaginationProps<TData>) {
   const {

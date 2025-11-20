@@ -79,7 +79,6 @@ export const CompanyFilter = ({
           value: item._id ?? "",
         }),
         queryKey: ["company-list-filter"],
-        pageSize: DEFAULT_PAGE_SIZE,
         fetchOnMount: true,
       }}
     />
@@ -122,7 +121,6 @@ export const BrandFilter = ({
           "company-brand-filter",
           ...(selectedCompanyId ? [selectedCompanyId] : []),
         ],
-        pageSize: DEFAULT_PAGE_SIZE,
         fetchOnMount: true,
       }}
     />
@@ -169,7 +167,6 @@ export const LocationFilter = ({
           "company-location-filter",
           ...(companyId ? [companyId] : []),
         ],
-        pageSize: DEFAULT_PAGE_SIZE,
       }}
     />
   );
@@ -199,7 +196,6 @@ export const CustomerFilter = ({
           value: item._id ?? "",
         }),
         queryKey: ["customer-list-filter"],
-        pageSize: DEFAULT_PAGE_SIZE,
       }}
     />
   );
