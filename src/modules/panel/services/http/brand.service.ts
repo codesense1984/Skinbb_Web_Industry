@@ -10,22 +10,25 @@ export async function apiGetBrands(
   params?: BrandListParams,
   signal?: AbortSignal,
 ): Promise<BrandListResponse> {
-  const searchParams = new URLSearchParams();
+  // const searchParams = new URLSearchParams();
 
-  if (params?.page) searchParams.append("page", params.page.toString());
-  if (params?.limit) searchParams.append("limit", params.limit.toString());
-  if (params?.sortBy) searchParams.append("sortBy", params.sortBy);
-  if (params?.order) searchParams.append("order", params.order);
-  if (params?.search) searchParams.append("search", params.search);
-  if (params?.companyId) searchParams.append("companyId", params.companyId);
-  if (params?.locationId) searchParams.append("locationId", params.locationId);
+  // if (params?.page) searchParams.append("page", params.page.toString());
+  // if (params?.limit) searchParams.append("limit", params.limit.toString());
+  // if (params?.sortBy) searchParams.append("sortBy", params.sortBy);
+  // if (params?.order) searchParams.append("order", params.order);
+  // if (params?.search) searchParams.append("search", params.search);
+  // if (params?.companyId) searchParams.append("companyId", params.companyId);
+  // if (params?.locationId) searchParams.append("locationId", params.locationId);
 
-  const queryString = searchParams.toString();
-  const url = queryString
-    ? `${ENDPOINTS.BRAND.MAIN_ALL}?${queryString}`
-    : ENDPOINTS.BRAND.MAIN_ALL;
+  // const queryString = searchParams.toString();
+  // const url = false
+  //   ? `${ENDPOINTS.BRAND.MAIN_ALL}?${queryString}`
+  //   : ENDPOINTS.BRAND.MAIN_ALL;
 
-  return api.get<BrandListResponse>(url, { signal });
+  return api.get<BrandListResponse>(ENDPOINTS.BRAND.MAIN_ALL, {
+    signal,
+    params: params,
+  });
 }
 
 // Get brand by ID
@@ -43,8 +46,15 @@ export async function apiCreateBrand<T>(data: FormData) {
 }
 
 // Update brand by ID
-export async function apiUpdateBrandById<T>(id: string, data: Record<string, unknown>) {
-  const formData = createFormData(data, ["brand_logo_files", "brand_authorization_letter_files", "sellingOn"]);
+export async function apiUpdateBrandById<T>(
+  id: string,
+  data: Record<string, unknown>,
+) {
+  const formData = createFormData(data, [
+    "brand_logo_files",
+    "brand_authorization_letter_files",
+    "sellingOn",
+  ]);
   return api.put<T>(ENDPOINTS.BRAND.MAIN_BY_ID(id), formData, {
     headers: {
       "Content-Type": "multipart/form-data",

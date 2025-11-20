@@ -1,10 +1,10 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
-import { QK, type AuthQueryData, logout } from "../services/auth.service";
+import { AUTH_ROUTES } from "../routes/constants";
+import { logout, QK, type AuthQueryData } from "../services/auth.service";
 import { getSellerInfo } from "../services/http/auth.service";
 import type { SellerInfo } from "../types/seller.type";
-import { AUTH_ROUTES } from "../routes/constants";
 
 export const useSellerAuth = () => {
   const qc = useQueryClient();

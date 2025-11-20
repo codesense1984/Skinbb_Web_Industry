@@ -3,6 +3,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ComboBox, ComboBoxOptionItem } from "./combo-box";
+import { cn } from "@/core/utils";
 
 export interface ColumnSort {
   desc: boolean;
@@ -345,7 +346,11 @@ export const PaginationComboBox = <T = unknown,>({
       if (option.value === "__load_more__") {
         return (
           <div
-            className="text-muted-foreground hover:bg-muted flex cursor-pointer items-center justify-center py-2 text-center text-sm transition-colors"
+            className={cn(
+              "text-muted-foreground hover:bg-muted flex cursor-pointer items-center justify-center py-2 text-center text-sm transition-colors",
+              !isPaginationLoading && "text-primary",
+              className,
+            )}
             onClick={handleLoadMore}
             role="button"
             tabIndex={0}
@@ -362,7 +367,7 @@ export const PaginationComboBox = <T = unknown,>({
                 Loading more...
               </div>
             ) : (
-              "Load more..."
+              "Load more"
             )}
           </div>
         );
@@ -393,7 +398,7 @@ export const PaginationComboBox = <T = unknown,>({
       ...allOptions,
       {
         value: "__load_more__",
-        label: isPaginationLoading ? "Loading more..." : "Load more...",
+        label: isPaginationLoading ? "Loading more..." : "Load more",
         disabled: isPaginationLoading,
       },
     ];

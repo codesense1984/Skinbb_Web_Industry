@@ -1,12 +1,12 @@
 import { MODE } from "@/core/types";
 import { useParams } from "react-router";
-import { BrandPageWrapper } from "../../../brands/shared/BrandPageWrapper";
+import { UnifiedBrandForm } from "../../../../components/pages/brands/brand-form";
 
 const CompanyBrandView = () => {
   const { companyId, brandId } = useParams();
 
   return (
-    <BrandPageWrapper
+    <UnifiedBrandForm
       mode={MODE.VIEW}
       title="View Brand"
       description="View brand information and details"
