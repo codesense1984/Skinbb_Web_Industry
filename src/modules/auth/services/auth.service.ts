@@ -107,6 +107,9 @@ export function clearUserLS() {
 function isSellerRole(roleValue: string): boolean {
   return ["seller-member", "seller"].includes(roleValue);
 }
+function isDistributorRole(roleValue: string): boolean {
+  return ["distributor"].includes(roleValue);
+}
 
 /**
  * Checks if a user has doctor role
@@ -269,6 +272,10 @@ export async function onLoginSuccess(
     if (isSellerRole(u.roleValue)) {
       await fetchSellerInfoIfNeeded(qc, u._id, me);
     } else if (isDoctorRole(u.roleValue)) {
+      // Automatically fetch doctor info for doctor role (only if cache is empty)
+      await fetchDoctorInfoIfNeeded(qc, u._id, me);
+    
+    } else if (isDistributorRole(u.roleValue)) {
       // Automatically fetch doctor info for doctor role (only if cache is empty)
       await fetchDoctorInfoIfNeeded(qc, u._id, me);
     } else {
