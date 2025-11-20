@@ -1,12 +1,12 @@
 import { MODE } from "@/core/types";
+import type { BrandSubmitRequest } from "@/modules/panel/components/pages/brands/brand-form/types";
 import { useParams, useSearchParams } from "react-router";
 import {
-  BrandPageWrapper,
+  UnifiedBrandForm,
   useBrandUpdateMutation,
-} from "../../../components/pages/brands/brand-form";
-import type { BrandFormData } from "../create/formSchema";
+} from "../../components/pages/brands/brand-form";
 
-const CompanyLocationBrandEdit = () => {
+const BrandEdit = () => {
   const { id: brandId } = useParams();
   const [searchParams] = useSearchParams();
   const companyId = searchParams.get("companyId") ?? undefined;
@@ -18,12 +18,7 @@ const CompanyLocationBrandEdit = () => {
     locationId,
     brandId,
     data,
-  }: {
-    companyId: string;
-    locationId: string;
-    brandId: string;
-    data: BrandFormData;
-  }) => {
+  }: BrandSubmitRequest) => {
     if (!companyId || !locationId || !brandId) {
       console.error("Missing companyId, locationId, or brandId");
       return;
@@ -37,7 +32,7 @@ const CompanyLocationBrandEdit = () => {
   };
 
   return (
-    <BrandPageWrapper
+    <UnifiedBrandForm
       mode={MODE.EDIT}
       title="Edit Brand"
       description="Update brand information and details"
@@ -50,4 +45,4 @@ const CompanyLocationBrandEdit = () => {
   );
 };
 
-export default CompanyLocationBrandEdit;
+export default BrandEdit;

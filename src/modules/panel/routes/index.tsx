@@ -16,20 +16,26 @@ export const panelRoutes: RouteObject = {
     {
       path: PANEL_ROUTES.BRAND.LIST,
       Component: lazy(
-        () => import("@/modules/panel/features/brands/brand-list"),
+        () => import("@/modules/panel/features/brands/BrandList"),
       ),
     },
     {
       path: PANEL_ROUTES.BRAND.CREATE,
-      Component: lazy(() => import("@/modules/panel/features/brands/create")),
+      Component: lazy(
+        () => import("@/modules/panel/features/brands/BrandCreate"),
+      ),
     },
     {
       path: PANEL_ROUTES.BRAND.VIEW(),
-      Component: lazy(() => import("@/modules/panel/features/brands/view")),
+      Component: lazy(
+        () => import("@/modules/panel/features/brands/BrandView"),
+      ),
     },
     {
       path: PANEL_ROUTES.BRAND.EDIT(),
-      Component: lazy(() => import("@/modules/panel/features/brands/edit")),
+      Component: lazy(
+        () => import("@/modules/panel/features/brands/BrandEdit"),
+      ),
     },
 
     // company

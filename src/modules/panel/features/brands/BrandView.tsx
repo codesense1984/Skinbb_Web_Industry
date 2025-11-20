@@ -1,18 +1,18 @@
 import { MODE } from "@/core/types";
 import { useParams, useSearchParams } from "react-router";
-import { BrandPageWrapper } from "../../../components/pages/brands/brand-form";
+import { UnifiedBrandForm } from "../../components/pages/brands/brand-form";
 
-const CompanyLocationBrandView = () => {
+const BrandView = () => {
   const { id: brandId } = useParams();
   const [searchParams] = useSearchParams();
   const companyId = searchParams.get("companyId") ?? undefined;
   const locationId = searchParams.get("locationId") ?? undefined;
 
   return (
-    <BrandPageWrapper
+    <UnifiedBrandForm
       mode={MODE.VIEW}
-      title="Edit Brand"
-      description="Update brand information and details"
+      title="View Brand"
+      description="View brand information and details"
       companyId={companyId}
       locationId={locationId}
       brandId={brandId}
@@ -20,4 +20,4 @@ const CompanyLocationBrandView = () => {
   );
 };
 
-export default CompanyLocationBrandView;
+export default BrandView;

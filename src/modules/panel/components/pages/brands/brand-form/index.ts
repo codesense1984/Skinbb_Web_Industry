@@ -1,20 +1,18 @@
 // Components
-export { BrandPageWrapper } from "./BrandPageWrapper";
+export { default as BrandForm, default as UnifiedBrandForm } from "./BrandForm";
 
 // Hooks
 export {
-  useBrandCreateMutation,
-  useBrandUpdateMutation,
-  useBrandData,
+  useBrandCreateMutation, useBrandData, useBrandUpdateMutation
 } from "./useBrandMutations";
+
+// Types
+export type {
+  BrandApiResponse, // Legacy export
+  BrandFormBaseProps, BrandFormProps, BrandSubmitHandler, UnifiedBrandFormProps
+} from "./types";
 
 // Utils
 export {
-  createBrandFormData,
-  BRAND_QUERY_KEYS,
-  BRAND_MESSAGES,
-  BRAND_ERROR_MESSAGES,
+  BRAND_ERROR_MESSAGES, BRAND_MESSAGES, BRAND_QUERY_KEYS, createBrandFormData, extractBrandIds, transformBrandFormDataToBrand
 } from "./brand.utils";
-
-// Types
-export type { BrandFormData } from "./brand.schema";

@@ -33,29 +33,53 @@ export const sellerRoutes: RouteObject = {
 
     // Brand Management - Using simplified routes
     {
-      path: "/brands",
+      path: SELLER_ROUTES.BRAND.LIST,
       Component: lazy(
-        () => import("@/modules/seller/features/brands/SellerBrandList"),
+        () => import("@/modules/seller/features/brands/BrandList"),
       ),
     },
     {
-      path: "/brand/create",
+      path: SELLER_ROUTES.BRAND.CREATE,
       Component: lazy(
-        () => import("@/modules/seller/features/brands/SellerBrandForm"),
+        () => import("@/modules/seller/features/brands/BrandCreate"),
       ),
     },
     {
-      path: "/brand/:id/view",
+      path: SELLER_ROUTES.BRAND.VIEW(),
       Component: lazy(
-        () => import("@/modules/seller/features/brands/SellerBrandForm"),
+        () => import("@/modules/seller/features/brands/BrandView"),
       ),
     },
     {
-      path: "/brand/:id/edit",
+      path: SELLER_ROUTES.BRAND.EDIT(),
       Component: lazy(
-        () => import("@/modules/seller/features/brands/SellerBrandForm"),
+        () => import("@/modules/seller/features/brands/BrandEdit"),
       ),
     },
+    // {
+    //   path: "/brands",
+    //   Component: lazy(
+    //     () => import("@/modules/seller/features/brands/BrandList"),
+    //   ),
+    // },
+    // {
+    //   path: "/brand/create",
+    //   Component: lazy(
+    //     () => import("@/modules/panel/features/brands/BrandCreate"),
+    //   ),
+    // },
+    // {
+    //   path: "/brand/:id/view",
+    //   Component: lazy(
+    //     () => import("@/modules/panel/features/brands/BrandView"),
+    //   ),
+    // },
+    // {
+    //   path: "/brand/:id/edit",
+    //   Component: lazy(
+    //     () => import("@/modules/panel/features/brands/BrandEdit"),
+    //   ),
+    // },
 
     // Product Management - Using simplified routes (redirected to unified listing)
     {

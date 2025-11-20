@@ -5,7 +5,8 @@ const DASHBOARD_BASE = "/dashboard";
 const PRODUCTS_BASE = "/products";
 const ORDERS_BASE = "/orders";
 const COMPANY_LOCATION_BASE = "/company-location";
-const BRANDS_BASE = "/company-location-brands";
+const BRAND_BASE = "/brand";
+const BRANDS = "/brands";
 const USERS_BASE = "/company-users";
 
 export const SELLER_ROUTES = {
@@ -43,28 +44,37 @@ export const SELLER_ROUTES = {
       ROUTE.build(COMPANY_LOCATION_BASE, locationId, ROUTE.seg.view), // /company-location/:locationId
   },
 
-  // ---- Brands ----
-  BRANDS: {
-    BASE: BRANDS_BASE, // /company-location-brands
-    LIST: (
-      companyId: string = ROUTE.seg.id,
-      locationId: string = ROUTE.seg.id,
-    ) => `/company/${companyId}/locations/${locationId}/brands`, // /company/:companyId/locations/:locationId/brands
-    VIEW: (
-      companyId: string = ROUTE.seg.id,
-      locationId: string = ROUTE.seg.id,
-      brandId: string = ROUTE.seg.id,
-    ) => `/company/${companyId}/locations/${locationId}/brands/${brandId}/view`, // /company/:companyId/locations/:locationId/brands/:brandId/view
-    CREATE: (
-      companyId: string = ROUTE.seg.id,
-      locationId: string = ROUTE.seg.id,
-    ) => `/company/${companyId}/locations/${locationId}/brands/create`, // /company/:companyId/locations/:locationId/brands/create
-    EDIT: (
-      companyId: string = ROUTE.seg.id,
-      locationId: string = ROUTE.seg.id,
-      brandId: string = ROUTE.seg.id,
-    ) => `/company/${companyId}/locations/${locationId}/brands/${brandId}/edit`, // /company/:companyId/locations/:locationId/brands/:brandId/edit
+  BRAND: {
+    BASE: BRAND_BASE, // /brand
+    LIST: BRANDS, // /brands
+    CREATE: ROUTE.build(BRAND_BASE, ROUTE.seg.create), // /brand/create
+    EDIT: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(BRAND_BASE, id, ROUTE.seg.edit), // /brand/edit/:id
+    VIEW: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(BRAND_BASE, id, ROUTE.seg.view), // /brand/view/:id
   },
+  // ---- Brands ----
+  // BRAND: {
+  //   BASE: BRANDS_BASE, // /company-location-brands
+  //   LIST: (
+  //     companyId: string = ROUTE.seg.id,
+  //     locationId: string = ROUTE.seg.id,
+  //   ) => `/company/${companyId}/locations/${locationId}/brands`, // /company/:companyId/locations/:locationId/brands
+  //   VIEW: (
+  //     companyId: string = ROUTE.seg.id,
+  //     locationId: string = ROUTE.seg.id,
+  //     brandId: string = ROUTE.seg.id,
+  //   ) => `/company/${companyId}/locations/${locationId}/brands/${brandId}/view`, // /company/:companyId/locations/:locationId/brands/:brandId/view
+  //   CREATE: (
+  //     companyId: string = ROUTE.seg.id,
+  //     locationId: string = ROUTE.seg.id,
+  //   ) => `/company/${companyId}/locations/${locationId}/brands/create`, // /company/:companyId/locations/:locationId/brands/create
+  //   EDIT: (
+  //     companyId: string = ROUTE.seg.id,
+  //     locationId: string = ROUTE.seg.id,
+  //     brandId: string = ROUTE.seg.id,
+  //   ) => `/company/${companyId}/locations/${locationId}/brands/${brandId}/edit`, // /company/:companyId/locations/:locationId/brands/:brandId/edit
+  // },
 
   // ---- Seller Brand Routes (simplified) ----
   SELLER_BRANDS: {
@@ -168,8 +178,10 @@ export const SELLER_ROUTES = {
       BASE: "/marketing/discount-coupons",
       LIST: "/marketing/discount-coupons",
       CREATE: "/marketing/discount-coupons/create",
-      VIEW: (id: string = ROUTE.seg.id) => `/marketing/discount-coupons/${id}/view`,
-      EDIT: (id: string = ROUTE.seg.id) => `/marketing/discount-coupons/${id}/edit`,
+      VIEW: (id: string = ROUTE.seg.id) =>
+        `/marketing/discount-coupons/${id}/view`,
+      EDIT: (id: string = ROUTE.seg.id) =>
+        `/marketing/discount-coupons/${id}/edit`,
     },
     SURVEYS: {
       BASE: "/marketing/surveys",

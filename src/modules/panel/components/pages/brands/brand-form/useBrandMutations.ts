@@ -1,3 +1,4 @@
+import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import {
   apiCreateCompanyLocationBrandJson,
@@ -7,33 +8,26 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
-import { ENDPOINTS } from "../../../../config/endpoint.config";
-import type { BrandFormData } from "./brand.schema";
 import {
   BRAND_ERROR_MESSAGES,
   BRAND_MESSAGES,
   BRAND_QUERY_KEYS,
   createBrandFormData,
 } from "./brand.utils";
+import type { BrandSubmitRequest } from "./types";
 
 /**
  * Custom hook for brand creation mutation
  */
-export const useBrandCreateMutation = () => {
+export const useBrandCreateMutation = (navigateTo?: string) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      companyId,
-      locationId,
-      data,
-    }: {
-      companyId: string;
-      locationId: string;
-      data: BrandFormData;
-    }) => {
-      const formData = createBrandFormData(data);
+    mutationFn: async ({ companyId, locationId, data }: BrandSubmitRequest) => {
+      const formData = createBrandFormData(
+        data as unknown as Record<string, unknown>,
+      );
       return apiCreateCompanyLocationBrandJson(companyId, locationId, formData);
     },
     onSuccess: (_, variables) => {
@@ -47,14 +41,17 @@ export const useBrandCreateMutation = () => {
         ],
       });
 
-      // Navigate back to brands list
-      navigate(
-        PANEL_ROUTES.BRAND.LIST +
-          `?companyId=${companyId}&locationId=${locationId}`,
-        {
-          replace: true,
-        },
-      );
+      if (navigateTo) {
+        navigate(navigateTo);
+      } else {
+        navigate(
+          PANEL_ROUTES.BRAND.LIST +
+            `?companyId=${companyId}&locationId=${locationId}&?order=desc&sortBy=createdAt`,
+          {
+            replace: true,
+          },
+        );
+      }
     },
     onError: (error: AxiosError<{ message?: string; error?: string }>) => {
       toast.error(
@@ -67,7 +64,7 @@ export const useBrandCreateMutation = () => {
 /**
  * Custom hook for brand update mutation
  */
-export const useBrandUpdateMutation = () => {
+export const useBrandUpdateMutation = (navigateTo?: string) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -77,16 +74,13 @@ export const useBrandUpdateMutation = () => {
       locationId,
       brandId,
       data,
-    }: {
-      companyId: string;
-      locationId: string;
-      brandId: string;
-      data: BrandFormData;
-    }) => {
+    }: BrandSubmitRequest) => {
       if (!companyId || !locationId || !brandId) {
         throw new Error(BRAND_ERROR_MESSAGES.MISSING_BRAND_ID);
       }
-      const formData = createBrandFormData(data);
+      const formData = createBrandFormData(
+        data as unknown as Record<string, unknown>,
+      );
       return apiUpdateCompanyLocationBrand(
         companyId,
         locationId,
@@ -106,13 +100,17 @@ export const useBrandUpdateMutation = () => {
       });
 
       // Navigate back to brands list
-      navigate(
-        PANEL_ROUTES.BRAND.LIST +
-          `?companyId=${companyId}&locationId=${locationId}`,
-        {
-          replace: true,
-        },
-      );
+      if (navigateTo) {
+        navigate(navigateTo);
+      } else {
+        navigate(
+          PANEL_ROUTES.BRAND.LIST +
+            `?companyId=${companyId}&locationId=${locationId}`,
+          {
+            replace: true,
+          },
+        );
+      }
     },
     onError: (error: AxiosError<{ message?: string; error?: string }>) => {
       toast.error(

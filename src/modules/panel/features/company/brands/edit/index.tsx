@@ -1,12 +1,12 @@
 // import { MODE } from "@/core/types";
 // import { useParams } from "react-router";
-// import { BrandPageWrapper } from "../../../brands/shared/BrandPageWrapper";
+// import { UnifiedBrandForm } from "../../../../components/pages/brands/brand-form";
 
 // const CompanyBrandEdit = () => {
 //   const { companyId, brandId } = useParams();
 
 //   return (
-//     <BrandPageWrapper
+//     <UnifiedBrandForm
 //       mode={MODE.EDIT}
 //       title="Edit Brand"
 //       description="Update brand information and details"
