@@ -18,10 +18,6 @@ export default defineConfig({
       output: {
         // Limit concurrent chunk processing
         manualChunks: (id) => {
-          // Separate large JSON data into its own chunk
-          if (id.includes("cleaned-data.json")) {
-            return "data";
-          }
           // Vendor chunks
           if (id.includes("node_modules")) {
             if (
