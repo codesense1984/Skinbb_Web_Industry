@@ -1,4 +1,4 @@
-import { Badge, StatusBadge } from "@/core/components/ui/badge";
+import { Badge } from "@/core/components/ui/badge";
 import { formatDate } from "@/core/utils";
 import type { CompanyUserResponse } from "@/modules/panel/services/http/company.service";
 import type { ColumnDef } from "@tanstack/react-table";

@@ -41,17 +41,20 @@ const BrandProductsList: React.FC = () => {
   }>();
 
   const [isApprovalDialogOpen, setIsApprovalDialogOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Record<string, unknown> | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Record<
+    string,
+    unknown
+  > | null>(null);
   const queryClient = useQueryClient();
 
   // Mutation for product status update
   const productStatusMutation = useMutation({
     mutationFn: async (data: { status: string; reason?: string }) => {
       if (!selectedProduct) throw new Error("No product selected");
-      
+
       // Map approval status to API status
       const apiStatus = data.status === "approved" ? "publish" : "rejected";
-      
+
       return apiUpdateProductStatus(selectedProduct._id as string, {
         status: apiStatus,
         reason: data.reason,
@@ -68,7 +71,9 @@ const BrandProductsList: React.FC = () => {
       setSelectedProduct(null);
     },
     onError: (error: unknown) => {
-      const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to update product status";
+      const errorMessage =
+        (error as { response?: { data?: { message?: string } } })?.response
+          ?.data?.message || "Failed to update product status";
       toast.error(errorMessage);
     },
   });
@@ -89,10 +94,16 @@ const BrandProductsList: React.FC = () => {
       setIsApprovalDialogOpen(true);
     };
 
-    window.addEventListener("product-approval-request", handleApprovalRequest as EventListener);
-    
+    window.addEventListener(
+      "product-approval-request",
+      handleApprovalRequest as EventListener,
+    );
+
     return () => {
-      window.removeEventListener("product-approval-request", handleApprovalRequest as EventListener);
+      window.removeEventListener(
+        "product-approval-request",
+        handleApprovalRequest as EventListener,
+      );
     };
   }, []);
 
@@ -155,7 +166,7 @@ const BrandProductsList: React.FC = () => {
           ),
         })}
       />
-      
+
       <ProductApprovalDialog
         isOpen={isApprovalDialogOpen}
         onClose={() => {

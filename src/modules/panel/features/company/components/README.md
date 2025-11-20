@@ -9,6 +9,7 @@ This directory contains reusable components for displaying company details.
 The core reusable component that encapsulates both functionality and UI for displaying company information and locations.
 
 **Props:**
+
 - `companyId: string` - The company ID
 - `showViewUsersAction?: boolean` - Whether to show the "View Users" action button (default: true)
 - `customHeader?: object` - Custom header configuration with title, description, and actions
@@ -16,6 +17,7 @@ The core reusable component that encapsulates both functionality and UI for disp
 - `onViewUsers?: (companyId: string) => void` - Custom handler for viewing users
 
 **Usage:**
+
 ```tsx
 import { CompanyViewCore } from "@/modules/panel/features/company/components/CompanyViewCore";
 
@@ -24,7 +26,7 @@ import { CompanyViewCore } from "@/modules/panel/features/company/components/Com
   showViewUsersAction={true}
   customHeader={{
     title: "Custom Title",
-    description: "Custom description"
+    description: "Custom description",
   }}
   onViewBrands={(companyId, locationId) => {
     // Custom navigation logic
@@ -32,7 +34,7 @@ import { CompanyViewCore } from "@/modules/panel/features/company/components/Com
   onViewUsers={(companyId) => {
     // Custom navigation logic
   }}
-/>
+/>;
 ```
 
 ## Usage Examples
@@ -50,12 +52,7 @@ const PanelCompanyView = () => {
     return <div>Company ID not found</div>;
   }
 
-  return (
-    <CompanyViewCore
-      companyId={id}
-      showViewUsersAction={true}
-    />
-  );
+  return <CompanyViewCore companyId={id} showViewUsersAction={true} />;
 };
 ```
 
@@ -70,7 +67,7 @@ const SellerCompanyPage = () => {
       showViewUsersAction={false}
       customHeader={{
         title: "My Company Details",
-        description: "View your company information and locations"
+        description: "View your company information and locations",
       }}
     />
   );
@@ -100,7 +97,7 @@ const CustomSellerPage = () => {
       onViewUsers={handleViewUsers}
       customHeader={{
         title: "Company Overview",
-        description: "Manage your company details and team"
+        description: "Manage your company details and team",
       }}
     />
   );
@@ -120,12 +117,14 @@ const CustomSellerPage = () => {
 ## Key Components
 
 ### LocationAccordionItem
+
 - Displays individual company locations in an accordion format
 - Shows location details when expanded
 - Includes "View Brands" action button
 - Handles loading and error states for location data
 
 ### InfoItem
+
 - Reusable component for displaying information with icons
 - Consistent styling across all information displays
 - Supports custom styling and children elements

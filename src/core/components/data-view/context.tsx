@@ -72,10 +72,13 @@ export function DataViewProvider<TData extends object>({
   // Serialize filters to ensure query key changes when filter values change
   const serializedFilters = useMemo(() => {
     return JSON.stringify(
-      Object.entries(filters).reduce((acc, [key, values]) => {
-        acc[key] = values.map((v) => v.value).sort();
-        return acc;
-      }, {} as Record<string, string[]>),
+      Object.entries(filters).reduce(
+        (acc, [key, values]) => {
+          acc[key] = values.map((v) => v.value).sort();
+          return acc;
+        },
+        {} as Record<string, string[]>,
+      ),
     );
   }, [filters]);
 

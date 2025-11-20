@@ -5,4 +5,3 @@ const BrandConnectSurvey = () => {
 };
 
 export default BrandConnectSurvey;
-

@@ -5,4 +5,3 @@ const NotificationsEmailTemplates = () => {
 };
 
 export default NotificationsEmailTemplates;
-

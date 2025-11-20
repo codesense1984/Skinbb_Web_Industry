@@ -47,7 +47,7 @@ const ProductView: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" asChild>
+          <Button variant="outlined" size="sm" asChild>
             <Link to={SELLER_ROUTES.PRODUCTS.LIST}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Products
@@ -59,13 +59,16 @@ const ProductView: React.FC = () => {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" asChild>
+          <Button variant="outlined" asChild>
             <Link to={SELLER_ROUTES.PRODUCTS.EDIT(product.id)}>
               <Edit className="mr-2 h-4 w-4" />
               Edit Product
             </Link>
           </Button>
-          <Button variant="outline" className="text-red-600 hover:text-red-700">
+          <Button
+            variant="outlined"
+            className="text-red-600 hover:text-red-700"
+          >
             <Trash2 className="mr-2 h-4 w-4" />
             Delete
           </Button>
@@ -156,13 +159,13 @@ const ProductView: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-4">
-            <Button variant="outline">
+            <Button variant="outlined">
               <Package className="mr-2 h-4 w-4" />
               Update Stock
             </Button>
-            <Button variant="outline">Duplicate Product</Button>
-            <Button variant="outline">View Analytics</Button>
-            <Button variant="outline">Share Product</Button>
+            <Button variant="outlined">Duplicate Product</Button>
+            <Button variant="outlined">View Analytics</Button>
+            <Button variant="outlined">Share Product</Button>
           </div>
         </CardContent>
       </Card>

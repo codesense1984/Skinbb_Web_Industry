@@ -17,7 +17,7 @@ export const productAttributeFetcher = createSimpleFetcher(
   {
     dataPath: "data.productAttributes",
     totalPath: "data.total",
-  }
+  },
 );
 
 // Fetcher for product attribute values
@@ -34,5 +34,5 @@ export const productAttributeValueFetcher = (attributeId: string) =>
     {
       dataPath: "data.productAttributeValues",
       totalPath: "data.total",
-    }
+    },
   );

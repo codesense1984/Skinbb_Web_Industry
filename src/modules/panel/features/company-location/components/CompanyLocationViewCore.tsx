@@ -354,7 +354,9 @@ export const CompanyLocationViewCore: React.FC<
             <InfoItem
               icon={<CalendarIcon className="h-5 w-5" />}
               label="Established In"
-              value={company.establishedIn ? formatDate(company.establishedIn) : "-"}
+              value={
+                company.establishedIn ? formatDate(company.establishedIn) : "-"
+              }
             />
             <InfoItem
               icon={
@@ -804,7 +806,6 @@ export const CompanyLocationViewCore: React.FC<
       //     maxProducts={5}
       //   />
       // </div> */}
-
 
       {/* Location Information */}
       <Card>

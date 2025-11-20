@@ -15,12 +15,10 @@ const Routines = () => {
         animate: true,
       }}
     >
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
-        <div className="text-center max-w-md">
-          <h3 className="text-lg font-medium mb-2">
-            Routines
-          </h3>
-          <p className="text-sm text-muted-foreground mb-6">
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6">
+        <div className="max-w-md text-center">
+          <h3 className="mb-2 text-lg font-medium">Routines</h3>
+          <p className="text-muted-foreground mb-6 text-sm">
             To manage routines, please visit the admin panel.
           </p>
           <Button onClick={handleRedirect} size="lg">
@@ -34,4 +32,3 @@ const Routines = () => {
 };
 
 export default Routines;
-

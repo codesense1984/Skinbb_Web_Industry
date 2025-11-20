@@ -1,36 +1,32 @@
-import { useRef, useState } from 'react';
-import { useNavigate } from 'react-router';
-import { toast } from 'sonner';
+import { useRef, useState } from "react";
+import { useNavigate } from "react-router";
+import { toast } from "sonner";
 
-import ProductForm from '../components/product-form/ProductForm';
-import { apiCreateProduct } from '../services/product.service';
-import type { ProductFormSchema, ProductReqData } from '../types/product.types';
+import ProductForm from "../components/product-form/ProductForm";
+import { apiCreateProduct } from "../services/product.service";
+import type { ProductFormSchema, ProductReqData } from "../types/product.types";
 
 const ProductCreate = () => {
   const navigate = useNavigate();
 
-  const setBackendErrorRef = useRef<
-    ((errors: any[]) => void) | null
-  >(null);
+  const setBackendErrorRef = useRef<((errors: any[]) => void) | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleFormSubmit = async (values: ProductReqData) => {
-    console.log('Submitted values', values);
+    console.log("Submitted values", values);
     setIsSubmitting(true);
 
     try {
       const result = await apiCreateProduct(values);
 
-      toast.success(
-        result.message || 'Product created successfully!'
-      );
+      toast.success(result.message || "Product created successfully!");
 
       // Navigate back to products list or wherever appropriate
-      navigate('/panel/products');
+      navigate("/panel/products");
     } catch (error) {
-      console.error('Failed to create product:', error);
-      
+      console.error("Failed to create product:", error);
+
       // Handle backend field-level errors
       if (setBackendErrorRef.current && error?.response?.data?.errors) {
         setBackendErrorRef.current(error.response.data.errors);
@@ -40,8 +36,8 @@ const ProductCreate = () => {
       // Show general error message
       toast.error(
         error?.response?.data?.message ||
-        error?.message ||
-        'Failed to create product. Please try again.'
+          error?.message ||
+          "Failed to create product. Please try again.",
       );
     } finally {
       setIsSubmitting(false);
@@ -49,24 +45,24 @@ const ProductCreate = () => {
   };
 
   const defaultValues: ProductFormSchema = {
-    productName: '',
-    slug: '',
-    description: '',
-    status: { label: 'Draft', value: 'draft' },
+    productName: "",
+    slug: "",
+    description: "",
+    status: { label: "Draft", value: "draft" },
     productVariationType: {
-      value: '685a4f3f2d20439677a5e89d',
-      label: 'Simple product',
+      value: "685a4f3f2d20439677a5e89d",
+      label: "Simple product",
     },
     brand: null,
-    aboutTheBrand: '',
+    aboutTheBrand: "",
     productCategory: null,
     tags: null,
     marketedBy: null,
-    marketedByAddress: '',
+    marketedByAddress: "",
     manufacturedBy: null,
-    manufacturedByAddress: '',
+    manufacturedByAddress: "",
     importedBy: null,
-    importedByAddress: '',
+    importedByAddress: "",
     capturedBy: null,
     capturedDate: new Date(),
     ingredients: null,
@@ -76,15 +72,15 @@ const ProductCreate = () => {
     images: [],
     barcodeImage: [],
     dimensions: {
-      length: '',
-      width: '',
-      height: '',
+      length: "",
+      width: "",
+      height: "",
     },
-    price: '',
-    salePrice: '',
-    quantity: '',
-    manufacturingDate: '',
-    expiryDate: '',
+    price: "",
+    salePrice: "",
+    quantity: "",
+    manufacturingDate: "",
+    expiryDate: "",
     metaData: [],
     attributes: [],
     variants: [],
@@ -107,17 +103,17 @@ const ProductCreate = () => {
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={() => navigate('/panel/products')}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onClick={() => navigate("/panel/products")}
+            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:outline-none"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isSubmitting ? 'Creating...' : 'Create Product'}
+            {isSubmitting ? "Creating..." : "Create Product"}
           </button>
         </div>
       </ProductForm>
@@ -126,4 +122,3 @@ const ProductCreate = () => {
 };
 
 export default ProductCreate;
-

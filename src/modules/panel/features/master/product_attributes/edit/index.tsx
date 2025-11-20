@@ -3,9 +3,9 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { PageContent } from "@/core/components/ui/structure";
 import ProductAttributeForm from "../shared/attribute-form";
-import { 
-  apiGetProductAttributeById, 
-  apiUpdateProductAttribute 
+import {
+  apiGetProductAttributeById,
+  apiUpdateProductAttribute,
 } from "@/modules/panel/services/http/product-attribute.service";
 import type { ProductAttributeFormData } from "../shared/formSchema";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
@@ -21,10 +21,17 @@ export default function EditProductAttribute() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<ProductAttributeFormData> }) =>
-      apiUpdateProductAttribute(id, data),
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Partial<ProductAttributeFormData>;
+    }) => apiUpdateProductAttribute(id, data),
     onSuccess: (response) => {
-      toast.success(response.message || "Product attribute updated successfully");
+      toast.success(
+        response.message || "Product attribute updated successfully",
+      );
       navigate(PANEL_ROUTES.MASTER.PRODUCT_ATTRIBUTE);
     },
     onError: (error: any) => {
@@ -57,7 +64,7 @@ export default function EditProductAttribute() {
           description: "Update product attribute details",
         }}
       >
-        <div className="flex items-center justify-center h-64">
+        <div className="flex h-64 items-center justify-center">
           <div className="text-center">Loading...</div>
         </div>
       </PageContent>
@@ -72,10 +79,14 @@ export default function EditProductAttribute() {
           description: "Update product attribute details",
         }}
       >
-        <div className="flex items-center justify-center h-64">
+        <div className="flex h-64 items-center justify-center">
           <div className="text-center">
-            <h3 className="text-lg font-medium text-gray-900">Attribute not found</h3>
-            <p className="text-gray-500">The product attribute you're looking for doesn't exist.</p>
+            <h3 className="text-lg font-medium text-gray-900">
+              Attribute not found
+            </h3>
+            <p className="text-gray-500">
+              The product attribute you're looking for doesn't exist.
+            </p>
           </div>
         </div>
       </PageContent>

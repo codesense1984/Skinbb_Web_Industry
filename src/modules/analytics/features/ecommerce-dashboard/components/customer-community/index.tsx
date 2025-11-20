@@ -922,7 +922,7 @@ export const CommunityActivityCard: React.FC<CommunityActivityCardProps> = ({ cl
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="outlined" className="text-xs">
                     {post.type}
                   </Badge>
                 </div>

@@ -21,7 +21,7 @@ const ProductForm: React.FC = () => {
     <div className="space-y-6 p-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="outline" size="sm" asChild>
+        <Button variant="outlined" size="sm" asChild>
           <Link to={SELLER_ROUTES.PRODUCTS.LIST}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Products
@@ -84,7 +84,7 @@ const ProductForm: React.FC = () => {
           </div>
 
           <div className="flex justify-end gap-4">
-            <Button variant="outline" asChild>
+            <Button variant="outlined" asChild>
               <Link to={SELLER_ROUTES.PRODUCTS.LIST}>Cancel</Link>
             </Button>
             <Button>{isEdit ? "Update Product" : "Create Product"}</Button>

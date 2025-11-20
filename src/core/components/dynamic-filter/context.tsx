@@ -95,7 +95,7 @@ export function FilterProvider({
       assertFilterValueMap(defaultValue, "defaultValue");
       dispatch({ type: "SET_VALUE", value: defaultValue });
     }
-  }, [defaultValue]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [defaultValue]);
 
   // Validate controlled value
   React.useEffect(() => {

@@ -9,12 +9,14 @@ This directory contains reusable components for displaying company location deta
 The core reusable component that encapsulates both functionality and UI for displaying company location details.
 
 **Props:**
+
 - `companyId: string` - The company ID
-- `locationId: string` - The location ID  
+- `locationId: string` - The location ID
 - `showApprovalActions?: boolean` - Whether to show approval actions (default: true)
 - `customHeader?: object` - Custom header configuration with title, description, and actions
 
 **Usage:**
+
 ```tsx
 import { CompanyLocationViewCore } from "@/modules/panel/features/company-location/components/CompanyLocationViewCore";
 
@@ -24,9 +26,9 @@ import { CompanyLocationViewCore } from "@/modules/panel/features/company-locati
   showApprovalActions={true}
   customHeader={{
     title: "Custom Title",
-    description: "Custom description"
+    description: "Custom description",
   }}
-/>
+/>;
 ```
 
 ## Usage Examples
@@ -65,7 +67,7 @@ const SellerLocationPage = () => {
       showApprovalActions={false}
       customHeader={{
         title: "My Location Details",
-        description: "View your company location information"
+        description: "View your company location information",
       }}
     />
   );

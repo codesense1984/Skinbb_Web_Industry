@@ -1,14 +1,14 @@
 import { api } from "@/core/services/http";
-import type {
-  SellerMemberListResponse,
-  SellerMemberListParams,
-  CreateSellerMemberRequest,
-  UpdateSellerMemberRequest,
-  SellerMemberCreateResponse,
-  SellerMemberUpdateResponse,
-  SellerMemberDeleteResponse,
-} from "@/modules/panel/types/user.type";
 import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
+import type {
+  CreateSellerMemberRequest,
+  SellerMemberCreateResponse,
+  SellerMemberDeleteResponse,
+  SellerMemberListParams,
+  SellerMemberListResponse,
+  SellerMemberUpdateResponse,
+  UpdateSellerMemberRequest,
+} from "@/modules/panel/types/user.type";
 
 export async function apiGetSellerMembers(
   params?: SellerMemberListParams,

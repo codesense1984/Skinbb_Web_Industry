@@ -13,7 +13,9 @@ export default function CreateProductAttribute() {
   const createMutation = useMutation({
     mutationFn: apiCreateProductAttribute,
     onSuccess: (response) => {
-      toast.success(response.message || "Product attribute created successfully");
+      toast.success(
+        response.message || "Product attribute created successfully",
+      );
       navigate(PANEL_ROUTES.MASTER.PRODUCT_ATTRIBUTE);
     },
     onError: (error: any) => {

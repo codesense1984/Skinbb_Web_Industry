@@ -77,7 +77,9 @@ export interface OrderStatusResponse {
   };
 }
 
-export async function apiGetOrderStatus(orderId: string): Promise<OrderStatusResponse> {
+export async function apiGetOrderStatus(
+  orderId: string,
+): Promise<OrderStatusResponse> {
   return api.get<OrderStatusResponse>(`/api/v1/orders/status/${orderId}`);
 }
 

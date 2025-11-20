@@ -4,25 +4,25 @@ import {
   FormFieldsRenderer,
   type FormFieldConfig,
 } from "@/core/components/ui/form-input";
-import { PageContent } from "@/core/components/ui/structure";
 import { PasswordStrength } from "@/core/components/ui/password-strength";
+import { PageContent } from "@/core/components/ui/structure";
 import { MODE } from "@/core/types";
+import { apiGetRoles } from "@/modules/panel/services/http/role.service";
 import {
   apiCreateSellerMember,
   apiUpdateSellerMember,
 } from "@/modules/panel/services/http/user.service";
-import { apiGetRoles } from "@/modules/panel/services/http/role.service";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useForm, useWatch } from "react-hook-form";
-import { useParams, useNavigate, useLocation } from "react-router";
+import { useLocation, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import {
-  userFormSchema,
   defaultValues,
   userFormFieldConfigs,
+  userFormSchema,
   type UserFormData,
 } from "../../company/users/user-form/formSchema";
-import { zodResolver } from "@hookform/resolvers/zod";
 
 const UserForm = () => {
   const { id } = useParams();

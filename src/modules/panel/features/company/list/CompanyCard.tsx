@@ -21,8 +21,9 @@ interface CompanyCardProps {
 }
 
 export const CompanyCard: FC<CompanyCardProps> = ({ company }) => {
-  const primaryAddress = company.address?.find((addr) => addr.isPrimary) || company.address?.[0];
-  
+  const primaryAddress =
+    company.address?.find((addr) => addr.isPrimary) || company.address?.[0];
+
   return (
     <NavLink to={PANEL_ROUTES.COMPANY.VIEW(company._id)}>
       <article className="bg-background hover:ring-primary flex flex-col gap-4 rounded-md p-4 shadow-md hover:ring-3 md:p-5">
@@ -34,7 +35,7 @@ export const CompanyCard: FC<CompanyCardProps> = ({ company }) => {
               className="h-15 w-15 rounded-md border object-contain p-1"
             />
           ) : (
-            <div className="h-15 w-15 flex items-center justify-center rounded-md border bg-gray-100">
+            <div className="flex h-15 w-15 items-center justify-center rounded-md border bg-gray-100">
               <span className="text-lg font-bold text-gray-500">
                 {company.companyName?.charAt(0) || "C"}
               </span>
@@ -42,7 +43,9 @@ export const CompanyCard: FC<CompanyCardProps> = ({ company }) => {
           )}
           <div className="min-w-0 flex-1">
             <h6 className="truncate font-medium">{company.companyName}</h6>
-            <p className="text-muted-foreground text-sm">{company.businessType}</p>
+            <p className="text-muted-foreground text-sm">
+              {company.businessType}
+            </p>
             {primaryAddress && (
               <Badge variant="outline" className="mt-1 text-xs">
                 {primaryAddress.city}
@@ -52,13 +55,15 @@ export const CompanyCard: FC<CompanyCardProps> = ({ company }) => {
         </header>
 
         <div className="grid grid-cols-2 gap-4 border-t pt-2">
-          <Stat
-            label="Locations"
-            value={company.address?.length || 0}
-          />
+          <Stat label="Locations" value={company.address?.length || 0} />
           <Stat
             label="Brands"
-            value={company.address?.reduce((sum, addr) => sum + (addr.brands?.length || 0), 0) || 0}
+            value={
+              company.address?.reduce(
+                (sum, addr) => sum + (addr.brands?.length || 0),
+                0,
+              ) || 0
+            }
           />
         </div>
 

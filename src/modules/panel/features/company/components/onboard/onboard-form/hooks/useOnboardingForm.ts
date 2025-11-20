@@ -69,10 +69,10 @@ export const useOnboardingForm = ({
       // When editing a location, we need to check if the current location is primary
       // For location editing, we should disable company name unless it's the primary location
       const isPrimary = initialData.addresses.some((item) => item.isPrimary);
-      
+
       // If we're explicitly editing a location, disable company name unless it's the primary address
       const shouldDisableCompanyName = isLocationEdit && !isPrimary;
-      
+
       const formData = transformApiResponseToFormData(initialData, {
         disabledCompanyDetails: !isPrimary,
         isCreatingNewCompany: isPrimary,
