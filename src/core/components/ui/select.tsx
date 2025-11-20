@@ -257,8 +257,11 @@ const Select: React.FC<SelectProps> = ({
       <SelectContent>
         <SelectGroup>
           {optionHeading && <SelectLabel>{optionHeading}</SelectLabel>}
-          {options?.map((option) => (
-            <SelectItem key={option[optionValue]} value={option[optionValue]}>
+          {options?.map((option, index) => (
+            <SelectItem
+              value={option[optionValue]}
+              key={option[optionValue] ?? index}
+            >
               {option[optionLabel]}
             </SelectItem>
           )) || []}

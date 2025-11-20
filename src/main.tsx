@@ -29,9 +29,9 @@ wireAuthAdapters({
     accessToken: getAuthCookies()?.accessToken,
     refreshToken: getAuthCookies()?.refreshToken,
   }),
-  setTokens: (t) => setAuthCookies(t),
-  logout: () => {
-    logout(queryClient);
+  setTokens: async (t) => await setAuthCookies(t),
+  logout: async () => {
+    await logout(queryClient);
     window.location.replace(AUTH_ROUTES.SIGN_IN);
   },
 });

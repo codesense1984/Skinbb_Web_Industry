@@ -1,3 +1,4 @@
+import { baseApiUrl } from "@/core/config/baseUrls";
 import type { AuthSnapshot } from "@/modules/auth/services/auth.service";
 import {
   QueryClient,
@@ -13,15 +14,15 @@ import axios, {
 } from "axios";
 
 // ---- Config ---------------------------------------------------------------
-export const API_BASE_URL = import.meta.env.VITE_API_URL ?? "https://api.skintruth.in";
+export const API_BASE_URL = baseApiUrl;
 export const REQUEST_TIMEOUT_MS = 25_000; // reasonable network timeout
 
 // If you still have Redux auth slice, wire it here. Otherwise, swap with your auth store.
 // This indirection keeps base service store‑agnostic.
 
 export type GetAuthFn = () => AuthSnapshot;
-export type SetTokensFn = (tokens: AuthSnapshot) => void;
-export type LogoutFn = () => void;
+export type SetTokensFn = (tokens: AuthSnapshot) => void | Promise<void>;
+export type LogoutFn = () => void | Promise<void>;
 
 let getAuth: GetAuthFn = () => ({
   accessToken: undefined,
@@ -81,7 +82,10 @@ async function refreshAccessToken(): Promise<string | null> {
     );
     const newAccessToken: string | undefined = data?.data?.accessToken;
     const newRefreshToken: string | undefined = data?.data?.refreshToken;
-    setTokens?.({ accessToken: newAccessToken, refreshToken: newRefreshToken });
+    await setTokens?.({
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
+    });
     return newAccessToken ?? null;
   } catch {
     return null;

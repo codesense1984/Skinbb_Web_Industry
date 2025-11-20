@@ -11,33 +11,33 @@ export interface SellingPlatform {
 }
 
 export interface CompanyLocationBrand {
-  _id: string;
+  _id?: string;
   name: string;
-  slug: string;
-  totalSKU: number;
-  instagramUrl: string;
-  facebookUrl: string;
-  youtubeUrl: string;
-  productCategory: string[];
-  brandType: string[];
-  averageSellingPrice: number;
-  marketingBudget: number;
-  sellingOn: SellingPlatform[];
-  aboutTheBrand: string;
-  websiteUrl: string;
-  isActive: boolean;
-  status: string;
-  statusChangeReason: string;
-  statusChangedAt: string;
+  slug?: string;
+  totalSKU?: number;
+  instagramUrl?: string;
+  facebookUrl?: string;
+  youtubeUrl?: string;
+  productCategory?: string[];
+  brandType?: string[];
+  averageSellingPrice?: number;
+  marketingBudget?: number;
+  sellingOn?: SellingPlatform[];
+  aboutTheBrand?: string;
+  websiteUrl?: string;
+  isActive?: boolean;
+  status?: string;
+  statusChangeReason?: string;
+  statusChangedAt?: string;
   logoImage: string;
-  coverImage: string;
-  authorizationLetter: string;
-  createdBy: string;
-  isDeleted: boolean;
-  deletedAt: string | null;
-  deletedBy: string | null;
-  createdAt: string;
-  updatedAt: string;
+  coverImage?: string;
+  authorizationLetter?: string | File[] | null;
+  createdBy?: string;
+  isDeleted?: boolean;
+  deletedAt?: string | null;
+  deletedBy?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
   // Additional optional fields
   brandStatus?: string;
 }
@@ -56,17 +56,19 @@ export interface CompanyLocationBrandResponse {
   success: boolean;
 }
 
-export interface Brand {
-  _id: string;
+export interface Brand extends Omit<CompanyLocationBrand, "logoImage"> {
+  _id?: string;
   name: string;
-  slug: string;
-  aboutTheBrand: string;
-  logoImage: BrandLogoImage | null;
-  isActive: boolean;
-  associatedProductsCount: number;
-  associatedUsers: number;
-  createdAt: string;
-  updatedAt: string;
+  slug?: string;
+  aboutTheBrand?: string;
+  logoImage?: BrandLogoImage | null | File[] | string;
+  isActive?: boolean;
+  associatedProductsCount?: number;
+  associatedUsers?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  companyId?: string;
+  locationId?: string;
 }
 
 export interface BrandListResponse {

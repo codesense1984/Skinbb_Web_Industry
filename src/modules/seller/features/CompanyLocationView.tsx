@@ -14,13 +14,14 @@ interface SellerCompanyLocationViewProps {
   };
 }
 
- const SellerCompanyLocationView: React.FC<SellerCompanyLocationViewProps> = ({
+const SellerCompanyLocationView: React.FC<SellerCompanyLocationViewProps> = ({
   locationId,
   showApprovalActions = false,
   customHeader,
 }) => {
   const navigate = useNavigate();
-  const { sellerInfo, isLoading, isError, getCompanyId, getPrimaryAddress } = useSellerAuth();
+  const { sellerInfo, isLoading, isError, getCompanyId, getPrimaryAddress } =
+    useSellerAuth();
 
   if (isLoading) {
     return (
@@ -65,7 +66,7 @@ interface SellerCompanyLocationViewProps {
 
   const companyId = getCompanyId();
   const primaryAddress = getPrimaryAddress();
-  
+
   // Use provided locationId or fall back to primary address
   const targetLocationId = locationId || primaryAddress?.addressId;
 
@@ -73,7 +74,9 @@ interface SellerCompanyLocationViewProps {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
-          <p className="text-gray-600">Company ID not found in seller information</p>
+          <p className="text-gray-600">
+            Company ID not found in seller information
+          </p>
         </div>
       </div>
     );
@@ -91,7 +94,10 @@ interface SellerCompanyLocationViewProps {
 
   const handleViewBrands = (companyId: string, locationId: string) => {
     // Navigate to brands list for this specific location
-    navigate(SELLER_ROUTES.BRANDS.LIST(companyId, locationId));
+    navigate(
+      SELLER_ROUTES.BRAND.LIST +
+        `?companyId=${companyId}&locationId=${locationId}`,
+    );
   };
 
   return (

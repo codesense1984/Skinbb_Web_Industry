@@ -68,3 +68,13 @@ sonar:
 
 remove-zone:
 	find . -type f -name '*Zone.Identifier*' -delete
+
+# Environment switching
+env-switch:
+	@./switch-env.sh $(ENV)
+
+env-dev:
+	@./switch-env.sh dev
+
+env-prod:
+	@./switch-env.sh prod

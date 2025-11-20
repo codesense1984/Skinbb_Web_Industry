@@ -2,9 +2,11 @@ import { Button } from "@/core/components/ui/button";
 import { PageContent } from "@/core/components/ui/structure";
 import { HorizontalLogo } from "@/core/config/svg";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
-import MainLayout from "@/core/layouts/main-layout";
+import { lazy, Suspense } from "react";
 import { cn } from "@/core/utils";
 import { Link, NavLink } from "react-router";
+
+const MainLayout = lazy(() => import("@/core/layouts/main-layout"));
 
 export const NotFoundComponent = ({ className }: { className?: string }) => (
   <PageContent
@@ -44,7 +46,11 @@ const PageNotFound = () => {
   const { isLoggedIn } = useAuth();
 
   if (isLoggedIn) {
-    return <MainLayout>{<NotFoundComponent />}</MainLayout>;
+    return (
+      <Suspense fallback={<NotFoundComponent className="min-h-dvh" />}>
+        <MainLayout>{<NotFoundComponent />}</MainLayout>
+      </Suspense>
+    );
   }
 
   return <NotFoundComponent className="min-h-dvh" />;
