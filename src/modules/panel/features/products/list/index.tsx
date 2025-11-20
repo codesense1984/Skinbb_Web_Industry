@@ -1,24 +1,24 @@
-import { useState } from 'react';
-import { Link } from 'react-router';
-import { PANEL_ROUTES } from '@/modules/panel/routes/constant';
+import { useState } from "react";
+import { Link } from "react-router";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 
 const ProductList = () => {
   const [products] = useState([
     {
-      id: '1',
-      name: 'Sample Product 1',
-      slug: 'sample-product-1',
-      status: 'published',
+      id: "1",
+      name: "Sample Product 1",
+      slug: "sample-product-1",
+      status: "published",
       price: 29.99,
-      createdAt: '2024-01-15',
+      createdAt: "2024-01-15",
     },
     {
-      id: '2',
-      name: 'Sample Product 2',
-      slug: 'sample-product-2',
-      status: 'draft',
+      id: "2",
+      name: "Sample Product 2",
+      slug: "sample-product-2",
+      status: "draft",
       price: 49.99,
-      createdAt: '2024-01-16',
+      createdAt: "2024-01-16",
     },
   ]);
 
@@ -31,34 +31,34 @@ const ProductList = () => {
         </div>
         <Link
           to={PANEL_ROUTES.PRODUCT.CREATE}
-          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
         >
           Create Product
         </Link>
       </div>
 
-      <div className="bg-white shadow-sm rounded-lg overflow-hidden">
+      <div className="overflow-hidden rounded-lg bg-white shadow-sm">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
                 Product
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
                 Status
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
                 Price
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
                 Created
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="divide-y divide-gray-200 bg-white">
             {products.map((product) => (
               <tr key={product.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -66,29 +66,27 @@ const ProductList = () => {
                     <div className="text-sm font-medium text-gray-900">
                       {product.name}
                     </div>
-                    <div className="text-sm text-gray-500">
-                      {product.slug}
-                    </div>
+                    <div className="text-sm text-gray-500">{product.slug}</div>
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
-                    className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      product.status === 'published'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-yellow-100 text-yellow-800'
+                    className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                      product.status === "published"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-yellow-100 text-yellow-800"
                     }`}
                   >
                     {product.status}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-900">
                   ${product.price}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
                   {product.createdAt}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <td className="px-6 py-4 text-right text-sm font-medium whitespace-nowrap">
                   <div className="flex items-center justify-end space-x-2">
                     <Link
                       to={PANEL_ROUTES.PRODUCT.VIEW(product.id)}
@@ -111,7 +109,7 @@ const ProductList = () => {
       </div>
 
       {products.length === 0 && (
-        <div className="text-center py-12">
+        <div className="py-12 text-center">
           <div className="mx-auto h-12 w-12 text-gray-400">
             <svg
               fill="none"
@@ -127,14 +125,16 @@ const ProductList = () => {
               />
             </svg>
           </div>
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No products</h3>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">
+            No products
+          </h3>
           <p className="mt-1 text-sm text-gray-500">
             Get started by creating a new product.
           </p>
           <div className="mt-6">
             <Link
               to={PANEL_ROUTES.PRODUCT.CREATE}
-              className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
             >
               Create Product
             </Link>
@@ -146,4 +146,3 @@ const ProductList = () => {
 };
 
 export default ProductList;
-

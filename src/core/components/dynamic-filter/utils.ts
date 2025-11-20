@@ -47,7 +47,6 @@ import * as React from "react";
  * Useful for memoization
  */
 export function useStableRef<T>(value: T): React.MutableRefObject<T> {
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const ref = React.useRef<T>(value);
   ref.current = value;
   return ref;

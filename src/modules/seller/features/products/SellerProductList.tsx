@@ -173,7 +173,11 @@ const columns: ColumnDef<Product>[] = [
 ];
 
 // Create fetcher for server-side data with seller's company ID
-const createSellerProductFetcher = (companyId: string, locationId?: string, brandId?: string) => {
+const createSellerProductFetcher = (
+  companyId: string,
+  locationId?: string,
+  brandId?: string,
+) => {
   return createSimpleFetcher(
     (params: Record<string, unknown>) => {
       // Always filter by seller's company ID
@@ -196,7 +200,7 @@ const createSellerProductFetcher = (companyId: string, locationId?: string, bran
         locationId: "locationId",
         brandId: "brand",
       },
-    }
+    },
   );
 };
 
@@ -209,16 +213,21 @@ const SellerProductList = () => {
   // Fetch stats separately since we need them for the summary cards
   const fetchStats = useCallback(async () => {
     if (!sellerInfo?.companyId) return;
-    
+
     try {
-      const response = await apiGetProducts({ 
-        page: 1, 
+      const response = await apiGetProducts({
+        page: 1,
         limit: 1000,
-        companyId: sellerInfo.companyId 
+        companyId: sellerInfo.companyId,
       });
 
       if ((response as { success: boolean }).success) {
-        const responseData = response as { data: { products: Array<{ status: string; variants?: Array<unknown> }>; totalRecords: number } };
+        const responseData = response as {
+          data: {
+            products: Array<{ status: string; variants?: Array<unknown> }>;
+            totalRecords: number;
+          };
+        };
         const publishedProducts = responseData.data.products.filter(
           (p: { status: string }) => p.status === "publish",
         ).length;
@@ -226,7 +235,8 @@ const SellerProductList = () => {
           (p: { status: string }) => p.status === "draft",
         ).length;
         const totalVariants = responseData.data.products.reduce(
-          (sum: number, product: { variants?: Array<unknown> }) => sum + (product.variants?.length || 0),
+          (sum: number, product: { variants?: Array<unknown> }) =>
+            sum + (product.variants?.length || 0),
           0,
         );
 
@@ -339,7 +349,7 @@ const SellerProductList = () => {
         fetcher={createSellerProductFetcher(
           sellerInfo.companyId,
           selectedLocationId === "all" ? undefined : selectedLocationId,
-          selectedBrandId === "all" ? undefined : selectedBrandId
+          selectedBrandId === "all" ? undefined : selectedBrandId,
         )}
         queryKeyPrefix={`seller-products-${sellerInfo.companyId}-${selectedLocationId}-${selectedBrandId}`}
         actionProps={(tableState) => ({

@@ -23,9 +23,7 @@ export const columns = (): ColumnDef<ProductTag>[] => [
     header: "NAME",
     cell: ({ row }) => {
       const tag = row.original;
-      return (
-        <div className="font-medium">{tag.name}</div>
-      );
+      return <div className="font-medium">{tag.name}</div>;
     },
   },
   {
@@ -42,11 +40,7 @@ export const columns = (): ColumnDef<ProductTag>[] => [
     header: "TOTAL",
     cell: ({ row }) => {
       const count = row.getValue("totalCount") as number;
-      return (
-        <span className="font-medium">
-          {count || 0}
-        </span>
-      );
+      return <span className="font-medium">{count || 0}</span>;
     },
   },
   {
@@ -73,14 +67,20 @@ export const columns = (): ColumnDef<ProductTag>[] => [
           }}
           delete={{
             onClick: async () => {
-              if (window.confirm(`Are you sure you want to delete the tag "${tag.name}"?`)) {
+              if (
+                window.confirm(
+                  `Are you sure you want to delete the tag "${tag.name}"?`,
+                )
+              ) {
                 try {
                   await apiDeleteProductTag(tag._id);
                   toast.success("Tag deleted successfully");
                   // Refresh the table by triggering a refetch
                   window.location.reload();
                 } catch (error: any) {
-                  toast.error(error?.response?.data?.message || "Failed to delete tag");
+                  toast.error(
+                    error?.response?.data?.message || "Failed to delete tag",
+                  );
                 }
               }
             },

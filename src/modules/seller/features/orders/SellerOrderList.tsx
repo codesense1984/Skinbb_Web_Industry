@@ -33,7 +33,7 @@ const createSellerOrderFetcher = (companyId: string, brandId?: string) => {
         paymentMethod: "paymentMethod",
         brand: "brandId",
       },
-    }
+    },
   );
 };
 
@@ -83,9 +83,7 @@ const SellerOrderList = () => {
         cell: ({ row }) => {
           const brand = row.original.brand;
           return (
-            <div className="text-sm text-gray-900">
-              {brand?.name || "N/A"}
-            </div>
+            <div className="text-sm text-gray-900">{brand?.name || "N/A"}</div>
           );
         },
       },
@@ -169,7 +167,7 @@ const SellerOrderList = () => {
           description: "Manage and track your customer orders",
         }}
       >
-        <div className="text-center py-8">
+        <div className="py-8 text-center">
           <p className="text-gray-500">Loading seller information...</p>
         </div>
       </PageContent>
@@ -189,7 +187,7 @@ const SellerOrderList = () => {
           isServerSide
           fetcher={createSellerOrderFetcher(
             sellerInfo.companyId,
-            selectedBrandId === "all" ? undefined : selectedBrandId
+            selectedBrandId === "all" ? undefined : selectedBrandId,
           )}
           queryKeyPrefix={`seller-order-list-table-${selectedBrandId}`}
           actionProps={() => ({

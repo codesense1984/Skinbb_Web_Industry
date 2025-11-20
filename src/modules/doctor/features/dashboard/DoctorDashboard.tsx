@@ -210,7 +210,7 @@ const DoctorDashboard = () => {
       {/* News/Updates Banner */}
       <motion.div
         {...fadeInUp}
-        className="mb-6 w-full bg-background flex flex-col items-center gap-3 rounded-lg py-7 px-6 shadow-md"
+        className="bg-background mb-6 flex w-full flex-col items-center gap-3 rounded-lg px-6 py-7 shadow-md"
       >
         <BlobIcon size="lg">
           <svg
@@ -229,7 +229,9 @@ const DoctorDashboard = () => {
         </BlobIcon>
         <div className="flex flex-col items-center text-center">
           <h5 className="mb-1 font-medium">News & Updates</h5>
-          <p>Stay informed with the latest announcements and important updates</p>
+          <p>
+            Stay informed with the latest announcements and important updates
+          </p>
         </div>
       </motion.div>
 

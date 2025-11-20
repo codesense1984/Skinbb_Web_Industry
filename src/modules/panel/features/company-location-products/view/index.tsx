@@ -3,18 +3,23 @@ import { useParams, useNavigate } from "react-router";
 import { PageContent } from "@/core/components/ui/structure";
 import { Button } from "@/core/components/ui/button";
 import { StatusBadge } from "@/core/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/core/components/ui/card";
 import { formatDate, formatCurrency } from "@/core/utils";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { useQuery } from "@tanstack/react-query";
 import { apiGetCompanyLocationProductById } from "@/modules/panel/services/http/company.service";
 import { ArrowLeftIcon, PencilIcon } from "@heroicons/react/24/solid";
-import { 
-  CalendarIcon, 
+import {
+  CalendarIcon,
   TagIcon,
   GlobeAltIcon,
   CurrencyDollarIcon,
-  CubeIcon
+  CubeIcon,
 } from "@heroicons/react/24/outline";
 
 const CompanyLocationProductView: React.FC = () => {
@@ -26,9 +31,14 @@ const CompanyLocationProductView: React.FC = () => {
   const navigate = useNavigate();
 
   // Fetch product data using the correct API
-  const { data: productData, isLoading: productLoading, error: productError } = useQuery({
+  const {
+    data: productData,
+    isLoading: productLoading,
+    error: productError,
+  } = useQuery({
     queryKey: ["company-location-product", companyId, locationId, productId],
-    queryFn: () => apiGetCompanyLocationProductById(companyId!, locationId!, productId!),
+    queryFn: () =>
+      apiGetCompanyLocationProductById(companyId!, locationId!, productId!),
     enabled: !!companyId && !!locationId && !!productId,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -44,11 +54,14 @@ const CompanyLocationProductView: React.FC = () => {
       <PageContent
         header={{
           title: "Product Details",
-          description: "Company ID and Location ID are required to view product details.",
+          description:
+            "Company ID and Location ID are required to view product details.",
         }}
       >
         <div className="py-8 text-center">
-          <p className="text-gray-500">Invalid company or location ID provided.</p>
+          <p className="text-gray-500">
+            Invalid company or location ID provided.
+          </p>
         </div>
       </PageContent>
     );
@@ -105,17 +118,29 @@ const CompanyLocationProductView: React.FC = () => {
         actions: (
           <div className="flex gap-2">
             <Button
-              onClick={() => navigate(PANEL_ROUTES.COMPANY_LOCATION.PRODUCTS(companyId, locationId))}
+              onClick={() =>
+                navigate(
+                  PANEL_ROUTES.COMPANY_LOCATION.PRODUCTS(companyId, locationId),
+                )
+              }
               variant="outlined"
-              className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
+              className="border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50"
             >
               <ArrowLeftIcon className="mr-2 h-4 w-4" />
               Back to Products
             </Button>
             <Button
-              onClick={() => navigate(PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_EDIT(companyId, locationId, productId))}
+              onClick={() =>
+                navigate(
+                  PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_EDIT(
+                    companyId,
+                    locationId,
+                    productId,
+                  ),
+                )
+              }
               variant="outlined"
-              className="border-blue-300 text-blue-700 hover:bg-blue-50 hover:border-blue-400"
+              className="border-blue-300 text-blue-700 hover:border-blue-400 hover:bg-blue-50"
             >
               <PencilIcon className="mr-2 h-4 w-4" />
               Edit Product
@@ -154,18 +179,19 @@ const CompanyLocationProductView: React.FC = () => {
                     Brand: {product.brand.name}
                   </p>
                 )}
-                {product.productCategory && product.productCategory.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    {product.productCategory.map((category, index) => (
-                      <span
-                        key={index}
-                        className="rounded bg-gray-100 px-2 py-1 text-xs"
-                      >
-                        {category.name}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                {product.productCategory &&
+                  product.productCategory.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {product.productCategory.map((category, index) => (
+                        <span
+                          key={index}
+                          className="rounded bg-gray-100 px-2 py-1 text-xs"
+                        >
+                          {category.name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
               </div>
             </div>
           </CardContent>
@@ -182,70 +208,76 @@ const CompanyLocationProductView: React.FC = () => {
           <CardContent>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div className="flex items-center gap-3">
-                <div className="bg-gray-100 border border-gray-200 rounded-lg p-2">
+                <div className="rounded-lg border border-gray-200 bg-gray-100 p-2">
                   <TagIcon className="h-4 w-4 text-gray-600" />
                 </div>
                 <div>
-                  <p className="text-gray-500 text-xs font-medium">Product Name</p>
-                  <p className="text-gray-900 font-medium">
+                  <p className="text-xs font-medium text-gray-500">
+                    Product Name
+                  </p>
+                  <p className="font-medium text-gray-900">
                     {product.productName}
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <div className="bg-gray-100 border border-gray-200 rounded-lg p-2">
+                <div className="rounded-lg border border-gray-200 bg-gray-100 p-2">
                   <TagIcon className="h-4 w-4 text-gray-600" />
                 </div>
                 <div>
-                  <p className="text-gray-500 text-xs font-medium">Brand</p>
-                  <p className="text-gray-900 font-medium">
+                  <p className="text-xs font-medium text-gray-500">Brand</p>
+                  <p className="font-medium text-gray-900">
                     {product.brand?.name || "Unknown"}
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <div className="bg-gray-100 border border-gray-200 rounded-lg p-2">
+                <div className="rounded-lg border border-gray-200 bg-gray-100 p-2">
                   <CurrencyDollarIcon className="h-4 w-4 text-gray-600" />
                 </div>
                 <div>
-                  <p className="text-gray-500 text-xs font-medium">Price Range</p>
-                  <p className="text-gray-900 font-medium">
-                    {product.priceRange ? 
-                      `${formatCurrency(product.priceRange.min)} - ${formatCurrency(product.priceRange.max)}` : 
-                      "Not set"
-                    }
+                  <p className="text-xs font-medium text-gray-500">
+                    Price Range
+                  </p>
+                  <p className="font-medium text-gray-900">
+                    {product.priceRange
+                      ? `${formatCurrency(product.priceRange.min)} - ${formatCurrency(product.priceRange.max)}`
+                      : "Not set"}
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <div className="bg-gray-100 border border-gray-200 rounded-lg p-2">
+                <div className="rounded-lg border border-gray-200 bg-gray-100 p-2">
                   <CubeIcon className="h-4 w-4 text-gray-600" />
                 </div>
                 <div>
-                  <p className="text-gray-500 text-xs font-medium">Variants</p>
-                  <p className="text-gray-900 font-medium">
-                    {product.variants?.length || 0} variant{(product.variants?.length || 0) !== 1 ? "s" : ""}
+                  <p className="text-xs font-medium text-gray-500">Variants</p>
+                  <p className="font-medium text-gray-900">
+                    {product.variants?.length || 0} variant
+                    {(product.variants?.length || 0) !== 1 ? "s" : ""}
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <div className="bg-gray-100 border border-gray-200 rounded-lg p-2">
+                <div className="rounded-lg border border-gray-200 bg-gray-100 p-2">
                   <CalendarIcon className="h-4 w-4 text-gray-600" />
                 </div>
                 <div>
-                  <p className="text-gray-500 text-xs font-medium">Created At</p>
-                  <p className="text-gray-900 font-medium">
+                  <p className="text-xs font-medium text-gray-500">
+                    Created At
+                  </p>
+                  <p className="font-medium text-gray-900">
                     {product.createdAt ? formatDate(product.createdAt) : "N/A"}
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <div className="bg-gray-100 border border-gray-200 rounded-lg p-2">
+                <div className="rounded-lg border border-gray-200 bg-gray-100 p-2">
                   <TagIcon className="h-4 w-4 text-gray-600" />
                 </div>
                 <div>
-                  <p className="text-gray-500 text-xs font-medium">Status</p>
-                  <p className="text-gray-900 font-medium capitalize">
+                  <p className="text-xs font-medium text-gray-500">Status</p>
+                  <p className="font-medium text-gray-900 capitalize">
                     {product.status}
                   </p>
                 </div>
@@ -253,7 +285,6 @@ const CompanyLocationProductView: React.FC = () => {
             </div>
           </CardContent>
         </Card>
-
       </div>
     </PageContent>
   );

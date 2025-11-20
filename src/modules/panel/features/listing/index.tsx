@@ -148,7 +148,7 @@ const PublishButton = () => {
   // Filter only approved products
   const selectedProducts = selectedRows.map((row) => row.original);
   const approvedProducts = selectedProducts.filter(
-    (product) => product.status === "approved"
+    (product) => product.status === "approved",
   );
   const approvedCount = approvedProducts.length;
 
@@ -162,10 +162,10 @@ const PublishButton = () => {
 
     const selectedRows = table.getSelectedRowModel().rows;
     const selectedProducts = selectedRows.map((row) => row.original);
-    
+
     // Filter only approved products
     const approvedProducts = selectedProducts.filter(
-      (product) => product.status === "approved"
+      (product) => product.status === "approved",
     );
 
     if (approvedProducts.length === 0) {
@@ -178,8 +178,10 @@ const PublishButton = () => {
 
     try {
       await apiPublishBulkProducts(productIds);
-      
-      toast.success(`Successfully published ${approvedProducts.length} product(s)`);
+
+      toast.success(
+        `Successfully published ${approvedProducts.length} product(s)`,
+      );
 
       // Clear row selection
       table.resetRowSelection();
@@ -189,7 +191,7 @@ const PublishButton = () => {
     } catch (error: any) {
       console.error("Error publishing products:", error);
       toast.error(
-        error?.response?.data?.message || "Failed to publish products"
+        error?.response?.data?.message || "Failed to publish products",
       );
     }
   }, [table, refetch]);
@@ -211,13 +213,20 @@ interface ProductFiltersProps {
   };
 }
 
-const ProductFilters = ({ selectedCompanyId, lockedFilters = {} }: ProductFiltersProps) => {
+const ProductFilters = ({
+  selectedCompanyId,
+  lockedFilters = {},
+}: ProductFiltersProps) => {
   return (
     <>
       <StatusFilter module="product" />
       {!lockedFilters.company && <CompanyFilter />}
-      {!lockedFilters.brand && <BrandFilter selectedCompanyId={selectedCompanyId} />}
-      {!lockedFilters.location && <LocationFilter selectedCompanyId={selectedCompanyId} />}
+      {!lockedFilters.brand && (
+        <BrandFilter selectedCompanyId={selectedCompanyId} />
+      )}
+      {!lockedFilters.location && (
+        <LocationFilter selectedCompanyId={selectedCompanyId} />
+      )}
     </>
   );
 };
@@ -228,29 +237,33 @@ const ProductStats = ({ companyId }: { companyId: string }) => {
 
   const fetchStats = useCallback(async () => {
     if (!companyId) return;
-    
+
     try {
-      const response = await apiGetProducts({ 
-        page: 1, 
+      const response = await apiGetProducts({
+        page: 1,
         limit: 1000,
-        companyId 
+        companyId,
       });
 
       if (response && typeof response === "object" && "data" in response) {
-        const responseData = response.data as { 
-          products: Array<{ status: string; variants?: Array<unknown> }>; 
-          totalRecords: number 
+        const responseData = response.data as {
+          products: Array<{ status: string; variants?: Array<unknown> }>;
+          totalRecords: number;
         };
-        const publishedProducts = responseData.products?.filter(
-          (p: { status: string }) => p.status === "publish",
-        ).length || 0;
-        const draftProducts = responseData.products?.filter(
-          (p: { status: string }) => p.status === "draft",
-        ).length || 0;
-        const totalVariants = responseData.products?.reduce(
-          (sum: number, product: { variants?: Array<unknown> }) => sum + (product.variants?.length || 0),
-          0,
-        ) || 0;
+        const publishedProducts =
+          responseData.products?.filter(
+            (p: { status: string }) => p.status === "publish",
+          ).length || 0;
+        const draftProducts =
+          responseData.products?.filter(
+            (p: { status: string }) => p.status === "draft",
+          ).length || 0;
+        const totalVariants =
+          responseData.products?.reduce(
+            (sum: number, product: { variants?: Array<unknown> }) =>
+              sum + (product.variants?.length || 0),
+            0,
+          ) || 0;
 
         setStats([
           {
@@ -291,7 +304,7 @@ const ProductStats = ({ companyId }: { companyId: string }) => {
   }, [fetchStats, companyId]);
 
   return (
-    <section className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:gap-5 lg:grid-cols-4 mb-6">
+    <section className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-2 md:gap-5 lg:grid-cols-4">
       {stats.map((item) => (
         <StatCard
           key={item.title}
@@ -306,13 +319,18 @@ const ProductStats = ({ companyId }: { companyId: string }) => {
 
 // Main component
 const ProductList = () => {
-  const { filters: filterValue, lockedFilters, lockedFilterValues } = useUrlFilters();
-  const selectedCompanyId = filterValue.company?.[0]?.value || lockedFilterValues.companyId;
+  const {
+    filters: filterValue,
+    lockedFilters,
+    lockedFilterValues,
+  } = useUrlFilters();
+  const selectedCompanyId =
+    filterValue.company?.[0]?.value || lockedFilterValues.companyId;
   const productFetcher = useMemo(
     () => createProductFetcher(lockedFilterValues),
-    [lockedFilterValues]
+    [lockedFilterValues],
   );
-  
+
   // Check if we're in seller context
   const { sellerInfo } = useSellerAuth();
   const isSellerContext = !!sellerInfo?.companyId;
@@ -334,13 +352,18 @@ const ProductList = () => {
       {isSellerContext && sellerInfo.companyId && (
         <ProductStats companyId={sellerInfo.companyId} />
       )}
-      
+
       <DataView<Product>
         fetcher={productFetcher}
         columns={columns}
         renderCard={(product) => <ProductCard product={product} />}
         gridClassName={GRID_CLASSES}
-        filters={<ProductFilters selectedCompanyId={selectedCompanyId} lockedFilters={lockedFilters} />}
+        filters={
+          <ProductFilters
+            selectedCompanyId={selectedCompanyId}
+            lockedFilters={lockedFilters}
+          />
+        }
         defaultViewMode="table"
         defaultPageSize={DEFAULT_PAGE_SIZE}
         enableUrlSync={false}

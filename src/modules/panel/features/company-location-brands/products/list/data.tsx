@@ -1,7 +1,11 @@
 import React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge, StatusBadge } from "@/core/components/ui/badge";
-import { AvatarRoot, AvatarImage, AvatarFallback } from "@/core/components/ui/avatar";
+import {
+  AvatarRoot,
+  AvatarImage,
+  AvatarFallback,
+} from "@/core/components/ui/avatar";
 import { Button } from "@/core/components/ui/button";
 import { DropdownMenu } from "@/core/components/ui/dropdown-menu";
 import { formatCurrency } from "@/core/utils";
@@ -93,22 +97,23 @@ export const columns = (
     cell: ({ row }) => {
       const product = row.original;
       const status = product.status;
-      
+
       // Get approval reason from statusFeedback or statusReason field for rejected products
-      const approvalReason = (product as unknown as Record<string, unknown>).statusFeedback || 
-                            (product as unknown as Record<string, unknown>).statusReason || 
-                            (product as unknown as Record<string, unknown>).status_feedback;
-      
+      const approvalReason =
+        (product as unknown as Record<string, unknown>).statusFeedback ||
+        (product as unknown as Record<string, unknown>).statusReason ||
+        (product as unknown as Record<string, unknown>).status_feedback;
+
       return (
         <div className="flex flex-col gap-1">
-          <StatusBadge 
-            module="product" 
-            status={status} 
-            variant="badge" 
+          <StatusBadge
+            module="product"
+            status={status}
+            variant="badge"
             showDot={true}
           />
           {status === "rejected" && (
-            <div className="text-xs text-red-600 max-w-40 truncate font-medium">
+            <div className="max-w-40 truncate text-xs font-medium text-red-600">
               {approvalReason ? (
                 <span title={String(approvalReason)}>
                   Reason: {String(approvalReason)}
@@ -133,7 +138,7 @@ export const columns = (
     cell: ({ row, getValue }) => {
       const priceRange = getValue() as { min: number; max: number } | undefined;
       const product = row.original;
-      
+
       // Check if priceRange exists and has valid values (> 0)
       if (priceRange && priceRange.min > 0 && priceRange.max > 0) {
         const minPrice = formatCurrency(priceRange.min);
@@ -144,7 +149,7 @@ export const columns = (
           </div>
         );
       }
-      
+
       // If priceRange is 0-0 or missing, check variants
       const variants = product.variants || [];
       if (variants.length > 0) {
@@ -154,7 +159,7 @@ export const columns = (
             return v.price || v.salePrice || 0;
           })
           .filter((price: number) => price > 0);
-        
+
         if (variantPrices.length > 0) {
           const minVariantPrice = Math.min(...variantPrices);
           const maxVariantPrice = Math.max(...variantPrices);
@@ -167,17 +172,13 @@ export const columns = (
           );
         }
       }
-      
+
       // If no variants or no variant prices, check for single price field
       const productPrice = (product as any).price;
       if (productPrice && productPrice > 0) {
-        return (
-          <div className="text-sm">
-            {formatCurrency(productPrice)}
-          </div>
-        );
+        return <div className="text-sm">{formatCurrency(productPrice)}</div>;
       }
-      
+
       // If all else fails, show dash
       return "-";
     },
@@ -251,7 +252,7 @@ export const columns = (
             e.preventDefault();
             // This will be handled by the parent component
             const event = new CustomEvent("product-approval-request", {
-              detail: { product: row.original }
+              detail: { product: row.original },
             });
             window.dispatchEvent(event);
           },

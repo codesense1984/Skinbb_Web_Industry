@@ -74,7 +74,7 @@ const api = {
     inciList: string[],
     brandedIngredients: string[],
     notBrandedIngredients: string[],
-    bisCautions?: Record<string, string[]>
+    bisCautions?: Record<string, string[]>,
   ): Promise<string> {
     const response = await axios.post(
       `${basePythonApiUrl}/api/formulation-report`,
@@ -224,10 +224,12 @@ function IngredientAnalyzer() {
 
   const generateReport = useCallback(async () => {
     if (!parsed.length) return;
-    
+
     // Ensure we have analysis results before generating report
     if (!resp) {
-      console.warn("No analysis results available. Please analyze ingredients first.");
+      console.warn(
+        "No analysis results available. Please analyze ingredients first.",
+      );
       return;
     }
 
@@ -255,7 +257,7 @@ function IngredientAnalyzer() {
         parsed,
         brandedIngredients,
         notBrandedIngredients,
-        bisCautions
+        bisCautions,
       );
       setReportState((prev) => ({ ...prev, data, loading: false }));
     } catch (error) {

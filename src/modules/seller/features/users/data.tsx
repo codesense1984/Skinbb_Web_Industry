@@ -9,7 +9,13 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { NavLink } from "react-router";
 
 // Avatar component for user initials
-const UserAvatar = ({ firstName, lastName }: { firstName: string; lastName: string }) => {
+const UserAvatar = ({
+  firstName,
+  lastName,
+}: {
+  firstName: string;
+  lastName: string;
+}) => {
   const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
   return (
     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-xs font-medium text-blue-600">
@@ -22,20 +28,12 @@ const UserAvatar = ({ firstName, lastName }: { firstName: string; lastName: stri
 const TableAction = ({ user }: { user: CompanyUserResponse }) => {
   return (
     <div className="flex items-center gap-2">
-      <Button
-        variant="ghost"
-        size="sm"
-        asChild
-      >
+      <Button variant="ghost" size="sm" asChild>
         <NavLink to={SELLER_ROUTES.USERS.VIEW(user.companyId, user.userId)}>
           <EyeIcon className="h-4 w-4" />
         </NavLink>
       </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        asChild
-      >
+      <Button variant="ghost" size="sm" asChild>
         <NavLink to={SELLER_ROUTES.USERS.EDIT(user.companyId, user.userId)}>
           <PencilIcon className="h-4 w-4" />
         </NavLink>

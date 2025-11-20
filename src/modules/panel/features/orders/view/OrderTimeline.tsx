@@ -6,7 +6,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/core/components/ui/dialog";
-import { apiGetOrderStatus, type OrderStatusTimelineItem } from "@/modules/panel/services/http/order.service";
+import {
+  apiGetOrderStatus,
+  type OrderStatusTimelineItem,
+} from "@/modules/panel/services/http/order.service";
 import { formatDate, formatTime } from "@/core/utils/date";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
 import { ClockIcon } from "@heroicons/react/24/outline";
@@ -24,7 +27,11 @@ export const OrderTimeline: React.FC<OrderTimelineProps> = ({
   isOpen,
   onClose,
 }) => {
-  const { data: statusResponse, isLoading, isError } = useQuery({
+  const {
+    data: statusResponse,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ["order-status", orderId],
     queryFn: () => apiGetOrderStatus(orderId),
     enabled: isOpen && !!orderId,
@@ -35,6 +42,12 @@ export const OrderTimeline: React.FC<OrderTimelineProps> = ({
   const currentStatus = statusResponse?.data?.currentStatus;
   const statusDescription = statusResponse?.data?.statusDescription;
   const nextStep = statusResponse?.data?.nextStep;
+  // Try multiple possible field names for cancellation reason
+  const cancellationReason =
+    statusResponse?.data?.cancellationReason ||
+    statusResponse?.data?.cancelReason ||
+    statusResponse?.data?.cancellation_reason ||
+    statusResponse?.data?.cancel_reason;
   const cancellationReason = statusResponse?.data?.cancellationReason;
 
   const formatTimelineDate = (timestamp: string) => {
@@ -46,7 +59,7 @@ export const OrderTimeline: React.FC<OrderTimelineProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-gray-900">
             Shipment Status
@@ -77,13 +90,21 @@ export const OrderTimeline: React.FC<OrderTimelineProps> = ({
             {currentStatus && (
               <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
                 <div className="mb-2">
-                  <span className="text-sm font-medium text-gray-600">Current Status:</span>
-                  <p className="text-lg font-semibold text-gray-900 capitalize">{currentStatus}</p>
+                  <span className="text-sm font-medium text-gray-600">
+                    Current Status:
+                  </span>
+                  <p className="text-lg font-semibold text-gray-900 capitalize">
+                    {currentStatus}
+                  </p>
                 </div>
                 {currentStatus === "cancelled" && cancellationReason && (
-                  <div className="mt-2 rounded-md bg-red-50 p-2 border border-red-200">
-                    <p className="text-xs font-medium text-red-800">Cancellation Reason:</p>
-                    <p className="text-sm text-red-700 mt-1">{cancellationReason}</p>
+                  <div className="mt-2 rounded-md border border-red-200 bg-red-50 p-2">
+                    <p className="text-xs font-medium text-red-800">
+                      Cancellation Reason:
+                    </p>
+                    <p className="mt-1 text-sm text-red-700">
+                      {cancellationReason}
+                    </p>
                   </div>
                 )}
                 {statusDescription && (
@@ -93,7 +114,9 @@ export const OrderTimeline: React.FC<OrderTimelineProps> = ({
                   <p className="mt-2 text-sm text-blue-600">{nextStep}</p>
                 )}
                 {orderNumber && (
-                  <p className="mt-2 text-xs text-gray-500">Order: {orderNumber}</p>
+                  <p className="mt-2 text-xs text-gray-500">
+                    Order: {orderNumber}
+                  </p>
                 )}
               </div>
             )}
@@ -103,18 +126,36 @@ export const OrderTimeline: React.FC<OrderTimelineProps> = ({
               <div className="relative">
                 {/* Vertical line - only show if there are multiple items */}
                 {timeline.length > 1 && (
-                  <div 
-                    className="absolute left-4 top-0 w-0.5 bg-green-500"
+                  <div
+                    className="absolute top-0 left-4 w-0.5 bg-green-500"
                     style={{ height: `${(timeline.length - 1) * 96}px` }}
                   ></div>
                 )}
 
                 <div className="space-y-6">
-                  {timeline.map((item: OrderStatusTimelineItem, index: number) => {
-                    const isCompleted = item.completed;
-                    const { date, time } = formatTimelineDate(item.timestamp);
-                    const isLast = index === timeline.length - 1;
+                  {timeline.map(
+                    (item: OrderStatusTimelineItem, index: number) => {
+                      const isCompleted = item.completed;
+                      const { date, time } = formatTimelineDate(item.timestamp);
+                      const isLast = index === timeline.length - 1;
 
+                      return (
+                        <div
+                          key={index}
+                          className={`relative flex items-start gap-4 ${isLast ? "" : "pb-6"}`}
+                        >
+                          {/* Timeline node */}
+                          <div className="relative z-10 flex-shrink-0">
+                            {isCompleted ? (
+                              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-600">
+                                <CheckCircleIcon className="h-5 w-5 text-white" />
+                              </div>
+                            ) : (
+                              <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-gray-300 bg-white">
+                                <ClockIcon className="h-4 w-4 text-gray-400" />
+                              </div>
+                            )}
+                          </div>
                     return (
                       <div key={index} className={`relative flex items-start gap-4 ${isLast ? "" : "pb-6"}`}>
                         {/* Timeline node */}
@@ -130,27 +171,36 @@ export const OrderTimeline: React.FC<OrderTimelineProps> = ({
                           )}
                         </div>
 
-                        {/* Content */}
-                        <div className="flex-1">
-                          <div className={`${isCompleted ? "text-gray-900" : "text-gray-400"}`}>
-                            <h3 className={`text-base font-semibold ${isCompleted ? "text-gray-900" : "text-gray-500"}`}>
-                              {item.title}
-                            </h3>
-                            <p className={`mt-1 text-sm ${isCompleted ? "text-gray-700" : "text-gray-400"}`}>
-                              {item.description}
-                            </p>
-                            <p className={`mt-2 text-xs ${isCompleted ? "text-gray-600" : "text-gray-400"}`}>
-                              {date} {time}
-                            </p>
+                          {/* Content */}
+                          <div className="flex-1">
+                            <div
+                              className={`${isCompleted ? "text-gray-900" : "text-gray-400"}`}
+                            >
+                              <h3
+                                className={`text-base font-semibold ${isCompleted ? "text-gray-900" : "text-gray-500"}`}
+                              >
+                                {item.title}
+                              </h3>
+                              <p
+                                className={`mt-1 text-sm ${isCompleted ? "text-gray-700" : "text-gray-400"}`}
+                              >
+                                {item.description}
+                              </p>
+                              <p
+                                className={`mt-2 text-xs ${isCompleted ? "text-gray-600" : "text-gray-400"}`}
+                              >
+                                {date} {time}
+                              </p>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    },
+                  )}
                 </div>
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-500">
+              <div className="py-8 text-center text-gray-500">
                 <p>No timeline data available</p>
               </div>
             )}
@@ -158,25 +208,33 @@ export const OrderTimeline: React.FC<OrderTimelineProps> = ({
             {/* Additional Information */}
             {statusResponse.data.shipment && (
               <div className="mt-6 rounded-lg border border-gray-200 p-4">
-                <h4 className="mb-3 text-sm font-semibold text-gray-900">Shipment Details</h4>
+                <h4 className="mb-3 text-sm font-semibold text-gray-900">
+                  Shipment Details
+                </h4>
                 <div className="space-y-2 text-sm">
                   {statusResponse.data.shipment.trackingNumber && (
                     <div className="flex justify-between">
                       <span className="text-gray-600">Tracking Number:</span>
-                      <span className="font-medium text-gray-900">{statusResponse.data.shipment.trackingNumber}</span>
+                      <span className="font-medium text-gray-900">
+                        {statusResponse.data.shipment.trackingNumber}
+                      </span>
                     </div>
                   )}
                   {statusResponse.data.shipment.carrier && (
                     <div className="flex justify-between">
                       <span className="text-gray-600">Carrier:</span>
-                      <span className="font-medium text-gray-900">{statusResponse.data.shipment.carrier}</span>
+                      <span className="font-medium text-gray-900">
+                        {statusResponse.data.shipment.carrier}
+                      </span>
                     </div>
                   )}
                   {statusResponse.data.shipment.estimatedDelivery && (
                     <div className="flex justify-between">
                       <span className="text-gray-600">Estimated Delivery:</span>
                       <span className="font-medium text-gray-900">
-                        {formatDate(statusResponse.data.shipment.estimatedDelivery)}
+                        {formatDate(
+                          statusResponse.data.shipment.estimatedDelivery,
+                        )}
                       </span>
                     </div>
                   )}
@@ -200,7 +258,11 @@ export const OrderTimelineInline: React.FC<OrderTimelineInlineProps> = ({
   orderId,
   orderNumber,
 }) => {
-  const { data: statusResponse, isLoading, isError } = useQuery({
+  const {
+    data: statusResponse,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ["order-status", orderId],
     queryFn: () => apiGetOrderStatus(orderId),
     enabled: !!orderId,
@@ -211,6 +273,12 @@ export const OrderTimelineInline: React.FC<OrderTimelineInlineProps> = ({
   const currentStatus = statusResponse?.data?.currentStatus;
   const statusDescription = statusResponse?.data?.statusDescription;
   const nextStep = statusResponse?.data?.nextStep;
+  // Try multiple possible field names for cancellation reason
+  const cancellationReason =
+    statusResponse?.data?.cancellationReason ||
+    statusResponse?.data?.cancelReason ||
+    statusResponse?.data?.cancellation_reason ||
+    statusResponse?.data?.cancel_reason;
   const cancellationReason = statusResponse?.data?.cancellationReason;
 
   const formatTimelineDate = (timestamp: string) => {
@@ -244,7 +312,7 @@ export const OrderTimelineInline: React.FC<OrderTimelineInlineProps> = ({
 
   if (!statusResponse) {
     return (
-      <div className="text-center py-8 text-gray-500">
+      <div className="py-8 text-center text-gray-500">
         <p>No timeline data available</p>
       </div>
     );
@@ -256,21 +324,25 @@ export const OrderTimelineInline: React.FC<OrderTimelineInlineProps> = ({
       {currentStatus && (
         <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
           <div className="mb-2">
-            <span className="text-sm font-medium text-gray-600">Current Status:</span>
-            <p className="text-lg font-semibold text-gray-900 capitalize">{currentStatus}</p>
+            <span className="text-sm font-medium text-gray-600">
+              Current Status:
+            </span>
+            <p className="text-lg font-semibold text-gray-900 capitalize">
+              {currentStatus}
+            </p>
           </div>
           {currentStatus === "cancelled" && cancellationReason && (
-            <div className="mt-2 rounded-md bg-red-50 p-2 border border-red-200">
-              <p className="text-xs font-medium text-red-800">Cancellation Reason:</p>
-              <p className="text-sm text-red-700 mt-1">{cancellationReason}</p>
+            <div className="mt-2 rounded-md border border-red-200 bg-red-50 p-2">
+              <p className="text-xs font-medium text-red-800">
+                Cancellation Reason:
+              </p>
+              <p className="mt-1 text-sm text-red-700">{cancellationReason}</p>
             </div>
           )}
           {statusDescription && (
             <p className="text-sm text-gray-700">{statusDescription}</p>
           )}
-          {nextStep && (
-            <p className="mt-2 text-sm text-blue-600">{nextStep}</p>
-          )}
+          {nextStep && <p className="mt-2 text-sm text-blue-600">{nextStep}</p>}
           {orderNumber && (
             <p className="mt-2 text-xs text-gray-500">Order: {orderNumber}</p>
           )}
@@ -282,8 +354,8 @@ export const OrderTimelineInline: React.FC<OrderTimelineInlineProps> = ({
         <div className="relative">
           {/* Vertical line - only show if there are multiple items */}
           {timeline.length > 1 && (
-            <div 
-              className="absolute left-4 top-0 w-0.5 bg-green-500"
+            <div
+              className="absolute top-0 left-4 w-0.5 bg-green-500"
               style={{ height: `${(timeline.length - 1) * 96}px` }}
             ></div>
           )}
@@ -295,6 +367,10 @@ export const OrderTimelineInline: React.FC<OrderTimelineInlineProps> = ({
               const isLast = index === timeline.length - 1;
 
               return (
+                <div
+                  key={index}
+                  className={`relative flex items-start gap-4 ${isLast ? "" : "pb-6"}`}
+                >
                 <div key={index} className={`relative flex items-start gap-4 ${isLast ? "" : "pb-6"}`}>
                   {/* Timeline node */}
                   <div className="relative z-10 flex-shrink-0">
@@ -311,14 +387,22 @@ export const OrderTimelineInline: React.FC<OrderTimelineInlineProps> = ({
 
                   {/* Content */}
                   <div className="flex-1">
-                    <div className={`${isCompleted ? "text-gray-900" : "text-gray-400"}`}>
-                      <h3 className={`text-base font-semibold ${isCompleted ? "text-gray-900" : "text-gray-500"}`}>
+                    <div
+                      className={`${isCompleted ? "text-gray-900" : "text-gray-400"}`}
+                    >
+                      <h3
+                        className={`text-base font-semibold ${isCompleted ? "text-gray-900" : "text-gray-500"}`}
+                      >
                         {item.title}
                       </h3>
-                      <p className={`mt-1 text-sm ${isCompleted ? "text-gray-700" : "text-gray-400"}`}>
+                      <p
+                        className={`mt-1 text-sm ${isCompleted ? "text-gray-700" : "text-gray-400"}`}
+                      >
                         {item.description}
                       </p>
-                      <p className={`mt-2 text-xs ${isCompleted ? "text-gray-600" : "text-gray-400"}`}>
+                      <p
+                        className={`mt-2 text-xs ${isCompleted ? "text-gray-600" : "text-gray-400"}`}
+                      >
                         {date} {time}
                       </p>
                     </div>
@@ -329,7 +413,7 @@ export const OrderTimelineInline: React.FC<OrderTimelineInlineProps> = ({
           </div>
         </div>
       ) : (
-        <div className="text-center py-8 text-gray-500">
+        <div className="py-8 text-center text-gray-500">
           <p>No timeline data available</p>
         </div>
       )}
@@ -337,18 +421,24 @@ export const OrderTimelineInline: React.FC<OrderTimelineInlineProps> = ({
       {/* Additional Information */}
       {statusResponse.data.shipment && (
         <div className="mt-6 rounded-lg border border-gray-200 p-4">
-          <h4 className="mb-3 text-sm font-semibold text-gray-900">Shipment Details</h4>
+          <h4 className="mb-3 text-sm font-semibold text-gray-900">
+            Shipment Details
+          </h4>
           <div className="space-y-2 text-sm">
             {statusResponse.data.shipment.trackingNumber && (
               <div className="flex justify-between">
                 <span className="text-gray-600">Tracking Number:</span>
-                <span className="font-medium text-gray-900">{statusResponse.data.shipment.trackingNumber}</span>
+                <span className="font-medium text-gray-900">
+                  {statusResponse.data.shipment.trackingNumber}
+                </span>
               </div>
             )}
             {statusResponse.data.shipment.carrier && (
               <div className="flex justify-between">
                 <span className="text-gray-600">Carrier:</span>
-                <span className="font-medium text-gray-900">{statusResponse.data.shipment.carrier}</span>
+                <span className="font-medium text-gray-900">
+                  {statusResponse.data.shipment.carrier}
+                </span>
               </div>
             )}
             {statusResponse.data.shipment.estimatedDelivery && (

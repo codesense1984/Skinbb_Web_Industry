@@ -1,6 +1,6 @@
-import { FormInput, INPUT_TYPES } from '@/core/components/ui/form-input';
-import type { FormSectionBaseProps } from '../types';
-import type { ProductAttribute } from '../../types/product.types';
+import { FormInput, INPUT_TYPES } from "@/core/components/ui/form-input";
+import type { FormSectionBaseProps } from "../types";
+import type { ProductAttribute } from "../../types/product.types";
 
 type MetaFieldSectionProps = FormSectionBaseProps & {
   metaFields: ProductAttribute[];
@@ -11,14 +11,14 @@ type MetaFieldSectionProps = FormSectionBaseProps & {
 };
 
 const allowedSlugs = [
-  'how-to-use',
-  'gender',
-  'safety-precaution',
-  'shelf-life',
-  'license-no',
-  'claims',
-  'certification-applicable',
-  'formulation',
+  "how-to-use",
+  "gender",
+  "safety-precaution",
+  "shelf-life",
+  "license-no",
+  "claims",
+  "certification-applicable",
+  "formulation",
 ];
 
 const MetaFieldSection = ({
@@ -33,18 +33,18 @@ const MetaFieldSection = ({
   );
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border">
-      <h3 className="text-lg font-semibold mb-4">Additional Information</h3>
-      
+    <div className="rounded-lg border bg-white p-6 shadow-sm">
+      <h3 className="mb-4 text-lg font-semibold">Additional Information</h3>
+
       <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormInput
             control={control}
             name="manufacturingDate"
             type={INPUT_TYPES.DATEPICKER}
             label="Manufacturing Date"
             placeholder="Select manufacturing date"
-            inputProps={{ mode: 'single' }}
+            inputProps={{ mode: "single" }}
           />
 
           <FormInput
@@ -53,18 +53,18 @@ const MetaFieldSection = ({
             type={INPUT_TYPES.DATEPICKER}
             label="Expiry Date"
             placeholder="Select expiry date"
-            inputProps={{ mode: 'single' }}
+            inputProps={{ mode: "single" }}
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <FormInput
             control={control}
             name="dimensions.length"
             type={INPUT_TYPES.NUMBER}
             label="Length (cm)"
             placeholder="Enter length"
-            inputProps={{ step: '0.01', min: '0' }}
+            inputProps={{ step: "0.01", min: "0" }}
           />
 
           <FormInput
@@ -73,7 +73,7 @@ const MetaFieldSection = ({
             type={INPUT_TYPES.NUMBER}
             label="Width (cm)"
             placeholder="Enter width"
-            inputProps={{ step: '0.01', min: '0' }}
+            inputProps={{ step: "0.01", min: "0" }}
           />
 
           <FormInput
@@ -82,7 +82,7 @@ const MetaFieldSection = ({
             type={INPUT_TYPES.NUMBER}
             label="Height (cm)"
             placeholder="Enter height"
-            inputProps={{ step: '0.01', min: '0' }}
+            inputProps={{ step: "0.01", min: "0" }}
           />
         </div>
 
@@ -91,12 +91,12 @@ const MetaFieldSection = ({
           let inputType = INPUT_TYPES.TEXT;
           let multi = false;
 
-          if (fieldType === 'single-select') {
+          if (fieldType === "single-select") {
             inputType = INPUT_TYPES.SELECT;
-          } else if (fieldType === 'multi-select') {
+          } else if (fieldType === "multi-select") {
             inputType = INPUT_TYPES.SELECT;
             multi = true;
-          } else if (fieldType === 'rich-textbox') {
+          } else if (fieldType === "rich-textbox") {
             inputType = INPUT_TYPES.RICH_TEXT;
           }
 
@@ -107,7 +107,9 @@ const MetaFieldSection = ({
               name={field.slug}
               type={inputType}
               label={field.name}
-              placeholder={field.placeholder || `Enter ${field.name.toLowerCase()}`}
+              placeholder={
+                field.placeholder || `Enter ${field.name.toLowerCase()}`
+              }
               required={field.isRequired}
               options={selectOptions[field._id] || []}
               multi={multi}
@@ -130,4 +132,3 @@ const MetaFieldSection = ({
 };
 
 export default MetaFieldSection;
-

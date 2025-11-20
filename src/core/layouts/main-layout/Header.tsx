@@ -182,7 +182,9 @@ const Header = () => {
                     {
                       children: (
                         <NavLink
-                          to={PANEL_ROUTES.COMPANY.VIEW(sellerInfo?.companyId || "")}
+                          to={PANEL_ROUTES.COMPANY.VIEW(
+                            sellerInfo?.companyId || "",
+                          )}
                           className="flex w-full items-center gap-2"
                         >
                           <svg

@@ -33,23 +33,24 @@ export const RealTimeLineChart: React.FC<RealTimeLineChartProps> = ({
   const chartWidth = 800 - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
 
-  const minValue = Math.min(...data.map(d => d.value));
-  const maxValue = Math.max(...data.map(d => d.value));
+  const minValue = Math.min(...data.map((d) => d.value));
+  const maxValue = Math.max(...data.map((d) => d.value));
   const valueRange = maxValue - minValue;
   const padding = valueRange * 0.1;
 
   const xScale = (index: number) => (index / (data.length - 1)) * chartWidth;
-  const yScale = (value: number) => 
-    chartHeight - ((value - minValue + padding) / (valueRange + padding * 2)) * chartHeight;
+  const yScale = (value: number) =>
+    chartHeight -
+    ((value - minValue + padding) / (valueRange + padding * 2)) * chartHeight;
 
   // Generate path for the line
   const pathData = data
     .map((point, index) => {
       const x = xScale(index);
       const y = yScale(point.value);
-      return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
+      return `${index === 0 ? "M" : "L"} ${x} ${y}`;
     })
-    .join(' ');
+    .join(" ");
 
   // Handle mouse events
   const handleMouseMove = (event: React.MouseEvent<SVGSVGElement>) => {
@@ -63,9 +64,16 @@ export const RealTimeLineChart: React.FC<RealTimeLineChartProps> = ({
 
     // Find closest data point
     const closestIndex = Math.round((x / chartWidth) * (data.length - 1));
-    const closestPoint = data[Math.max(0, Math.min(closestIndex, data.length - 1))];
-    
-    if (closestPoint && x >= 0 && x <= chartWidth && y >= 0 && y <= chartHeight) {
+    const closestPoint =
+      data[Math.max(0, Math.min(closestIndex, data.length - 1))];
+
+    if (
+      closestPoint &&
+      x >= 0 &&
+      x <= chartWidth &&
+      y >= 0 &&
+      y <= chartHeight
+    ) {
       setHoveredPoint(closestPoint);
       onDataPointHover?.(closestPoint);
     } else {
@@ -84,12 +92,14 @@ export const RealTimeLineChart: React.FC<RealTimeLineChartProps> = ({
     const value = minValue + (valueRange / 4) * i;
     return {
       value: Math.round(value),
-      y: yScale(value)
+      y: yScale(value),
     };
   });
 
   // Generate X-axis labels
-  const xAxisLabels = data.filter((_, i) => i % Math.ceil(data.length / 6) === 0);
+  const xAxisLabels = data.filter(
+    (_, i) => i % Math.ceil(data.length / 6) === 0,
+  );
 
   return (
     <div className={cn("relative", className)}>
@@ -97,7 +107,7 @@ export const RealTimeLineChart: React.FC<RealTimeLineChartProps> = ({
         ref={svgRef}
         width={800}
         height={height}
-        className="w-full h-full"
+        className="h-full w-full"
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
@@ -154,7 +164,7 @@ export const RealTimeLineChart: React.FC<RealTimeLineChartProps> = ({
             const x = xScale(index);
             const y = yScale(point.value);
             const isHovered = hoveredPoint === point;
-            
+
             return (
               <circle
                 key={index}
@@ -191,7 +201,7 @@ export const RealTimeLineChart: React.FC<RealTimeLineChartProps> = ({
               x={0}
               y={y + 5}
               textAnchor="end"
-              className="text-xs fill-gray-500"
+              className="fill-gray-500 text-xs"
             >
               {value >= 1000 ? `${(value / 1000).toFixed(1)}K` : value}
             </text>
@@ -199,7 +209,9 @@ export const RealTimeLineChart: React.FC<RealTimeLineChartProps> = ({
         </g>
 
         {/* X-axis labels */}
-        <g transform={`translate(${margin.left}, ${height - margin.bottom + 20})`}>
+        <g
+          transform={`translate(${margin.left}, ${height - margin.bottom + 20})`}
+        >
           {xAxisLabels.map((point, index) => {
             const x = xScale(index * Math.ceil(data.length / 6));
             return (
@@ -208,7 +220,7 @@ export const RealTimeLineChart: React.FC<RealTimeLineChartProps> = ({
                 x={x}
                 y={0}
                 textAnchor="middle"
-                className="text-xs fill-gray-500"
+                className="fill-gray-500 text-xs"
               >
                 {point.date}
               </text>
@@ -220,16 +232,16 @@ export const RealTimeLineChart: React.FC<RealTimeLineChartProps> = ({
       {/* Tooltip */}
       {showTooltip && hoveredPoint && (
         <div
-          className="absolute bg-white border border-gray-200 rounded-lg shadow-lg p-3 pointer-events-none z-10"
+          className="pointer-events-none absolute z-10 rounded-lg border border-gray-200 bg-white p-3 shadow-lg"
           style={{
             left: mousePosition.x + 10,
             top: mousePosition.y - 10,
-            transform: 'translateY(-100%)'
+            transform: "translateY(-100%)",
           }}
         >
           <div className="flex items-center gap-2">
-            <div 
-              className="w-3 h-3 rounded-full" 
+            <div
+              className="h-3 w-3 rounded-full"
               style={{ backgroundColor: color }}
             />
             <div>
@@ -237,7 +249,8 @@ export const RealTimeLineChart: React.FC<RealTimeLineChartProps> = ({
                 {hoveredPoint.date}
               </p>
               <p className="text-sm text-gray-600">
-                {hoveredPoint.label || 'Value'}: {hoveredPoint.value.toLocaleString()}
+                {hoveredPoint.label || "Value"}:{" "}
+                {hoveredPoint.value.toLocaleString()}
               </p>
             </div>
           </div>

@@ -32,7 +32,13 @@ const SellerProductList: React.FC = () => {
     companyId: string;
     locationId: string;
   }>();
-  const { sellerInfo, isLoading: sellerLoading, isError: sellerError, getCompanyId, getPrimaryAddress } = useSellerAuth();
+  const {
+    sellerInfo,
+    isLoading: sellerLoading,
+    isError: sellerError,
+    getCompanyId,
+    getPrimaryAddress,
+  } = useSellerAuth();
 
   // Get companyId and locationId from params or seller auth
   const finalCompanyId = companyId || getCompanyId();
@@ -84,11 +90,14 @@ const SellerProductList: React.FC = () => {
       <PageContent
         header={{
           title: "Products",
-          description: "Company ID and Location ID are required to view products.",
+          description:
+            "Company ID and Location ID are required to view products.",
         }}
       >
         <div className="py-8 text-center">
-          <p className="text-gray-500">Invalid company or location ID provided.</p>
+          <p className="text-gray-500">
+            Invalid company or location ID provided.
+          </p>
         </div>
       </PageContent>
     );
@@ -101,7 +110,12 @@ const SellerProductList: React.FC = () => {
         description: "Manage products for this company location.",
         actions: (
           <Button color={"primary"} asChild>
-            <NavLink to={SELLER_ROUTES.COMPANY_LOCATION_PRODUCTS.CREATE(finalCompanyId, finalLocationId)}>
+            <NavLink
+              to={SELLER_ROUTES.COMPANY_LOCATION_PRODUCTS.CREATE(
+                finalCompanyId,
+                finalLocationId,
+              )}
+            >
               Add Product
             </NavLink>
           </Button>

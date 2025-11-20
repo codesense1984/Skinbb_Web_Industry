@@ -1,10 +1,23 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/core/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/core/components/ui/card";
 import { Badge } from "@/core/components/ui/badge";
 import { StatusBadge } from "@/core/components/ui/badge";
-import { AvatarRoot, AvatarImage, AvatarFallback } from "@/core/components/ui/avatar";
-import { ChevronDownIcon, ChevronUpIcon, ShoppingBagIcon } from "@heroicons/react/24/outline";
+import {
+  AvatarRoot,
+  AvatarImage,
+  AvatarFallback,
+} from "@/core/components/ui/avatar";
+import {
+  ChevronDownIcon,
+  ChevronUpIcon,
+  ShoppingBagIcon,
+} from "@heroicons/react/24/outline";
 import { useQuery } from "@tanstack/react-query";
 import { apiGetCompanyLocationProducts } from "@/modules/panel/services/http/company.service";
 import { formatCurrency } from "@/core/utils";
@@ -47,12 +60,17 @@ export const ProductDropdown: React.FC<ProductDropdownProps> = ({
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   // Fetch products for the company location
-  const { data: productsData, isLoading, error } = useQuery({
+  const {
+    data: productsData,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["company-location-products", companyId, locationId],
-    queryFn: () => apiGetCompanyLocationProducts(companyId, locationId, {
-      page: 1,
-      limit: maxProducts,
-    }),
+    queryFn: () =>
+      apiGetCompanyLocationProducts(companyId, locationId, {
+        page: 1,
+        limit: maxProducts,
+      }),
     enabled: !!companyId && !!locationId,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -81,7 +99,9 @@ export const ProductDropdown: React.FC<ProductDropdownProps> = ({
         <CardContent>
           <div className="flex items-center justify-center py-4">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600"></div>
-            <span className="ml-2 text-sm text-gray-600">Loading products...</span>
+            <span className="ml-2 text-sm text-gray-600">
+              Loading products...
+            </span>
           </div>
         </CardContent>
       </Card>
@@ -98,7 +118,7 @@ export const ProductDropdown: React.FC<ProductDropdownProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-4">
+          <div className="py-4 text-center">
             <p className="text-sm text-red-600">Failed to load products</p>
           </div>
         </CardContent>
@@ -118,13 +138,13 @@ export const ProductDropdown: React.FC<ProductDropdownProps> = ({
             </Badge>
           </CardTitle>
           <div className="flex items-center gap-2">
-            <Button
-              asChild
-              variant="outlined"
-              size="sm"
-              className="text-xs"
-            >
-              <Link to={PANEL_ROUTES.COMPANY_LOCATION.PRODUCTS(companyId, locationId)}>
+            <Button asChild variant="outlined" size="sm" className="text-xs">
+              <Link
+                to={PANEL_ROUTES.COMPANY_LOCATION.PRODUCTS(
+                  companyId,
+                  locationId,
+                )}
+              >
                 View All
               </Link>
             </Button>
@@ -143,20 +163,20 @@ export const ProductDropdown: React.FC<ProductDropdownProps> = ({
           </div>
         </div>
       </CardHeader>
-      
+
       {isExpanded && (
         <CardContent className="pt-4">
           {products.length === 0 ? (
-            <div className="text-center py-8">
+            <div className="py-8 text-center">
               <ShoppingBagIcon className="mx-auto h-12 w-12 text-gray-400" />
               <p className="mt-2 text-sm text-gray-600">No products found</p>
-              <Button
-                asChild
-                variant="outlined"
-                size="sm"
-                className="mt-2"
-              >
-                <Link to={PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_CREATE(companyId, locationId)}>
+              <Button asChild variant="outlined" size="sm" className="mt-2">
+                <Link
+                  to={PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_CREATE(
+                    companyId,
+                    locationId,
+                  )}
+                >
                   Add Product
                 </Link>
               </Button>
@@ -166,8 +186,10 @@ export const ProductDropdown: React.FC<ProductDropdownProps> = ({
               {products.map((product: Product) => (
                 <div
                   key={product._id}
-                  className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors hover:bg-gray-50 ${
-                    selectedProduct?._id === product._id ? 'bg-blue-50 border-blue-200' : ''
+                  className={`flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-gray-50 ${
+                    selectedProduct?._id === product._id
+                      ? "border-blue-200 bg-blue-50"
+                      : ""
                   }`}
                   onClick={() => handleProductSelect(product)}
                 >
@@ -181,10 +203,10 @@ export const ProductDropdown: React.FC<ProductDropdownProps> = ({
                       {product.productName?.charAt(0)}
                     </AvatarFallback>
                   </AvatarRoot>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-medium text-sm truncate">
+
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-1 flex items-center gap-2">
+                      <h4 className="truncate text-sm font-medium">
                         {product.productName}
                       </h4>
                       <StatusBadge
@@ -194,7 +216,7 @@ export const ProductDropdown: React.FC<ProductDropdownProps> = ({
                         className="text-xs"
                       />
                     </div>
-                    
+
                     <div className="flex items-center gap-2 text-xs text-gray-600">
                       {product.brand && (
                         <span>Brand: {product.brand.name}</span>
@@ -202,29 +224,35 @@ export const ProductDropdown: React.FC<ProductDropdownProps> = ({
                       {product.priceRange && (
                         <span>
                           Price: {formatCurrency(product.priceRange.min)}
-                          {product.priceRange.min !== product.priceRange.max && 
-                            ` - ${formatCurrency(product.priceRange.max)}`
-                          }
+                          {product.priceRange.min !== product.priceRange.max &&
+                            ` - ${formatCurrency(product.priceRange.max)}`}
                         </span>
                       )}
                     </div>
-                    
-                    {product.productCategory && product.productCategory.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {product.productCategory.slice(0, 2).map((category, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {category.name}
-                          </Badge>
-                        ))}
-                        {product.productCategory.length > 2 && (
-                          <span className="text-xs text-gray-500">
-                            +{product.productCategory.length - 2} more
-                          </span>
-                        )}
-                      </div>
-                    )}
+
+                    {product.productCategory &&
+                      product.productCategory.length > 0 && (
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {product.productCategory
+                            .slice(0, 2)
+                            .map((category, index) => (
+                              <Badge
+                                key={index}
+                                variant="outline"
+                                className="text-xs"
+                              >
+                                {category.name}
+                              </Badge>
+                            ))}
+                          {product.productCategory.length > 2 && (
+                            <span className="text-xs text-gray-500">
+                              +{product.productCategory.length - 2} more
+                            </span>
+                          )}
+                        </div>
+                      )}
                   </div>
-                  
+
                   <Button
                     asChild
                     variant="outlined"
@@ -232,22 +260,33 @@ export const ProductDropdown: React.FC<ProductDropdownProps> = ({
                     className="text-xs"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <Link to={PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_VIEW(companyId, locationId, product._id)}>
+                    <Link
+                      to={PANEL_ROUTES.COMPANY_LOCATION.PRODUCT_VIEW(
+                        companyId,
+                        locationId,
+                        product._id,
+                      )}
+                    >
                       View
                     </Link>
                   </Button>
                 </div>
               ))}
-              
+
               {products.length >= maxProducts && (
-                <div className="text-center pt-2">
+                <div className="pt-2 text-center">
                   <Button
                     asChild
                     variant="outlined"
                     size="sm"
                     className="text-xs"
                   >
-                    <Link to={PANEL_ROUTES.COMPANY_LOCATION.PRODUCTS(companyId, locationId)}>
+                    <Link
+                      to={PANEL_ROUTES.COMPANY_LOCATION.PRODUCTS(
+                        companyId,
+                        locationId,
+                      )}
+                    >
                       View All Products
                     </Link>
                   </Button>

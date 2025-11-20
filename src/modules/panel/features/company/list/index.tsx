@@ -1,7 +1,4 @@
-import {
-  DataView,
-  type ServerDataFetcher,
-} from "@/core/components/data-view";
+import { DataView, type ServerDataFetcher } from "@/core/components/data-view";
 import { PageContent } from "@/core/components/ui/structure";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { apiGetCompanyList } from "@/modules/panel/services/http/company.service";

@@ -27,7 +27,7 @@ const BrandCreate = () => {
     });
   };
 
-  let mode = MODE.ADD;
+  const mode = MODE.ADD;
 
   return (
     <>

@@ -1,20 +1,21 @@
-import { useRef, useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router';
-import { useQuery } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { useRef, useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 
-import ProductForm from '../components/product-form/ProductForm';
-import { apiUpdateProduct, apiGetProductById } from '../services/product.service';
-import type { ProductFormSchema, ProductReqData } from '../types/product.types';
-import { transformApiResponseToFormData } from '../utils/product.utils';
+import ProductForm from "../components/product-form/ProductForm";
+import {
+  apiUpdateProduct,
+  apiGetProductById,
+} from "../services/product.service";
+import type { ProductFormSchema, ProductReqData } from "../types/product.types";
+import { transformApiResponseToFormData } from "../utils/product.utils";
 
 const ProductEdit = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
-  const setBackendErrorRef = useRef<
-    ((errors: any[]) => void) | null
-  >(null);
+  const setBackendErrorRef = useRef<((errors: any[]) => void) | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<ProductFormSchema | null>(null);
@@ -25,7 +26,7 @@ const ProductEdit = () => {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['product', id],
+    queryKey: ["product", id],
     queryFn: () => apiGetProductById(id!),
     enabled: !!id,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -40,22 +41,20 @@ const ProductEdit = () => {
 
   const handleFormSubmit = async (values: ProductReqData) => {
     if (!id) return;
-    
-    console.log('Submitted values', values);
+
+    console.log("Submitted values", values);
     setIsSubmitting(true);
 
     try {
       const result = await apiUpdateProduct(id, values);
 
-      toast.success(
-        result.message || 'Product updated successfully!'
-      );
+      toast.success(result.message || "Product updated successfully!");
 
       // Navigate back to products list or wherever appropriate
-      navigate('/panel/products');
+      navigate("/panel/products");
     } catch (error) {
-      console.error('Failed to update product:', error);
-      
+      console.error("Failed to update product:", error);
+
       // Handle backend field-level errors
       if (setBackendErrorRef.current && error?.response?.data?.errors) {
         setBackendErrorRef.current(error.response.data.errors);
@@ -65,8 +64,8 @@ const ProductEdit = () => {
       // Show general error message
       toast.error(
         error?.response?.data?.message ||
-        error?.message ||
-        'Failed to update product. Please try again.'
+          error?.message ||
+          "Failed to update product. Please try again.",
       );
     } finally {
       setIsSubmitting(false);
@@ -137,17 +136,17 @@ const ProductEdit = () => {
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={() => navigate('/panel/products')}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onClick={() => navigate("/panel/products")}
+            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:outline-none"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isSubmitting ? 'Updating...' : 'Update Product'}
+            {isSubmitting ? "Updating..." : "Update Product"}
           </button>
         </div>
       </ProductForm>
@@ -156,4 +155,3 @@ const ProductEdit = () => {
 };
 
 export default ProductEdit;
-

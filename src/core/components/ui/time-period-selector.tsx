@@ -22,16 +22,21 @@ export const TimePeriodSelector: React.FC<TimePeriodSelectorProps> = ({
   className,
 }) => {
   return (
-    <div className={cn("flex items-center gap-1 bg-gray-100 rounded-lg p-1", className)}>
+    <div
+      className={cn(
+        "flex items-center gap-1 rounded-lg bg-gray-100 p-1",
+        className,
+      )}
+    >
       {timePeriods.map((period) => (
         <button
           key={period.value}
           onClick={() => onChange(period.value)}
           className={cn(
-            "px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200",
+            "rounded-md px-3 py-1.5 text-sm font-medium transition-all duration-200",
             value === period.value
               ? "bg-white text-gray-900 shadow-sm"
-              : "text-gray-600 hover:text-gray-900"
+              : "text-gray-600 hover:text-gray-900",
           )}
         >
           {period.label}

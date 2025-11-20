@@ -11,7 +11,15 @@ import {
 import { apiGetCustomerById } from "@/modules/panel/services/http/customer.service";
 import { apiGetOrderList } from "@/modules/panel/services/http/order.service";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
-import { User, Package, Activity, ArrowLeft, Sparkles, FileText, Wallet } from "lucide-react";
+import {
+  User,
+  Package,
+  Activity,
+  ArrowLeft,
+  Sparkles,
+  FileText,
+  Wallet,
+} from "lucide-react";
 import { DataView, type ServerDataFetcher } from "@/core/components/data-view";
 import type { Order } from "@/modules/panel/types/order.type";
 import type { PaginationParams } from "@/core/types";
@@ -32,20 +40,20 @@ interface TabItem {
 const tabs: TabItem[] = [
   { id: "profile", label: "My Profile", icon: <User className="h-5 w-5" /> },
   { id: "routines", label: "Routines", icon: <Sparkles className="h-5 w-5" /> },
-  { id: "surveys", label: "Survey Participations", icon: <FileText className="h-5 w-5" /> },
+  {
+    id: "surveys",
+    label: "Survey Participations",
+    icon: <FileText className="h-5 w-5" />,
+  },
   { id: "wallet", label: "Wallet", icon: <Wallet className="h-5 w-5" /> },
   { id: "orders", label: "Orders", icon: <Package className="h-5 w-5" /> },
 ];
 
 // Create order fetcher for customer orders
-const createCustomerOrderFetcher = (customerId: string): ServerDataFetcher<Order> => {
-  return async ({
-    pageIndex,
-    pageSize,
-    sorting,
-    globalFilter,
-    signal,
-  }) => {
+const createCustomerOrderFetcher = (
+  customerId: string,
+): ServerDataFetcher<Order> => {
+  return async ({ pageIndex, pageSize, sorting, globalFilter, signal }) => {
     const params: PaginationParams = {
       page: pageIndex + 1,
       limit: pageSize,
@@ -163,7 +171,13 @@ const getOrderColumns = (handleViewOrder: (id: string) => void) => [
 ];
 
 // Info field component
-const InfoField = ({ label, value }: { label: string; value: string | number | null | undefined }) => (
+const InfoField = ({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | number | null | undefined;
+}) => (
   <div className="space-y-1">
     <p className="text-sm font-medium text-gray-500">{label}</p>
     <p className="text-base text-gray-900">{value || "N/A"}</p>
@@ -279,7 +293,7 @@ const CustomerView = () => {
                   <User className="size-8 text-gray-400" />
                 </AvatarFallback>
               </Avatar>
-              <div className="flex-1 min-w-0">
+              <div className="min-w-0 flex-1">
                 <h3 className="truncate text-lg font-semibold text-gray-900">
                   {customer.name || "Customer"}
                 </h3>
@@ -293,7 +307,7 @@ const CustomerView = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium transition-colors ${
+                  className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium transition-colors ${
                     activeTab === tab.id
                       ? "bg-red-50 text-red-700"
                       : "text-gray-700 hover:bg-gray-50"
@@ -315,9 +329,11 @@ const CustomerView = () => {
               <div className="space-y-8">
                 {/* Summary Cards */}
                 <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                  <div className="rounded-lg border bg-gray-50 p-4 min-w-0">
-                    <p className="text-sm text-gray-500 mb-1">Total Order Value</p>
-                    <p className="text-xl font-bold text-gray-900 break-words overflow-hidden">
+                  <div className="min-w-0 rounded-lg border bg-gray-50 p-4">
+                    <p className="mb-1 text-sm text-gray-500">
+                      Total Order Value
+                    </p>
+                    <p className="overflow-hidden text-xl font-bold break-words text-gray-900">
                       {formatCurrency(customer.totalSpent || 0, {
                         useAbbreviation: false,
                       })}
@@ -354,7 +370,10 @@ const CustomerView = () => {
                     <InfoField label="Email" value={customer.email} />
                     <InfoField label="Phone No" value={customer.phoneNumber} />
                     <InfoField label="City" value={customer.city} />
-                    <InfoField label="Joined Date" value={formatDate(customer.createdAt)} />
+                    <InfoField
+                      label="Joined Date"
+                      value={formatDate(customer.createdAt)}
+                    />
                   </div>
                 </div>
 
@@ -378,7 +397,10 @@ const CustomerView = () => {
             {/* Routines Tab */}
             {activeTab === "routines" && (
               <div>
-                <ComingSoon title="Routines" description="Customer routines will be displayed here" />
+                <ComingSoon
+                  title="Routines"
+                  description="Customer routines will be displayed here"
+                />
               </div>
             )}
 
@@ -388,7 +410,10 @@ const CustomerView = () => {
                 <h2 className="text-xl font-semibold text-gray-900">
                   Survey Participations
                 </h2>
-                <ComingSoon title="My Surveys" description="Customer survey participations will be displayed here" />
+                <ComingSoon
+                  title="My Surveys"
+                  description="Customer survey participations will be displayed here"
+                />
               </div>
             )}
 
@@ -396,25 +421,28 @@ const CustomerView = () => {
             {activeTab === "wallet" && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                  <h2 className="mb-4 text-xl font-semibold text-gray-900">
                     Wallet
                   </h2>
-                  <div className="rounded-lg border bg-gray-50 p-6 mb-6">
-                    <p className="text-sm text-gray-500 mb-2">Wallet Balance</p>
+                  <div className="mb-6 rounded-lg border bg-gray-50 p-6">
+                    <p className="mb-2 text-sm text-gray-500">Wallet Balance</p>
                     <p className="text-3xl font-bold text-gray-900">
                       {formatCurrency(0, { useAbbreviation: false })}
                     </p>
                   </div>
-                  <div className="flex gap-2 mb-6">
+                  <div className="mb-6 flex gap-2">
                     <Button variant="outlined">Add</Button>
                     <Button variant="outlined">Withdraw</Button>
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  <h3 className="mb-4 text-lg font-semibold text-gray-900">
                     Last Transaction
                   </h3>
-                  <ComingSoon title="Transaction History" description="Wallet transaction history will be displayed here" />
+                  <ComingSoon
+                    title="Transaction History"
+                    description="Wallet transaction history will be displayed here"
+                  />
                 </div>
               </div>
             )}

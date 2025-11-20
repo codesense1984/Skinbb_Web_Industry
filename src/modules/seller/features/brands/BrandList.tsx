@@ -30,20 +30,21 @@ const BrandList = () => {
   const companyId = sellerInfo?.companyId;
 
   const navigateAddBrand = () => {
-    let url = SELLER_ROUTES.BRAND.CREATE;
+    const url = SELLER_ROUTES.BRAND.CREATE;
     return url;
   };
 
   const columns = useMemo(() => {
-    let columns1 = createBrandColumns(companyId || undefined, undefined).filter(
-      (column) => {
-        const accessorKey =
-          "accessorKey" in column ? column.accessorKey : undefined;
-        return typeof accessorKey === "string"
-          ? !accessorKey.includes("actions")
-          : true;
-      },
-    );
+    const columns1 = createBrandColumns(
+      companyId || undefined,
+      undefined,
+    ).filter((column) => {
+      const accessorKey =
+        "accessorKey" in column ? column.accessorKey : undefined;
+      return typeof accessorKey === "string"
+        ? !accessorKey.includes("actions")
+        : true;
+    });
 
     columns1.push({
       header: "Action",

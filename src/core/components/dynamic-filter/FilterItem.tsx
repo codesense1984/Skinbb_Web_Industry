@@ -485,8 +485,8 @@ function FilterItemInner<
 
     if (!apiFunction || !transform) {
       console.warn(
-        `FilterItem with type="pagination" requires apiFunction and transform in elementProps, ` +
-          `or a pagination component in the registry.`,
+        "FilterItem with type=\"pagination\" requires apiFunction and transform in elementProps, " +
+          "or a pagination component in the registry.",
       );
       return (
         <div

@@ -21,8 +21,8 @@ export function SegmentedControl({
   return (
     <div
       className={cn(
-        "inline-flex items-center rounded-lg bg-white border border-gray-200 shadow-sm",
-        className
+        "inline-flex items-center rounded-lg border border-gray-200 bg-white shadow-sm",
+        className,
       )}
     >
       {options.map((option, index) => (
@@ -30,12 +30,12 @@ export function SegmentedControl({
           key={option.value}
           onClick={() => onValueChange(option.value)}
           className={cn(
-            "relative flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer",
+            "relative flex cursor-pointer items-center justify-center gap-2 px-4 py-2 text-sm font-medium transition-all duration-200",
             "first:rounded-l-lg last:rounded-r-lg",
             "border-r border-gray-200 last:border-r-0",
             value === option.value
               ? "bg-primary text-primary-foreground font-semibold"
-              : "bg-white text-muted-foreground hover:text-foreground hover:bg-muted"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted bg-white",
           )}
         >
           {option.icon && <span className="flex-shrink-0">{option.icon}</span>}

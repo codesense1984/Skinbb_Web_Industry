@@ -46,22 +46,30 @@ interface BulkTagCreateData {
 }
 
 // Product Category APIs
-export async function apiGetProductCategories(params?: ApiParams, signal?: AbortSignal) {
-    const response = await api.get(ENDPOINTS.PRODUCT.CATEGORY, { 
-      params: params || {},
-      signal
-    });
-    return response;
+export async function apiGetProductCategories(
+  params?: ApiParams,
+  signal?: AbortSignal,
+) {
+  const response = await api.get(ENDPOINTS.PRODUCT.CATEGORY, {
+    params: params || {},
+    signal,
+  });
+  return response;
 }
 
-export async function apiCreateProductCategory(data: ProductCategoryCreateData) {
+export async function apiCreateProductCategory(
+  data: ProductCategoryCreateData,
+) {
   console.log("API: Creating product category with data:", data);
   const response = await api.post(ENDPOINTS.PRODUCT.CATEGORY, data);
   console.log("API: Product category creation response:", response);
   return response;
 }
 
-export async function apiUpdateProductCategory(id: string, data: ProductCategoryUpdateData) {
+export async function apiUpdateProductCategory(
+  id: string,
+  data: ProductCategoryUpdateData,
+) {
   return api.put(`${ENDPOINTS.PRODUCT.CATEGORY}/${id}`, data);
 }
 
@@ -90,7 +98,10 @@ export interface MediaUploadResponse {
   success: boolean;
 }
 
-export async function apiUploadMedia(file: File, type: string = "image"): Promise<MediaUploadResponse> {
+export async function apiUploadMedia(
+  file: File,
+  type: string = "image",
+): Promise<MediaUploadResponse> {
   const formData = new FormData();
   formData.append("type", type);
   formData.append("files", file);
@@ -104,7 +115,12 @@ export async function apiUploadMedia(file: File, type: string = "image"): Promis
 
 // Product Tag APIs
 export async function apiGetProductTags(params?: ApiParams) {
-  console.log("apiGetProductTags called with endpoint:", ENDPOINTS.PRODUCT.TAG_LIST, "params:", params);
+  console.log(
+    "apiGetProductTags called with endpoint:",
+    ENDPOINTS.PRODUCT.TAG_LIST,
+    "params:",
+    params,
+  );
   return api.get(ENDPOINTS.PRODUCT.TAG_LIST, { params });
 }
 
@@ -112,7 +128,10 @@ export async function apiCreateProductTag(data: ProductTagCreateData) {
   return api.post(ENDPOINTS.PRODUCT.TAG, data);
 }
 
-export async function apiUpdateProductTag(id: string, data: ProductTagUpdateData) {
+export async function apiUpdateProductTag(
+  id: string,
+  data: ProductTagUpdateData,
+) {
   return api.put(`${ENDPOINTS.PRODUCT.TAG}/${id}`, data);
 }
 
@@ -181,7 +200,7 @@ export async function apiGetImportedBy() {
 }
 
 export async function apiGetIngredients() {
-    return api.get(ENDPOINTS.INFO.INGREDIENT_LIST, {
+  return api.get(ENDPOINTS.INFO.INGREDIENT_LIST, {
     params: {
       limit: 1000,
       page: 1,
@@ -198,7 +217,10 @@ export async function apiGetBenefits() {
   });
 }
 
-export async function apiGetSkinTypes(params?: ApiParams, signal?: AbortSignal) {
+export async function apiGetSkinTypes(
+  params?: ApiParams,
+  signal?: AbortSignal,
+) {
   return api.get(ENDPOINTS.INFO.SKIN_TYPES, {
     params: {
       limit: 1000,
@@ -209,7 +231,10 @@ export async function apiGetSkinTypes(params?: ApiParams, signal?: AbortSignal) 
   });
 }
 
-export async function apiGetHairTypes(params?: ApiParams, signal?: AbortSignal) {
+export async function apiGetHairTypes(
+  params?: ApiParams,
+  signal?: AbortSignal,
+) {
   return api.get(ENDPOINTS.INFO.HAIR_TYPES, {
     params: {
       limit: 1000,
@@ -220,7 +245,10 @@ export async function apiGetHairTypes(params?: ApiParams, signal?: AbortSignal) 
   });
 }
 
-export async function apiGetSkinConcerns(params?: ApiParams, signal?: AbortSignal) {
+export async function apiGetSkinConcerns(
+  params?: ApiParams,
+  signal?: AbortSignal,
+) {
   return api.get(ENDPOINTS.INFO.SKIN_CONCERNS, {
     params: {
       limit: 1000,
@@ -231,7 +259,10 @@ export async function apiGetSkinConcerns(params?: ApiParams, signal?: AbortSigna
   });
 }
 
-export async function apiGetHairConcerns(params?: ApiParams, signal?: AbortSignal) {
+export async function apiGetHairConcerns(
+  params?: ApiParams,
+  signal?: AbortSignal,
+) {
   return api.get(ENDPOINTS.INFO.HAIR_CONCERNS, {
     params: {
       limit: 1000,
@@ -244,12 +275,15 @@ export async function apiGetHairConcerns(params?: ApiParams, signal?: AbortSigna
 
 export async function apiGetProductAttributeValues(attributeId?: string) {
   if (attributeId) {
-    return api.get(ENDPOINTS.PRODUCT.ATTRIBUTE_VALUE_BY_ATTRIBUTE(attributeId), {
-      params: {
-        limit: 1000,
-        page: 1,
+    return api.get(
+      ENDPOINTS.PRODUCT.ATTRIBUTE_VALUE_BY_ATTRIBUTE(attributeId),
+      {
+        params: {
+          limit: 1000,
+          page: 1,
+        },
       },
-    });
+    );
   }
   return api.get(ENDPOINTS.PRODUCT.ATTRIBUTE_VALUE_LIST, {
     params: {
@@ -272,7 +306,7 @@ export async function apiPublishBulkProducts(productIds: string[]) {
 
 export async function apiGetProducts(params?: ApiParams, signal?: AbortSignal) {
   const searchParams = new URLSearchParams();
-  
+
   if (params?.page) searchParams.append("page", params.page.toString());
   if (params?.limit) searchParams.append("limit", params.limit.toString());
   if (params?.search) searchParams.append("search", params.search);
@@ -281,24 +315,25 @@ export async function apiGetProducts(params?: ApiParams, signal?: AbortSignal) {
   if (params?.tag) searchParams.append("tag", params.tag);
   if (params?.brand) searchParams.append("brand", params.brand);
   if (params?.brandId) searchParams.append("brandId", params.brandId);
-  if (params?.productType) searchParams.append("productType", params.productType);
+  if (params?.productType)
+    searchParams.append("productType", params.productType);
   if (params?.sortBy) searchParams.append("sortBy", params.sortBy);
   if (params?.order) searchParams.append("order", params.order);
   if (params?.companyId) searchParams.append("companyId", params.companyId);
   if (params?.locationId) searchParams.append("locationId", params.locationId);
-  
+
   const url = `${ENDPOINTS.PRODUCT.MAIN}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
   return api.get(url, { signal });
 }
 
 // Get products for dropdown selection
 export async function apiGetProductsForDropdown(params?: ApiParams) {
-  return api.get(ENDPOINTS.PRODUCT.MAIN, { 
-    params: { 
-      ...params, 
-      limit: 10 // Limit to 100 products for dropdown
+  return api.get(ENDPOINTS.PRODUCT.MAIN, {
+    params: {
+      ...params,
+      limit: 10, // Limit to 100 products for dropdown
       // status: "active" // Only active products
-    } 
+    },
   });
 }
 
@@ -307,12 +342,18 @@ export async function apiGetProductDetail(id: string) {
   return api.get(`${API_PREFIX}/products/admin/${id}`);
 }
 
-export async function apiUpdateProduct(id: string, data: Record<string, unknown>) {
+export async function apiUpdateProduct(
+  id: string,
+  data: Record<string, unknown>,
+) {
   return api.put(`${API_PREFIX}/products/admin/${id}`, data);
 }
 
 // Product Status Update API
-export async function apiUpdateProductStatus(id: string, data: { status: string; reason?: string; feedback?: string }) {
+export async function apiUpdateProductStatus(
+  id: string,
+  data: { status: string; reason?: string; feedback?: string },
+) {
   return api.patch(`${API_PREFIX}/products/status/${id}`, data);
 }
 
@@ -337,7 +378,9 @@ export interface BulkImportResponse {
   };
 }
 
-export async function apiBulkImportProducts(data: BulkImportRequest): Promise<BulkImportResponse> {
+export async function apiBulkImportProducts(
+  data: BulkImportRequest,
+): Promise<BulkImportResponse> {
   const formData = new FormData();
   formData.append("file", data.file);
   formData.append("brandId", data.brandId);
@@ -434,9 +477,11 @@ export interface CatalogDownloadResponse {
 }
 
 // Get catalog list
-export async function apiGetCatalogList(params?: CatalogListParams): Promise<CatalogListResponse> {
+export async function apiGetCatalogList(
+  params?: CatalogListParams,
+): Promise<CatalogListResponse> {
   const searchParams = new URLSearchParams();
-  
+
   if (params?.page) searchParams.append("page", params.page.toString());
   if (params?.limit) searchParams.append("limit", params.limit.toString());
   if (params?.companyId) searchParams.append("companyId", params.companyId);
@@ -445,58 +490,69 @@ export async function apiGetCatalogList(params?: CatalogListParams): Promise<Cat
   if (params?.importId) searchParams.append("importId", params.importId);
   if (params?.search) searchParams.append("search", params.search);
   if (params?.status) searchParams.append("status", params.status);
-  if (params?.validationStatus) searchParams.append("validationStatus", params.validationStatus);
+  if (params?.validationStatus)
+    searchParams.append("validationStatus", params.validationStatus);
   if (params?.sortBy) searchParams.append("sortBy", params.sortBy);
   if (params?.order) searchParams.append("order", params.order);
 
   const queryString = searchParams.toString();
-  const url = queryString ? `${ENDPOINTS.PRODUCT.BULK_IMPORTS}?${queryString}` : ENDPOINTS.PRODUCT.BULK_IMPORTS;
+  const url = queryString
+    ? `${ENDPOINTS.PRODUCT.BULK_IMPORTS}?${queryString}`
+    : ENDPOINTS.PRODUCT.BULK_IMPORTS;
 
   return api.get<CatalogListResponse>(url);
 }
 
 // Get catalog detail
-export async function apiGetCatalogDetail(importJobId: string): Promise<CatalogDetailResponse> {
-  return api.get<CatalogDetailResponse>(ENDPOINTS.PRODUCT.BULK_IMPORT_DETAIL(importJobId));
+export async function apiGetCatalogDetail(
+  importJobId: string,
+): Promise<CatalogDetailResponse> {
+  return api.get<CatalogDetailResponse>(
+    ENDPOINTS.PRODUCT.BULK_IMPORT_DETAIL(importJobId),
+  );
 }
 
 // Approve or reject bulk import
 // POST /api/v1/products/admin/bulk-import/{importJobId}/approve
 // Body: { status: "approved" | "rejected", reason?: string }
 export async function apiApproveOrRejectCatalog(
-  importJobId: string, 
-  data: CatalogApprovalRequest
+  importJobId: string,
+  data: CatalogApprovalRequest,
 ): Promise<CatalogApprovalResponse> {
   return api.post<CatalogApprovalResponse>(
-    ENDPOINTS.PRODUCT.BULK_IMPORT_APPROVE(importJobId), 
-    data
+    ENDPOINTS.PRODUCT.BULK_IMPORT_APPROVE(importJobId),
+    data,
   );
 }
 
 // Approve catalog (convenience function)
 export async function apiApproveCatalog(
-  importJobId: string, 
-  data?: { reason?: string }
+  importJobId: string,
+  data?: { reason?: string },
 ): Promise<CatalogApprovalResponse> {
-  return apiApproveOrRejectCatalog(importJobId, { 
-    status: "approved", 
-    ...data 
+  return apiApproveOrRejectCatalog(importJobId, {
+    status: "approved",
+    ...data,
   });
 }
 
 // Download catalog
-export async function apiDownloadCatalog(importJobId: string): Promise<CatalogDownloadResponse> {
-  return api.get<CatalogDownloadResponse>(ENDPOINTS.PRODUCT.BULK_IMPORT_DOWNLOAD(importJobId));
+export async function apiDownloadCatalog(
+  importJobId: string,
+): Promise<CatalogDownloadResponse> {
+  return api.get<CatalogDownloadResponse>(
+    ENDPOINTS.PRODUCT.BULK_IMPORT_DOWNLOAD(importJobId),
+  );
 }
 
 // Reject catalog (convenience function)
 export async function apiRejectCatalog(
-  importJobId: string, 
-  data: { reason?: string }
+  importJobId: string,
+  data: { reason?: string },
 ): Promise<CatalogApprovalResponse> {
-  return apiApproveOrRejectCatalog(importJobId, { 
-    status: "rejected", 
-    reason: data.reason 
+  return apiApproveOrRejectCatalog(importJobId, {
+    status: "rejected",
+    reason: data.reason,
   });
 }
 
@@ -530,12 +586,18 @@ export interface ImportJobErrorLogsResponse {
 }
 
 // Get import job error logs
-export async function apiGetImportJobErrorLogs(importJobId: string): Promise<ImportJobErrorLogsResponse> {
-  return api.get<ImportJobErrorLogsResponse>(ENDPOINTS.PRODUCT.BULK_IMPORT_ERROR_LOGS(importJobId));
+export async function apiGetImportJobErrorLogs(
+  importJobId: string,
+): Promise<ImportJobErrorLogsResponse> {
+  return api.get<ImportJobErrorLogsResponse>(
+    ENDPOINTS.PRODUCT.BULK_IMPORT_ERROR_LOGS(importJobId),
+  );
 }
 
 // Download import template
-export async function apiDownloadImportTemplate(categoryName: "skincare" | "haircare" | "lipcare"): Promise<Blob> {
+export async function apiDownloadImportTemplate(
+  categoryName: "skincare" | "haircare" | "lipcare",
+): Promise<Blob> {
   return api.get<Blob>(ENDPOINTS.PRODUCT.BULK_IMPORT_TEMPLATE(categoryName), {
     responseType: "blob",
   });
@@ -644,6 +706,11 @@ export interface CreateProductWithSellerResponse {
 }
 
 // Create product with seller
-export async function apiCreateProductWithSeller(data: CreateProductWithSellerRequest): Promise<CreateProductWithSellerResponse> {
-  return api.post<CreateProductWithSellerResponse>(ENDPOINTS.PRODUCT.CREATE_WITH_SELLER, data);
+export async function apiCreateProductWithSeller(
+  data: CreateProductWithSellerRequest,
+): Promise<CreateProductWithSellerResponse> {
+  return api.post<CreateProductWithSellerResponse>(
+    ENDPOINTS.PRODUCT.CREATE_WITH_SELLER,
+    data,
+  );
 }

@@ -84,7 +84,11 @@ export const couponFormSchema = couponFormInputSchema
       if (data.validFrom && data.expiresAt) {
         const validFrom = new Date(data.validFrom);
         const expiresAt = new Date(data.expiresAt);
-        return !isNaN(validFrom.getTime()) && !isNaN(expiresAt.getTime()) && expiresAt > validFrom;
+        return (
+          !isNaN(validFrom.getTime()) &&
+          !isNaN(expiresAt.getTime()) &&
+          expiresAt > validFrom
+        );
       }
       return true;
     },
@@ -221,7 +225,12 @@ export const couponSchema = {
     },
   ],
 
-  product_selection: ({ mode, productOptions = [] }: ModeProps & { productOptions?: Array<{ value: string; label: string }> }): FormFieldConfig<CouponFormData>[] => [
+  product_selection: ({
+    mode,
+    productOptions = [],
+  }: ModeProps & {
+    productOptions?: Array<{ value: string; label: string }>;
+  }): FormFieldConfig<CouponFormData>[] => [
     {
       name: "selectedProducts",
       label: "Select Products",

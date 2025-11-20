@@ -50,7 +50,7 @@ export function useUrlFilters(filterKeys: string[]) {
   // Batch update multiple filters
   const updateFilters = useCallback(
     (updates: Record<string, string>) => {
-      console.log(`Batch updating filters:`, updates);
+      console.log("Batch updating filters:", updates);
 
       setFilters((prev) => {
         const newFilters = { ...prev };
@@ -64,11 +64,11 @@ export function useUrlFilters(filterKeys: string[]) {
         });
 
         if (!hasChanges) {
-          console.log(`No filter changes, skipping update`);
+          console.log("No filter changes, skipping update");
           return prev;
         }
 
-        console.log(`Filters changed:`, newFilters);
+        console.log("Filters changed:", newFilters);
         return newFilters;
       });
 
@@ -81,7 +81,7 @@ export function useUrlFilters(filterKeys: string[]) {
           newParams.delete(key);
         }
       });
-      console.log(`Updating URL with batch changes:`, updates);
+      console.log("Updating URL with batch changes:", updates);
       setSearchParams(newParams);
     },
     [searchParams, setSearchParams],

@@ -891,9 +891,10 @@ const ProductCreate = (props?: ProductCreateProps) => {
         tags: formData.tags || [],
         ingredients: formData.ingredient || [],
         keyIngredients: formData.keyIngredients || [],
-        benefit: formData.benefitsSingle && formData.benefitsSingle.length > 0 
-          ? formData.benefitsSingle 
-          : [],
+        benefit:
+          formData.benefitsSingle && formData.benefitsSingle.length > 0
+            ? formData.benefitsSingle
+            : [],
         skinTypes: formData.skinType ? [formData.skinType] : [],
         hairTypes: formData.hairTypes || [],
         skinConcerns: formData.skinConcerns || [],

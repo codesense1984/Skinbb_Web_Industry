@@ -15,12 +15,10 @@ const UserRolesPermissions = () => {
         animate: true,
       }}
     >
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
-        <div className="text-center max-w-md">
-          <h3 className="text-lg font-medium mb-2">
-            User Roles & Permissions
-          </h3>
-          <p className="text-sm text-muted-foreground mb-6">
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6">
+        <div className="max-w-md text-center">
+          <h3 className="mb-2 text-lg font-medium">User Roles & Permissions</h3>
+          <p className="text-muted-foreground mb-6 text-sm">
             To manage user roles and permissions, please visit the admin panel.
           </p>
           <Button onClick={handleRedirect} size="lg">
@@ -34,4 +32,3 @@ const UserRolesPermissions = () => {
 };
 
 export default UserRolesPermissions;
-

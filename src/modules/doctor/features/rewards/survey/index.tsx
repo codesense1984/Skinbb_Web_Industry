@@ -5,4 +5,3 @@ const SurveyRewards = () => {
 };
 
 export default SurveyRewards;
-

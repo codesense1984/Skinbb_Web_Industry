@@ -5,4 +5,3 @@ const BrandConnectInquiry = () => {
 };
 
 export default BrandConnectInquiry;
-
