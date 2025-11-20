@@ -1,6 +1,8 @@
 import { hasRole, hasPermission, type MatchMode } from "@auth/components/guard";
 import {
   doctorSidebarItems,
+  distributorSidebarItems,
+  manufacturerSidebarItems,
   panelSidebarItems,
   sellerSidebarItems,
   type SidebarItem,
@@ -124,6 +126,12 @@ export const getSidebarItems = (role: Role) => {
   }
   if (role === ROLE.DOCTOR) {
     return doctorSidebarItems;
+  }
+  if (role === ROLE.DISTRIBUTOR) {
+    return distributorSidebarItems;
+  }
+  if (role === ROLE.MANUFACTURER) {
+    return manufacturerSidebarItems;
   }
   return sellerSidebarItems;
 };

@@ -11,6 +11,8 @@ export const ROLE = {
   DOCTOR: "doctor",
   SELLER: "seller",
   SELLER_MEMBER: "seller-member",
+  DISTRIBUTOR: "distributor",
+  MANUFACTURER: "manufacturer",
 } as const;
 
 export const PAGE = {
