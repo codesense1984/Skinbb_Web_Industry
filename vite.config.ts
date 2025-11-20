@@ -9,6 +9,17 @@ export default defineConfig({
     host: "0.0.0.0",
     port: 5174,
   },
+  build: {
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
+        },
+      },
+    },
+  },
   resolve: {
     alias: {
       "@": "/src",

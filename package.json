@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "build:simple": "vite build",
+    "build:simple": "node --max-old-space-size=4096 node_modules/.bin/vite build",
     "build:dev": "tsc -b && vite build --mode development",
     "build:prod": "tsc -b && vite build --mode production",
     "preview": "vite preview",
