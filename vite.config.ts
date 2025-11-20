@@ -12,8 +12,11 @@ export default defineConfig({
   build: {
     chunkSizeWarningLimit: 2000,
     target: "esnext",
+    // Reduce memory usage during build
+    assetsInlineLimit: 4096,
     rollupOptions: {
       output: {
+        // Limit concurrent chunk processing
         manualChunks: (id) => {
           // Separate large JSON data into its own chunk
           if (id.includes("cleaned-data.json")) {
