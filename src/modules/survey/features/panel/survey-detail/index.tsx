@@ -49,16 +49,19 @@ const SurveyDetail = () => {
   }
 
   // Handle missing data - check multiple possible response structures
-  // API response structure: { statusCode, success, message, data: { survey: Survey } }
-  // React Query returns the API response directly, so surveyData = { statusCode, data: { survey: Survey } }
-  // So: surveyData.data = { survey: Survey }, surveyData.data.survey = Survey
+  // API response structure: { statusCode, success, message, data: { survey: Survey, questions: Question[] } }
+  // React Query returns the API response directly, so surveyData = { statusCode, data: { survey: Survey, questions: Question[] } }
+  // So: surveyData.data = { survey: Survey, questions: Question[] }, surveyData.data.survey = Survey
   // Also handle case where data is Survey directly: surveyData.data = Survey
-  const survey = surveyData?.data?.survey || surveyData?.data;
+  const apiData = surveyData?.data;
+  const survey = apiData?.survey || apiData;
+  // Questions are in data.questions, not survey.questions
+  const questions = apiData?.questions || survey?.questions || [];
   
   if (!survey || (!survey._id && !survey.id)) {
     console.error("Survey data not found. Response structure:", {
       surveyData,
-      data: surveyData?.data,
+      apiData,
       extractedSurvey: survey,
     });
     return (
@@ -80,6 +83,12 @@ const SurveyDetail = () => {
   const surveyId = survey._id || survey.id;
   const isPaid = survey.paymentStatus === "paid";
   const canEdit = survey.status === "draft" && !isPaid;
+  
+  // Merge questions into survey object for the component
+  const surveyWithQuestions = {
+    ...survey,
+    questions: questions.length > 0 ? questions : survey.questions || [],
+  };
 
   return (
     <PageContent
@@ -125,7 +134,7 @@ const SurveyDetail = () => {
         </TabsList>
 
         <TabsContent value="details" className="mt-6">
-          <SurveyDetailsTab survey={survey} />
+          <SurveyDetailsTab survey={surveyWithQuestions} />
         </TabsContent>
 
         <TabsContent value="stats" className="mt-6">

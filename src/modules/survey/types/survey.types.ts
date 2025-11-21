@@ -170,23 +170,27 @@ export type RespondentAction = "start" | "submit_answer" | "complete" | "abandon
 export interface StartSurveyRequest {
   action: "start";
   surveyId: string;
+  sessionId?: string; // Optional: for anonymous users (not needed for authenticated admin)
 }
 
 export interface SubmitAnswerRequest {
   action: "submit_answer";
   attemptId: string;
   questionId: string;
-  answer: string | number | boolean;
+  answer: string | number | boolean; // Value depends on question type
+  sessionId?: string; // Optional: for anonymous users (not needed for authenticated admin)
 }
 
 export interface CompleteSurveyRequest {
   action: "complete";
   attemptId: string;
+  sessionId?: string; // Optional: for anonymous users (not needed for authenticated admin)
 }
 
 export interface AbandonSurveyRequest {
   action: "abandon";
   attemptId: string;
+  sessionId?: string; // Optional: for anonymous users (not needed for authenticated admin)
 }
 
 export type RespondentActionRequest =
@@ -195,10 +199,34 @@ export type RespondentActionRequest =
   | CompleteSurveyRequest
   | AbandonSurveyRequest;
 
+// Response structure matches API specification
 export interface RespondentActionResponse {
-  attempt?: SurveyAttempt;
+  // For "start" action
+  attempt?: {
+    _id: string;
+    surveyId: string;
+    respondentId: string | null; // null for anonymous
+    sessionId?: string; // if provided
+    status: SurveyAttemptStatus;
+    startedAt: string;
+  };
   survey?: Survey;
   questions?: Question[];
+  
+  // For "submit_answer" action
+  _id?: string; // attempt ID
+  answers?: SurveyAnswer[];
+  currentQuestionIndex?: number;
+  
+  // For "complete" action
+  status?: SurveyAttemptStatus;
+  completedAt?: string;
+  reward?: number;
+  rewardCredited?: boolean; // false for anonymous users
+  
+  // For "abandon" action
+  abandonedAt?: string;
+  
   message?: string;
 }
 

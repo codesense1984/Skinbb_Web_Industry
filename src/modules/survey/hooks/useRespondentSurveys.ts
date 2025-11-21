@@ -72,10 +72,9 @@ export function useRespondentAction() {
       }
 
       // Show success message for completion
-      if (variables.action === "complete") {
-        const reward = response.data.attempt?.reward || 0;
-        toast.success(`Survey completed! You earned ${reward} coins!`);
-      } else if (variables.action === "abandon") {
+      // Note: The toast is handled in the component to show reward info correctly
+      // The response structure for "complete" is: { _id, status, completedAt, reward, rewardCredited }
+      if (variables.action === "abandon") {
         toast.info("Survey abandoned");
       }
     },

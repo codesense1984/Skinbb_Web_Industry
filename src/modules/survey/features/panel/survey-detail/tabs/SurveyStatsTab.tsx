@@ -16,8 +16,11 @@ const SurveyStatsTab = ({ surveyId }: SurveyStatsTabProps) => {
     return <FullLoader />;
   }
 
-  const stats = statsData?.data?.data;
-  const eligibleCount = eligibleData?.data?.data?.count || 0;
+  // API response structure: { statusCode, success, message, data: { totalAttempts, completedAttempts, ... } }
+  // React Query returns the API response directly, so statsData = { statusCode, data: { totalAttempts, ... } }
+  const stats = statsData?.data;
+  // Eligible respondents response: { statusCode, data: { count: number } }
+  const eligibleCount = eligibleData?.data?.count || eligibleData?.data?.data?.count || 0;
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);

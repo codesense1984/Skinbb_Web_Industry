@@ -15,18 +15,27 @@ interface SurveyPaymentTabProps {
 }
 
 const SurveyPaymentTab = ({ survey }: SurveyPaymentTabProps) => {
-  const { data: paymentData, isLoading } = useSurveyPaymentStatus(survey._id);
+  // Don't fetch payment status if payment is already paid - use survey data directly
+  // The payment status endpoint might not exist or return 404, so use survey data as primary source
+  const shouldFetchPaymentStatus = false; // Disabled - use survey data only since payment info is already in survey
+  const { data: paymentData, isLoading } = useSurveyPaymentStatus(
+    survey._id,
+    survey.entityId,
+    shouldFetchPaymentStatus,
+  );
   const initiateMutation = useInitiateSurveyPayment();
   const verifyMutation = useVerifySurveyPayment();
   const { openRazorpayCheckout } = useRazorpayPayment();
 
-  if (isLoading) {
+  // Use survey data as primary source (payment info is already included in survey response)
+  const paymentStatus = survey.paymentStatus || paymentData?.data?.paymentStatus || "pending";
+  const totalPrice = survey.totalPrice || paymentData?.data?.totalPrice || 0;
+  const paidAt = survey.paidAt || paymentData?.data?.paidAt;
+
+  // Only show loading if we're actually trying to fetch payment status
+  if (isLoading && shouldFetchPaymentStatus) {
     return <FullLoader />;
   }
-
-  const paymentStatus = paymentData?.data?.data?.paymentStatus || survey.paymentStatus;
-  const totalPrice = paymentData?.data?.data?.totalPrice || survey.totalPrice;
-  const paidAt = paymentData?.data?.data?.paidAt || survey.paidAt;
 
   const handlePayNow = async () => {
     try {

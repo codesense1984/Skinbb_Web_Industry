@@ -37,9 +37,15 @@ const SurveyRespond = () => {
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [showAbandonDialog, setShowAbandonDialog] = useState(false);
   const [attemptId, setAttemptId] = useState<string | null>(null);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [surveyInfo, setSurveyInfo] = useState<Survey | null>(null);
 
-  const { data: surveyData, isLoading: isLoadingSurvey } = useSurvey(surveyId);
-  const survey = surveyData?.data?.data;
+  const { data: surveyData, isLoading: isLoadingSurvey, error: surveyError } = useSurvey(surveyId);
+  // Handle API response structure: { statusCode, success, message, data: { survey: Survey } }
+  // React Query returns the API response directly, so surveyData = { statusCode, data: { survey: Survey } }
+  // So: surveyData.data = { survey: Survey }, surveyData.data.survey = Survey
+  // Also handle case where data is Survey directly: surveyData.data = Survey
+  const survey = surveyData?.data?.survey || surveyData?.data;
 
   // Check if there's an in-progress attempt for this survey
   const { data: availableData } = useAvailableSurveys({});
@@ -56,22 +62,65 @@ const SurveyRespond = () => {
   const handleStartSurvey = async () => {
     if (!surveyId) return;
 
+    // Check if there's already an in-progress attempt
+    if (inProgressAttemptId) {
+      // Resume existing attempt instead of starting a new one
+      console.log("Resuming existing attempt:", inProgressAttemptId);
+      return;
+    }
+
     try {
       const response = await respondentAction.mutateAsync({
         action: "start",
         surveyId,
+        // No sessionId needed for authenticated admin users
       });
+      
+      // Handle response according to API spec
+      // Response: { attempt: {...}, survey: {...}, questions: [...] }
       if (response.data.attempt) {
         setAttemptId(response.data.attempt._id);
         setCurrentQuestionIndex(0);
       }
+      
+      // Questions come from the "start" response, not from survey detail
+      if (response.data.questions && response.data.questions.length > 0) {
+        setQuestions(response.data.questions);
+      } else {
+        // Fallback: try to use questions from survey if available
+        if (survey?.questions && survey.questions.length > 0) {
+          setQuestions(survey.questions);
+        } else {
+          toast.error("No questions found in survey");
+          navigate(SURVEY_ROUTES.DETAIL(surveyId));
+          return;
+        }
+      }
+      
+      // Store survey info from response
+      if (response.data.survey) {
+        setSurveyInfo(response.data.survey);
+      } else if (survey) {
+        setSurveyInfo(survey);
+      }
     } catch (error: any) {
+      // Handle duplicate key error (already has in-progress attempt)
+      if (error?.response?.data?.message?.includes("duplicate key") || 
+          error?.response?.data?.message?.includes("in_progress")) {
+        toast.error("You already have an in-progress attempt. Please continue from where you left off.");
+        // Try to fetch the existing attempt
+        if (inProgressAttemptId) {
+          // The attempt data should load via useSurveyAttempt hook
+          return;
+        }
+      }
       toast.error(error.message || "Failed to start survey");
-      navigate(SURVEY_ROUTES.DETAIL(surveyId));
+      console.error("Error starting survey:", error);
     }
   };
 
   useEffect(() => {
+    // If we have attempt data, load it
     if (attemptData?.data?.data) {
       const attempt = attemptData.data.data;
       setAttemptId(attempt._id);
@@ -82,15 +131,36 @@ const SurveyRespond = () => {
         existingAnswers[ans.questionId] = ans.answer;
       });
       setAnswers(existingAnswers);
-    } else if (surveyId && !inProgressAttemptId && !attemptId && survey) {
-      // Start new survey if we have survey data
+      
+      // Use questions from attempt if available
+      if (attempt.questions && attempt.questions.length > 0) {
+        setQuestions(attempt.questions);
+      } else if (survey?.questions && survey.questions.length > 0) {
+        setQuestions(survey.questions);
+      }
+      
+      if (attempt.survey) {
+        setSurveyInfo(attempt.survey);
+      } else if (survey) {
+        setSurveyInfo(survey);
+      }
+    } 
+    // If we have an in-progress attempt ID but no attempt data yet, wait for it to load
+    else if (inProgressAttemptId && isLoadingAttempt) {
+      // Still loading attempt data, do nothing
+      return;
+    }
+    // If we have survey but no attempt (and not loading), start the survey
+    else if (survey && surveyId && !inProgressAttemptId && !attemptId && !isLoadingAttempt) {
+      // Set survey info first
+      setSurveyInfo(survey);
+      // Then start the survey
       handleStartSurvey();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [attemptData, surveyId, inProgressAttemptId, survey]);
+  }, [attemptData, surveyId, inProgressAttemptId, survey, isLoadingAttempt, attemptId]);
 
-  const questions = attemptData?.data?.data?.questions || survey?.questions || [];
-  const currentQuestion = questions[currentQuestionIndex];
+  const currentQuestion = questions.length > 0 ? questions[currentQuestionIndex] : undefined;
   const progress = questions.length > 0 ? ((currentQuestionIndex + 1) / questions.length) * 100 : 0;
 
   const handleAnswerChange = (questionId: string, answer: any) => {
@@ -101,12 +171,24 @@ const SurveyRespond = () => {
     if (!attemptId) return;
 
     try {
-      await respondentAction.mutateAsync({
+      const response = await respondentAction.mutateAsync({
         action: "submit_answer",
         attemptId,
         questionId,
         answer,
+        // No sessionId needed for authenticated admin users
       });
+      
+      // Update answers from response
+      // Note: Don't update currentQuestionIndex here - let handleNext handle navigation
+      // The response.currentQuestionIndex is the index of the question just answered
+      if (response.data.answers) {
+        const updatedAnswers: Record<string, any> = {};
+        response.data.answers.forEach((ans: SurveyAnswer) => {
+          updatedAnswers[ans.questionId] = ans.answer;
+        });
+        setAnswers(updatedAnswers);
+      }
     } catch (error: any) {
       toast.error(error.message || "Failed to submit answer");
     }
@@ -121,16 +203,24 @@ const SurveyRespond = () => {
       return;
     }
 
-    // Submit current answer
-    if (answer !== undefined) {
-      await handleSubmitAnswer(currentQuestion._id || "", answer);
-    }
+    try {
+      // Submit current answer first
+      if (answer !== undefined) {
+        await handleSubmitAnswer(currentQuestion._id || "", answer);
+      }
 
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex((prev) => prev + 1);
-    } else {
-      // Last question - complete survey
-      await handleComplete();
+      // Move to next question after successful submission
+      const nextIndex = currentQuestionIndex + 1;
+      if (nextIndex < questions.length) {
+        setCurrentQuestionIndex(nextIndex);
+      } else {
+        // Last question - complete survey
+        await handleComplete();
+      }
+    } catch (error) {
+      // Error already handled in handleSubmitAnswer
+      console.error("Error in handleNext:", error);
+      // Don't navigate to next question if submission failed
     }
   };
 
@@ -144,11 +234,22 @@ const SurveyRespond = () => {
     if (!attemptId) return;
 
     try {
-      await respondentAction.mutateAsync({
+      const response = await respondentAction.mutateAsync({
         action: "complete",
         attemptId,
+        // No sessionId needed for authenticated admin users
       });
-      toast.success("Survey completed successfully!");
+      
+      // Response: { _id, status, completedAt, reward, rewardCredited }
+      const reward = response.data.reward || 0;
+      const rewardCredited = response.data.rewardCredited || false;
+      
+      if (rewardCredited) {
+        toast.success(`Survey completed successfully! You earned ${reward} coins!`);
+      } else {
+        toast.success("Survey completed successfully!");
+      }
+      
       // Navigate back to survey detail page
       navigate(SURVEY_ROUTES.DETAIL(surveyId || ""));
     } catch (error: any) {
@@ -171,7 +272,73 @@ const SurveyRespond = () => {
     setShowAbandonDialog(false);
   };
 
-  if (isLoadingSurvey || isLoadingAttempt || !currentQuestion) {
+  // Show loading only if we're actually loading data
+  if (isLoadingSurvey || isLoadingAttempt) {
+    return <FullLoader />;
+  }
+
+  // If survey failed to load or has error, show error
+  if (surveyError || (!survey && !isLoadingSurvey)) {
+    console.error("Survey load error:", surveyError, "Survey data:", surveyData);
+    return (
+      <PageContent
+        header={{
+          title: "Survey Not Found",
+          description: surveyError?.message || "The survey you're looking for doesn't exist or you don't have permission to view it.",
+        }}
+      >
+        <Button onClick={() => navigate(SURVEY_ROUTES.LIST)}>
+          Back to Surveys
+        </Button>
+      </PageContent>
+    );
+  }
+
+  // If we're starting the survey, show loading (questions will come from start response)
+  if (respondentAction.isPending && !attemptId) {
+    return <FullLoader />;
+  }
+
+  // If we have survey but no questions yet and not starting, show loading
+  // Questions come from the "start" action response, not from survey detail
+  if (survey && questions.length === 0 && !respondentAction.isPending && !attemptId) {
+    return <FullLoader />;
+  }
+
+  // If we have survey but no questions after starting, show error
+  if (survey && questions.length === 0 && attemptId && !respondentAction.isPending) {
+    return (
+      <PageContent
+        header={{
+          title: "Survey Not Available",
+          description: "This survey has no questions available.",
+        }}
+      >
+        <Button onClick={() => navigate(SURVEY_ROUTES.DETAIL(surveyId || ""))}>
+          Back to Survey Details
+        </Button>
+      </PageContent>
+    );
+  }
+
+  // If we still don't have a current question after loading, show error
+  if (!currentQuestion && questions.length > 0) {
+    return (
+      <PageContent
+        header={{
+          title: "Error Loading Question",
+          description: "Unable to load the current question.",
+        }}
+      >
+        <Button onClick={() => navigate(SURVEY_ROUTES.DETAIL(surveyId || ""))}>
+          Back to Survey Details
+        </Button>
+      </PageContent>
+    );
+  }
+
+  // Final check - if we still don't have currentQuestion, show loading
+  if (!currentQuestion) {
     return <FullLoader />;
   }
 
@@ -181,7 +348,7 @@ const SurveyRespond = () => {
     <>
       <PageContent
         header={{
-          title: survey?.title || "Responding to Survey",
+          title: surveyInfo?.title || survey?.title || "Responding to Survey",
           description: `Question ${currentQuestionIndex + 1} of ${questions.length}`,
         }}
       >

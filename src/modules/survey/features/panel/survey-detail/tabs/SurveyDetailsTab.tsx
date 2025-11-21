@@ -136,56 +136,147 @@ const SurveyDetailsTab = ({ survey }: SurveyDetailsTabProps) => {
         <CardContent>
           <div className="space-y-4">
             {survey.questions && survey.questions.length > 0 ? (
-              survey.questions.map((question, index) => (
-                <div
-                  key={question._id || index}
-                  className="border rounded-lg p-4 space-y-2"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-500">
-                          Q{index + 1}.
-                        </span>
-                        <p className="text-sm font-medium">{question.questionText}</p>
-                        {question.isRequired && (
-                          <span className="text-xs text-red-500">*Required</span>
-                        )}
-                      </div>
-                      <div className="mt-2 space-y-1">
-                        <p className="text-xs text-gray-500">
-                          Type: {question.type}
-                        </p>
-                        {question.basePrice && (
-                          <p className="text-xs text-gray-500">
-                            Base Price: {formatCurrency(question.basePrice)}
-                          </p>
-                        )}
-                        {question.type === "MCQ" && question.options && (
-                          <div className="mt-2">
-                            <p className="text-xs text-gray-500 mb-1">Options:</p>
-                            <ul className="list-disc list-inside text-xs text-gray-600">
+              survey.questions
+                .sort((a, b) => (a.order || 0) - (b.order || 0))
+                .map((question, index) => (
+                  <div
+                    key={question._id || index}
+                    className="border rounded-lg p-4 space-y-3 bg-gray-50"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 space-y-3">
+                        {/* Question Header */}
+                        <div className="flex items-start gap-3">
+                          <span className="text-sm font-semibold text-gray-700 bg-white px-2 py-1 rounded">
+                            Q{question.order || index + 1}
+                          </span>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="text-base font-semibold text-gray-900">
+                                {question.questionText}
+                              </p>
+                              {question.isRequired && (
+                                <span className="text-xs font-medium text-red-600 bg-red-50 px-2 py-0.5 rounded">
+                                  *Required
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Question Details Grid */}
+                        <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-gray-200">
+                          <div>
+                            <label className="text-xs font-medium text-gray-500 uppercase">
+                              Question Type
+                            </label>
+                            <p className="text-sm font-medium text-gray-900 capitalize mt-1">
+                              {question.type}
+                            </p>
+                          </div>
+                          {question.basePrice && (
+                            <div>
+                              <label className="text-xs font-medium text-gray-500 uppercase">
+                                Base Price
+                              </label>
+                              <p className="text-sm font-medium text-gray-900 mt-1">
+                                {formatCurrency(question.basePrice)}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Options/Details based on question type */}
+                        {question.type === "MCQ" && question.options && question.options.length > 0 && (
+                          <div className="mt-3 pt-3 border-t border-gray-200">
+                            <label className="text-xs font-medium text-gray-500 uppercase mb-2 block">
+                              Options
+                            </label>
+                            <div className="space-y-2">
                               {question.options.map((opt, optIndex) => (
-                                <li key={optIndex}>{opt}</li>
+                                <div
+                                  key={optIndex}
+                                  className="flex items-center gap-2 bg-white p-2 rounded border border-gray-200"
+                                >
+                                  <span className="text-xs font-medium text-gray-400 w-6">
+                                    {String.fromCharCode(65 + optIndex)}.
+                                  </span>
+                                  <span className="text-sm text-gray-900">{opt}</span>
+                                </div>
                               ))}
-                            </ul>
+                            </div>
                           </div>
                         )}
+
+                        {question.type === "Yes/No" && (
+                          <div className="mt-3 pt-3 border-t border-gray-200">
+                            <label className="text-xs font-medium text-gray-500 uppercase mb-2 block">
+                              Options
+                            </label>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div className="bg-white p-2 rounded border border-gray-200 text-center">
+                                <span className="text-sm font-medium text-gray-900">Yes</span>
+                              </div>
+                              <div className="bg-white p-2 rounded border border-gray-200 text-center">
+                                <span className="text-sm font-medium text-gray-900">No</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
                         {question.type === "Scaling" && (
-                          <p className="text-xs text-gray-500">
-                            Scale: {question.scaleMin} - {question.scaleMax}
-                            {question.scaleLabel?.min &&
-                              question.scaleLabel?.max &&
-                              ` (${question.scaleLabel.min} - ${question.scaleLabel.max})`}
-                          </p>
+                          <div className="mt-3 pt-3 border-t border-gray-200">
+                            <label className="text-xs font-medium text-gray-500 uppercase mb-2 block">
+                              Scale Range
+                            </label>
+                            <div className="bg-white p-3 rounded border border-gray-200">
+                              <div className="flex items-center justify-between">
+                                <div className="text-center">
+                                  <p className="text-xs text-gray-500">Minimum</p>
+                                  <p className="text-lg font-bold text-gray-900">
+                                    {question.scaleMin || 1}
+                                  </p>
+                                  {question.scaleLabel?.min && (
+                                    <p className="text-xs text-gray-500 mt-1">
+                                      {question.scaleLabel.min}
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="flex-1 mx-4">
+                                  <div className="h-1 bg-gray-200 rounded-full"></div>
+                                </div>
+                                <div className="text-center">
+                                  <p className="text-xs text-gray-500">Maximum</p>
+                                  <p className="text-lg font-bold text-gray-900">
+                                    {question.scaleMax || 10}
+                                  </p>
+                                  {question.scaleLabel?.max && (
+                                    <p className="text-xs text-gray-500 mt-1">
+                                      {question.scaleLabel.max}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {question.type === "Descriptive" && (
+                          <div className="mt-3 pt-3 border-t border-gray-200">
+                            <label className="text-xs font-medium text-gray-500 uppercase mb-2 block">
+                              Answer Type
+                            </label>
+                            <div className="bg-white p-2 rounded border border-gray-200">
+                              <span className="text-sm text-gray-900">Text/Descriptive Answer</span>
+                            </div>
+                          </div>
                         )}
                       </div>
                     </div>
                   </div>
-                </div>
-              ))
+                ))
             ) : (
-              <p className="text-sm text-gray-500">No questions found</p>
+              <p className="text-sm text-gray-500 text-center py-8">No questions found</p>
             )}
           </div>
         </CardContent>
