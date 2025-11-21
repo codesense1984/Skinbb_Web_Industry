@@ -496,37 +496,27 @@ export const sellerSidebarItems: Readonly<Record<string, SidebarItem>> = {
     name: "analytics",
     icon: <ChartBarIcon />,
     children: [
-      "sales-insights",
-      "ingredient-insights",
-      "brand-insights",
-      "customer-insights",
-      "market-trends",
+      "platform-analytics",
+      "brand-analytics",
       "ecommerce-analytics",
+      "ingredient-analytics",
     ],
   },
-  "sales-insights": {
-    name: "Sales Insights",
-    href: SELLER_ROUTES.ANALYTICS.SALES_INSIGHTS.BASE,
+  "platform-analytics": {
+    name: "Platform",
+    href: SELLER_ROUTES.ANALYTICS.PLATFORM.BASE,
   },
-  "ingredient-insights": {
-    name: "Ingredient Insights",
-    href: SELLER_ROUTES.ANALYTICS.INGREDIENT_INSIGHTS.BASE,
-  },
-  "brand-insights": {
-    name: "Brand Insights",
-    href: SELLER_ROUTES.ANALYTICS.BRAND_INSIGHTS.BASE,
-  },
-  "customer-insights": {
-    name: "Customer Insights",
-    href: SELLER_ROUTES.ANALYTICS.CUSTOMER_INSIGHTS.BASE,
-  },
-  "market-trends": {
-    name: "Market Trends",
-    href: SELLER_ROUTES.ANALYTICS.MARKET_TRENDS.BASE,
+  "brand-analytics": {
+    name: "Brand",
+    href: SELLER_ROUTES.ANALYTICS.BRAND.BASE,
   },
   "ecommerce-analytics": {
-    name: "Ecommerce Analytics",
-    href: ANALYTICS_ROUTES.ECOMMERCE.DASHBOARD,
+    name: "Ecommerce",
+    href: SELLER_ROUTES.ANALYTICS.ECOMMERCE.BASE,
+  },
+  "ingredient-analytics": {
+    name: "Ingredient",
+    href: SELLER_ROUTES.ANALYTICS.INGREDIENT_INSIGHTS.BASE,
   },
   users: {
     name: "users",

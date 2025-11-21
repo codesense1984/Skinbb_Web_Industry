@@ -197,6 +197,18 @@ export const sellerRoutes: RouteObject = {
 
     // Analytics Routes
     {
+      path: SELLER_ROUTES.ANALYTICS.PLATFORM.BASE,
+      Component: lazy(() => import("@/modules/analytics/features/platform")),
+    },
+    {
+      path: SELLER_ROUTES.ANALYTICS.BRAND.BASE,
+      Component: lazy(() => import("@/modules/analytics/features/brand")),
+    },
+    {
+      path: SELLER_ROUTES.ANALYTICS.INGREDIENT.BASE,
+      Component: lazy(() => import("@/modules/analytics/features/ingredient")),
+    },
+    {
       path: SELLER_ROUTES.ANALYTICS.SALES_INSIGHTS.BASE,
       Component: lazy(
         () => import("@/modules/seller/features/analytics/SalesInsights"),

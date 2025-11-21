@@ -202,6 +202,18 @@ export const SELLER_ROUTES = {
   // ---- Analytics ----
   ANALYTICS: {
     BASE: "/analytics",
+    PLATFORM: {
+      BASE: "/analytic/platform",
+    },
+    BRAND: {
+      BASE: "/analytic/brand",
+    },
+    INGREDIENT: {
+      BASE: "/analytic/ingredient",
+    },
+    ECOMMERCE: {
+      BASE: "/analytic/ecommerce-dashboard",
+    },
     SALES_INSIGHTS: {
       BASE: "/analytics/sales-insights",
     },
@@ -216,9 +228,6 @@ export const SELLER_ROUTES = {
     },
     MARKET_TRENDS: {
       BASE: "/analytics/market-trends",
-    },
-    ECOMMERCE: {
-      BASE: "/analytic/ecommerce-dashboard",
     },
   },
 

@@ -66,18 +66,6 @@ const SellerOrderList = () => {
         ),
       },
       {
-        header: "Customer",
-        accessorKey: "fullName",
-        cell: ({ row }) => {
-          const fullName = row.original.fullName;
-          return (
-            <div>
-              <div className="text-gray-900">{fullName || "N/A"}</div>
-            </div>
-          );
-        },
-      },
-      {
         header: "Brand",
         accessorKey: "brand",
         cell: ({ row }) => {
