@@ -1,6 +1,4 @@
-import {
-  StatChartCard
-} from "@/core/components/ui/card";
+import { StatChartCard } from "@/core/components/ui/card";
 import { cn, formatNumber } from "@/core/utils";
 import { TrophyIcon } from "@heroicons/react/24/outline";
 import { useQuery } from "@tanstack/react-query";
@@ -123,11 +121,11 @@ export const TopSellingProductsCard: React.FC<TopSellingProductsCardProps> = ({
         {[...products].slice(0, limit).map((product, index) => (
           <Fragment key={product._id}>
             <div key={product._id} className="flex items-center gap-3">
-              <div className="flex-shrink-0 ">{getRankIcon(index + 1)}</div>
+              <div className="flex-shrink-0">{getRankIcon(index + 1)}</div>
               <div className="min-w-0 flex-1">
                 <p className="truncate font-medium">{product.productName}</p>
                 <div className="flex items-center gap-2">
-                  <p className="text-sm ">
+                  <p className="text-sm">
                     ₹{formatNumber(product.totalRevenue)}
                   </p>
                   <p className="text-sm">Qty: {product.totalQuantity}</p>

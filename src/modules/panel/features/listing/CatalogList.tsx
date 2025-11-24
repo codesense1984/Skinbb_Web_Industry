@@ -1,16 +1,36 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
-import { useQuery, useMutation, useQueryClient, type UseMutationResult } from "@tanstack/react-query";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  type UseMutationResult,
+} from "@tanstack/react-query";
 import { Button } from "@/core/components/ui/button";
 import { DataTable } from "@/core/components/data-table";
 import { StatusBadge } from "@/core/components/ui/badge";
 import { PaginationComboBox } from "@/core/components/ui/pagination-combo-box";
 import { ComboBox } from "@/core/components/ui/combo-box";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/core/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/core/components/ui/dialog";
 import { Textarea } from "@/core/components/ui/textarea";
 import { Label } from "@/core/components/ui/label";
 import { PageContent } from "@/core/components/ui/structure";
 import { createSimpleFetcher } from "@/core/components/data-table";
-import { apiGetCatalogList, apiApproveCatalog, apiDownloadCatalog, apiRejectCatalog, type CatalogListParams, type CatalogJob, type CatalogApprovalResponse, type CatalogListResponse } from "@/modules/panel/services/http/product.service";
+import {
+  apiGetCatalogList,
+  apiApproveCatalog,
+  apiDownloadCatalog,
+  apiRejectCatalog,
+  type CatalogListParams,
+  type CatalogJob,
+  type CatalogApprovalResponse,
+  type CatalogListResponse,
+} from "@/modules/panel/services/http/product.service";
 import { api } from "@/core/services/http";
 import { apiGetCompanyList } from "@/modules/panel/services/http/company.service";
 import { apiGetBrands } from "@/modules/panel/services/http/brand.service";
@@ -29,27 +49,39 @@ interface CatalogListProps {
 type CatalogRow = CatalogJob & { importJobId?: string; id?: string };
 
 // Manage Approval Dialog Component
-const ManageApprovalDialog = ({ 
-  catalogJob, 
-  approveMutation, 
-  rejectMutation 
-}: { 
+const ManageApprovalDialog = ({
+  catalogJob,
+  approveMutation,
+  rejectMutation,
+}: {
   catalogJob: CatalogRow;
-  approveMutation: UseMutationResult<CatalogApprovalResponse, unknown, { importJobId: string; reason?: string }, unknown>;
-  rejectMutation: UseMutationResult<CatalogApprovalResponse, unknown, { importJobId: string; reason?: string }, unknown>;
+  approveMutation: UseMutationResult<
+    CatalogApprovalResponse,
+    unknown,
+    { importJobId: string; reason?: string },
+    unknown
+  >;
+  rejectMutation: UseMutationResult<
+    CatalogApprovalResponse,
+    unknown,
+    { importJobId: string; reason?: string },
+    unknown
+  >;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [reason, setReason] = useState("");
   const [action, setAction] = useState<"approve" | "reject">("approve");
 
-
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => {
-      console.log("Dialog onOpenChange called with:", open);
-      if (!open && !approveMutation.isPending && !rejectMutation.isPending) {
-        setIsOpen(false);
-      }
-    }}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        console.log("Dialog onOpenChange called with:", open);
+        if (!open && !approveMutation.isPending && !rejectMutation.isPending) {
+          setIsOpen(false);
+        }
+      }}
+    >
       <DialogTrigger asChild>
         <Button
           variant="outlined"
@@ -60,7 +92,7 @@ const ManageApprovalDialog = ({
           }}
           className="h-8 px-2 text-xs"
         >
-          <Settings className="h-3 w-3 mr-1" />
+          <Settings className="mr-1 h-3 w-3" />
           Manage
         </Button>
       </DialogTrigger>
@@ -79,7 +111,7 @@ const ManageApprovalDialog = ({
                 className="flex-1"
                 type="button"
               >
-                <CheckCircle className="h-4 w-4 mr-2" />
+                <CheckCircle className="mr-2 h-4 w-4" />
                 Approve
               </Button>
               <Button
@@ -89,15 +121,15 @@ const ManageApprovalDialog = ({
                 className="flex-1"
                 type="button"
               >
-                <XCircle className="h-4 w-4 mr-2" />
+                <XCircle className="mr-2 h-4 w-4" />
                 Reject
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-muted-foreground text-xs">
               Select an action above, then click the button below to confirm
             </p>
           </div>
-          
+
           {action === "reject" && (
             <div className="space-y-2">
               <Label htmlFor="reason">Rejection Reason</Label>
@@ -111,7 +143,7 @@ const ManageApprovalDialog = ({
             </div>
           )}
 
-          <div className="flex justify-end gap-2 pt-2 border-t">
+          <div className="flex justify-end gap-2 border-t pt-2">
             <Button
               variant="outlined"
               onClick={() => setIsOpen(false)}
@@ -124,47 +156,60 @@ const ManageApprovalDialog = ({
               onClick={() => {
                 // Use importJobId if available, otherwise fallback to _id
                 const jobId = catalogJob?.importJobId || catalogJob?._id;
-                
-                console.log("Approval action clicked:", { action, catalogJob, jobId });
+
+                console.log("Approval action clicked:", {
+                  action,
+                  catalogJob,
+                  jobId,
+                });
                 if (!jobId) {
-                  console.error("Catalog ID is missing!", { 
-                    catalogJob, 
+                  console.error("Catalog ID is missing!", {
+                    catalogJob,
                     availableKeys: Object.keys(catalogJob || {}),
                     hasImportJobId: !!catalogJob?.importJobId,
                     hasId: !!catalogJob?.id,
-                    has_id: !!catalogJob?._id
+                    has_id: !!catalogJob?._id,
                   });
-                  toast.error("Catalog ID is missing. Please refresh the page.", {
-                    description: `Available fields: ${Object.keys(catalogJob || {}).join(", ")}`
-                  });
+                  toast.error(
+                    "Catalog ID is missing. Please refresh the page.",
+                    {
+                      description: `Available fields: ${Object.keys(catalogJob || {}).join(", ")}`,
+                    },
+                  );
                   return;
                 }
-                
+
                 if (action === "approve") {
-                  approveMutation.mutate({ 
-                    importJobId: jobId,
-                    reason: reason.trim() || undefined
-                  }, {
-                    onSuccess: () => {
-                      setIsOpen(false);
-                      setReason("");
-                    }
-                  });
+                  approveMutation.mutate(
+                    {
+                      importJobId: jobId,
+                      reason: reason.trim() || undefined,
+                    },
+                    {
+                      onSuccess: () => {
+                        setIsOpen(false);
+                        setReason("");
+                      },
+                    },
+                  );
                 } else if (action === "reject" && reason.trim()) {
-                  rejectMutation.mutate({ 
-                    importJobId: jobId, 
-                    reason: reason.trim() 
-                  }, {
-                    onSuccess: () => {
-                      setIsOpen(false);
-                      setReason("");
-                    }
-                  });
+                  rejectMutation.mutate(
+                    {
+                      importJobId: jobId,
+                      reason: reason.trim(),
+                    },
+                    {
+                      onSuccess: () => {
+                        setIsOpen(false);
+                        setReason("");
+                      },
+                    },
+                  );
                 }
               }}
               disabled={
-                approveMutation.isPending || 
-                rejectMutation.isPending || 
+                approveMutation.isPending ||
+                rejectMutation.isPending ||
                 (action === "reject" && !reason.trim())
               }
               variant="contained"
@@ -177,12 +222,12 @@ const ManageApprovalDialog = ({
                 <>
                   {action === "approve" ? (
                     <>
-                      <CheckCircle className="h-4 w-4 mr-2" />
+                      <CheckCircle className="mr-2 h-4 w-4" />
                       Confirm Approve
                     </>
                   ) : (
                     <>
-                      <XCircle className="h-4 w-4 mr-2" />
+                      <XCircle className="mr-2 h-4 w-4" />
                       Confirm Reject
                     </>
                   )}
@@ -204,7 +249,8 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
   const queryClient = useQueryClient();
 
   // Determine if this is admin context
-  const isAdminContext = isAdminPanel ||
+  const isAdminContext =
+    isAdminPanel ||
     location.pathname.includes("/panel/") ||
     location.pathname.includes("/admin/") ||
     (user && !sellerInfo);
@@ -212,7 +258,9 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
   // Get seller's primary address and first brand for seller context
   const getSellerBrandId = useCallback(() => {
     if (isAdminContext || !sellerInfo) return "";
-    const primaryAddress = sellerInfo.addresses?.find(addr => addr.isPrimary) || sellerInfo.addresses?.[0];
+    const primaryAddress =
+      sellerInfo.addresses?.find((addr) => addr.isPrimary) ||
+      sellerInfo.addresses?.[0];
     return primaryAddress?.brands?.[0]?._id || "";
   }, [isAdminContext, sellerInfo]);
 
@@ -220,8 +268,10 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
   const [filters, setFilters] = useState<CatalogListParams>({
     page: 1,
     limit: 10,
-    companyId: isAdminContext ? "" : (params.companyId || sellerInfo?.companyId || ""),
-    brandId: isAdminContext ? "" : (params.brandId || getSellerBrandId()),
+    companyId: isAdminContext
+      ? ""
+      : params.companyId || sellerInfo?.companyId || "",
+    brandId: isAdminContext ? "" : params.brandId || getSellerBrandId(),
     categoryId: "",
     status: undefined,
     validationStatus: undefined,
@@ -233,13 +283,19 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
   useEffect(() => {
     if (!isAdminContext && sellerInfo) {
       const brandId = getSellerBrandId();
-      setFilters(prev => ({
+      setFilters((prev) => ({
         ...prev,
         companyId: params.companyId || sellerInfo.companyId || "",
         brandId: params.brandId || brandId,
       }));
     }
-  }, [sellerInfo, isAdminContext, params.companyId, params.brandId, getSellerBrandId]);
+  }, [
+    sellerInfo,
+    isAdminContext,
+    params.companyId,
+    params.brandId,
+    getSellerBrandId,
+  ]);
 
   // Create fetchers for dropdowns (admin only)
   const companiesFetcher = createSimpleFetcher(apiGetCompanyList, {
@@ -259,22 +315,30 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
       {
         dataPath: "data.brands",
         totalPath: "data.totalRecords",
-      }
+      },
     );
   };
 
   const brandsFetcher = createBrandFetcher(filters.companyId);
 
   // Category API function
-  const apiGetCategories = async (params?: { search?: string; limit?: number; page?: number }) => {
+  const apiGetCategories = async (params?: {
+    search?: string;
+    limit?: number;
+    page?: number;
+  }) => {
     const searchParams = new URLSearchParams();
     if (params?.search) searchParams.append("search", params.search);
-    if (params?.limit) searchParams.append("limit", params.limit?.toString() || "100");
-    if (params?.page) searchParams.append("page", params.page?.toString() || "1");
-    
+    if (params?.limit)
+      searchParams.append("limit", params.limit?.toString() || "100");
+    if (params?.page)
+      searchParams.append("page", params.page?.toString() || "1");
+
     const queryString = searchParams.toString();
-    const url = queryString ? `/api/v1/product-category/?${queryString}` : "/api/v1/product-category/";
-    
+    const url = queryString
+      ? `/api/v1/product-category/?${queryString}`
+      : "/api/v1/product-category/";
+
     return api.get(url);
   };
 
@@ -296,16 +360,22 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
 
   // Transform categories data for ComboBox
   const categoryOptions = useMemo(() => {
-    return (categoriesData as { data: { productCategories: Array<{ _id: string; name: string }> } })?.data?.productCategories?.map((category) => ({
-      value: category._id,
-      label: category.name,
-    })) || [];
+    return (
+      (
+        categoriesData as {
+          data: { productCategories: Array<{ _id: string; name: string }> };
+        }
+      )?.data?.productCategories?.map((category) => ({
+        value: category._id,
+        label: category.name,
+      })) || []
+    );
   }, [categoriesData]);
 
   // Create lookup maps for names
   const categoryMap = useMemo(() => {
     const map = new Map();
-    categoryOptions.forEach(cat => {
+    categoryOptions.forEach((cat) => {
       map.set(cat.value, cat.label);
     });
     return map;
@@ -314,7 +384,11 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
   const companyMap = useMemo(() => {
     const map = new Map();
     if (companiesData) {
-      (companiesData as { data: { items: Array<{ _id: string; companyName: string }> } })?.data?.items?.forEach(company => {
+      (
+        companiesData as {
+          data: { items: Array<{ _id: string; companyName: string }> };
+        }
+      )?.data?.items?.forEach((company) => {
         map.set(company._id, company.companyName);
       });
     }
@@ -332,13 +406,14 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
   const brandMap = useMemo(() => {
     const map = new Map();
     if (brandsData) {
-      (brandsData as { data: { brands: Array<{ _id: string; name: string }> } })?.data?.brands?.forEach(brand => {
+      (
+        brandsData as { data: { brands: Array<{ _id: string; name: string }> } }
+      )?.data?.brands?.forEach((brand) => {
         map.set(brand._id, brand.name);
       });
     }
     return map;
   }, [brandsData]);
-
 
   // Fetch catalog list - now handled by DataTable fetcher
 
@@ -350,30 +425,39 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
         console.error("Import job ID is missing in approve mutation!", data);
         throw new Error("Import job ID is required");
       }
-      console.log("Calling apiApproveCatalog with:", { importJobId: data.importJobId, reason: data.reason });
+      console.log("Calling apiApproveCatalog with:", {
+        importJobId: data.importJobId,
+        reason: data.reason,
+      });
       return apiApproveCatalog(data.importJobId, { reason: data.reason });
     },
     onSuccess: () => {
       toast.success("Catalog approved successfully!");
       // Invalidate all queries that start with "catalog-list"
-      queryClient.invalidateQueries({ 
+      queryClient.invalidateQueries({
         predicate: (query) => {
           const queryKey = query.queryKey[0];
-          return typeof queryKey === "string" && queryKey.startsWith("catalog-list");
+          return (
+            typeof queryKey === "string" && queryKey.startsWith("catalog-list")
+          );
         },
       });
       // Also refetch to ensure immediate UI update
-      queryClient.refetchQueries({ 
+      queryClient.refetchQueries({
         predicate: (query) => {
           const queryKey = query.queryKey[0];
-          return typeof queryKey === "string" && queryKey.startsWith("catalog-list");
+          return (
+            typeof queryKey === "string" && queryKey.startsWith("catalog-list")
+          );
         },
       });
     },
     onError: (error: unknown) => {
-      const errorMessage = error && typeof error === "object" && "response" in error 
-        ? (error as { response?: { data?: { message?: string } } }).response?.data?.message 
-        : "Failed to approve catalog";
+      const errorMessage =
+        error && typeof error === "object" && "response" in error
+          ? (error as { response?: { data?: { message?: string } } }).response
+              ?.data?.message
+          : "Failed to approve catalog";
       toast.error("Approval failed", { description: errorMessage });
     },
   });
@@ -385,31 +469,51 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
       console.log("Download response:", response);
       // Check multiple possible response structures
       let downloadUrl = null;
-      
+
       if (response?.data?.downloadUrl) {
         downloadUrl = response.data.downloadUrl;
-      } else if ((response as unknown as Record<string, unknown>)?.downloadUrl) {
-        downloadUrl = (response as unknown as Record<string, unknown>).downloadUrl as string;
-      } else if ((response as unknown as Record<string, unknown>)?.data && 
-                 ((response as unknown as Record<string, unknown>).data as Record<string, unknown>)?.url) {
-        downloadUrl = ((response as unknown as Record<string, unknown>).data as Record<string, unknown>).url as string;
+      } else if (
+        (response as unknown as Record<string, unknown>)?.downloadUrl
+      ) {
+        downloadUrl = (response as unknown as Record<string, unknown>)
+          .downloadUrl as string;
+      } else if (
+        (response as unknown as Record<string, unknown>)?.data &&
+        (
+          (response as unknown as Record<string, unknown>).data as Record<
+            string,
+            unknown
+          >
+        )?.url
+      ) {
+        downloadUrl = (
+          (response as unknown as Record<string, unknown>).data as Record<
+            string,
+            unknown
+          >
+        ).url as string;
       } else if ((response as unknown as Record<string, unknown>)?.url) {
-        downloadUrl = (response as unknown as Record<string, unknown>).url as string;
+        downloadUrl = (response as unknown as Record<string, unknown>)
+          .url as string;
       }
-      
+
       if (downloadUrl) {
         window.open(downloadUrl, "_blank");
         toast.success("Download started!");
       } else {
         console.error("Download URL not found in response:", response);
-        toast.error("Download failed", { description: "Download URL not found in response" });
+        toast.error("Download failed", {
+          description: "Download URL not found in response",
+        });
       }
     },
     onError: (error: unknown) => {
       console.error("Download error:", error);
-      const errorMessage = error && typeof error === "object" && "response" in error 
-        ? (error as { response?: { data?: { message?: string } } }).response?.data?.message 
-        : "Failed to download catalog";
+      const errorMessage =
+        error && typeof error === "object" && "response" in error
+          ? (error as { response?: { data?: { message?: string } } }).response
+              ?.data?.message
+          : "Failed to download catalog";
       toast.error("Download failed", { description: errorMessage });
     },
   });
@@ -422,140 +526,183 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
         console.error("Import job ID is missing in reject mutation!", data);
         throw new Error("Import job ID is required");
       }
-      console.log("Calling apiRejectCatalog with:", { importJobId: data.importJobId, reason: data.reason });
+      console.log("Calling apiRejectCatalog with:", {
+        importJobId: data.importJobId,
+        reason: data.reason,
+      });
       return apiRejectCatalog(data.importJobId, { reason: data.reason });
     },
     onSuccess: () => {
       toast.success("Catalog rejected successfully!");
       // Invalidate all queries that start with "catalog-list"
-      queryClient.invalidateQueries({ 
+      queryClient.invalidateQueries({
         predicate: (query) => {
           const queryKey = query.queryKey[0];
-          return typeof queryKey === "string" && queryKey.startsWith("catalog-list");
+          return (
+            typeof queryKey === "string" && queryKey.startsWith("catalog-list")
+          );
         },
       });
       // Also refetch to ensure immediate UI update
-      queryClient.refetchQueries({ 
+      queryClient.refetchQueries({
         predicate: (query) => {
           const queryKey = query.queryKey[0];
-          return typeof queryKey === "string" && queryKey.startsWith("catalog-list");
+          return (
+            typeof queryKey === "string" && queryKey.startsWith("catalog-list")
+          );
         },
       });
     },
     onError: (error: unknown) => {
-      const errorMessage = error && typeof error === "object" && "response" in error 
-        ? (error as { response?: { data?: { message?: string } } }).response?.data?.message 
-        : "Failed to reject catalog";
+      const errorMessage =
+        error && typeof error === "object" && "response" in error
+          ? (error as { response?: { data?: { message?: string } } }).response
+              ?.data?.message
+          : "Failed to reject catalog";
       toast.error("Rejection failed", { description: errorMessage });
     },
   });
 
-
   // Table columns
-  const columns = useMemo(() => [
-    {
-      accessorKey: "fileName",
-      header: "File Name",
-      cell: ({ row }: { row: { original: CatalogRow } }) => (
-        <div className="font-medium text-sm truncate max-w-[200px]" title={row.original.fileName}>
-          {row.original.fileName}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "status",
-      header: "Status",
-      cell: ({ row }: { row: { original: CatalogRow } }) => (
-        <div className="flex flex-col gap-1">
-          <StatusBadge module="product" status={row.original.status} variant="badge" />
-          {row.original.status === "rejected" && row.original.errorMessage && (
-            <div className="text-xs text-red-600 mt-1 max-w-[200px] truncate" title={row.original.errorMessage}>
-              Reason: {row.original.errorMessage}
-            </div>
-          )}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "categoryId",
-      header: "Category",
-      cell: ({ row }: { row: { original: CatalogRow } }) => {
-        const categoryName = categoryMap.get(row.original.categoryId) || "Unknown";
-        return (
-          <div className="text-sm font-medium text-gray-700">
-            {categoryName}
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "brandId",
-      header: "Brand",
-      cell: ({ row }: { row: { original: CatalogRow } }) => {
-        const brandName = brandMap.get(row.original.brandId) || "Unknown";
-        return (
-          <div className="text-sm font-medium text-gray-700">
-            {brandName}
-          </div>
-        );
-      },
-    },
-    ...(isAdminContext ? [{
-      accessorKey: "companyId",
-      header: "Company",
-      cell: ({ row }: { row: { original: CatalogRow } }) => {
-        const companyName = companyMap.get(row.original.sellerId) || row.original.sellerId;
-        return (
-          <div className="text-sm text-gray-600 truncate max-w-[120px]" title={companyName}>
-            {companyName}
-          </div>
-        );
-      },
-    }] : []),
-    {
-      id: "actions",
-      header: "Actions",
-      cell: ({ row }: { row: { original: CatalogRow } }) => (
-        <div className="flex gap-1">
-          <Button
-            variant="outlined"
-            size="sm"
-            onClick={() => {
-              // Use importJobId if available, otherwise fallback to _id
-              const jobId = row.original.importJobId || row.original._id;
-              // Try API download first, fallback to direct fileUrl
-              if (row.original.fileUrl) {
-                // Direct download fallback
-                window.open(row.original.fileUrl, "_blank");
-                toast.success("Download started!");
-              } else if (jobId) {
-                // Use API download
-                downloadMutation.mutate(jobId);
-              } else {
-                toast.error("Catalog ID is missing for download");
-              }
-            }}
-            disabled={downloadMutation.isPending}
-            className="h-8 px-2 text-xs"
+  const columns = useMemo(
+    () => [
+      {
+        accessorKey: "fileName",
+        header: "File Name",
+        cell: ({ row }: { row: { original: CatalogRow } }) => (
+          <div
+            className="max-w-[200px] truncate text-sm font-medium"
+            title={row.original.fileName}
           >
-            <Download className="h-3 w-3 mr-1" />
-            Download
-          </Button>
-          {isAdminContext && (row.original.status === "completed" || row.original.status === "pending") && (
-            <ManageApprovalDialog 
-              catalogJob={row.original} 
-              approveMutation={approveMutation}
-              rejectMutation={rejectMutation}
+            {row.original.fileName}
+          </div>
+        ),
+      },
+      {
+        accessorKey: "status",
+        header: "Status",
+        cell: ({ row }: { row: { original: CatalogRow } }) => (
+          <div className="flex flex-col gap-1">
+            <StatusBadge
+              module="product"
+              status={row.original.status}
+              variant="badge"
             />
-          )}
-        </div>
-      ),
-    },
-  ], [downloadMutation, approveMutation, rejectMutation, categoryMap, companyMap, brandMap, isAdminContext]);
+            {row.original.status === "rejected" &&
+              row.original.errorMessage && (
+                <div
+                  className="mt-1 max-w-[200px] truncate text-xs text-red-600"
+                  title={row.original.errorMessage}
+                >
+                  Reason: {row.original.errorMessage}
+                </div>
+              )}
+          </div>
+        ),
+      },
+      {
+        accessorKey: "categoryId",
+        header: "Category",
+        cell: ({ row }: { row: { original: CatalogRow } }) => {
+          const categoryName =
+            categoryMap.get(row.original.categoryId) || "Unknown";
+          return (
+            <div className="text-sm font-medium text-gray-700">
+              {categoryName}
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: "brandId",
+        header: "Brand",
+        cell: ({ row }: { row: { original: CatalogRow } }) => {
+          const brandName = brandMap.get(row.original.brandId) || "Unknown";
+          return (
+            <div className="text-sm font-medium text-gray-700">{brandName}</div>
+          );
+        },
+      },
+      ...(isAdminContext
+        ? [
+            {
+              accessorKey: "companyId",
+              header: "Company",
+              cell: ({ row }: { row: { original: CatalogRow } }) => {
+                const companyName =
+                  companyMap.get(row.original.sellerId) ||
+                  row.original.sellerId;
+                return (
+                  <div
+                    className="max-w-[120px] truncate text-sm text-gray-600"
+                    title={companyName}
+                  >
+                    {companyName}
+                  </div>
+                );
+              },
+            },
+          ]
+        : []),
+      {
+        id: "actions",
+        header: "Actions",
+        cell: ({ row }: { row: { original: CatalogRow } }) => (
+          <div className="flex gap-1">
+            <Button
+              variant="outlined"
+              size="sm"
+              onClick={() => {
+                // Use importJobId if available, otherwise fallback to _id
+                const jobId = row.original.importJobId || row.original._id;
+                // Try API download first, fallback to direct fileUrl
+                if (row.original.fileUrl) {
+                  // Direct download fallback
+                  window.open(row.original.fileUrl, "_blank");
+                  toast.success("Download started!");
+                } else if (jobId) {
+                  // Use API download
+                  downloadMutation.mutate(jobId);
+                } else {
+                  toast.error("Catalog ID is missing for download");
+                }
+              }}
+              disabled={downloadMutation.isPending}
+              className="h-8 px-2 text-xs"
+            >
+              <Download className="mr-1 h-3 w-3" />
+              Download
+            </Button>
+            {isAdminContext &&
+              (row.original.status === "completed" ||
+                row.original.status === "pending") && (
+                <ManageApprovalDialog
+                  catalogJob={row.original}
+                  approveMutation={approveMutation}
+                  rejectMutation={rejectMutation}
+                />
+              )}
+          </div>
+        ),
+      },
+    ],
+    [
+      downloadMutation,
+      approveMutation,
+      rejectMutation,
+      categoryMap,
+      companyMap,
+      brandMap,
+      isAdminContext,
+    ],
+  );
 
   // Handle filter changes
-  const handleFilterChange = (key: keyof CatalogListParams, value: string | number) => {
-    setFilters(prev => ({
+  const handleFilterChange = (
+    key: keyof CatalogListParams,
+    value: string | number,
+  ) => {
+    setFilters((prev) => ({
       ...prev,
       [key]: value,
       page: 1, // Reset to first page when filters change
@@ -573,7 +720,7 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
           <div className="flex gap-2">
             <Button color={"primary"} asChild>
               <NavLink to={PANEL_ROUTES.LISTING.CATALOG}>
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="mr-2 h-4 w-4" />
                 Add Catalog
               </NavLink>
             </Button>
@@ -582,93 +729,112 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
       }}
     >
       {/* Filters */}
-      <div className="bg-white p-4 rounded-lg border mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-
-            {/* Company Filter (Admin Only) */}
-            {isAdminContext && (
-              <div className="space-y-2">
-                <div className="text-sm font-medium">Company</div>
-                <PaginationComboBox
-                  apiFunction={companiesFetcher}
-                  transform={(company: { _id: string; companyName: string }) => ({
-                    label: company.companyName,
-                    value: company._id,
-                  })}
-                  placeholder="All companies"
-                  value={filters.companyId || ""}
-                  onChange={(selectedValue: string | string[]) => {
-                    const stringValue = Array.isArray(selectedValue) ? selectedValue[0] : selectedValue;
-                    handleFilterChange("companyId", stringValue || "");
-                  }}
-                  className="w-full"
-                  queryKey={["companies-catalog-filter"]}
-                  emptyMessage="No companies found"
-                  enabled={isAdminContext}
-                />
-              </div>
-            )}
-
-            {/* Brand Filter */}
+      <div className="mb-6 rounded-lg border bg-white p-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {/* Company Filter (Admin Only) */}
+          {isAdminContext && (
             <div className="space-y-2">
-              <div className="text-sm font-medium">Brand</div>
+              <div className="text-sm font-medium">Company</div>
               <PaginationComboBox
-                apiFunction={brandsFetcher}
-                transform={(brand: { _id: string; name: string }) => ({
-                  label: brand.name,
-                  value: brand._id,
+                apiFunction={companiesFetcher}
+                transform={(company: { _id: string; companyName: string }) => ({
+                  label: company.companyName,
+                  value: company._id,
                 })}
-                placeholder={!filters.companyId && isAdminContext ? "Select company first" : "All brands"}
-                value={filters.brandId || ""}
+                placeholder="All companies"
+                value={filters.companyId || ""}
                 onChange={(selectedValue: string | string[]) => {
-                  const stringValue = Array.isArray(selectedValue) ? selectedValue[0] : selectedValue;
-                  handleFilterChange("brandId", stringValue || "");
+                  const stringValue = Array.isArray(selectedValue)
+                    ? selectedValue[0]
+                    : selectedValue;
+                  handleFilterChange("companyId", stringValue || "");
                 }}
                 className="w-full"
-                queryKey={["brands-catalog-filter", filters.companyId || "none"]}
-                emptyMessage={!filters.companyId && isAdminContext ? "Select company first" : "No brands found"}
-                enabled={!isAdminContext || !!filters.companyId}
+                queryKey={["companies-catalog-filter"]}
+                emptyMessage="No companies found"
+                enabled={isAdminContext}
               />
             </div>
+          )}
 
-            {/* Category Filter */}
-            <div className="space-y-2">
-              <div className="text-sm font-medium">Category</div>
-              <ComboBox
-                options={categoryOptions}
-                placeholder="All categories"
-                value={filters.categoryId || ""}
-                onChange={(value: string) => handleFilterChange("categoryId", value || "")}
-                className="w-full"
-              />
-            </div>
+          {/* Brand Filter */}
+          <div className="space-y-2">
+            <div className="text-sm font-medium">Brand</div>
+            <PaginationComboBox
+              apiFunction={brandsFetcher}
+              transform={(brand: { _id: string; name: string }) => ({
+                label: brand.name,
+                value: brand._id,
+              })}
+              placeholder={
+                !filters.companyId && isAdminContext
+                  ? "Select company first"
+                  : "All brands"
+              }
+              value={filters.brandId || ""}
+              onChange={(selectedValue: string | string[]) => {
+                const stringValue = Array.isArray(selectedValue)
+                  ? selectedValue[0]
+                  : selectedValue;
+                handleFilterChange("brandId", stringValue || "");
+              }}
+              className="w-full"
+              queryKey={["brands-catalog-filter", filters.companyId || "none"]}
+              emptyMessage={
+                !filters.companyId && isAdminContext
+                  ? "Select company first"
+                  : "No brands found"
+              }
+              enabled={!isAdminContext || !!filters.companyId}
+            />
+          </div>
 
-            {/* Status Filter */}
-            <div className="space-y-2">
-              <div className="text-sm font-medium">Status</div>
-              <select
-                value={filters.status || ""}
-                onChange={(e) => handleFilterChange("status", e.target.value)}
-                className="w-full px-3 py-2 border border-input rounded-md text-sm"
-              >
-                <option value="">All Status</option>
-                <option value="pending">Pending</option>
-                <option value="processing">Processing</option>
-                <option value="completed">Completed</option>
-                <option value="failed">Failed</option>
-                <option value="approved">Approved</option>
-              </select>
-            </div>
+          {/* Category Filter */}
+          <div className="space-y-2">
+            <div className="text-sm font-medium">Category</div>
+            <ComboBox
+              options={categoryOptions}
+              placeholder="All categories"
+              value={filters.categoryId || ""}
+              onChange={(value: string) =>
+                handleFilterChange("categoryId", value || "")
+              }
+              className="w-full"
+            />
+          </div>
+
+          {/* Status Filter */}
+          <div className="space-y-2">
+            <div className="text-sm font-medium">Status</div>
+            <select
+              value={filters.status || ""}
+              onChange={(e) => handleFilterChange("status", e.target.value)}
+              className="border-input w-full rounded-md border px-3 py-2 text-sm"
+            >
+              <option value="">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="processing">Processing</option>
+              <option value="completed">Completed</option>
+              <option value="failed">Failed</option>
+              <option value="approved">Approved</option>
+            </select>
+          </div>
         </div>
       </div>
 
       {/* Data Table */}
-      <div className="bg-white rounded-lg border">
+      <div className="rounded-lg border bg-white">
         <DataTable
           columns={columns}
           isServerSide
-          fetcher={createSimpleFetcher<Record<string, unknown>, CatalogListResponse, "data.importJobs", CatalogRow>(
-            (params: Record<string, unknown>) => apiGetCatalogList({ ...filters, ...params }),
+          fetcher={createSimpleFetcher<
+            Record<string, unknown>,
+            CatalogListResponse,
+            "data.importJobs",
+            CatalogRow
+          >(
+            (params: Record<string, unknown>) =>
+              apiGetCatalogList({ ...filters, ...params }),
             {
               dataPath: "data.importJobs",
               totalPath: "data.pagination.totalJobs",
@@ -683,13 +849,16 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
                     importJobId: job.importJobId ?? job._id ?? job.id,
                   } as CatalogRow;
                 });
-                console.log("Normalized catalog jobs:", normalizedJobs.slice(0, 2)); // Log first 2 for debugging
+                console.log(
+                  "Normalized catalog jobs:",
+                  normalizedJobs.slice(0, 2),
+                ); // Log first 2 for debugging
                 return {
                   rows: normalizedJobs,
                   total: response?.data?.pagination?.totalJobs || 0,
                 };
               },
-            }
+            },
           )}
           queryKeyPrefix={`catalog-list-${JSON.stringify(filters)}`}
         />
@@ -699,4 +868,3 @@ const CatalogList: React.FC<CatalogListProps> = ({ isAdminPanel = false }) => {
 };
 
 export default CatalogList;
-

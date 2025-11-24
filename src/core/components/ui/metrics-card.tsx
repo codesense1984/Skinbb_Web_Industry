@@ -20,29 +20,31 @@ export const MetricsCard: React.FC<MetricsCardProps> = ({
   className,
 }) => {
   return (
-    <div className={cn(
-      "bg-white rounded-lg p-6 shadow-sm border border-gray-100 relative",
-      "border-l-4 border-l-pink-300",
-      className
-    )}>
+    <div
+      className={cn(
+        "relative rounded-lg border border-gray-100 bg-white p-6 shadow-sm",
+        "border-l-4 border-l-pink-300",
+        className,
+      )}
+    >
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          <p className="text-sm font-normal text-gray-600 mb-2">{title}</p>
+          <p className="mb-2 text-sm font-normal text-gray-600">{title}</p>
           <p className="text-2xl font-bold text-gray-900">{value}</p>
           {change && (
-            <p className={cn(
-              "text-sm font-medium mt-1",
-              change.isPositive ? "text-green-600" : "text-red-600"
-            )}>
+            <p
+              className={cn(
+                "mt-1 text-sm font-medium",
+                change.isPositive ? "text-green-600" : "text-red-600",
+              )}
+            >
               {change.value}
             </p>
           )}
         </div>
-        <div className="flex-shrink-0 ml-4">
-          <div className="bg-pink-100 rounded-full p-3 flex items-center justify-center">
-            <div className="text-pink-600">
-              {icon}
-            </div>
+        <div className="ml-4 flex-shrink-0">
+          <div className="flex items-center justify-center rounded-full bg-pink-100 p-3">
+            <div className="text-pink-600">{icon}</div>
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
-import { ComingSoon } from "@/core/components/ui/coming-soon";
+import PlatformAnalytics from "@/modules/analytics/features/platform";
 
 const MarketTrends = () => {
-  return <ComingSoon title="Market Trends" />;
+  return <PlatformAnalytics />;
 };
 
 export default MarketTrends;

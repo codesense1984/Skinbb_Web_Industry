@@ -4,9 +4,7 @@ interface ComingSoonProps {
   title?: string;
 }
 
-export function ComingSoon({
-  title = "Coming Soon",
-}: ComingSoonProps) {
+export function ComingSoon({ title = "Coming Soon" }: ComingSoonProps) {
   return (
     <PageContent
       header={{
@@ -15,14 +13,14 @@ export function ComingSoon({
         animate: true,
       }}
     >
-      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+      <div className="flex min-h-[60vh] flex-col items-center justify-center">
         {/* Megaphone Icon - Using your PNG */}
         <div>
-            <img 
-              src="/coming_soon.png" 
-              alt="Coming Soon" 
-              className="w-96 h-96 object-contain"
-            />
+          <img
+            src="/coming_soon.png"
+            alt="Coming Soon"
+            className="h-96 w-96 object-contain"
+          />
         </div>
       </div>
     </PageContent>

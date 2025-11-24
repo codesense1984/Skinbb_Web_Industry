@@ -124,15 +124,13 @@ export const fetchAllAnalytics = async (params: AnalyticsParams) => {
 };
 
 // Analytics Overview API
-export const apiGetAnalyticsOverview = async (
-  params?: {
-    startDate?: string;
-    endDate?: string;
-    brandId?: string;
-  },
-): Promise<ApiResponse<AnalyticsOverviewData>> => {
+export const apiGetAnalyticsOverview = async (params?: {
+  startDate?: string;
+  endDate?: string;
+  brandId?: string;
+}): Promise<ApiResponse<AnalyticsOverviewData>> => {
   const queryParams = new URLSearchParams();
-  
+
   if (params?.startDate) {
     queryParams.append("startDate", params.startDate);
   }
@@ -150,15 +148,13 @@ export const apiGetAnalyticsOverview = async (
 };
 
 // Abandoned Draft Orders API
-export const apiGetAbandonedDraftOrders = async (
-  params?: {
-    startDate?: string;
-    endDate?: string;
-    brandId?: string;
-  },
-): Promise<ApiResponse<AbandonedDraftOrdersData>> => {
+export const apiGetAbandonedDraftOrders = async (params?: {
+  startDate?: string;
+  endDate?: string;
+  brandId?: string;
+}): Promise<ApiResponse<AbandonedDraftOrdersData>> => {
   const queryParams = new URLSearchParams();
-  
+
   if (params?.startDate) {
     queryParams.append("startDate", params.startDate);
   }
@@ -176,17 +172,15 @@ export const apiGetAbandonedDraftOrders = async (
 };
 
 // Sales Insights API
-export const apiGetSalesInsights = async (
-  params?: {
-    startDate?: string;
-    endDate?: string;
-    brandId?: string;
-    page?: number;
-    limit?: number;
-  },
-): Promise<ApiResponse<SalesInsightsData>> => {
+export const apiGetSalesInsights = async (params?: {
+  startDate?: string;
+  endDate?: string;
+  brandId?: string;
+  page?: number;
+  limit?: number;
+}): Promise<ApiResponse<SalesInsightsData>> => {
   const queryParams = new URLSearchParams();
-  
+
   if (params?.startDate) {
     queryParams.append("startDate", params.startDate);
   }
@@ -210,16 +204,14 @@ export const apiGetSalesInsights = async (
 };
 
 // Brand Insights API
-export const apiGetBrandInsights = async (
-  params?: {
-    startDate?: string;
-    endDate?: string;
-    page?: number;
-    limit?: number;
-  },
-): Promise<ApiResponse<BrandInsightsData>> => {
+export const apiGetBrandInsights = async (params?: {
+  startDate?: string;
+  endDate?: string;
+  page?: number;
+  limit?: number;
+}): Promise<ApiResponse<BrandInsightsData>> => {
   const queryParams = new URLSearchParams();
-  
+
   if (params?.startDate) {
     queryParams.append("startDate", params.startDate);
   }
@@ -240,17 +232,15 @@ export const apiGetBrandInsights = async (
 };
 
 // Customer Insights API
-export const apiGetCustomerInsights = async (
-  params?: {
-    startDate?: string;
-    endDate?: string;
-    brandId?: string;
-    page?: number;
-    limit?: number;
-  },
-): Promise<ApiResponse<CustomerInsightsData>> => {
+export const apiGetCustomerInsights = async (params?: {
+  startDate?: string;
+  endDate?: string;
+  brandId?: string;
+  page?: number;
+  limit?: number;
+}): Promise<ApiResponse<CustomerInsightsData>> => {
   const queryParams = new URLSearchParams();
-  
+
   if (params?.startDate) {
     queryParams.append("startDate", params.startDate);
   }

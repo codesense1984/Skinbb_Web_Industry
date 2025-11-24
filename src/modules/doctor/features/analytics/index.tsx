@@ -5,4 +5,3 @@ const CMSAnalytics = () => {
 };
 
 export default CMSAnalytics;
-

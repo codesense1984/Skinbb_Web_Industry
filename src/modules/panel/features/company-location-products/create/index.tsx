@@ -14,11 +14,14 @@ const CompanyLocationProductCreate: React.FC = () => {
       <PageContent
         header={{
           title: "Create Product",
-          description: "Company ID and Location ID are required to create a product.",
+          description:
+            "Company ID and Location ID are required to create a product.",
         }}
       >
         <div className="py-8 text-center">
-          <p className="text-gray-500">Invalid company or location ID provided.</p>
+          <p className="text-gray-500">
+            Invalid company or location ID provided.
+          </p>
         </div>
       </PageContent>
     );

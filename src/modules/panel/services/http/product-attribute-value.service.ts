@@ -16,7 +16,8 @@ interface ProductAttributeValueCreateData {
   value: string;
 }
 
-interface ProductAttributeValueUpdateData extends Partial<ProductAttributeValueCreateData> {
+interface ProductAttributeValueUpdateData
+  extends Partial<ProductAttributeValueCreateData> {
   _id: string;
 }
 
@@ -69,7 +70,12 @@ export async function apiGetProductAttributeValues(
 export async function apiGetProductAttributeValueById(
   id: string,
   signal?: AbortSignal,
-): Promise<{ statusCode: number; success: boolean; message: string; data: ProductAttributeValueResponse }> {
+): Promise<{
+  statusCode: number;
+  success: boolean;
+  message: string;
+  data: ProductAttributeValueResponse;
+}> {
   return api.get(`${ENDPOINTS.PRODUCT.ATTRIBUTE_VALUE}/${id}`, { signal });
 }
 
@@ -77,7 +83,12 @@ export async function apiGetProductAttributeValueById(
 export async function apiCreateProductAttributeValue(
   attributeId: string,
   data: ProductAttributeValueCreateData,
-): Promise<{ statusCode: number; success: boolean; message: string; data: ProductAttributeValueResponse }> {
+): Promise<{
+  statusCode: number;
+  success: boolean;
+  message: string;
+  data: ProductAttributeValueResponse;
+}> {
   return api.post(`${ENDPOINTS.PRODUCT.ATTRIBUTE_VALUE}/${attributeId}`, data);
 }
 
@@ -85,7 +96,12 @@ export async function apiCreateProductAttributeValue(
 export async function apiUpdateProductAttributeValue(
   id: string,
   data: Partial<ProductAttributeValueCreateData>,
-): Promise<{ statusCode: number; success: boolean; message: string; data: ProductAttributeValueResponse }> {
+): Promise<{
+  statusCode: number;
+  success: boolean;
+  message: string;
+  data: ProductAttributeValueResponse;
+}> {
   return api.put(`${ENDPOINTS.PRODUCT.ATTRIBUTE_VALUE}/${id}`, data);
 }
 

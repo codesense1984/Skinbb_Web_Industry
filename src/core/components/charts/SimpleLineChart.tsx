@@ -22,7 +22,12 @@ export const SimpleLineChart: React.FC<SimpleLineChartProps> = ({
 }) => {
   if (!data || data.length === 0) {
     return (
-      <div className={cn("flex items-center justify-center h-64 bg-gray-50 rounded-lg", className)}>
+      <div
+        className={cn(
+          "flex h-64 items-center justify-center rounded-lg bg-gray-50",
+          className,
+        )}
+      >
         <p className="text-gray-500">No data available</p>
       </div>
     );
@@ -33,43 +38,42 @@ export const SimpleLineChart: React.FC<SimpleLineChartProps> = ({
   const chartWidth = 800 - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
 
-  const minValue = Math.min(...data.map(d => d.value));
-  const maxValue = Math.max(...data.map(d => d.value));
+  const minValue = Math.min(...data.map((d) => d.value));
+  const maxValue = Math.max(...data.map((d) => d.value));
   const valueRange = maxValue - minValue;
   const padding = valueRange * 0.1;
 
   const xScale = (index: number) => (index / (data.length - 1)) * chartWidth;
-  const yScale = (value: number) => 
-    chartHeight - ((value - minValue + padding) / (valueRange + padding * 2)) * chartHeight;
+  const yScale = (value: number) =>
+    chartHeight -
+    ((value - minValue + padding) / (valueRange + padding * 2)) * chartHeight;
 
   // Generate path for the line
   const pathData = data
     .map((point, index) => {
       const x = xScale(index);
       const y = yScale(point.value);
-      return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
+      return `${index === 0 ? "M" : "L"} ${x} ${y}`;
     })
-    .join(' ');
+    .join(" ");
 
   // Generate Y-axis labels
   const yAxisLabels = Array.from({ length: 5 }, (_, i) => {
     const value = minValue + (valueRange / 4) * i;
     return {
       value: Math.round(value),
-      y: yScale(value)
+      y: yScale(value),
     };
   });
 
   // Generate X-axis labels
-  const xAxisLabels = data.filter((_, i) => i % Math.ceil(data.length / 6) === 0);
+  const xAxisLabels = data.filter(
+    (_, i) => i % Math.ceil(data.length / 6) === 0,
+  );
 
   return (
     <div className={cn("w-full", className)}>
-      <svg
-        width={800}
-        height={height}
-        className="w-full h-full"
-      >
+      <svg width={800} height={height} className="h-full w-full">
         <defs>
           <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor={color} stopOpacity="0.8" />
@@ -122,7 +126,7 @@ export const SimpleLineChart: React.FC<SimpleLineChartProps> = ({
           {data.map((point, index) => {
             const x = xScale(index);
             const y = yScale(point.value);
-            
+
             return (
               <circle
                 key={index}
@@ -145,7 +149,7 @@ export const SimpleLineChart: React.FC<SimpleLineChartProps> = ({
               x={0}
               y={y + 5}
               textAnchor="end"
-              className="text-xs fill-gray-500"
+              className="fill-gray-500 text-xs"
             >
               {value >= 1000 ? `${(value / 1000).toFixed(1)}K` : value}
             </text>
@@ -153,7 +157,9 @@ export const SimpleLineChart: React.FC<SimpleLineChartProps> = ({
         </g>
 
         {/* X-axis labels */}
-        <g transform={`translate(${margin.left}, ${height - margin.bottom + 20})`}>
+        <g
+          transform={`translate(${margin.left}, ${height - margin.bottom + 20})`}
+        >
           {xAxisLabels.map((point, index) => {
             const x = xScale(index * Math.ceil(data.length / 6));
             return (
@@ -162,7 +168,7 @@ export const SimpleLineChart: React.FC<SimpleLineChartProps> = ({
                 x={x}
                 y={0}
                 textAnchor="middle"
-                className="text-xs fill-gray-500"
+                className="fill-gray-500 text-xs"
               >
                 {point.date}
               </text>

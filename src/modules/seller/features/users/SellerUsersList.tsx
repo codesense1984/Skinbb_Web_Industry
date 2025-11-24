@@ -2,31 +2,48 @@ import { createSimpleFetcher, DataTable } from "@/core/components/data-table";
 import { Button } from "@/core/components/ui/button";
 import { Card, CardContent } from "@/core/components/ui/card";
 import { Input } from "@/core/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/core/components/ui/select";
 import { PageContent } from "@/core/components/ui/structure";
 import { formatNumber } from "@/core/utils";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
 import { hasAccess } from "@/modules/auth/components/guard";
 import { SELLER_ROUTES } from "@/modules/seller/routes/constant";
-import { apiGetCompanyUsers, type CompanyUsersParams } from "@/modules/panel/services/http/company.service";
-import { PlusIcon, UserGroupIcon, CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/outline";
+import {
+  apiGetCompanyUsers,
+  type CompanyUsersParams,
+} from "@/modules/panel/services/http/company.service";
+import {
+  PlusIcon,
+  UserGroupIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+} from "@heroicons/react/24/outline";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { columns } from "./data";
 
 // Create fetcher for server-side data
 const fetcher = (companyId: string) =>
-  createSimpleFetcher((params: CompanyUsersParams) => apiGetCompanyUsers(companyId, params), {
-    dataPath: "data.items",
-    totalPath: "data.total",
-    filterMapping: {
-      search: "search",
-      status: "status",
-      roleId: "roleId",
-      locationId: "locationId",
-      brandId: "brandId",
+  createSimpleFetcher(
+    (params: CompanyUsersParams) => apiGetCompanyUsers(companyId, params),
+    {
+      dataPath: "data.items",
+      totalPath: "data.total",
+      filterMapping: {
+        search: "search",
+        status: "status",
+        roleId: "roleId",
+        locationId: "locationId",
+        brandId: "brandId",
+      },
     },
-  });
+  );
 
 // Stats interface
 interface UserStats {
@@ -71,9 +88,13 @@ const SellerUsersList: React.FC = () => {
     try {
       const response = await apiGetCompanyUsers(companyId, {});
       const users = response.data.items || [];
-      
-      const activeUsers = users.filter(user => user.status === "active").length;
-      const inactiveUsers = users.filter(user => user.status === "inactive").length;
+
+      const activeUsers = users.filter(
+        (user) => user.status === "active",
+      ).length;
+      const inactiveUsers = users.filter(
+        (user) => user.status === "inactive",
+      ).length;
       const totalUsers = users.length;
 
       setStats([
@@ -117,15 +138,27 @@ const SellerUsersList: React.FC = () => {
   };
 
   // Check permissions
-  const canCreate = hasAccess({ userRole: role, userPermissions: permissions, page: "USERS", actions: ["CREATE"] });
-  const canView = hasAccess({ userRole: role, userPermissions: permissions, page: "USERS", actions: ["VIEW"] });
+  const canCreate = hasAccess({
+    userRole: role,
+    userPermissions: permissions,
+    page: "USERS",
+    actions: ["CREATE"],
+  });
+  const canView = hasAccess({
+    userRole: role,
+    userPermissions: permissions,
+    page: "USERS",
+    actions: ["VIEW"],
+  });
 
   if (!canView) {
     return (
       <PageContent>
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
-            <p className="text-gray-600">You don't have permission to view users</p>
+            <p className="text-gray-600">
+              You don't have permission to view users
+            </p>
           </div>
         </div>
       </PageContent>
@@ -158,12 +191,16 @@ const SellerUsersList: React.FC = () => {
             <Card key={index}>
               <CardContent className="p-6">
                 <div className="flex items-center">
-                  <div className={`${stat.color} p-2 rounded-lg bg-gray-50`}>
+                  <div className={`${stat.color} rounded-lg bg-gray-50 p-2`}>
                     {stat.icon}
                   </div>
                   <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                    <p className="text-2xl font-bold text-gray-900">{formatNumber(stat.value)}</p>
+                    <p className="text-sm font-medium text-gray-600">
+                      {stat.title}
+                    </p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {formatNumber(stat.value)}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -177,20 +214,28 @@ const SellerUsersList: React.FC = () => {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
               {/* Search */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Search</label>
+                <label className="text-sm font-medium text-gray-700">
+                  Search
+                </label>
                 <Input
                   placeholder="Search users..."
                   value={filters.search}
-                  onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+                  onChange={(e) =>
+                    setFilters((prev) => ({ ...prev, search: e.target.value }))
+                  }
                 />
               </div>
 
               {/* Status Filter */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Status</label>
+                <label className="text-sm font-medium text-gray-700">
+                  Status
+                </label>
                 <Select
                   value={filters.status}
-                  onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}
+                  onValueChange={(value) =>
+                    setFilters((prev) => ({ ...prev, status: value }))
+                  }
                   options={[]}
                 >
                   <SelectTrigger>
@@ -206,10 +251,14 @@ const SellerUsersList: React.FC = () => {
 
               {/* Role Filter */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Role</label>
+                <label className="text-sm font-medium text-gray-700">
+                  Role
+                </label>
                 <Select
                   value={filters.roleId}
-                  onValueChange={(value) => setFilters(prev => ({ ...prev, roleId: value }))}
+                  onValueChange={(value) =>
+                    setFilters((prev) => ({ ...prev, roleId: value }))
+                  }
                   options={[]}
                 >
                   <SelectTrigger>
@@ -226,10 +275,14 @@ const SellerUsersList: React.FC = () => {
 
               {/* Location Filter */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Location</label>
+                <label className="text-sm font-medium text-gray-700">
+                  Location
+                </label>
                 <Select
                   value={filters.locationId}
-                  onValueChange={(value) => setFilters(prev => ({ ...prev, locationId: value }))}
+                  onValueChange={(value) =>
+                    setFilters((prev) => ({ ...prev, locationId: value }))
+                  }
                   options={[]}
                 >
                   <SelectTrigger>
@@ -244,10 +297,14 @@ const SellerUsersList: React.FC = () => {
 
               {/* Brand Filter */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Brand</label>
+                <label className="text-sm font-medium text-gray-700">
+                  Brand
+                </label>
                 <Select
                   value={filters.brandId}
-                  onValueChange={(value) => setFilters(prev => ({ ...prev, brandId: value }))}
+                  onValueChange={(value) =>
+                    setFilters((prev) => ({ ...prev, brandId: value }))
+                  }
                   options={[]}
                 >
                   <SelectTrigger>

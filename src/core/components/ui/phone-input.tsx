@@ -100,7 +100,7 @@ export function PhoneInput({
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
-            variant="outline"
+            variant="outlined"
             role="combobox"
             aria-expanded={open}
             className={cn(

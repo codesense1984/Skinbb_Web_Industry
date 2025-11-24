@@ -34,25 +34,27 @@ export type OrderDetails = {
     | "cancelled"
     | string;
   paymentStatus: "paid" | "pending" | "failed" | "refunded" | string;
-  payment: string | {
-    _id: string;
-    orderId: string;
-    customerId: string;
-    paymentGateway: string;
-    status: string;
-    amount: number;
-    currency: string;
-    transactionId: string;
-    providerOrderId: string;
-    isCaptured: boolean;
-    capturedAt?: string;
-    paymentDetails?: unknown;
-    refundedAmount: number;
-    metadata?: unknown;
-    createdAt: string;
-    updatedAt: string;
-    paymentMethod: string;
-  };
+  payment:
+    | string
+    | {
+        _id: string;
+        orderId: string;
+        customerId: string;
+        paymentGateway: string;
+        status: string;
+        amount: number;
+        currency: string;
+        transactionId: string;
+        providerOrderId: string;
+        isCaptured: boolean;
+        capturedAt?: string;
+        paymentDetails?: unknown;
+        refundedAmount: number;
+        metadata?: unknown;
+        createdAt: string;
+        updatedAt: string;
+        paymentMethod: string;
+      };
   paymentDetails?: unknown;
   shipmentStatus: unknown[];
   createdAt: string;

@@ -23,9 +23,7 @@ export const columns = (): ColumnDef<ProductCategory>[] => [
     header: "Name",
     cell: ({ row }) => {
       const category = row.original;
-      return (
-        <div className="font-medium">{category.name}</div>
-      );
+      return <div className="font-medium">{category.name}</div>;
     },
   },
   {
@@ -43,7 +41,7 @@ export const columns = (): ColumnDef<ProductCategory>[] => [
     cell: ({ row }) => {
       const count = row.getValue("totalProductCount") as number;
       return (
-        <button className="text-blue-600 hover:text-blue-800 text-sm font-medium underline">
+        <button className="text-sm font-medium text-blue-600 underline hover:text-blue-800">
           {count}
         </button>
       );
@@ -72,8 +70,12 @@ export const columns = (): ColumnDef<ProductCategory>[] => [
       const isActive = row.getValue("isActive") as boolean;
       return (
         <div className="flex items-center">
-          <div className={`relative inline-flex h-6 w-11 items-center rounded-full ${isActive ? 'bg-blue-600' : 'bg-gray-200'}`}>
-            <div className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${isActive ? 'translate-x-6' : 'translate-x-1'}`} />
+          <div
+            className={`relative inline-flex h-6 w-11 items-center rounded-full ${isActive ? "bg-blue-600" : "bg-gray-200"}`}
+          >
+            <div
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${isActive ? "translate-x-6" : "translate-x-1"}`}
+            />
           </div>
         </div>
       );
@@ -97,7 +99,7 @@ export const columns = (): ColumnDef<ProductCategory>[] => [
               meta.onShowChild(category._id, category.name);
             }
           }}
-          className="text-blue-600 hover:text-blue-800 text-sm font-medium underline"
+          className="text-sm font-medium text-blue-600 underline hover:text-blue-800"
         >
           Show Child
         </button>
@@ -125,11 +127,21 @@ export const columns = (): ColumnDef<ProductCategory>[] => [
                 );
               }
             }}
-            className="text-gray-600 hover:text-blue-600 p-1"
+            className="p-1 text-gray-600 hover:text-blue-600"
             title="Edit category"
           >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+              />
             </svg>
           </button>
           <button
@@ -141,11 +153,21 @@ export const columns = (): ColumnDef<ProductCategory>[] => [
                 console.log("Delete category:", category._id);
               }
             }}
-            className="text-gray-600 hover:text-red-600 p-1"
+            className="p-1 text-gray-600 hover:text-red-600"
             title="Delete category"
           >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
             </svg>
           </button>
         </div>

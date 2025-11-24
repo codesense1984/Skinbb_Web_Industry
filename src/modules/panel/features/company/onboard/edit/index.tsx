@@ -81,7 +81,13 @@ const OnboardEdit = () => {
     );
   }
 
-  return <OnboardForm mode={MODE.EDIT} initialData={companyData.company} isLocationEdit={true} />;
+  return (
+    <OnboardForm
+      mode={MODE.EDIT}
+      initialData={companyData.company}
+      isLocationEdit={true}
+    />
+  );
 };
 
 export default OnboardEdit;

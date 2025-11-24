@@ -21,7 +21,11 @@ const companyFilter = createSimpleFetcher(apiGetCompaniesForFilter, {
   totalPath: "data.total",
 });
 
-export const CompanyFilter = ({ value, onValueChange, placeholder = "Select Company" }: CompanyFilterProps) => {
+export const CompanyFilter = ({
+  value,
+  onValueChange,
+  placeholder = "Select Company",
+}: CompanyFilterProps) => {
   return (
     <PaginationComboBox
       apiFunction={companyFilter}
@@ -32,7 +36,9 @@ export const CompanyFilter = ({ value, onValueChange, placeholder = "Select Comp
       placeholder={placeholder}
       value={value === "all" ? "" : value}
       onChange={(selectedValue: string | string[]) => {
-        const stringValue = Array.isArray(selectedValue) ? selectedValue[0] : selectedValue;
+        const stringValue = Array.isArray(selectedValue)
+          ? selectedValue[0]
+          : selectedValue;
         onValueChange(stringValue || "all");
       }}
       className="w-[150px]"

@@ -48,9 +48,10 @@ export function transformApiResponseToCompanyEditFormData(
     logo_files: undefined,
     address: data.addresses?.map((addr) => ({
       addressId: addr.addressId || "",
-      addressType: (addr.addressType === "office" || addr.addressType === "registered") 
-        ? addr.addressType 
-        : "registered" as const,
+      addressType:
+        addr.addressType === "office" || addr.addressType === "registered"
+          ? addr.addressType
+          : ("registered" as const),
       address: addr.addressLine1 || "",
       landmark: addr.landmark || "",
       phoneNumber: addr.landlineNumber || "",

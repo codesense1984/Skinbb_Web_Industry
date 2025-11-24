@@ -1,8 +1,11 @@
-import type { ColumnDef } from "@tanstack/react-table";
-import { Badge } from "@/core/components/ui/badge";
-import { StatusBadge } from "@/core/components/ui/badge";
-import { AvatarRoot, AvatarImage, AvatarFallback } from "@/core/components/ui/avatar";
+import {
+  AvatarFallback,
+  AvatarImage,
+  AvatarRoot,
+} from "@/core/components/ui/avatar";
+import { Badge, StatusBadge } from "@/core/components/ui/badge";
 import { formatCurrency } from "@/core/utils";
+import type { ColumnDef } from "@tanstack/react-table";
 
 // Product type - this should match the actual product type from your API
 interface Product {
@@ -97,10 +100,10 @@ export const columns: ColumnDef<Product>[] = [
     cell: ({ getValue }) => {
       const priceRange = getValue() as { min: number; max: number } | undefined;
       if (!priceRange) return "-";
-      
+
       const minPrice = formatCurrency(priceRange.min);
       const maxPrice = formatCurrency(priceRange.max);
-      
+
       return (
         <div className="text-sm">
           {minPrice === maxPrice ? minPrice : `${minPrice} - ${maxPrice}`}
@@ -114,7 +117,7 @@ export const columns: ColumnDef<Product>[] = [
     cell: ({ getValue }) => {
       const variants = (getValue() as Array<any>) || [];
       return (
-        <div className="text-sm text-muted-foreground">
+        <div className="text-muted-foreground text-sm">
           {variants.length} variant{variants.length !== 1 ? "s" : ""}
         </div>
       );
@@ -126,7 +129,7 @@ export const columns: ColumnDef<Product>[] = [
     cell: ({ getValue }) => {
       const date = getValue() as string;
       return (
-        <div className="text-sm text-muted-foreground">
+        <div className="text-muted-foreground text-sm">
           {new Date(date).toLocaleDateString()}
         </div>
       );

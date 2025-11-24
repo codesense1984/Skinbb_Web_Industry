@@ -1,7 +1,7 @@
-import { ComingSoon } from "@/core/components/ui/coming-soon";
+import BrandAnalytics from "@/modules/analytics/features/brand";
 
 const BrandInsights = () => {
-  return <ComingSoon title="Brand Insights" />;
+  return <BrandAnalytics />;
 };
 
 export default BrandInsights;

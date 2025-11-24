@@ -15,17 +15,26 @@ const BrandProductCreate: React.FC = () => {
       <PageContent
         header={{
           title: "Create Product",
-          description: "Company ID, Location ID, and Brand ID are required to create a product.",
+          description:
+            "Company ID, Location ID, and Brand ID are required to create a product.",
         }}
       >
         <div className="py-8 text-center">
-          <p className="text-gray-500">Invalid company, location, or brand ID provided.</p>
+          <p className="text-gray-500">
+            Invalid company, location, or brand ID provided.
+          </p>
         </div>
       </PageContent>
     );
   }
 
-  return <ProductCreate companyId={companyId} locationId={locationId} brandId={brandId} />;
+  return (
+    <ProductCreate
+      companyId={companyId}
+      locationId={locationId}
+      brandId={brandId}
+    />
+  );
 };
 
 export default BrandProductCreate;

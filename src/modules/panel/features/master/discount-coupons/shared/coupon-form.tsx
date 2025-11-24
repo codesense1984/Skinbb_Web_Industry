@@ -1,4 +1,11 @@
-import { useForm, FormProvider, type FieldErrors, Controller, useWatch, type Control } from "react-hook-form";
+import {
+  useForm,
+  FormProvider,
+  type FieldErrors,
+  Controller,
+  useWatch,
+  type Control,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -61,7 +68,13 @@ import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
 
 // Usage Rules Section Component
-const UsageRulesSection = ({ control, errors }: { control: Control<CouponFormData>; errors: FieldErrors<CouponFormData> }) => {
+const UsageRulesSection = ({
+  control,
+  errors,
+}: {
+  control: Control<CouponFormData>;
+  errors: FieldErrors<CouponFormData>;
+}) => {
   const [showFields, setShowFields] = useState({
     usageLimit: false,
     minimumSpend: false,
@@ -69,14 +82,18 @@ const UsageRulesSection = ({ control, errors }: { control: Control<CouponFormDat
     maxDiscountValue: false,
   });
 
-
   const watchValues = useWatch({
     control,
     name: ["usageLimit", "minimumSpend", "minimumQuantity", "maxDiscountValue"],
   });
 
   useEffect(() => {
-    const [usageLimit = 0, minimumSpend = 0, minimumQuantity = 0, maxDiscountValue = 0] = watchValues;
+    const [
+      usageLimit = 0,
+      minimumSpend = 0,
+      minimumQuantity = 0,
+      maxDiscountValue = 0,
+    ] = watchValues;
     setShowFields({
       usageLimit: Number(usageLimit) > 0,
       minimumSpend: Number(minimumSpend) > 0,
@@ -97,13 +114,15 @@ const UsageRulesSection = ({ control, errors }: { control: Control<CouponFormDat
       <div className="flex items-center justify-between">
         <div>
           <h6 className="font-medium">Usage Limit</h6>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-muted-foreground text-xs">
             Enable to limit number of times the coupon can be used.
           </p>
         </div>
         <Checkbox
           checked={showFields.usageLimit}
-          onCheckedChange={(checked: boolean) => toggleField("usageLimit", checked)}
+          onCheckedChange={(checked: boolean) =>
+            toggleField("usageLimit", checked)
+          }
         />
       </div>
       {showFields.usageLimit && (
@@ -119,10 +138,10 @@ const UsageRulesSection = ({ control, errors }: { control: Control<CouponFormDat
                 placeholder="e.g. 100"
                 className={errors.usageLimit ? "border-red-500" : ""}
                 onChange={(e) => {
-                  console.log("🔍 Usage Limit onChange:", { 
-                    targetValue: e.target.value, 
+                  console.log("🔍 Usage Limit onChange:", {
+                    targetValue: e.target.value,
                     fieldValue: field.value,
-                    event: e 
+                    event: e,
                   });
                   field.onChange(e);
                 }}
@@ -130,7 +149,9 @@ const UsageRulesSection = ({ control, errors }: { control: Control<CouponFormDat
             )}
           />
           {errors.usageLimit && (
-            <p className="text-red-500 text-sm mt-1">{errors.usageLimit.message}</p>
+            <p className="mt-1 text-sm text-red-500">
+              {errors.usageLimit.message}
+            </p>
           )}
         </div>
       )}
@@ -139,13 +160,15 @@ const UsageRulesSection = ({ control, errors }: { control: Control<CouponFormDat
       <div className="flex items-center justify-between">
         <div>
           <h6 className="font-medium">Minimum Spend</h6>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-muted-foreground text-xs">
             Enable to set minimum purchase value required.
           </p>
         </div>
         <Checkbox
           checked={showFields.minimumSpend}
-          onCheckedChange={(checked: boolean) => toggleField("minimumSpend", checked)}
+          onCheckedChange={(checked: boolean) =>
+            toggleField("minimumSpend", checked)
+          }
         />
       </div>
       {showFields.minimumSpend && (
@@ -164,7 +187,9 @@ const UsageRulesSection = ({ control, errors }: { control: Control<CouponFormDat
             )}
           />
           {errors.minimumSpend && (
-            <p className="text-red-500 text-sm mt-1">{errors.minimumSpend.message}</p>
+            <p className="mt-1 text-sm text-red-500">
+              {errors.minimumSpend.message}
+            </p>
           )}
         </div>
       )}
@@ -173,13 +198,15 @@ const UsageRulesSection = ({ control, errors }: { control: Control<CouponFormDat
       <div className="flex items-center justify-between">
         <div>
           <h6 className="font-medium">Minimum Quantity</h6>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-muted-foreground text-xs">
             Enable to set minimum items needed in cart.
           </p>
         </div>
         <Checkbox
           checked={showFields.minimumQuantity}
-          onCheckedChange={(checked: boolean) => toggleField("minimumQuantity", checked)}
+          onCheckedChange={(checked: boolean) =>
+            toggleField("minimumQuantity", checked)
+          }
         />
       </div>
       {showFields.minimumQuantity && (
@@ -198,7 +225,9 @@ const UsageRulesSection = ({ control, errors }: { control: Control<CouponFormDat
             )}
           />
           {errors.minimumQuantity && (
-            <p className="text-red-500 text-sm mt-1">{errors.minimumQuantity.message}</p>
+            <p className="mt-1 text-sm text-red-500">
+              {errors.minimumQuantity.message}
+            </p>
           )}
         </div>
       )}
@@ -208,13 +237,15 @@ const UsageRulesSection = ({ control, errors }: { control: Control<CouponFormDat
         <div className="flex items-center justify-between">
           <div>
             <h6 className="font-medium">Max Discount Value</h6>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-muted-foreground text-xs">
               Enable to cap the maximum discount value.
             </p>
           </div>
           <Checkbox
             checked={showFields.maxDiscountValue}
-            onCheckedChange={(checked: boolean) => toggleField("maxDiscountValue", checked)}
+            onCheckedChange={(checked: boolean) =>
+              toggleField("maxDiscountValue", checked)
+            }
           />
         </div>
       )}
@@ -234,7 +265,9 @@ const UsageRulesSection = ({ control, errors }: { control: Control<CouponFormDat
             )}
           />
           {errors.maxDiscountValue && (
-            <p className="text-red-500 text-sm mt-1">{errors.maxDiscountValue.message}</p>
+            <p className="mt-1 text-sm text-red-500">
+              {errors.maxDiscountValue.message}
+            </p>
           )}
         </div>
       )}
@@ -246,16 +279,21 @@ const UsageRulesSection = ({ control, errors }: { control: Control<CouponFormDat
 const getDefaultValues = (couponData?: Coupon | null): CouponFormData => {
   // Map API types back to form types
   const reverseTypeMapping = {
-    "product": "amount_off_products",
-    "cart": "amount_off_order", 
-    "bogo": "buy_x_get_y"
+    product: "amount_off_products",
+    cart: "amount_off_order",
+    bogo: "buy_x_get_y",
   };
 
   return {
     code: couponData?.code || "",
     title: couponData?.title || "",
     description: couponData?.description || "",
-    type: (couponData?.type ? reverseTypeMapping[couponData.type as keyof typeof reverseTypeMapping] : "amount_off_products") as "amount_off_products" | "amount_off_order" | "buy_x_get_y",
+    type: (couponData?.type
+      ? reverseTypeMapping[couponData.type as keyof typeof reverseTypeMapping]
+      : "amount_off_products") as
+      | "amount_off_products"
+      | "amount_off_order"
+      | "buy_x_get_y",
     discountType: couponData?.discountType || "percentage",
     discountValue: couponData?.discountValue
       ? String(couponData.discountValue)
@@ -263,8 +301,16 @@ const getDefaultValues = (couponData?: Coupon | null): CouponFormData => {
     selectedProducts: couponData?.selectedProducts || [],
     freeProducts: couponData?.freeProducts || [],
     usageLimit: couponData?.usageLimit ? String(couponData.usageLimit) : "1",
-    validFrom: couponData?.validFrom ? (typeof couponData.validFrom === "string" ? couponData.validFrom : (couponData.validFrom as Date).toISOString().split("T")[0]) : "",
-    expiresAt: couponData?.expiresAt ? (typeof couponData.expiresAt === "string" ? couponData.expiresAt : (couponData.expiresAt as Date).toISOString().split("T")[0]) : "",
+    validFrom: couponData?.validFrom
+      ? typeof couponData.validFrom === "string"
+        ? couponData.validFrom
+        : (couponData.validFrom as Date).toISOString().split("T")[0]
+      : "",
+    expiresAt: couponData?.expiresAt
+      ? typeof couponData.expiresAt === "string"
+        ? couponData.expiresAt
+        : (couponData.expiresAt as Date).toISOString().split("T")[0]
+      : "",
     isActive: couponData?.isActive ?? false,
     // Usage toggles
     enableUsageLimit: couponData?.enableUsageLimit ?? false,
@@ -272,9 +318,15 @@ const getDefaultValues = (couponData?: Coupon | null): CouponFormData => {
     enableMinimumQuantity: couponData?.enableMinimumQuantity ?? false,
     enableMaxDiscountValue: couponData?.enableMaxDiscountValue ?? false,
     // Usage values
-    minimumSpend: couponData?.minimumSpend ? String(couponData.minimumSpend) : "",
-    minimumQuantity: couponData?.minimumQuantity ? String(couponData.minimumQuantity) : "",
-    maxDiscountValue: couponData?.maxDiscountValue ? String(couponData.maxDiscountValue) : "",
+    minimumSpend: couponData?.minimumSpend
+      ? String(couponData.minimumSpend)
+      : "",
+    minimumQuantity: couponData?.minimumQuantity
+      ? String(couponData.minimumQuantity)
+      : "",
+    maxDiscountValue: couponData?.maxDiscountValue
+      ? String(couponData.maxDiscountValue)
+      : "",
   };
 };
 
@@ -296,15 +348,20 @@ export function CouponForm({
   // Product selection modal state
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isFreeProductModalOpen, setIsFreeProductModalOpen] = useState(false);
-  const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>([]);
-  const [selectedFreeProducts, setSelectedFreeProducts] = useState<SelectedProduct[]>([]);
+  const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>(
+    [],
+  );
+  const [selectedFreeProducts, setSelectedFreeProducts] = useState<
+    SelectedProduct[]
+  >([]);
 
   // Fetch products for dropdown
   const { data: productsResponse, error } = useQuery({
     queryKey: ["products-for-dropdown"],
-    queryFn: () => apiGetProductsForDropdown({
-      limit: 10
-    })
+    queryFn: () =>
+      apiGetProductsForDropdown({
+        limit: 10,
+      }),
     // staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
@@ -318,7 +375,7 @@ export function CouponForm({
   //   title?: string;
   //   slug?: string;
   // }
-  
+
   // Debug API response
   console.log("🔍 Products API Response:", productsResponse);
 
@@ -399,21 +456,25 @@ export function CouponForm({
     if (initialData?.selectedProducts) {
       // Convert selected product IDs to SelectedProduct objects
       // This is a simplified version - you might need to fetch full product details
-      const products = initialData.selectedProducts.map((productId: string) => ({
-        productId,
-        variantIds: [],
-        productName: `Product ${productId}`,
-        variants: []
-      }));
+      const products = initialData.selectedProducts.map(
+        (productId: string) => ({
+          productId,
+          variantIds: [],
+          productName: `Product ${productId}`,
+          variants: [],
+        }),
+      );
       setSelectedProducts(products);
     }
     if (initialData?.freeProducts) {
-      const freeProducts = initialData.freeProducts.map((productId: string) => ({
-        productId,
-        variantIds: [],
-        productName: `Product ${productId}`,
-        variants: []
-      }));
+      const freeProducts = initialData.freeProducts.map(
+        (productId: string) => ({
+          productId,
+          variantIds: [],
+          productName: `Product ${productId}`,
+          variants: [],
+        }),
+      );
       setSelectedFreeProducts(freeProducts);
     }
   }, [initialData]);
@@ -435,46 +496,61 @@ export function CouponForm({
   const createMutation = useMutation({
     mutationFn: (data: CouponFormData) => {
       const validatedData = couponFormSchema.parse(data);
-      
+
       // Transform selected products to API format
-      const applyToProducts = selectedProducts.map(product => ({
+      const applyToProducts = selectedProducts.map((product) => ({
         id: product.productId,
-        variantIds: product.variantIds
+        variantIds: product.variantIds,
       }));
-      
+
       // Transform free products for BOGO discounts
-      const freeProducts = selectedFreeProducts.map(product => ({
+      const freeProducts = selectedFreeProducts.map((product) => ({
         id: product.productId,
-        variantIds: product.variantIds
+        variantIds: product.variantIds,
       }));
-      
+
       // Map form types to API types
       const typeMapping = {
-        "amount_off_products": "product",
-        "amount_off_order": "cart", 
-        "buy_x_get_y": "bogo"
+        amount_off_products: "product",
+        amount_off_order: "cart",
+        buy_x_get_y: "bogo",
       };
 
       const requestData = {
         code: validatedData.code,
         title: validatedData.title,
         description: validatedData.description,
-        type: typeMapping[validatedData.type as keyof typeof typeMapping] as "product" | "cart" | "bogo",
+        type: typeMapping[validatedData.type as keyof typeof typeMapping] as
+          | "product"
+          | "cart"
+          | "bogo",
         discountType: validatedData.discountType,
         discountValue: Number(validatedData.discountValue),
         usageLimit: Number(validatedData.usageLimit),
         isActive: validatedData.isActive,
-        minimumSpend: validatedData.minimumSpend ? Number(validatedData.minimumSpend) : 0,
-        minimumQuantity: validatedData.minimumQuantity ? Number(validatedData.minimumQuantity) : 0,
-        maxDiscountValue: validatedData.maxDiscountValue ? Number(validatedData.maxDiscountValue) : 0,
-        validFrom: validatedData.validFrom || new Date().toISOString().split("T")[0],
-        expiresAt: validatedData.expiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+        minimumSpend: validatedData.minimumSpend
+          ? Number(validatedData.minimumSpend)
+          : 0,
+        minimumQuantity: validatedData.minimumQuantity
+          ? Number(validatedData.minimumQuantity)
+          : 0,
+        maxDiscountValue: validatedData.maxDiscountValue
+          ? Number(validatedData.maxDiscountValue)
+          : 0,
+        validFrom:
+          validatedData.validFrom || new Date().toISOString().split("T")[0],
+        expiresAt:
+          validatedData.expiresAt ||
+          new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+            .toISOString()
+            .split("T")[0],
         applyTo: {
           products: applyToProducts,
-          ...(validatedData.type === "buy_x_get_y" && freeProducts.length > 0 && { freeProducts })
-        }
+          ...(validatedData.type === "buy_x_get_y" &&
+            freeProducts.length > 0 && { freeProducts }),
+        },
       };
-      
+
       console.log("Creating coupon with data:", requestData);
       return apiCreateCoupon(requestData);
     },
@@ -492,45 +568,60 @@ export function CouponForm({
   const updateMutation = useMutation({
     mutationFn: ({ id, ...data }: { id: string; [key: string]: unknown }) => {
       const validatedData = couponFormSchema.parse(data);
-      
+
       // Transform selected products to API format
-      const applyToProducts = selectedProducts.map(product => ({
+      const applyToProducts = selectedProducts.map((product) => ({
         id: product.productId,
-        variantIds: product.variantIds
+        variantIds: product.variantIds,
       }));
-      
+
       // Transform free products for BOGO discounts
-      const freeProducts = selectedFreeProducts.map(product => ({
+      const freeProducts = selectedFreeProducts.map((product) => ({
         id: product.productId,
-        variantIds: product.variantIds
+        variantIds: product.variantIds,
       }));
-      
+
       // Map form types to API types
       const typeMapping = {
-        "amount_off_products": "product",
-        "amount_off_order": "cart", 
-        "buy_x_get_y": "bogo"
+        amount_off_products: "product",
+        amount_off_order: "cart",
+        buy_x_get_y: "bogo",
       };
-      
+
       return apiUpdateCoupon(id, {
         _id: id,
         code: validatedData.code,
         title: validatedData.title,
         description: validatedData.description,
-        type: typeMapping[validatedData.type as keyof typeof typeMapping] as "product" | "cart" | "bogo",
+        type: typeMapping[validatedData.type as keyof typeof typeMapping] as
+          | "product"
+          | "cart"
+          | "bogo",
         discountType: validatedData.discountType,
         discountValue: Number(validatedData.discountValue),
         usageLimit: Number(validatedData.usageLimit),
         isActive: validatedData.isActive,
-        minimumSpend: validatedData.minimumSpend ? Number(validatedData.minimumSpend) : 0,
-        minimumQuantity: validatedData.minimumQuantity ? Number(validatedData.minimumQuantity) : 0,
-        maxDiscountValue: validatedData.maxDiscountValue ? Number(validatedData.maxDiscountValue) : 0,
-        validFrom: validatedData.validFrom || new Date().toISOString().split("T")[0],
-        expiresAt: validatedData.expiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+        minimumSpend: validatedData.minimumSpend
+          ? Number(validatedData.minimumSpend)
+          : 0,
+        minimumQuantity: validatedData.minimumQuantity
+          ? Number(validatedData.minimumQuantity)
+          : 0,
+        maxDiscountValue: validatedData.maxDiscountValue
+          ? Number(validatedData.maxDiscountValue)
+          : 0,
+        validFrom:
+          validatedData.validFrom || new Date().toISOString().split("T")[0],
+        expiresAt:
+          validatedData.expiresAt ||
+          new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+            .toISOString()
+            .split("T")[0],
         applyTo: {
           products: applyToProducts,
-          ...(validatedData.type === "buy_x_get_y" && freeProducts.length > 0 && { freeProducts })
-        }
+          ...(validatedData.type === "buy_x_get_y" &&
+            freeProducts.length > 0 && { freeProducts }),
+        },
       });
     },
     onSuccess: () => {
@@ -563,25 +654,31 @@ export function CouponForm({
   const errors = form.formState.errors;
 
   const watchType = useWatch({ control: form.control, name: "type" });
-  const watchDiscountType = useWatch({ control: form.control, name: "discountType" });
+  const watchDiscountType = useWatch({
+    control: form.control,
+    name: "discountType",
+  });
 
   return (
     <FormProvider {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit, onError)}
-        className="flex w-full h-full"
+        className="flex h-full w-full"
       >
-        <div className="flex flex-col w-full justify-between">
-          <div className="flex flex-col xl:flex-row gap-4">
-            <div className="gap-4 flex flex-col flex-auto">
+        <div className="flex w-full flex-col justify-between">
+          <div className="flex flex-col gap-4 xl:flex-row">
+            <div className="flex flex-auto flex-col gap-4">
               {/* General Info Section */}
-        <Card>
+              <Card>
                 <CardHeader>
                   <CardTitle>General Info</CardTitle>
-          </CardHeader>
+                </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <label htmlFor="code" className="block text-sm font-medium mb-2">
+                    <label
+                      htmlFor="code"
+                      className="mb-2 block text-sm font-medium"
+                    >
                       Discount Code *
                     </label>
                     <Controller
@@ -596,12 +693,17 @@ export function CouponForm({
                       )}
                     />
                     {errors.code && (
-                      <p className="text-red-500 text-sm mt-1">{errors.code.message}</p>
+                      <p className="mt-1 text-sm text-red-500">
+                        {errors.code.message}
+                      </p>
                     )}
                   </div>
 
                   <div>
-                    <label htmlFor="title" className="block text-sm font-medium mb-2">
+                    <label
+                      htmlFor="title"
+                      className="mb-2 block text-sm font-medium"
+                    >
                       Title *
                     </label>
                     <Controller
@@ -616,12 +718,17 @@ export function CouponForm({
                       )}
                     />
                     {errors.title && (
-                      <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>
+                      <p className="mt-1 text-sm text-red-500">
+                        {errors.title.message}
+                      </p>
                     )}
                   </div>
 
                   <div>
-                    <label htmlFor="description" className="block text-sm font-medium mb-2">
+                    <label
+                      htmlFor="description"
+                      className="mb-2 block text-sm font-medium"
+                    >
                       Description
                     </label>
                     <Controller
@@ -631,52 +738,69 @@ export function CouponForm({
                         <textarea
                           {...field}
                           placeholder="Enter description"
-                          className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[120px] w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                           rows={5}
                         />
                       )}
                     />
                     {errors.description && (
-                      <p className="text-red-500 text-sm mt-1">{errors.description.message}</p>
+                      <p className="mt-1 text-sm text-red-500">
+                        {errors.description.message}
+                      </p>
                     )}
                   </div>
-          </CardContent>
-        </Card>
+                </CardContent>
+              </Card>
 
               {/* Discount Type Section */}
               <Card>
                 <CardHeader>
                   <CardTitle>Discount type</CardTitle>
-            </CardHeader>
+                </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <label htmlFor="type" className="block text-sm font-medium mb-2">
+                    <label
+                      htmlFor="type"
+                      className="mb-2 block text-sm font-medium"
+                    >
                       Type
                     </label>
                     <Controller
                       name="type"
-                control={form.control}
+                      control={form.control}
                       render={({ field }) => (
                         <Select
                           value={field.value}
                           onValueChange={field.onChange}
                           placeholder="Select discount type"
                           options={[
-                            { label: "Amount off products", value: "amount_off_products" },
-                            { label: "Amount off order", value: "amount_off_order" },
+                            {
+                              label: "Amount off products",
+                              value: "amount_off_products",
+                            },
+                            {
+                              label: "Amount off order",
+                              value: "amount_off_order",
+                            },
                             { label: "Buy X get Y", value: "buy_x_get_y" },
                           ]}
                         />
                       )}
                     />
                     {errors.type && (
-                      <p className="text-red-500 text-sm mt-1">{errors.type.message}</p>
+                      <p className="mt-1 text-sm text-red-500">
+                        {errors.type.message}
+                      </p>
                     )}
                   </div>
 
-                  {(watchType === "amount_off_products" || watchType === "buy_x_get_y") && (
+                  {(watchType === "amount_off_products" ||
+                    watchType === "buy_x_get_y") && (
                     <div>
-                      <label htmlFor="selectedProducts" className="block text-sm font-medium mb-2">
+                      <label
+                        htmlFor="selectedProducts"
+                        className="mb-2 block text-sm font-medium"
+                      >
                         Select Products
                       </label>
                       <div className="space-y-2">
@@ -687,24 +811,33 @@ export function CouponForm({
                           className="w-full justify-start"
                         >
                           <Search className="mr-2 h-4 w-4" />
-                          {selectedProducts.length > 0 
+                          {selectedProducts.length > 0
                             ? `${selectedProducts.length} product${selectedProducts.length !== 1 ? "s" : ""} selected`
-                            : "Search and select products"
-                          }
+                            : "Search and select products"}
                         </Button>
                         {selectedProducts.length > 0 && (
                           <div className="space-y-1">
                             {selectedProducts.map((product, index) => (
-                              <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
-                                <span className="text-sm">{product.productName}</span>
+                              <div
+                                key={index}
+                                className="flex items-center justify-between rounded bg-gray-50 p-2"
+                              >
+                                <span className="text-sm">
+                                  {product.productName}
+                                </span>
                                 <Button
                                   type="button"
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => {
-                                    const newProducts = selectedProducts.filter((_, i) => i !== index);
+                                    const newProducts = selectedProducts.filter(
+                                      (_, i) => i !== index,
+                                    );
                                     setSelectedProducts(newProducts);
-                                    form.setValue("selectedProducts", newProducts.map(p => p.productId));
+                                    form.setValue(
+                                      "selectedProducts",
+                                      newProducts.map((p) => p.productId),
+                                    );
                                   }}
                                   className="h-6 w-6 p-0"
                                 >
@@ -716,14 +849,19 @@ export function CouponForm({
                         )}
                       </div>
                       {errors.selectedProducts && (
-                        <p className="text-red-500 text-sm mt-1">{errors.selectedProducts.message}</p>
+                        <p className="mt-1 text-sm text-red-500">
+                          {errors.selectedProducts.message}
+                        </p>
                       )}
                     </div>
                   )}
 
                   {watchType === "buy_x_get_y" && (
                     <div>
-                      <label htmlFor="freeProducts" className="block text-sm font-medium mb-2">
+                      <label
+                        htmlFor="freeProducts"
+                        className="mb-2 block text-sm font-medium"
+                      >
                         Select Free Products
                       </label>
                       <div className="space-y-2">
@@ -734,24 +872,34 @@ export function CouponForm({
                           className="w-full justify-start"
                         >
                           <Search className="mr-2 h-4 w-4" />
-                          {selectedFreeProducts.length > 0 
+                          {selectedFreeProducts.length > 0
                             ? `${selectedFreeProducts.length} product${selectedFreeProducts.length !== 1 ? "s" : ""} selected`
-                            : "Search and select free products"
-                          }
+                            : "Search and select free products"}
                         </Button>
                         {selectedFreeProducts.length > 0 && (
                           <div className="space-y-1">
                             {selectedFreeProducts.map((product, index) => (
-                              <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
-                                <span className="text-sm">{product.productName}</span>
+                              <div
+                                key={index}
+                                className="flex items-center justify-between rounded bg-gray-50 p-2"
+                              >
+                                <span className="text-sm">
+                                  {product.productName}
+                                </span>
                                 <Button
                                   type="button"
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => {
-                                    const newProducts = selectedFreeProducts.filter((_, i) => i !== index);
+                                    const newProducts =
+                                      selectedFreeProducts.filter(
+                                        (_, i) => i !== index,
+                                      );
                                     setSelectedFreeProducts(newProducts);
-                                    form.setValue("freeProducts", newProducts.map(p => p.productId));
+                                    form.setValue(
+                                      "freeProducts",
+                                      newProducts.map((p) => p.productId),
+                                    );
                                   }}
                                   className="h-6 w-6 p-0"
                                 >
@@ -763,21 +911,26 @@ export function CouponForm({
                         )}
                       </div>
                       {errors.freeProducts && (
-                        <p className="text-red-500 text-sm mt-1">{errors.freeProducts.message}</p>
+                        <p className="mt-1 text-sm text-red-500">
+                          {errors.freeProducts.message}
+                        </p>
                       )}
                     </div>
                   )}
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
 
               {/* Discount Value Section */}
               <Card>
                 <CardHeader>
                   <CardTitle>Discount value</CardTitle>
-            </CardHeader>
+                </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <label htmlFor="discountType" className="block text-sm font-medium mb-2">
+                    <label
+                      htmlFor="discountType"
+                      className="mb-2 block text-sm font-medium"
+                    >
                       Discount Type
                     </label>
                     <Controller
@@ -797,30 +950,37 @@ export function CouponForm({
                       )}
                     />
                     {errors.discountType && (
-                      <p className="text-red-500 text-sm mt-1">{errors.discountType.message}</p>
+                      <p className="mt-1 text-sm text-red-500">
+                        {errors.discountType.message}
+                      </p>
                     )}
                   </div>
 
                   {watchDiscountType !== "free_product" && (
                     <div>
-                      <label htmlFor="discountValue" className="block text-sm font-medium mb-2">
+                      <label
+                        htmlFor="discountValue"
+                        className="mb-2 block text-sm font-medium"
+                      >
                         Discount Value
                       </label>
                       <Controller
                         name="discountValue"
-                control={form.control}
+                        control={form.control}
                         render={({ field }) => (
                           <Input
                             {...field}
                             type="number"
                             placeholder="e.g. 20"
                             min={0}
-                            className={errors.discountValue ? "border-red-500" : ""}
+                            className={
+                              errors.discountValue ? "border-red-500" : ""
+                            }
                             onChange={(e) => {
-                              console.log("🔍 Discount Value onChange:", { 
-                                targetValue: e.target.value, 
+                              console.log("🔍 Discount Value onChange:", {
+                                targetValue: e.target.value,
                                 fieldValue: field.value,
-                                event: e 
+                                event: e,
                               });
                               field.onChange(e);
                             }}
@@ -828,7 +988,9 @@ export function CouponForm({
                         )}
                       />
                       {errors.discountValue && (
-                        <p className="text-red-500 text-sm mt-1">{errors.discountValue.message}</p>
+                        <p className="mt-1 text-sm text-red-500">
+                          {errors.discountValue.message}
+                        </p>
                       )}
                     </div>
                   )}
@@ -842,26 +1004,27 @@ export function CouponForm({
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <UsageRulesSection control={form.control} errors={errors} />
-            </CardContent>
-          </Card>
-        </div>
+                </CardContent>
+              </Card>
+            </div>
 
-            <div className="lg:min-w-[440px] 2xl:w-[500px] gap-4 flex flex-col">
+            <div className="flex flex-col gap-4 lg:min-w-[440px] 2xl:w-[500px]">
               {/* Status Section */}
-        <Card>
+              <Card>
                 <CardHeader>
                   <CardTitle>Status</CardTitle>
-          </CardHeader>
+                </CardHeader>
                 <CardContent>
                   <div className="flex flex-col items-start justify-between gap-4">
                     <div>
-                      <p className="text-sm text-muted-foreground">
-                        ⚠️ Turning this off will remove this Coupon to every section.
+                      <p className="text-muted-foreground text-sm">
+                        ⚠️ Turning this off will remove this Coupon to every
+                        section.
                       </p>
                     </div>
                     <Controller
                       name="isActive"
-              control={form.control}
+                      control={form.control}
                       render={({ field }) => (
                         <Checkbox
                           checked={field.value}
@@ -870,8 +1033,8 @@ export function CouponForm({
                       )}
                     />
                   </div>
-          </CardContent>
-        </Card>
+                </CardContent>
+              </Card>
 
               {/* Validity Period */}
               <Card>
@@ -880,7 +1043,10 @@ export function CouponForm({
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <label htmlFor="validFrom" className="block text-sm font-medium mb-2">
+                    <label
+                      htmlFor="validFrom"
+                      className="mb-2 block text-sm font-medium"
+                    >
                       Valid From
                     </label>
                     <Controller
@@ -889,22 +1055,34 @@ export function CouponForm({
                       render={({ field }) => (
                         <DatePicker
                           mode="single"
-                          value={field.value ? new Date(field.value) : undefined}
-                          onChange={(date) => field.onChange(date ? date.toISOString().split("T")[0] : "")}
+                          value={
+                            field.value ? new Date(field.value) : undefined
+                          }
+                          onChange={(date) =>
+                            field.onChange(
+                              date ? date.toISOString().split("T")[0] : "",
+                            )
+                          }
                           placeholder="Select valid from date"
                           calendarProps={{
-                            disabled: (date) => date < new Date(new Date().setHours(0, 0, 0, 0))
+                            disabled: (date) =>
+                              date < new Date(new Date().setHours(0, 0, 0, 0)),
                           }}
                         />
                       )}
                     />
                     {errors.validFrom && (
-                      <p className="text-red-500 text-sm mt-1">{errors.validFrom.message}</p>
+                      <p className="mt-1 text-sm text-red-500">
+                        {errors.validFrom.message}
+                      </p>
                     )}
                   </div>
 
                   <div>
-                    <label htmlFor="expiresAt" className="block text-sm font-medium mb-2">
+                    <label
+                      htmlFor="expiresAt"
+                      className="mb-2 block text-sm font-medium"
+                    >
                       Expires At
                     </label>
                     <Controller
@@ -913,22 +1091,34 @@ export function CouponForm({
                       render={({ field }) => (
                         <DatePicker
                           mode="single"
-                          value={field.value ? new Date(field.value) : undefined}
-                          onChange={(date) => field.onChange(date ? date.toISOString().split("T")[0] : "")}
+                          value={
+                            field.value ? new Date(field.value) : undefined
+                          }
+                          onChange={(date) =>
+                            field.onChange(
+                              date ? date.toISOString().split("T")[0] : "",
+                            )
+                          }
                           placeholder="Select expiry date"
                           calendarProps={{
                             disabled: (date) => {
-                              const today = new Date(new Date().setHours(0, 0, 0, 0));
+                              const today = new Date(
+                                new Date().setHours(0, 0, 0, 0),
+                              );
                               const validFrom = form.getValues("validFrom");
-                              const minDate = validFrom ? new Date(validFrom) : today;
+                              const minDate = validFrom
+                                ? new Date(validFrom)
+                                : today;
                               return date < minDate;
-                            }
+                            },
                           }}
                         />
                       )}
                     />
                     {errors.expiresAt && (
-                      <p className="text-red-500 text-sm mt-1">{errors.expiresAt.message}</p>
+                      <p className="mt-1 text-sm text-red-500">
+                        {errors.expiresAt.message}
+                      </p>
                     )}
                   </div>
                 </CardContent>
@@ -936,25 +1126,21 @@ export function CouponForm({
             </div>
           </div>
 
-        {/* Form Actions */}
-        {!isView && (
-            <div className="flex justify-end space-x-4 mt-6">
-            <Button
-              type="button"
-              variant="outlined"
-              onClick={() => navigate(PANEL_ROUTES.MASTER.DISCOUNT_COUPON)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isLoading}
-              variant="contained"
-            >
-              {isLoading ? "Saving..." : "Save"}
-            </Button>
-          </div>
-        )}
+          {/* Form Actions */}
+          {!isView && (
+            <div className="mt-6 flex justify-end space-x-4">
+              <Button
+                type="button"
+                variant="outlined"
+                onClick={() => navigate(PANEL_ROUTES.MASTER.DISCOUNT_COUPON)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isLoading} variant="contained">
+                {isLoading ? "Saving..." : "Save"}
+              </Button>
+            </div>
+          )}
         </div>
       </form>
 
@@ -964,7 +1150,10 @@ export function CouponForm({
         onClose={() => setIsProductModalOpen(false)}
         onConfirm={(products) => {
           setSelectedProducts(products);
-          form.setValue("selectedProducts", products.map(p => p.productId));
+          form.setValue(
+            "selectedProducts",
+            products.map((p) => p.productId),
+          );
         }}
         selectedProducts={selectedProducts}
         title="All Products"
@@ -976,7 +1165,10 @@ export function CouponForm({
         onClose={() => setIsFreeProductModalOpen(false)}
         onConfirm={(products) => {
           setSelectedFreeProducts(products);
-          form.setValue("freeProducts", products.map(p => p.productId));
+          form.setValue(
+            "freeProducts",
+            products.map((p) => p.productId),
+          );
         }}
         selectedProducts={selectedFreeProducts}
         title="All Products"

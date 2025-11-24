@@ -2,13 +2,25 @@
  * Core types and runtime validators for the filter module
  */
 
-export type FilterOption = { label: string; value: string; displayValue?: string | React.ReactNode; meta?: unknown , disabled?: boolean, hidden?: boolean };
+export type FilterOption = {
+  label: string;
+  value: string;
+  displayValue?: string | React.ReactNode;
+  meta?: unknown;
+  disabled?: boolean;
+  hidden?: boolean;
+};
 
 export type FilterValue = Record<string, FilterOption[]>;
 
 export type SelectionMode = "single" | "multi";
 
-export type FilterType = "dropdown" | "input" | "date" | "custom" | "pagination";
+export type FilterType =
+  | "dropdown"
+  | "input"
+  | "date"
+  | "custom"
+  | "pagination";
 
 /**
  * Type guard: checks if value is a plain object (not array, null, or class instance)

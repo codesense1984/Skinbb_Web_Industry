@@ -104,7 +104,7 @@ export function ImageUpload({
         <div className="text-center">
           <Button
             type="button"
-            variant="outline"
+            variant="outlined"
             onClick={handleClick}
             disabled={disabled}
             className="flex items-center gap-2"

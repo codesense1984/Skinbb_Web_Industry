@@ -27,6 +27,7 @@ products/
 ## Features
 
 ### ProductCreate Component
+
 - Form for creating new products
 - Uses react-hook-form for form state management
 - Zod validation for form validation
@@ -34,6 +35,7 @@ products/
 - Error handling with toast notifications
 
 ### ProductEdit Component
+
 - Form for editing existing products
 - Fetches product data using React Query
 - Pre-populates form with existing data
@@ -41,6 +43,7 @@ products/
 - Loading and error states
 
 ### ProductForm Component
+
 - Shared form component used by both create and edit
 - Comprehensive form sections:
   - General Information (name, slug, description)
@@ -54,11 +57,17 @@ products/
 ## Usage
 
 ### Import Components
+
 ```typescript
-import { ProductCreate, ProductEdit, ProductForm } from '@/modules/panel/features/products';
+import {
+  ProductCreate,
+  ProductEdit,
+  ProductForm,
+} from "@/modules/panel/features/products";
 ```
 
 ### Use in Routes
+
 ```typescript
 // Create route
 <Route path="/panel/products/create" element={<ProductCreate />} />
@@ -114,4 +123,3 @@ Comprehensive TypeScript types are provided:
 - Error handling includes both field-level and general error messages
 - The form supports both simple and variant products
 - Meta fields are dynamically loaded and rendered based on API configuration
-

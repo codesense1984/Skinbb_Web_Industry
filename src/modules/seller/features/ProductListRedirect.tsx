@@ -17,7 +17,7 @@ const SellerProductListRedirect = () => {
     if (companyId && locationId) {
       navigate(
         `${PANEL_ROUTES.LISTING.LIST}?companyId=${companyId}&locationId=${locationId}`,
-        { replace: true }
+        { replace: true },
       );
     } else {
       // If params are missing, just go to listing page
@@ -29,4 +29,3 @@ const SellerProductListRedirect = () => {
 };
 
 export default SellerProductListRedirect;
-

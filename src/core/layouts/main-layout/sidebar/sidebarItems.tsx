@@ -119,7 +119,13 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
         />
       </svg>
     ),
-    children: ["allProducts", "catalog", "productCategories", "productTags", "productAttributes"],
+    children: [
+      "allProducts",
+      "catalog",
+      "productCategories",
+      "productTags",
+      "productAttributes",
+    ],
   },
   allProducts: {
     name: "All Products",
@@ -151,7 +157,11 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
         />
       </svg>
     ),
-    children: ["allCustomers", /* "customerSegments", */ "customerReviews", "customerRoutines"],
+    children: [
+      "allCustomers",
+      /* "customerSegments", */ "customerReviews",
+      "customerRoutines",
+    ],
   },
   allCustomers: {
     name: "All Customers",
@@ -270,12 +280,7 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
         />
       </svg>
     ),
-    children: [
-      "platform",
-      "brand",
-      "ecommerce",
-      "ingredients",
-    ],
+    children: ["platform", "brand", "ecommerce", "ingredients"],
   },
   platform: {
     name: "Platform",
@@ -316,7 +321,6 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
     ),
     children: ["formulationLooker", "chat", "faceAnalysis"],
   },
-  
 
   surveys: {
     name: "Surveys",
@@ -365,7 +369,9 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
         />
       </svg>
     ),
-    children: [/* "companyManagement", */ "userRolesPermissions", /* "apiIntegrations", "notificationsEmailTemplates" */],
+    children: [
+      /* "companyManagement", */ "userRolesPermissions" /* "apiIntegrations", "notificationsEmailTemplates" */,
+    ],
   },
   // companyManagement: {
   //   name: "Company Management",
@@ -396,170 +402,160 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
   // },
 };
 
-  export const sellerSidebarItems: Readonly<Record<string, SidebarItem>> = {
-    sidebar: {
-      name: "sidebar",
-      children: [
-        "dashboard",
-        "orders",
-        "products",
-        "brands",
-        "marketing",
-        "analytics",
-        "users",
-        "settings",
-      ],
-    },
-    dashboard: {
-      name: "dashboard",
-      href: SELLER_ROUTES.DASHBOARD.HOME,
-      icon: <HomeIcon />,
-    },
-    products: {
-      name: "products",
-      href: SELLER_ROUTES.PRODUCTS.LIST,
-      icon: <ShoppingBagIcon />,
-      children: ["all-products", "catalog"],
-    },
-    "all-products": {
-      name: "All Products",
-      href: SELLER_ROUTES.PRODUCTS.LIST,
-    },
-    catalog: {
-      name: "Catalog",
-      href: "/catalog",
-    },
-    orders: {
-      name: "orders",
-      href: SELLER_ROUTES.ORDERS.LIST,
-      icon: <ShoppingBagIcon />,
-    },
-    brands: {
-      name: "brands",
-      href: SELLER_ROUTES.SELLER_BRANDS.LIST,
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="m21 7.5-2.25-1.313M21 7.5v2.25m0-2.25-2.25 1.313M3 7.5l2.25-1.313M3 7.5l2.25 1.313M3 7.5v2.25m9 3 2.25-1.313M12 12.75l-2.25-1.313M12 12.75V15m0 6.75 2.25-1.313M12 21.75V19.5m0 2.25-2.25-1.313m0-16.875L12 2.25l2.25 1.313M21 14.25v2.25l-2.25 1.313m-13.5 0L3 16.5v-2.25"
-          />
-        </svg>
-      ),
-    },
-    marketing: {
-      name: "marketing",
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"
-          />
-        </svg>
-      ),
-      children: ["discount-coupons"],
-    },
-    "discount-coupons": {
-      name: "Discount Coupons",
-      href: SELLER_ROUTES.MARKETING.DISCOUNT_COUPONS.LIST,
-    },
-    // TODO: Uncomment when survey functionality is ready
-    // surveys: {
-    //   name: "Surveys",
-    //   href: SELLER_ROUTES.MARKETING.SURVEYS.LIST,
-    // },
-    // TODO: Uncomment when promotion functionality is ready
-    // promotions: {
-    //   name: "Promotions",
-    //   href: SELLER_ROUTES.MARKETING.PROMOTIONS.LIST,
-    // },
-    analytics: {
-      name: "analytics",
-      icon: <ChartBarIcon />,
-      children: [
-        "sales-insights",
-        "ingredient-insights", 
-        "brand-insights",
-        "customer-insights",
-        "market-trends",
-        "ecommerce-analytics"
-      ],
-    },
-    "sales-insights": {
-      name: "Sales Insights",
-      href: SELLER_ROUTES.ANALYTICS.SALES_INSIGHTS.BASE,
-    },
-    "ingredient-insights": {
-      name: "Ingredient Insights",
-      href: SELLER_ROUTES.ANALYTICS.INGREDIENT_INSIGHTS.BASE,
-    },
-    "brand-insights": {
-      name: "Brand Insights",
-      href: SELLER_ROUTES.ANALYTICS.BRAND_INSIGHTS.BASE,
-    },
-    "customer-insights": {
-      name: "Customer Insights",
-      href: SELLER_ROUTES.ANALYTICS.CUSTOMER_INSIGHTS.BASE,
-    },
-    "market-trends": {
-      name: "Market Trends",
-      href: SELLER_ROUTES.ANALYTICS.MARKET_TRENDS.BASE,
-    },
-    "ecommerce-analytics": {
-      name: "Ecommerce Analytics",
-      href: ANALYTICS_ROUTES.ECOMMERCE.DASHBOARD,
-    },
-    users: {
-      name: "users",
-      href: SELLER_ROUTES.USERS.LIST(),
-      icon: <UserIcon />,
-    },
-      settings: {
-        name: "settings",
-        icon: (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 0 1 0 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 0 1 0-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281Z"
-            />
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-            />
-          </svg>
-        ),
-        children: ["permissions-settings", "preferences-settings"],
-      },
-    "permissions-settings": {
-      name: "Permissions",
-      href: SELLER_ROUTES.USER_SETTINGS.PERMISSIONS.BASE,
-    },
-    "preferences-settings": {
-      name: "Preferences",
-      href: SELLER_ROUTES.USER_SETTINGS.PREFERENCES.BASE,
-    },
-  };
+export const sellerSidebarItems: Readonly<Record<string, SidebarItem>> = {
+  sidebar: {
+    name: "sidebar",
+    children: [
+      "dashboard",
+      "orders",
+      "products",
+      "brands",
+      "marketing",
+      "analytics",
+      "users",
+      "settings",
+    ],
+  },
+  dashboard: {
+    name: "dashboard",
+    href: SELLER_ROUTES.DASHBOARD.HOME,
+    icon: <HomeIcon />,
+  },
+  products: {
+    name: "products",
+    href: SELLER_ROUTES.PRODUCTS.LIST,
+    icon: <ShoppingBagIcon />,
+    children: ["all-products", "catalog"],
+  },
+  "all-products": {
+    name: "All Products",
+    href: SELLER_ROUTES.PRODUCTS.LIST,
+  },
+  catalog: {
+    name: "Catalog",
+    href: "/catalog",
+  },
+  orders: {
+    name: "orders",
+    href: SELLER_ROUTES.ORDERS.LIST,
+    icon: <ShoppingBagIcon />,
+  },
+  brands: {
+    name: "brands",
+    href: SELLER_ROUTES.SELLER_BRANDS.LIST,
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={1.5}
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="m21 7.5-2.25-1.313M21 7.5v2.25m0-2.25-2.25 1.313M3 7.5l2.25-1.313M3 7.5l2.25 1.313M3 7.5v2.25m9 3 2.25-1.313M12 12.75l-2.25-1.313M12 12.75V15m0 6.75 2.25-1.313M12 21.75V19.5m0 2.25-2.25-1.313m0-16.875L12 2.25l2.25 1.313M21 14.25v2.25l-2.25 1.313m-13.5 0L3 16.5v-2.25"
+        />
+      </svg>
+    ),
+  },
+  marketing: {
+    name: "marketing",
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={1.5}
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"
+        />
+      </svg>
+    ),
+    children: ["discount-coupons"],
+  },
+  "discount-coupons": {
+    name: "Discount Coupons",
+    href: SELLER_ROUTES.MARKETING.DISCOUNT_COUPONS.LIST,
+  },
+  // TODO: Uncomment when survey functionality is ready
+  // surveys: {
+  //   name: "Surveys",
+  //   href: SELLER_ROUTES.MARKETING.SURVEYS.LIST,
+  // },
+  // TODO: Uncomment when promotion functionality is ready
+  // promotions: {
+  //   name: "Promotions",
+  //   href: SELLER_ROUTES.MARKETING.PROMOTIONS.LIST,
+  // },
+  analytics: {
+    name: "analytics",
+    icon: <ChartBarIcon />,
+    children: [
+      "platform-analytics",
+      "brand-analytics",
+      "ecommerce-analytics",
+      "ingredient-analytics",
+    ],
+  },
+  "platform-analytics": {
+    name: "Platform",
+    href: SELLER_ROUTES.ANALYTICS.PLATFORM.BASE,
+  },
+  "brand-analytics": {
+    name: "Brand",
+    href: SELLER_ROUTES.ANALYTICS.BRAND.BASE,
+  },
+  "ecommerce-analytics": {
+    name: "Ecommerce",
+    href: SELLER_ROUTES.ANALYTICS.ECOMMERCE.BASE,
+  },
+  "ingredient-analytics": {
+    name: "Ingredient",
+    href: SELLER_ROUTES.ANALYTICS.INGREDIENT_INSIGHTS.BASE,
+  },
+  users: {
+    name: "users",
+    href: SELLER_ROUTES.USERS.LIST(),
+    icon: <UserIcon />,
+  },
+  settings: {
+    name: "settings",
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={1.5}
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 0 1 0 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 0 1 0-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281Z"
+        />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+        />
+      </svg>
+    ),
+    children: ["permissions-settings", "preferences-settings"],
+  },
+  "permissions-settings": {
+    name: "Permissions",
+    href: SELLER_ROUTES.USER_SETTINGS.PERMISSIONS.BASE,
+  },
+  "preferences-settings": {
+    name: "Preferences",
+    href: SELLER_ROUTES.USER_SETTINGS.PREFERENCES.BASE,
+  },
+};
 
   export const doctorSidebarItems: Readonly<Record<string, SidebarItem>> = {
     sidebar: {

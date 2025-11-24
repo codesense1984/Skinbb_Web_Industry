@@ -11,7 +11,9 @@ import { Badge } from "@/core/components/ui/badge";
 
 export default function ProductCategoryList() {
   const navigate = useNavigate();
-  const [parentCategoryFilters, setParentCategoryFilters] = useState<Array<{id: string, name: string}>>([]);
+  const [parentCategoryFilters, setParentCategoryFilters] = useState<
+    Array<{ id: string; name: string }>
+  >([]);
 
   // Handle form actions
   const handleAddCategory = () => {
@@ -33,8 +35,8 @@ export default function ProductCategoryList() {
 
   const handleShowChild = (id: string, name: string) => {
     // Add to parent category filters, but prevent duplicates
-    setParentCategoryFilters(prev => {
-      const exists = prev.some(filter => filter.id === id);
+    setParentCategoryFilters((prev) => {
+      const exists = prev.some((filter) => filter.id === id);
       if (exists) {
         return prev; // Don't add if already exists
       }
@@ -43,7 +45,9 @@ export default function ProductCategoryList() {
   };
 
   const handleRemoveParentFilter = (id: string) => {
-    setParentCategoryFilters(prev => prev.filter(filter => filter.id !== id));
+    setParentCategoryFilters((prev) =>
+      prev.filter((filter) => filter.id !== id),
+    );
   };
 
   const handleClearAllFilters = () => {
@@ -52,7 +56,10 @@ export default function ProductCategoryList() {
 
   // Track parent category filters for debugging
   useEffect(() => {
-    const currentParentId = parentCategoryFilters.length > 0 ? parentCategoryFilters[parentCategoryFilters.length - 1].id : undefined;
+    const currentParentId =
+      parentCategoryFilters.length > 0
+        ? parentCategoryFilters[parentCategoryFilters.length - 1].id
+        : undefined;
     // Debug: Log current parent ID for API call
     if (import.meta.env.DEV) {
       console.log("Parent category filters changed:", parentCategoryFilters);
@@ -81,9 +88,15 @@ export default function ProductCategoryList() {
         {/* Parent Category Filters */}
         {parentCategoryFilters.length > 0 && (
           <div className="flex items-center space-x-2">
-            <span className="text-sm font-medium text-gray-700">Parent Category:</span>
+            <span className="text-sm font-medium text-gray-700">
+              Parent Category:
+            </span>
             {parentCategoryFilters.map((filter) => (
-              <Badge key={filter.id} variant="outline" className="flex items-center space-x-1">
+              <Badge
+                key={filter.id}
+                variant="outlined"
+                className="flex items-center space-x-1"
+              >
                 <span>{filter.name}</span>
                 <button
                   onClick={() => handleRemoveParentFilter(filter.id)}
@@ -108,7 +121,11 @@ export default function ProductCategoryList() {
           key={`product-categories-${parentCategoryFilters.length > 0 ? parentCategoryFilters[parentCategoryFilters.length - 1].id : "root"}`}
           columns={columns()}
           isServerSide
-          fetcher={fetcher(parentCategoryFilters.length > 0 ? parentCategoryFilters[parentCategoryFilters.length - 1].id : undefined)}
+          fetcher={fetcher(
+            parentCategoryFilters.length > 0
+              ? parentCategoryFilters[parentCategoryFilters.length - 1].id
+              : undefined,
+          )}
           queryKeyPrefix={`${PANEL_ROUTES.MASTER.PRODUCT_CATEGORY}${parentCategoryFilters.length > 0 ? `-${parentCategoryFilters[parentCategoryFilters.length - 1].id}` : ""}`}
           meta={{
             onView: handleViewCategory,

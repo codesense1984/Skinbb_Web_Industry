@@ -1,12 +1,7 @@
 import { TableAction } from "@/core/components/data-table/components/table-action";
-import {
-  DataView,
-  type ServerDataFetcher,
-} from "@/core/components/data-view";
+import { DataView, type ServerDataFetcher } from "@/core/components/data-view";
 import { OrderCard } from "./OrderCard";
-import {
-  type FilterOption
-} from "@/core/components/dynamic-filter";
+import { type FilterOption } from "@/core/components/dynamic-filter";
 import { StatusBadge } from "@/core/components/ui/badge";
 import { PageContent } from "@/core/components/ui/structure";
 import type { PaginationParams } from "@/core/types";
@@ -91,7 +86,6 @@ const createOrderFetcher = (): ServerDataFetcher<Order> => {
       params.customerId = filters.customer[0].value;
     }
 
-
     const response = await apiGetOrderList(params, signal);
 
     if (response && typeof response === "object" && "data" in response) {
@@ -100,7 +94,7 @@ const createOrderFetcher = (): ServerDataFetcher<Order> => {
         totalRecords?: number;
       };
       const orders = responseData?.orders || [];
-      
+
       // Return API response as-is
       // Note: The API should filter by status on the backend, but if it doesn't,
       // we trust the API response. Client-side filtering would only work for the current page,
@@ -109,7 +103,7 @@ const createOrderFetcher = (): ServerDataFetcher<Order> => {
         rows: orders,
         total: responseData?.totalRecords || 0,
       };
-      
+
       return result;
     }
 
@@ -136,17 +130,20 @@ const CustomerFilterFromUrl = () => {
   useEffect(() => {
     if (customerId) {
       // Get customer name from fetched data or use a placeholder
-      const customerName = customerData?.data?.name 
-        || customerData?.data?.email 
-        || customerData?.data?.phoneNumber 
-        || "Customer";
-      
+      const customerName =
+        customerData?.data?.name ||
+        customerData?.data?.email ||
+        customerData?.data?.phoneNumber ||
+        "Customer";
+
       // Only set/update filter if:
       // 1. We haven't set it for this customerId yet, OR
       // 2. The customer name has changed (e.g., data just loaded)
-      const shouldUpdate = customerId !== hasSetFilterForCustomerRef.current || 
-        (customerName !== lastCustomerNameRef.current && hasSetFilterForCustomerRef.current === customerId);
-      
+      const shouldUpdate =
+        customerId !== hasSetFilterForCustomerRef.current ||
+        (customerName !== lastCustomerNameRef.current &&
+          hasSetFilterForCustomerRef.current === customerId);
+
       if (shouldUpdate) {
         // Set the customer filter with actual customer name
         const customerFilter: FilterOption[] = [
@@ -224,9 +221,7 @@ const getColumns = () => [
     cell: ({ row }: { row: { original: Order } }) => {
       const order = row.original;
       const brandName = order.brandName || order.brand?.name;
-      return (
-        <div className="text-sm text-gray-900">{brandName || "N/A"}</div>
-      );
+      return <div className="text-sm text-gray-900">{brandName || "N/A"}</div>;
     },
   },
   {

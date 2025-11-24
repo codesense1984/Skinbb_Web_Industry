@@ -11,8 +11,8 @@ import { PlusIcon } from "@heroicons/react/24/outline";
 export default function ProductTagList() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
-  
-  console.log('ProductTagList rendering with isServerSide: true');
+
+  console.log("ProductTagList rendering with isServerSide: true");
 
   return (
     <PageContent

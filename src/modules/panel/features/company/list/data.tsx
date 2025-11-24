@@ -190,11 +190,15 @@ export const columns: ColumnDef<CompanyListItem>[] = [
         >
           {row.original.companyStatus}
         </StatusBadge>
-        {row.original.companyStatus === "rejected" && row.original.statusChangeReason && (
-          <div className="text-xs text-red-600 max-w-[180px] truncate" title={row.original.statusChangeReason}>
-            Reason: {row.original.statusChangeReason}
-          </div>
-        )}
+        {row.original.companyStatus === "rejected" &&
+          row.original.statusChangeReason && (
+            <div
+              className="max-w-[180px] truncate text-xs text-red-600"
+              title={row.original.statusChangeReason}
+            >
+              Reason: {row.original.statusChangeReason}
+            </div>
+          )}
       </div>
     ),
     filterFn: (row, id, value) => {

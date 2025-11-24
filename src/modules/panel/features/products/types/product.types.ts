@@ -66,7 +66,7 @@ export type PricingFields = {
 export type MetaFieldValue = {
   key: string;
   value: string | SelectOption | null;
-  type: 'string' | 'array' | 'objectId' | 'rich-text-box';
+  type: "string" | "array" | "objectId" | "rich-text-box";
   ref: boolean;
 };
 
@@ -192,4 +192,3 @@ export type FormSectionBaseProps = {
   errors: any; // Will be properly typed with react-hook-form
   setValue?: any; // Will be properly typed with react-hook-form
 };
-

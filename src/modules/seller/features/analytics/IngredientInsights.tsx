@@ -1,7 +1,7 @@
-import { ComingSoon } from "@/core/components/ui/coming-soon";
+import IngredientAnalytics from "@/modules/analytics/features/ingredient";
 
 const IngredientInsights = () => {
-  return <ComingSoon title="Ingredient Insights" />;
+  return <IngredientAnalytics />;
 };
 
 export default IngredientInsights;
