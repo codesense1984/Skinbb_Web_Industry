@@ -1,6 +1,5 @@
-import {
-  // renderActionButton,
-} from "@/core/components/data-table/components/table-action";
+import {} from // renderActionButton,
+"@/core/components/data-table/components/table-action";
 import { Badge, StatusBadge } from "@/core/components/ui/badge";
 import { Button } from "@/core/components/ui/button";
 import { formatDate } from "@/core/utils";
@@ -9,7 +8,11 @@ import type { CompanyLocation } from "@/modules/panel/types/company-location.typ
 import { BuildingOfficeIcon } from "@heroicons/react/24/solid";
 import type { ColumnDef } from "@tanstack/react-table";
 import { DropdownMenu } from "@/core/components/ui/dropdown-menu";
-import { EyeIcon, PencilIcon, EllipsisVerticalIcon } from "@heroicons/react/24/solid";
+import {
+  EyeIcon,
+  PencilIcon,
+  EllipsisVerticalIcon,
+} from "@heroicons/react/24/solid";
 import { WithAccess } from "@/modules/auth/components/guard";
 import { PAGE } from "@/modules/auth/types/permission.type.";
 
@@ -134,7 +137,10 @@ export const createColumns = (
             items={[
               {
                 type: "link",
-                to: PANEL_ROUTES.COMPANY_LOCATION.VIEW(companyId, row.original._id),
+                to: PANEL_ROUTES.COMPANY_LOCATION.VIEW(
+                  companyId,
+                  row.original._id,
+                ),
                 title: "View location details",
                 children: (
                   <WithAccess page={PAGE.COMPANY_LOCATIONS} actions="view">
@@ -144,7 +150,10 @@ export const createColumns = (
               },
               {
                 type: "link",
-                to: PANEL_ROUTES.ONBOARD.COMPANY_EDIT(companyId, row.original._id),
+                to: PANEL_ROUTES.ONBOARD.COMPANY_EDIT(
+                  companyId,
+                  row.original._id,
+                ),
                 title: "Edit location",
                 children: (
                   <WithAccess page={PAGE.COMPANY_LOCATIONS} actions="update">
@@ -154,10 +163,9 @@ export const createColumns = (
               },
               {
                 type: "link",
-                to: PANEL_ROUTES.COMPANY_LOCATION.BRANDS(
-                  companyId,
-                  row.original._id,
-                ),
+                to:
+                  PANEL_ROUTES.BRAND.LIST +
+                  `?companyId=${companyId}&locationId=${row.original._id}`,
                 title: "View Brands",
                 children: (
                   <WithAccess page={PAGE.COMPANY_LOCATIONS} actions="view">

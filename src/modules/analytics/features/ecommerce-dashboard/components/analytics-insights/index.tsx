@@ -2,23 +2,23 @@ import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { StatChartCard } from "@/core/components/ui/card";
 import { Button } from "@/core/components/ui/button";
-import { 
+import {
   ChartBarIcon,
   BeakerIcon,
   ArrowTrendingUpIcon,
   BuildingOfficeIcon,
   UserGroupIcon,
-  EyeIcon
+  EyeIcon,
 } from "@heroicons/react/24/outline";
-import { cn } from "@/core/utils";
+import { cn, formatCurrency } from "@/core/utils";
 import { type ChartConfig } from "@/core/components/ui/chart";
 import LineChart from "@/core/components/charts/LineChart";
 import BarChart from "@/core/components/charts/BarChart";
-import { 
-  apiGetSalesInsights, 
-  apiGetBrandInsights, 
+import {
+  apiGetSalesInsights,
+  apiGetBrandInsights,
   apiGetCustomerInsights,
-  apiGetAnalyticsOverview 
+  apiGetAnalyticsOverview,
 } from "../../../ecommerce/services";
 
 // Sales Trend Graph Card (Graph Tile) - Uses Sales Insights API
@@ -29,7 +29,7 @@ interface SalesTrendGraphCardProps {
   brandId?: string;
 }
 
-export const SalesTrendGraphCard: React.FC<SalesTrendGraphCardProps> = ({ 
+export const SalesTrendGraphCard: React.FC<SalesTrendGraphCardProps> = ({
   className,
   startDate,
   endDate,
@@ -37,17 +37,26 @@ export const SalesTrendGraphCard: React.FC<SalesTrendGraphCardProps> = ({
 }) => {
   // Calculate default date range (last 30 days)
   const defaultEndDate = React.useMemo(() => {
-    return new Date().toISOString().split('T')[0];
+    return new Date().toISOString().split("T")[0];
   }, []);
 
   const defaultStartDate = React.useMemo(() => {
     const date = new Date();
     date.setDate(date.getDate() - 30);
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split("T")[0];
   }, []);
 
-  const { data: salesInsights, isLoading, isError } = useQuery({
-    queryKey: ["sales-insights", startDate || defaultStartDate, endDate || defaultEndDate, brandId],
+  const {
+    data: salesInsights,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: [
+      "sales-insights",
+      startDate || defaultStartDate,
+      endDate || defaultEndDate,
+      brandId,
+    ],
     queryFn: async () => {
       const response = await apiGetSalesInsights({
         startDate: startDate || defaultStartDate,
@@ -61,11 +70,14 @@ export const SalesTrendGraphCard: React.FC<SalesTrendGraphCardProps> = ({
   });
 
   const revenueTrend = salesInsights?.revenueTrend || [];
-  
+
   // Format revenue trend data for chart
   const salesData = revenueTrend.map((trend) => {
     const date = new Date(trend.date);
-    const periodLabel = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    const periodLabel = date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
     return {
       period: periodLabel,
       sales: trend.revenue,
@@ -111,33 +123,41 @@ export const SalesTrendGraphCard: React.FC<SalesTrendGraphCardProps> = ({
   ];
 
   return (
-    <StatChartCard 
-      name="Sales Trend Graph" 
-      className={className}
-      actions={
-        <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-          <EyeIcon className="h-4 w-4 mr-1" />
-          View Details
-        </Button>
-      }
+    <StatChartCard
+      name="Sales Trend Graph"
+      className={cn("md:max-h-auto", className)}
+      // actions={
+      //   <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
+      //     <EyeIcon className="h-4 w-4 mr-1" />
+      //     View Details
+      //   </Button>
+      // }
     >
       {isLoading && (
-        <div className="text-center py-8 text-gray-500 text-sm">Loading sales data...</div>
+        <div className="py-8 text-center text-sm text-gray-500">
+          Loading sales data...
+        </div>
       )}
       {isError && (
-        <div className="text-center py-8 text-red-500 text-sm">Error loading sales data</div>
+        <div className="py-8 text-center text-sm text-red-500">
+          Error loading sales data
+        </div>
       )}
       {!isLoading && !isError && salesData.length === 0 && (
-        <div className="text-center py-8 text-gray-500 text-sm">No sales data available</div>
+        <div className="py-8 text-center text-sm text-gray-500">
+          No sales data available
+        </div>
       )}
       {!isLoading && !isError && salesData.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Avg Revenue</p>
-              <p className="text-2xl font-bold text-gray-900">{formattedAvg}</p>
+              <p className="text-muted-foreground text-sm">Avg Revenue</p>
+              <p className="text-foreground text-2xl font-bold">
+                {formattedAvg}
+              </p>
             </div>
-            <div className="bg-green-100 rounded-full p-3">
+            <div className="rounded-full bg-green-100 p-2">
               <ArrowTrendingUpIcon className="h-6 w-6 text-green-600" />
             </div>
           </div>
@@ -148,6 +168,9 @@ export const SalesTrendGraphCard: React.FC<SalesTrendGraphCardProps> = ({
             className="h-64"
             xAxisProps={{ dataKey: "period" }}
             showLegends={true}
+            yAxisProps={{
+              width: 40,
+            }}
             legendProps={{ verticalAlign: "bottom", height: 36 }}
           />
         </div>
@@ -164,7 +187,7 @@ interface IngredientTrendsCardProps {
   brandId?: string;
 }
 
-export const IngredientTrendsCard: React.FC<IngredientTrendsCardProps> = ({ 
+export const IngredientTrendsCard: React.FC<IngredientTrendsCardProps> = ({
   className,
   startDate,
   endDate,
@@ -172,17 +195,26 @@ export const IngredientTrendsCard: React.FC<IngredientTrendsCardProps> = ({
 }) => {
   // Calculate default date range (last 30 days)
   const defaultEndDate = React.useMemo(() => {
-    return new Date().toISOString().split('T')[0];
+    return new Date().toISOString().split("T")[0];
   }, []);
 
   const defaultStartDate = React.useMemo(() => {
     const date = new Date();
     date.setDate(date.getDate() - 30);
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split("T")[0];
   }, []);
 
-  const { data: salesInsights, isLoading, isError } = useQuery({
-    queryKey: ["sales-insights", startDate || defaultStartDate, endDate || defaultEndDate, brandId],
+  const {
+    data: salesInsights,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: [
+      "sales-insights",
+      startDate || defaultStartDate,
+      endDate || defaultEndDate,
+      brandId,
+    ],
     queryFn: async () => {
       const response = await apiGetSalesInsights({
         startDate: startDate || defaultStartDate,
@@ -197,7 +229,7 @@ export const IngredientTrendsCard: React.FC<IngredientTrendsCardProps> = ({
 
   // Use top products as ingredient trends (showing product sales which can indicate ingredient popularity)
   const topProducts = salesInsights?.topProducts || [];
-  
+
   const ingredientChartConfig = {
     value: {
       label: "Revenue ($)",
@@ -206,34 +238,37 @@ export const IngredientTrendsCard: React.FC<IngredientTrendsCardProps> = ({
   } satisfies ChartConfig;
 
   const ingredientChartData = topProducts.map((product) => ({
-    key: product.productName.length > 15 ? product.productName.substring(0, 15) + "..." : product.productName,
+    key:
+      product.productName.length > 15
+        ? product.productName.substring(0, 15) + "..."
+        : product.productName,
     value: product.totalRevenue,
     fullName: product.productName,
     quantity: product.totalQuantity,
   }));
 
   return (
-    <StatChartCard 
-      name="Ingredient Trends" 
-      className={className}
-      actions={
-        <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-          <EyeIcon className="h-4 w-4 mr-1" />
-          View Details
-        </Button>
-      }
+    <StatChartCard
+      name="Ingredient Trends"
+      className={cn("md:max-h-auto", className)}
     >
       {isLoading && (
-        <div className="text-center py-8 text-gray-500 text-sm">Loading trends...</div>
+        <div className="py-8 text-center text-sm text-gray-500">
+          Loading trends...
+        </div>
       )}
       {isError && (
-        <div className="text-center py-8 text-red-500 text-sm">Error loading trends</div>
+        <div className="py-8 text-center text-sm text-red-500">
+          Error loading trends
+        </div>
       )}
       {!isLoading && !isError && ingredientChartData.length === 0 && (
-        <div className="text-center py-8 text-gray-500 text-sm">No trend data available</div>
+        <div className="py-8 text-center text-sm text-gray-500">
+          No trend data available
+        </div>
       )}
       {!isLoading && !isError && ingredientChartData.length > 0 && (
-        <>
+        <div className="grid grid-cols-1 items-start gap-2 lg:grid-cols-2">
           <BarChart
             config={ingredientChartConfig}
             data={ingredientChartData}
@@ -242,19 +277,31 @@ export const IngredientTrendsCard: React.FC<IngredientTrendsCardProps> = ({
             showTooltip={true}
             showGrid={true}
             yAxisProps={{
-              width: 120,
+              width: 70,
             }}
-            className="h-64"
+            className="h-76"
           />
-          <div className="mt-4 grid grid-cols-2 gap-2">
+          <div className="space-y-4">
             {topProducts.slice(0, 4).map((product) => (
-              <div key={product._id} className="text-center p-2 rounded-lg bg-gray-50">
-                <p className="text-xs font-semibold text-gray-900 truncate">{product.productName}</p>
-                <p className="text-xs text-gray-600">Qty: {product.totalQuantity}</p>
+              <div key={product._id} className="rounded-lg bg-gray-50 p-3">
+                <p className="text-muted-foreground truncate font-semibold">
+                  {product.productName}
+                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-muted-foreground text-sm">
+                    Qty: {product.totalQuantity}
+                  </p>
+                  <p className="text-muted-foreground text-sm">
+                    Price: {product.averagePrice}
+                  </p>
+                  <p className="text-muted-foreground text-sm">
+                    Revenue: {product.totalRevenue}
+                  </p>
+                </div>
               </div>
             ))}
           </div>
-        </>
+        </div>
       )}
     </StatChartCard>
   );
@@ -268,25 +315,31 @@ interface MarketTrendsOverviewCardProps {
   brandId?: string;
 }
 
-export const MarketTrendsOverviewCard: React.FC<MarketTrendsOverviewCardProps> = ({ 
-  className,
-  startDate,
-  endDate,
-  brandId,
-}) => {
+export const MarketTrendsOverviewCard: React.FC<
+  MarketTrendsOverviewCardProps
+> = ({ className, startDate, endDate, brandId }) => {
   // Calculate default date range (last 30 days)
   const defaultEndDate = React.useMemo(() => {
-    return new Date().toISOString().split('T')[0];
+    return new Date().toISOString().split("T")[0];
   }, []);
 
   const defaultStartDate = React.useMemo(() => {
     const date = new Date();
     date.setDate(date.getDate() - 30);
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split("T")[0];
   }, []);
 
-  const { data: salesInsights, isLoading, isError } = useQuery({
-    queryKey: ["sales-insights", startDate || defaultStartDate, endDate || defaultEndDate, brandId],
+  const {
+    data: salesInsights,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: [
+      "sales-insights",
+      startDate || defaultStartDate,
+      endDate || defaultEndDate,
+      brandId,
+    ],
     queryFn: async () => {
       const response = await apiGetSalesInsights({
         startDate: startDate || defaultStartDate,
@@ -300,18 +353,21 @@ export const MarketTrendsOverviewCard: React.FC<MarketTrendsOverviewCardProps> =
   });
 
   const topCategories = salesInsights?.topCategories || [];
-  
+
   // Calculate growth based on order count (assuming higher order count = growth)
-  const maxOrders = topCategories.length > 0 
-    ? Math.max(...topCategories.map(c => c.orderCount))
-    : 0;
+  const maxOrders =
+    topCategories.length > 0
+      ? Math.max(...topCategories.map((c) => c.orderCount))
+      : 0;
 
   const marketChartData = topCategories.map((category) => {
-    const growthPercent = maxOrders > 0 
-      ? ((category.orderCount / maxOrders) * 100).toFixed(1)
-      : 0;
+    const growthPercent =
+      maxOrders > 0 ? ((category.orderCount / maxOrders) * 100).toFixed(1) : 0;
     return {
-      key: category.categoryName.length > 12 ? category.categoryName.substring(0, 12) + "..." : category.categoryName,
+      key:
+        category.categoryName.length > 12
+          ? category.categoryName.substring(0, 12) + "..."
+          : category.categoryName,
       revenue: category.revenue,
       orders: category.orderCount * 100, // Scale for visibility
       fullCategory: category.categoryName,
@@ -347,46 +403,54 @@ export const MarketTrendsOverviewCard: React.FC<MarketTrendsOverviewCardProps> =
   ];
 
   return (
-    <StatChartCard 
-      name="Market Trends Overview" 
-      className={className}
-      actions={
-        <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-          <EyeIcon className="h-4 w-4 mr-1" />
-          View Details
-        </Button>
-      }
+    <StatChartCard
+      name="Market Trends Overview"
+      className={cn("md:max-h-auto", className)}
     >
       {isLoading && (
-        <div className="text-center py-8 text-gray-500 text-sm">Loading market trends...</div>
+        <div className="py-8 text-center text-sm text-gray-500">
+          Loading market trends...
+        </div>
       )}
       {isError && (
-        <div className="text-center py-8 text-red-500 text-sm">Error loading market trends</div>
+        <div className="py-8 text-center text-sm text-red-500">
+          Error loading market trends
+        </div>
       )}
       {!isLoading && !isError && marketChartData.length === 0 && (
-        <div className="text-center py-8 text-gray-500 text-sm">No market data available</div>
+        <div className="py-8 text-center text-sm text-gray-500">
+          No market data available
+        </div>
       )}
       {!isLoading && !isError && marketChartData.length > 0 && (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 items-start gap-2 lg:grid-cols-2">
           <LineChart
             data={marketChartData}
             config={marketChartConfig}
             lineProps={marketLineProps}
-            className="h-48"
+            className="h-64"
             xAxisProps={{ dataKey: "key" }}
             showLegends={true}
             legendProps={{ verticalAlign: "bottom", height: 36 }}
+            yAxisProps={{ width: 45 }}
           />
-          <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-4">
             {topCategories.slice(0, 4).map((category) => (
-              <div key={category.categoryId} className="text-center p-2 rounded-lg bg-gray-50">
-                <p className="text-xs font-semibold text-gray-900 truncate">{category.categoryName}</p>
-                <p className="text-xs text-gray-600">
-                  {category.orderCount} orders
+              <div
+                key={category.categoryId}
+                className="rounded-lg bg-gray-50 p-3"
+              >
+                <p className="text-muted-foreground truncate font-semibold">
+                  {category.categoryName}
                 </p>
-                <p className="text-xs text-gray-500">
-                  ₹{(category.revenue / 1000).toFixed(0)}k revenue
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-muted-foreground text-sm">
+                    {category.orderCount} orders
+                  </p>
+                  <p className="text-muted-foreground text-sm">
+                    ₹{(category.revenue / 1000).toFixed(0)}k revenue
+                  </p>
+                </div>
               </div>
             ))}
           </div>
@@ -403,24 +467,30 @@ interface BrandReportSnapshotCardProps {
   endDate?: string;
 }
 
-export const BrandReportSnapshotCard: React.FC<BrandReportSnapshotCardProps> = ({ 
-  className,
-  startDate,
-  endDate,
-}) => {
+export const BrandReportSnapshotCard: React.FC<
+  BrandReportSnapshotCardProps
+> = ({ className, startDate, endDate }) => {
   // Calculate default date range (last 30 days)
   const defaultEndDate = React.useMemo(() => {
-    return new Date().toISOString().split('T')[0];
+    return new Date().toISOString().split("T")[0];
   }, []);
 
   const defaultStartDate = React.useMemo(() => {
     const date = new Date();
     date.setDate(date.getDate() - 30);
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split("T")[0];
   }, []);
 
-  const { data: brandInsights, isLoading, isError } = useQuery({
-    queryKey: ["brand-insights", startDate || defaultStartDate, endDate || defaultEndDate],
+  const {
+    data: brandInsights,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: [
+      "brand-insights",
+      startDate || defaultStartDate,
+      endDate || defaultEndDate,
+    ],
     queryFn: async () => {
       const response = await apiGetBrandInsights({
         startDate: startDate || defaultStartDate,
@@ -444,7 +514,10 @@ export const BrandReportSnapshotCard: React.FC<BrandReportSnapshotCardProps> = (
   } satisfies ChartConfig;
 
   const brandChartData = brands.map((brand) => ({
-    key: brand.brandName.length > 15 ? brand.brandName.substring(0, 15) + "..." : brand.brandName,
+    key:
+      brand.brandName.length > 15
+        ? brand.brandName.substring(0, 15) + "..."
+        : brand.brandName,
     value: brand.totalRevenue,
     fullBrand: brand.brandName,
     orders: brand.totalOrders,
@@ -452,33 +525,37 @@ export const BrandReportSnapshotCard: React.FC<BrandReportSnapshotCardProps> = (
   }));
 
   return (
-    <StatChartCard 
-      name="Brand Report Snapshot" 
-      className={className}
-      actions={
-        <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-          <EyeIcon className="h-4 w-4 mr-1" />
-          View Details
-        </Button>
-      }
+    <StatChartCard
+      name="Brand Report Snapshot"
+      className={cn("md:max-h-auto", className)}
+      // actions={
+      //   <Button
+      //     variant="ghost"
+      //     size="sm"
+      //     className="text-blue-600 hover:text-blue-700"
+      //   >
+      //     <EyeIcon className="mr-1 h-4 w-4" />
+      //     View Details
+      //   </Button>
+      // }
     >
       {isLoading && (
-        <div className="text-center py-8 text-gray-500 text-sm">Loading brand data...</div>
+        <div className="py-8 text-center text-sm text-gray-500">
+          Loading brand data...
+        </div>
       )}
       {isError && (
-        <div className="text-center py-8 text-red-500 text-sm">Error loading brand data</div>
+        <div className="py-8 text-center text-sm text-red-500">
+          Error loading brand data
+        </div>
       )}
       {!isLoading && !isError && brands.length === 0 && (
-        <div className="text-center py-8 text-gray-500 text-sm">No brand data available</div>
+        <div className="py-8 text-center text-sm text-gray-500">
+          No brand data available
+        </div>
       )}
       {!isLoading && !isError && brands.length > 0 && (
-        <>
-          <div className="mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600">Total Active Brands</span>
-              <span className="text-lg font-bold text-gray-900">{totalActiveBrands}</span>
-            </div>
-          </div>
+        <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
           <BarChart
             config={brandChartConfig}
             data={brandChartData}
@@ -487,30 +564,49 @@ export const BrandReportSnapshotCard: React.FC<BrandReportSnapshotCardProps> = (
             showTooltip={true}
             showGrid={true}
             yAxisProps={{
-              width: 120,
+              width: 80,
             }}
             className="h-64"
           />
-          <div className="mt-4 space-y-2">
+          <div className="space-y-2">
+            <div className="">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-sm text-gray-600">
+                  Total Active Brands
+                </span>
+                <span className="text-lg font-bold text-gray-900">
+                  {totalActiveBrands}
+                </span>
+              </div>
+            </div>
             {brands.slice(0, 3).map((brand) => (
-              <div key={brand.brandId} className="flex items-center justify-between p-2 rounded-lg bg-gray-50">
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-gray-900 truncate">{brand.brandName}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs text-gray-600">{brand.totalOrders} orders</span>
-                    <span className="text-xs text-gray-500">•</span>
-                    <span className="text-xs text-gray-600">{brand.productCount} products</span>
+              <div
+                key={brand.brandId}
+                className="flex items-center justify-between rounded-lg bg-gray-50 p-3"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-semibold text-gray-900">
+                    {brand.brandName}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600">
+                      {brand.totalOrders} orders
+                    </span>
+                    <span className="text-sm text-gray-500">•</span>
+                    <span className="text-sm text-gray-600">
+                      {brand.productCount} products
+                    </span>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs font-semibold text-gray-900">
-                    ₹{(brand.totalRevenue / 1000).toFixed(0)}k
+                  <p className="text-sm font-semibold text-gray-900">
+                    {formatCurrency(brand.totalRevenue)}
                   </p>
                 </div>
               </div>
             ))}
           </div>
-        </>
+        </div>
       )}
     </StatChartCard>
   );
@@ -524,26 +620,28 @@ interface CustomerInsightHighlightsCardProps {
   brandId?: string;
 }
 
-export const CustomerInsightHighlightsCard: React.FC<CustomerInsightHighlightsCardProps> = ({ 
-  className,
-  startDate,
-  endDate,
-  brandId,
-}) => {
+export const CustomerInsightHighlightsCard: React.FC<
+  CustomerInsightHighlightsCardProps
+> = ({ className, startDate, endDate, brandId }) => {
   // Calculate default date range (last 30 days)
   const defaultEndDate = React.useMemo(() => {
-    return new Date().toISOString().split('T')[0];
+    return new Date().toISOString().split("T")[0];
   }, []);
 
   const defaultStartDate = React.useMemo(() => {
     const date = new Date();
     date.setDate(date.getDate() - 30);
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split("T")[0];
   }, []);
 
   // Fetch customer insights
   const { data: customerInsights, isLoading: isLoadingCustomers } = useQuery({
-    queryKey: ["customer-insights", startDate || defaultStartDate, endDate || defaultEndDate, brandId],
+    queryKey: [
+      "customer-insights",
+      startDate || defaultStartDate,
+      endDate || defaultEndDate,
+      brandId,
+    ],
     queryFn: async () => {
       const response = await apiGetCustomerInsights({
         startDate: startDate || defaultStartDate,
@@ -558,7 +656,11 @@ export const CustomerInsightHighlightsCard: React.FC<CustomerInsightHighlightsCa
 
   // Fetch analytics overview
   const { data: analyticsOverview, isLoading: isLoadingOverview } = useQuery({
-    queryKey: ["analytics-overview", startDate || defaultStartDate, endDate || defaultEndDate],
+    queryKey: [
+      "analytics-overview",
+      startDate || defaultStartDate,
+      endDate || defaultEndDate,
+    ],
     queryFn: async () => {
       const response = await apiGetAnalyticsOverview({
         startDate: startDate || defaultStartDate,
@@ -583,47 +685,49 @@ export const CustomerInsightHighlightsCard: React.FC<CustomerInsightHighlightsCa
   const activeCustomers = analyticsOverview?.activeCustomers || 0;
 
   // Calculate retention rate
-  const retentionRate = totalCustomers > 0 
-    ? ((returningCustomers / totalCustomers) * 100).toFixed(1)
-    : "0.0";
+  const retentionRate =
+    totalCustomers > 0
+      ? ((returningCustomers / totalCustomers) * 100).toFixed(1)
+      : "0.0";
 
   // Calculate customer acquisition rate
-  const acquisitionRate = totalCustomers > 0
-    ? ((newCustomers / totalCustomers) * 100).toFixed(1)
-    : "0.0";
+  const acquisitionRate =
+    totalCustomers > 0
+      ? ((newCustomers / totalCustomers) * 100).toFixed(1)
+      : "0.0";
 
   const insights = [
-    { 
-      metric: "Active Customers", 
-      value: activeCustomers, 
+    {
+      metric: "Active Customers",
+      value: activeCustomers,
       change: 0, // Could calculate from historical data if available
-      unit: ""
+      unit: "",
     },
-    { 
-      metric: "Conversion Rate", 
-      value: conversionRate, 
+    {
+      metric: "Conversion Rate",
+      value: conversionRate,
       change: 0,
-      unit: "%"
+      unit: "%",
     },
-    { 
-      metric: "Avg Order Value", 
-      value: averageOrderValue, 
+    {
+      metric: "Avg Order Value",
+      value: averageOrderValue,
       change: 0,
-      unit: "₹"
+      unit: "₹",
     },
-    { 
-      metric: "Retention Rate", 
-      value: parseFloat(retentionRate), 
+    {
+      metric: "Retention Rate",
+      value: parseFloat(retentionRate),
       change: 0,
-      unit: "%"
+      unit: "%",
     },
-    { 
-      metric: "Total Orders", 
-      value: totalOrders, 
+    {
+      metric: "Total Orders",
+      value: totalOrders,
       change: 0,
-      unit: ""
+      unit: "",
     },
-  ].filter(insight => insight.value > 0);
+  ].filter((insight) => insight.value > 0);
 
   const insightChartConfig = {
     value: {
@@ -633,7 +737,10 @@ export const CustomerInsightHighlightsCard: React.FC<CustomerInsightHighlightsCa
   } satisfies ChartConfig;
 
   const insightChartData = insights.map((insight) => ({
-    key: insight.metric.length > 15 ? insight.metric.substring(0, 15) + "..." : insight.metric,
+    key:
+      insight.metric.length > 15
+        ? insight.metric.substring(0, 15) + "..."
+        : insight.metric,
     value: insight.value,
     fullMetric: insight.metric,
     change: insight.change,
@@ -641,27 +748,37 @@ export const CustomerInsightHighlightsCard: React.FC<CustomerInsightHighlightsCa
   }));
 
   return (
-    <StatChartCard 
-      name="Customer Insight Highlights" 
+    <StatChartCard
+      name="Customer Insight Highlights"
       className={className}
-      actions={
-        <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-          <EyeIcon className="h-4 w-4 mr-1" />
-          View Details
-        </Button>
-      }
+      // actions={
+      //   <Button
+      //     variant="ghost"
+      //     size="sm"
+      //     className="text-blue-600 hover:text-blue-700"
+      //   >
+      //     <EyeIcon className="mr-1 h-4 w-4" />
+      //     View Details
+      //   </Button>
+      // }
     >
       {isLoading && (
-        <div className="text-center py-8 text-gray-500 text-sm">Loading insights...</div>
+        <div className="py-8 text-center text-sm text-gray-500">
+          Loading insights...
+        </div>
       )}
       {isError && (
-        <div className="text-center py-8 text-red-500 text-sm">Error loading insights</div>
+        <div className="py-8 text-center text-sm text-red-500">
+          Error loading insights
+        </div>
       )}
       {!isLoading && !isError && insights.length === 0 && (
-        <div className="text-center py-8 text-gray-500 text-sm">No insight data available</div>
+        <div className="py-8 text-center text-sm text-gray-500">
+          No insight data available
+        </div>
       )}
       {!isLoading && !isError && insights.length > 0 && (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
           <BarChart
             config={insightChartConfig}
             data={insightChartData}
@@ -670,28 +787,39 @@ export const CustomerInsightHighlightsCard: React.FC<CustomerInsightHighlightsCa
             showTooltip={true}
             showGrid={true}
             yAxisProps={{
-              width: 140,
+              width: 70,
             }}
             className="h-56"
           />
           <div className="grid grid-cols-2 gap-3">
             {insights.map((insight) => (
-              <div key={insight.metric} className="p-3 rounded-lg border border-gray-100 bg-gray-50">
-                <p className="text-xs font-medium text-gray-600 mb-1">{insight.metric}</p>
+              <div key={insight.metric} className="rounded-lg bg-gray-50 p-3">
+                <p className="text-sm font-medium text-gray-600">
+                  {insight.metric}
+                </p>
                 <div className="flex items-baseline gap-2">
-                  <p className="text-lg font-bold text-gray-900">
-                    {insight.unit && insight.unit !== "%" && insight.unit !== "₹" ? "" : insight.unit}
+                  <p className="text-muted-foreground text-lg font-bold">
+                    {/* {insight.unit &&
+                    insight.unit !== "%" &&
+                    insight.unit !== "₹"
+                      ? ""
+                      : insight.unit} */}
                     {typeof insight.value === "number" && insight.unit === "₹"
-                      ? insight.value.toLocaleString("en-IN", { maximumFractionDigits: 0 })
+                      ? insight.value.toLocaleString("en-IN", {
+                          maximumFractionDigits: 0,
+                        })
                       : insight.value.toLocaleString()}
                     {insight.unit === "%" && "%"}
-                    {insight.unit && insight.unit !== "%" && insight.unit !== "₹" && ` ${insight.unit}`}
+                    {insight.unit &&
+                      insight.unit !== "%" &&
+                      insight.unit !== "₹" &&
+                      ` ${insight.unit}`}
                   </p>
                   {insight.change !== 0 && (
                     <span
                       className={cn(
                         "text-xs font-semibold",
-                        insight.change >= 0 ? "text-green-600" : "text-red-600"
+                        insight.change >= 0 ? "text-green-600" : "text-red-600",
                       )}
                     >
                       {insight.change >= 0 ? "+" : ""}

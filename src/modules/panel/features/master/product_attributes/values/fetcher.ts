@@ -5,7 +5,12 @@ export const fetcher = (attributeId: string) => {
   console.log("Fetcher created with attributeId:", attributeId);
   return createSimpleFetcher(
     (params: any) => {
-      console.log("Fetcher called with params:", params, "attributeId:", attributeId);
+      console.log(
+        "Fetcher called with params:",
+        params,
+        "attributeId:",
+        attributeId,
+      );
       return apiGetProductAttributeValues({ ...params, attributeId });
     },
     {

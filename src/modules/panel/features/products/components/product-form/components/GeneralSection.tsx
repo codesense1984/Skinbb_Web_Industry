@@ -1,24 +1,24 @@
-import { useEffect } from 'react';
-import { Controller, useFormContext, useWatch } from 'react-hook-form';
-import { FormInput, INPUT_TYPES } from '@/core/components/ui/form-input';
-import { Button } from '@/core/components/ui/button';
-import { createSlug } from '@/core/utils/createSlug';
-import type { FormSectionBaseProps } from '../types';
+import { useEffect } from "react";
+import { Controller, useFormContext, useWatch } from "react-hook-form";
+import { FormInput, INPUT_TYPES } from "@/core/components/ui/form-input";
+import { Button } from "@/core/components/ui/button";
+import { createSlug } from "@/core/utils/createSlug";
+import type { FormSectionBaseProps } from "../types";
 
 type GeneralSectionProps = FormSectionBaseProps;
 
 const GeneralSection = ({ control, errors }: GeneralSectionProps) => {
   const nameValue = useWatch({
     control,
-    name: 'productName',
+    name: "productName",
   });
 
   const { setValue, getValues } = useFormContext();
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border">
-      <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
-      
+    <div className="rounded-lg border bg-white p-6 shadow-sm">
+      <h3 className="mb-4 text-lg font-semibold">Basic Information</h3>
+
       <div className="space-y-4">
         <FormInput
           control={control}
@@ -40,11 +40,11 @@ const GeneralSection = ({ control, errors }: GeneralSectionProps) => {
           />
           <Button
             type="button"
-            variant="outline"
+            variant="outlined"
             size="sm"
             onClick={() => {
-              const slug = createSlug(nameValue || '');
-              setValue('slug', slug);
+              const slug = createSlug(nameValue || "");
+              setValue("slug", slug);
             }}
           >
             Generate Slug
@@ -75,7 +75,7 @@ const GeneralSection = ({ control, errors }: GeneralSectionProps) => {
           type={INPUT_TYPES.FILE}
           label="Thumbnail"
           placeholder="Choose thumbnail image"
-          inputProps={{ accept: 'image/*' }}
+          inputProps={{ accept: "image/*" }}
         />
       </div>
     </div>
@@ -83,4 +83,3 @@ const GeneralSection = ({ control, errors }: GeneralSectionProps) => {
 };
 
 export default GeneralSection;
-

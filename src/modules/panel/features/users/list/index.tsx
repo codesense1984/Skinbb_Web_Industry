@@ -16,10 +16,12 @@ const UserList = () => {
         ),
       }}
     >
-      <div className="flex items-center justify-center h-64">
+      <div className="flex h-64 items-center justify-center">
         <div className="text-center">
           <h3 className="text-lg font-medium">User Management</h3>
-          <p className="text-muted-foreground">User list functionality coming soon.</p>
+          <p className="text-muted-foreground">
+            User list functionality coming soon.
+          </p>
         </div>
       </div>
     </PageContent>

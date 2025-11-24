@@ -107,7 +107,7 @@ export function DatePicker<M extends Mode = "single">({
         <button
           id={props?.id || "date-picker"}
           className={cn(
-            "relative flex cursor-pointer w-full items-center [&_svg]:size-5",
+            "relative flex w-full cursor-pointer items-center [&_svg]:size-5",
             "rounded-md outline-none",
             "focus-visible:border-primary h-10 border",
             "focus-visible:ring-primary/50 focus-visible:ring-[3px]",

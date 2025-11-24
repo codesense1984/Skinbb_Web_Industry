@@ -271,25 +271,27 @@ export const ComboBox = <T extends boolean = false>({
                 <span className="truncate">
                   {renderLabel?.(option) ?? option.label}
                 </span>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRemoveValue(option.value);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
+                {
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
                       handleRemoveValue(option.value);
-                    }
-                  }}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                  className="ring-offset-background focus:ring-ring ml-1 cursor-pointer rounded-full outline-none focus:ring-2 focus:ring-offset-2"
-                >
-                  <XIcon className="h-3 w-3" />
-                </button>
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleRemoveValue(option.value);
+                      }
+                    }}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    className="ring-offset-background focus:ring-ring ml-1 cursor-pointer rounded-full outline-none focus:ring-2 focus:ring-offset-2"
+                  >
+                    <XIcon className="h-3 w-3" />
+                  </button>
+                }
               </Badge>
             ))}
           </div>
@@ -397,7 +399,8 @@ export const ComboBox = <T extends boolean = false>({
               ) : !multi &&
                 selectedOption &&
                 !Array.isArray(selectedOption) &&
-                clearable ? (
+                clearable &&
+                !disabled ? (
                 <span
                   onClick={(e) => {
                     e.stopPropagation();
@@ -463,12 +466,16 @@ export const ComboBox = <T extends boolean = false>({
                     ? Array.isArray(value) && value.includes(option.value)
                     : value === option.value;
 
+                  const isReadMore = option.value === "__load_more__";
                   return (
                     <CommandItem
                       disabled={option.disabled}
                       key={option.value}
                       value={option.value}
                       onSelect={() => {
+                        if (isReadMore) {
+                          return;
+                        }
                         if (multi) {
                           const currentValues = Array.isArray(value)
                             ? value

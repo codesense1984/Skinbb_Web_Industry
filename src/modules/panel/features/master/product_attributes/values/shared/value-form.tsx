@@ -1,10 +1,19 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/core/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/core/components/ui/card";
 import { Form } from "@/core/components/ui/form";
 import { Input } from "@/core/components/ui/input";
-import { productAttributeValueFormSchema, generateValue, type ProductAttributeValueFormData } from "./formSchema";
+import {
+  productAttributeValueFormSchema,
+  generateValue,
+  type ProductAttributeValueFormData,
+} from "./formSchema";
 import { useState } from "react";
 
 interface ProductAttributeValueFormProps {
@@ -49,15 +58,22 @@ export default function ProductAttributeValueForm({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{attributeName ? `${attributeName} Attribute` : "Attribute Value"}</CardTitle>
+        <CardTitle>
+          {attributeName ? `${attributeName} Attribute` : "Attribute Value"}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               {/* Label Field */}
               <div className="space-y-2">
-                <label htmlFor="label" className="text-sm font-medium">Attribute Label *</label>
+                <label htmlFor="label" className="text-sm font-medium">
+                  Attribute Label *
+                </label>
                 <Input
                   id="label"
                   {...form.register("label")}
@@ -72,7 +88,9 @@ export default function ProductAttributeValueForm({
 
               {/* Value Field */}
               <div className="space-y-2">
-                <label htmlFor="value" className="text-sm font-medium">Attribute Value *</label>
+                <label htmlFor="value" className="text-sm font-medium">
+                  Attribute Value *
+                </label>
                 <div className="flex space-x-2">
                   <Input
                     id="value"
@@ -95,7 +113,6 @@ export default function ProductAttributeValueForm({
                   </p>
                 )}
               </div>
-
             </div>
 
             {/* Submit Button */}

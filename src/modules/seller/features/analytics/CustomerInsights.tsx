@@ -1,7 +1,7 @@
-import { ComingSoon } from "@/core/components/ui/coming-soon";
+import PlatformAnalytics from "@/modules/analytics/features/platform";
 
 const CustomerInsights = () => {
-  return <ComingSoon title="Customer Insights" />;
+  return <PlatformAnalytics />;
 };
 
 export default CustomerInsights;

@@ -56,7 +56,17 @@ export default function TagForm() {
     queryKey: ["product-tag-v2", id],
     queryFn: async () => {
       const response = await apiGetProductTags({ page: 1, limit: 1000 });
-      return response as { data?: { tags?: Array<{ _id: string; name: string; slug: string; description?: string; seoKeywords?: string[] }> } };
+      return response as {
+        data?: {
+          tags?: Array<{
+            _id: string;
+            name: string;
+            slug: string;
+            description?: string;
+            seoKeywords?: string[];
+          }>;
+        };
+      };
     },
     enabled: isEdit || isView,
     select: (data) => {
@@ -91,7 +101,8 @@ export default function TagForm() {
 
   // Update tag mutation
   const updateTagMutation = useMutation({
-    mutationFn: (data: TagFormData) => apiUpdateProductTag(id!, { ...data, _id: id! }),
+    mutationFn: (data: TagFormData) =>
+      apiUpdateProductTag(id!, { ...data, _id: id! }),
     onSuccess: () => {
       toast.success("Tag updated successfully");
       navigate(PANEL_ROUTES.MASTER.PRODUCT_TAG);
@@ -207,7 +218,10 @@ export default function TagForm() {
               />
 
               <div className="space-y-2">
-                <label htmlFor="seo-keywords" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="seo-keywords"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   SEO Keywords
                 </label>
                 <div className="space-y-2">
@@ -222,7 +236,7 @@ export default function TagForm() {
                           setValue("seoKeywords", newKeywords);
                         }}
                         disabled={mode === MODE.VIEW}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                         placeholder="Enter SEO keyword"
                       />
                       {mode !== MODE.VIEW && (
@@ -231,7 +245,10 @@ export default function TagForm() {
                           variant="outlined"
                           size="sm"
                           onClick={() => {
-                            const newKeywords = watch("seoKeywords")?.filter((_, i) => i !== index) || [];
+                            const newKeywords =
+                              watch("seoKeywords")?.filter(
+                                (_, i) => i !== index,
+                              ) || [];
                             setValue("seoKeywords", newKeywords);
                           }}
                         >
@@ -255,7 +272,6 @@ export default function TagForm() {
                   )}
                 </div>
               </div>
-
             </div>
           </form>
         </Form>

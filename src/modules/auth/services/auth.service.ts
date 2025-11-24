@@ -3,6 +3,7 @@ import localStorage from "@/core/store/localStorage";
 import { QueryClient } from "@tanstack/react-query";
 import type { LoggedUser } from "../types/user.type";
 import type { SellerInfo } from "../types/seller.type";
+import type { DoctorInfo } from "../types/doctor.type";
 import { getSellerInfo, type LoginSuccess } from "./http/auth.service";
 import { STATUS_MAP } from "@/core/config/status";
 import type { AxiosError } from "axios";
@@ -14,6 +15,7 @@ import type { AxiosError } from "axios";
 export const QK = {
   ME: ["me"] as const,
   SELLER_INFO: ["seller-info"] as const,
+  DOCTOR_INFO: ["doctor-info"] as const,
 };
 
 export type AuthSnapshot = {
@@ -24,6 +26,7 @@ export type AuthSnapshot = {
 export type AuthQueryData = Required<AuthSnapshot> & {
   user: LoggedUser;
   sellerInfo?: SellerInfo;
+  doctorInfo?: DoctorInfo;
 };
 
 const COOKIE_PREFIX = import.meta.env.VITE_COOKIE_PREFIX || "";
@@ -58,7 +61,7 @@ export async function setAuthCookies(
       await cookieStorage.setItem(COOKIE_KEY.ACCESS, accessToken, opts);
       // If cookie save succeeded, remove from localStorage if it exists there
       localStorage.removeItem(COOKIE_KEY.ACCESS);
-    } catch (error) {
+    } catch {
       // Fallback to localStorage for large tokens
       localStorage.setItem(COOKIE_KEY.ACCESS, accessToken);
     }
@@ -72,7 +75,7 @@ export async function setAuthCookies(
       cookieStorage
         .setItem(COOKIE_KEY.REFRESH, refreshToken, opts)
         .catch((error) => {
-          console.error(`Failed to save refreshToken:`, error);
+          console.error("Failed to save refreshToken:", error);
           throw error;
         }),
     );
@@ -80,7 +83,7 @@ export async function setAuthCookies(
   if (userId) {
     promises.push(
       cookieStorage.setItem(COOKIE_KEY.USER_ID, userId, opts).catch((error) => {
-        console.error(`Failed to save userId:`, error);
+        console.error("Failed to save userId:", error);
         throw error;
       }),
     );
@@ -90,7 +93,7 @@ export async function setAuthCookies(
       cookieStorage
         .setItem(COOKIE_KEY.REMEMBER, String(remember), opts)
         .catch((error) => {
-          console.error(`Failed to save remember:`, error);
+          console.error("Failed to save remember:", error);
           throw error;
         }),
     );
@@ -147,6 +150,18 @@ export function clearUserLS() {
  */
 function isSellerRole(roleValue: string): boolean {
   return ["seller-member", "seller"].includes(roleValue);
+}
+function isDistributorRole(roleValue: string): boolean {
+  return ["distributor"].includes(roleValue);
+}
+
+/**
+ * Checks if a user has doctor role
+ * @param roleValue - User's role value
+ * @returns boolean - True if user is doctor
+ */
+function isDoctorRole(roleValue: string): boolean {
+  return ["doctor"].includes(roleValue);
 }
 
 /**
@@ -206,7 +221,7 @@ async function fetchSellerInfoIfNeeded(
     );
     return response.data;
   } catch (error) {
-    let errorInstance = error as AxiosError;
+    const errorInstance = error as AxiosError;
     console.error(`Failed to fetch seller info for user ${userId}:`, error);
 
     // if (error instanceof Error && error.message === "Seller pending") {
@@ -214,6 +229,57 @@ async function fetchSellerInfoIfNeeded(
     // }
     // Clear auth and throw error to redirect to login
     await logout(qc);
+    throw new Error(
+      errorInstance?.message || "Authentication failed - please login again",
+    );
+  }
+}
+
+/**
+ * Fetches doctor info only when cache is empty for doctor role
+ * @param qc - Query client instance
+ * @param userId - User ID to fetch doctor info for
+ * @param me - Current auth data object
+ * @returns Promise<DoctorInfo | undefined> - Doctor info or undefined if not needed
+ */
+async function fetchDoctorInfoIfNeeded(
+  qc: QueryClient,
+  userId: string,
+  me: AuthQueryData,
+): Promise<DoctorInfo | undefined> {
+  // Check if doctor info already exists in cache
+  const existingDoctorInfo = qc.getQueryData<DoctorInfo>([
+    ...QK.DOCTOR_INFO,
+    userId,
+  ]);
+
+  if (existingDoctorInfo) {
+    return existingDoctorInfo;
+  }
+
+  try {
+    console.log(`Fetching doctor info for user: ${userId}`);
+    // const response = await getDoctorInfo(userId);
+
+    // Update both the doctor info cache and the ME query
+    // qc.setQueryData([...QK.DOCTOR_INFO, userId], response.data);
+    qc.setQueryData(QK.ME, {
+      ...me,
+      // doctorInfo: response.data,
+    });
+
+    console.log(
+      `Successfully fetched and cached doctor info for user: ${userId}`,
+    );
+    // Return undefined for now since API call is commented out
+    // TODO: Uncomment and return response.data when API is ready
+    return undefined;
+  } catch (error) {
+    const errorInstance = error as AxiosError;
+    console.error(`Failed to fetch doctor info for user ${userId}:`, error);
+
+    // Clear auth and throw error to redirect to login
+    logout(qc);
     throw new Error(
       errorInstance?.message || "Authentication failed - please login again",
     );
@@ -249,6 +315,13 @@ export async function onLoginSuccess(
     // Automatically fetch seller info for seller and seller-member roles (only if cache is empty)
     if (isSellerRole(u.roleValue)) {
       await fetchSellerInfoIfNeeded(qc, u._id, me);
+    } else if (isDoctorRole(u.roleValue)) {
+      // Automatically fetch doctor info for doctor role (only if cache is empty)
+      await fetchDoctorInfoIfNeeded(qc, u._id, me);
+    
+    } else if (isDistributorRole(u.roleValue)) {
+      // Automatically fetch doctor info for doctor role (only if cache is empty)
+      await fetchDoctorInfoIfNeeded(qc, u._id, me);
     } else {
       qc.setQueryData(QK.ME, me);
     }
@@ -260,6 +333,7 @@ export async function logout(qc?: QueryClient) {
   clearUserLS();
   qc?.removeQueries({ queryKey: QK.ME, exact: true });
   qc?.removeQueries({ queryKey: QK.SELLER_INFO, exact: true });
+  qc?.removeQueries({ queryKey: QK.DOCTOR_INFO, exact: true });
 }
 
 export function hasAuth() {
@@ -281,6 +355,9 @@ export async function bootstrapAuthCache(qc: QueryClient) {
     // Fetch seller info if user role is seller-member or seller (only if cache is empty)
     if (isSellerRole(user.roleValue)) {
       await fetchSellerInfoIfNeeded(qc, user._id, me);
+    } else if (isDoctorRole(user.roleValue)) {
+      // Fetch doctor info if user role is doctor (only if cache is empty)
+      await fetchDoctorInfoIfNeeded(qc, user._id, me);
     }
 
     return me;

@@ -4,6 +4,7 @@ import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth";
 import { useNavigate } from "react-router";
 import { SELLER_ROUTES } from "../routes/constant";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
+import { useEntityCacheActions } from "@/core/store/hooks";
 
 interface SellerCompanyViewProps {
   showViewUsersAction?: boolean;
@@ -12,7 +13,12 @@ interface SellerCompanyViewProps {
     description?: string;
     actions?: React.ReactNode;
   };
-  onViewBrands?: (companyId: string, locationId: string) => void;
+  onViewBrands?: (props: {
+    companyId: string;
+    locationId: string;
+    companyName: string;
+    locationName: string;
+  }) => void;
   onViewProducts?: (companyId: string, locationId: string) => void;
   onViewUsers?: (companyId: string) => void;
 }
@@ -25,6 +31,7 @@ const SellerCompanyView: React.FC<SellerCompanyViewProps> = ({
   onViewUsers,
 }) => {
   const navigate = useNavigate();
+  const { setCompany, setLocation } = useEntityCacheActions();
   const { sellerInfo, isLoading, isError, getCompanyId } = useSellerAuth();
 
   console.log(sellerInfo);
@@ -76,18 +83,30 @@ const SellerCompanyView: React.FC<SellerCompanyViewProps> = ({
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
-          <p className="text-gray-600">Company ID not found in seller information</p>
+          <p className="text-gray-600">
+            Company ID not found in seller information
+          </p>
         </div>
       </div>
     );
   }
 
-  const handleViewBrands = (companyId: string, locationId: string) => {
+  const handleViewBrands = (props: {
+    companyId: string;
+    locationId: string;
+    companyName: string;
+    locationName: string;
+  }) => {
     if (onViewBrands) {
-      onViewBrands(companyId, locationId);
+      onViewBrands(props);
     } else {
       // Navigate to brands list for this specific location
-      navigate(SELLER_ROUTES.BRANDS.LIST(companyId, locationId));
+      setCompany({ id: props.companyId, name: props.companyName });
+      setLocation({ id: props.locationId, name: props.locationName });
+      navigate(
+        SELLER_ROUTES.BRAND.LIST +
+          `?companyId=${props.companyId}&locationId=${props.locationId}`,
+      );
     }
   };
 
@@ -96,7 +115,9 @@ const SellerCompanyView: React.FC<SellerCompanyViewProps> = ({
       onViewProducts(companyId, locationId);
     } else {
       // Navigate to products list for this specific location
-      navigate(SELLER_ROUTES.COMPANY_LOCATION_PRODUCTS.LIST(companyId, locationId));
+      navigate(
+        SELLER_ROUTES.COMPANY_LOCATION_PRODUCTS.LIST(companyId, locationId),
+      );
     }
   };
 
@@ -105,7 +126,7 @@ const SellerCompanyView: React.FC<SellerCompanyViewProps> = ({
       onViewUsers(companyId);
     } else {
       // Navigate to company users list
-      navigate(SELLER_ROUTES.USERS.LIST(companyId));
+      navigate(SELLER_ROUTES.USERS.LIST());
     }
   };
 

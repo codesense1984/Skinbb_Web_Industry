@@ -145,7 +145,7 @@ const SellerOrders: React.FC = () => {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
+          <Button variant="outlined">
             <Download className="mr-2 h-4 w-4" />
             Export
           </Button>
@@ -180,7 +180,7 @@ const SellerOrders: React.FC = () => {
                 <option value="delivered">Delivered</option>
                 <option value="cancelled">Cancelled</option>
               </select>
-              <Button variant="outline">
+              <Button variant="outlined">
                 <Filter className="mr-2 h-4 w-4" />
                 More Filters
               </Button>
@@ -228,18 +228,18 @@ const SellerOrders: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex flex-col gap-2 sm:flex-row">
-                  <Button size="sm" variant="outline" asChild>
+                  <Button size="sm" variant="outlined" asChild>
                     <Link to={SELLER_ROUTES.ORDERS.VIEW(order.id)}>
                       <Eye className="mr-1 h-4 w-4" />
                       View Details
                     </Link>
                   </Button>
                   {getStatusActions(order.status).map((action) => (
-                    <Button key={action} size="sm" variant="outline">
+                    <Button key={action} size="sm" variant="outlined">
                       {action}
                     </Button>
                   ))}
-                  <Button size="sm" variant="outline">
+                  <Button size="sm" variant="outlined">
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
                 </div>

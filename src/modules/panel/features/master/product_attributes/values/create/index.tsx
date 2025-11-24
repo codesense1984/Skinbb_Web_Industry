@@ -19,10 +19,14 @@ export default function CreateProductAttributeValue() {
           description: "Add a new attribute value",
         }}
       >
-        <div className="flex items-center justify-center h-64">
+        <div className="flex h-64 items-center justify-center">
           <div className="text-center">
-            <h3 className="text-lg font-medium text-gray-900">Invalid attribute</h3>
-            <p className="text-gray-500">The attribute ID or name is missing.</p>
+            <h3 className="text-lg font-medium text-gray-900">
+              Invalid attribute
+            </h3>
+            <p className="text-gray-500">
+              The attribute ID or name is missing.
+            </p>
           </div>
         </div>
       </PageContent>
@@ -30,7 +34,8 @@ export default function CreateProductAttributeValue() {
   }
 
   const createMutation = useMutation({
-    mutationFn: (data: ProductAttributeValueFormData) => apiCreateProductAttributeValue(id, data),
+    mutationFn: (data: ProductAttributeValueFormData) =>
+      apiCreateProductAttributeValue(id, data),
     onSuccess: (response) => {
       toast.success(response.message || "Attribute value created successfully");
       navigate(PANEL_ROUTES.MASTER.PRODUCT_ATTRIBUTE_VALUES(id, name));

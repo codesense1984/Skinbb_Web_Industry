@@ -5,4 +5,3 @@ const ApiIntegrations = () => {
 };
 
 export default ApiIntegrations;
-

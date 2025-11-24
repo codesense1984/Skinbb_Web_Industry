@@ -143,6 +143,7 @@ export const columns: ColumnDef<CompanyListItem>[] = [
     header: "Company Name",
     accessorKey: "companyName",
     size: 250,
+    enableHiding: false,
     cell: ({ row }) => (
       <div className="flex items-center gap-3 font-medium">
         <span className="break-all">
@@ -189,11 +190,15 @@ export const columns: ColumnDef<CompanyListItem>[] = [
         >
           {row.original.companyStatus}
         </StatusBadge>
-        {row.original.companyStatus === "rejected" && row.original.statusChangeReason && (
-          <div className="text-xs text-red-600 max-w-[180px] truncate" title={row.original.statusChangeReason}>
-            Reason: {row.original.statusChangeReason}
-          </div>
-        )}
+        {row.original.companyStatus === "rejected" &&
+          row.original.statusChangeReason && (
+            <div
+              className="max-w-[180px] truncate text-xs text-red-600"
+              title={row.original.statusChangeReason}
+            >
+              Reason: {row.original.statusChangeReason}
+            </div>
+          )}
       </div>
     ),
     filterFn: (row, id, value) => {

@@ -1,55 +1,80 @@
-import React from "react";
-import { useParams, useNavigate } from "react-router";
-import { PageContent } from "@/core/components/ui/structure";
-import { Button } from "@/core/components/ui/button";
 import { StatusBadge } from "@/core/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
+import { Button } from "@/core/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/core/components/ui/card";
+import { PageContent } from "@/core/components/ui/structure";
 import { formatDate } from "@/core/utils";
-import { SELLER_ROUTES } from "../routes/constant";
 import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth";
-import { useQuery } from "@tanstack/react-query";
 import { apiGetCompanyLocationBrandById } from "@/modules/panel/services/http/company.service";
-import { ArrowLeftIcon, PencilIcon } from "@heroicons/react/24/solid";
-import { 
-  CalendarIcon, 
+import {
+  CalendarIcon,
+  GlobeAltIcon,
   TagIcon,
-  GlobeAltIcon
 } from "@heroicons/react/24/outline";
-
+import { ArrowLeftIcon, PencilIcon } from "@heroicons/react/24/solid";
+import { useQuery } from "@tanstack/react-query";
+import React from "react";
+import { useNavigate, useParams } from "react-router";
+import { SELLER_ROUTES } from "../routes/constant";
 
 const SellerBrandView: React.FC = () => {
   const { companyId, locationId, brandId } = useParams();
   const navigate = useNavigate();
-  const { sellerInfo, isLoading: sellerLoading, isError: sellerError, getCompanyId, getPrimaryAddress } = useSellerAuth();
+  const {
+    sellerInfo,
+    isLoading: sellerLoading,
+    isError: sellerError,
+    getCompanyId,
+    getPrimaryAddress,
+  } = useSellerAuth();
 
   // Get companyId and locationId from params or seller auth
   const finalCompanyId = companyId || getCompanyId();
   const finalLocationId = locationId || getPrimaryAddress()?.addressId;
 
   // Fetch brand data using the correct API
-  const { data: brandData, isLoading: brandLoading, error: brandError } = useQuery({
+  const {
+    data: brandData,
+    isLoading: brandLoading,
+    error: brandError,
+  } = useQuery({
     queryKey: ["brand", finalCompanyId, finalLocationId, brandId],
-    queryFn: () => apiGetCompanyLocationBrandById(finalCompanyId!, finalLocationId!, brandId!),
+    queryFn: () =>
+      apiGetCompanyLocationBrandById(
+        finalCompanyId!,
+        finalLocationId!,
+        brandId!,
+      ),
     enabled: !!finalCompanyId && !!finalLocationId && !!brandId,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // If no brandId, redirect to brands list
-      if (!brandId) {
-        navigate(SELLER_ROUTES.BRANDS.LIST(finalCompanyId!, finalLocationId!));
-        return null;
-      }
+  if (!brandId) {
+    navigate(
+      SELLER_ROUTES.BRAND.LIST +
+        `?companyId=${finalCompanyId}&locationId=${finalLocationId}`,
+    );
+    return null;
+  }
 
   if (!finalCompanyId || !finalLocationId) {
     return (
       <PageContent
         header={{
           title: "Brand Details",
-          description: "Company ID and Location ID are required to view brand details.",
+          description:
+            "Company ID and Location ID are required to view brand details.",
         }}
       >
         <div className="py-8 text-center">
-          <p className="text-gray-500">Invalid company or location ID provided.</p>
+          <p className="text-gray-500">
+            Invalid company or location ID provided.
+          </p>
         </div>
       </PageContent>
     );
@@ -106,17 +131,28 @@ const SellerBrandView: React.FC = () => {
         actions: (
           <div className="flex gap-2">
             <Button
-              onClick={() => navigate(SELLER_ROUTES.BRANDS.LIST(finalCompanyId!, finalLocationId!))}
+              onClick={() =>
+                navigate(
+                  // SELLER_ROUTES.BRAND.LIST(finalCompanyId!, finalLocationId!),
+                  SELLER_ROUTES.BRAND.LIST +
+                    `?companyId=${finalCompanyId}&locationId=${finalLocationId}`,
+                )
+              }
               variant="outlined"
-              className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
+              className="border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50"
             >
               <ArrowLeftIcon className="mr-2 h-4 w-4" />
               Back to Brands
             </Button>
             <Button
-              onClick={() => navigate(SELLER_ROUTES.BRANDS.EDIT(finalCompanyId!, finalLocationId!, brandId!))}
+              onClick={() =>
+                navigate(
+                  SELLER_ROUTES.BRAND.EDIT +
+                    `?companyId=${finalCompanyId}&locationId=${finalLocationId}&brandId=${brandId}`,
+                )
+              }
               variant="outlined"
-              className="border-blue-300 text-blue-700 hover:bg-blue-50 hover:border-blue-400"
+              className="border-blue-300 text-blue-700 hover:border-blue-400 hover:bg-blue-50"
             >
               <PencilIcon className="mr-2 h-4 w-4" />
               Edit Brand
@@ -140,16 +176,16 @@ const SellerBrandView: React.FC = () => {
                 </div>
               )}
               <div className="flex-1">
-        <div className="mb-2 flex items-center gap-3">
-          <h1 className="text-foreground text-2xl font-bold">
-            {brand.name}
-          </h1>
-          <StatusBadge
-            module="brand"
-            variant="contained"
-            status={brand.status}
-          />
-        </div>
+                <div className="mb-2 flex items-center gap-3">
+                  <h1 className="text-foreground text-2xl font-bold">
+                    {brand.name}
+                  </h1>
+                  <StatusBadge
+                    module="brand"
+                    variant="contained"
+                    status={brand.status || ""}
+                  />
+                </div>
                 {brand.aboutTheBrand && (
                   <p className="mt-2 text-sm text-gray-600">
                     {brand.aboutTheBrand}
@@ -182,60 +218,62 @@ const SellerBrandView: React.FC = () => {
           <CardContent>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div className="flex items-center gap-3">
-                <div className="bg-gray-100 border border-gray-200 rounded-lg p-2">
+                <div className="rounded-lg border border-gray-200 bg-gray-100 p-2">
                   <TagIcon className="h-4 w-4 text-gray-600" />
                 </div>
                 <div>
-                  <p className="text-gray-500 text-xs font-medium">Brand Name</p>
-                  <p className="text-gray-900 font-medium">
-                    {brand.name}
+                  <p className="text-xs font-medium text-gray-500">
+                    Brand Name
                   </p>
+                  <p className="font-medium text-gray-900">{brand.name}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <div className="bg-gray-100 border border-gray-200 rounded-lg p-2">
+                <div className="rounded-lg border border-gray-200 bg-gray-100 p-2">
                   <TagIcon className="h-4 w-4 text-gray-600" />
                 </div>
                 <div>
-                  <p className="text-gray-500 text-xs font-medium">Slug</p>
-                  <p className="text-gray-900 font-medium">
-                    {brand.slug}
-                  </p>
+                  <p className="text-xs font-medium text-gray-500">Slug</p>
+                  <p className="font-medium text-gray-900">{brand.slug}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <div className="bg-gray-100 border border-gray-200 rounded-lg p-2">
+                <div className="rounded-lg border border-gray-200 bg-gray-100 p-2">
                   <CalendarIcon className="h-4 w-4 text-gray-600" />
                 </div>
                 <div>
-                  <p className="text-gray-500 text-xs font-medium">Status Changed</p>
-                  <p className="text-gray-900 font-medium">
-                    {brand.statusChangedAt ? formatDate(brand.statusChangedAt) : "N/A"}
+                  <p className="text-xs font-medium text-gray-500">
+                    Status Changed
+                  </p>
+                  <p className="font-medium text-gray-900">
+                    {brand.statusChangedAt
+                      ? formatDate(brand.statusChangedAt)
+                      : "N/A"}
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <div className="bg-gray-100 border border-gray-200 rounded-lg p-2">
+                <div className="rounded-lg border border-gray-200 bg-gray-100 p-2">
                   <TagIcon className="h-4 w-4 text-gray-600" />
                 </div>
                 <div>
-                  <p className="text-gray-500 text-xs font-medium">Status</p>
-                  <p className="text-gray-900 font-medium capitalize">
+                  <p className="text-xs font-medium text-gray-500">Status</p>
+                  <p className="font-medium text-gray-900 capitalize">
                     {brand.status}
                   </p>
                 </div>
               </div>
             </div>
             {brand.statusChangeReason && (
-              <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+              <div className="mt-4 rounded-lg bg-gray-50 p-3">
                 <p className="text-sm text-gray-600">
-                  <strong>Status Change Reason:</strong> {brand.statusChangeReason}
+                  <strong>Status Change Reason:</strong>{" "}
+                  {brand.statusChangeReason}
                 </p>
               </div>
             )}
           </CardContent>
         </Card>
-
       </div>
     </PageContent>
   );

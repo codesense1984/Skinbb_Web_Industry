@@ -1,11 +1,23 @@
 import { Button } from "@/core/components/ui/button";
 import { ComboBox } from "@/core/components/ui/combo-box";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/core/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/core/components/ui/table";
 import { useDebounce } from "@/core/hooks/useDebounce";
 import { cn } from "@/core/utils";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { useState, useEffect } from "react";
-import { autocompleteIngredient, fetchProductsByIngredient, fetchIngredientsByProduct, type Node } from "./data";
+import {
+  autocompleteIngredient,
+  fetchProductsByIngredient,
+  fetchIngredientsByProduct,
+  type Node,
+} from "./data";
 import type { Option } from "@/core/types";
 
 interface RelationshipPreviewListProps {
@@ -23,25 +35,33 @@ interface NavigationState {
   ingredients: Node[];
 }
 
-const RelationshipPreviewList = ({ className, height = "100dvh" }: RelationshipPreviewListProps) => {
+const RelationshipPreviewList = ({
+  className,
+  height = "100dvh",
+}: RelationshipPreviewListProps) => {
   const [navigationState, setNavigationState] = useState<NavigationState>({
     level: 0,
     selectedIngredient: null,
     selectedProduct: null,
     products: [],
-    ingredients: []
+    ingredients: [],
   });
-
 
   const handleIngredientSelect = async (ingredient: Node) => {
     console.log("🚀 ~ handleIngredientSelect ~ ingredient:", ingredient);
     console.log("🚀 ~ handleIngredientSelect ~ ingredient.id:", ingredient.id);
-    console.log("🚀 ~ handleIngredientSelect ~ ingredient.label:", ingredient.label);
-    
+    console.log(
+      "🚀 ~ handleIngredientSelect ~ ingredient.label:",
+      ingredient.label,
+    );
+
     // Use label as id if id is undefined
     const ingredientId = ingredient.id || ingredient.label;
-    console.log("🚀 ~ handleIngredientSelect ~ using ingredientId:", ingredientId);
-    
+    console.log(
+      "🚀 ~ handleIngredientSelect ~ using ingredientId:",
+      ingredientId,
+    );
+
     const products = await fetchProductsByIngredient(ingredientId);
     console.log("🚀 ~ handleIngredientSelect ~ products:", products);
     setNavigationState({
@@ -49,65 +69,68 @@ const RelationshipPreviewList = ({ className, height = "100dvh" }: RelationshipP
       selectedIngredient: ingredient,
       selectedProduct: null,
       products,
-      ingredients: []
+      ingredients: [],
     });
   };
 
   const handleProductSelect = async (product: Node) => {
     const ingredients = await fetchIngredientsByProduct(product.id);
-    setNavigationState(prev => ({
+    setNavigationState((prev) => ({
       ...prev,
       level: 2,
       selectedProduct: product,
-      ingredients
+      ingredients,
     }));
   };
 
   const handlePrevious = () => {
     if (navigationState.level === 2) {
-      setNavigationState(prev => ({
+      setNavigationState((prev) => ({
         ...prev,
         level: 1,
         selectedProduct: null,
-        ingredients: []
+        ingredients: [],
       }));
     } else if (navigationState.level === 1) {
-      setNavigationState(prev => ({
+      setNavigationState((prev) => ({
         ...prev,
         level: 0,
         selectedIngredient: null,
         products: [],
-        ingredients: []
+        ingredients: [],
       }));
     }
   };
 
   const handleNext = () => {
     if (navigationState.level === 0 && navigationState.selectedIngredient) {
-      setNavigationState(prev => ({
+      setNavigationState((prev) => ({
         ...prev,
-        level: 1
+        level: 1,
       }));
     } else if (navigationState.level === 1 && navigationState.selectedProduct) {
-      setNavigationState(prev => ({
+      setNavigationState((prev) => ({
         ...prev,
-        level: 2
+        level: 2,
       }));
     }
   };
 
   const canGoPrevious = navigationState.level > 0;
-  const canGoNext = 
+  const canGoNext =
     (navigationState.level === 0 && navigationState.selectedIngredient) ||
     (navigationState.level === 1 && navigationState.selectedProduct);
 
-  console.log("🚀 ~ RelationshipPreviewList ~ navigationState:", navigationState);
-  
+  console.log(
+    "🚀 ~ RelationshipPreviewList ~ navigationState:",
+    navigationState,
+  );
+
   return (
     <div
       className={cn(
         "bg-muted relative flex h-full flex-col border inset-shadow-sm",
-        className
+        className,
       )}
       style={{ height }}
     >
@@ -115,24 +138,25 @@ const RelationshipPreviewList = ({ className, height = "100dvh" }: RelationshipP
       <div className="flex items-center justify-between border-b p-4">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium">
-            Level {navigationState.level}: {
-              navigationState.level === 0 ? "Select Ingredient" :
-              navigationState.level === 1 ? "Products" :
-              "Ingredients"
-            }
+            Level {navigationState.level}:{" "}
+            {navigationState.level === 0
+              ? "Select Ingredient"
+              : navigationState.level === 1
+                ? "Products"
+                : "Ingredients"}
           </span>
           {navigationState.selectedIngredient && (
-            <span className="text-xs text-muted-foreground">
+            <span className="text-muted-foreground text-xs">
               → {navigationState.selectedIngredient.label}
             </span>
           )}
           {navigationState.selectedProduct && (
-            <span className="text-xs text-muted-foreground">
+            <span className="text-muted-foreground text-xs">
               → {navigationState.selectedProduct.label}
             </span>
           )}
         </div>
-        
+
         <div className="flex items-center gap-2">
           <Button
             variant="outlined"
@@ -160,15 +184,19 @@ const RelationshipPreviewList = ({ className, height = "100dvh" }: RelationshipP
         {navigationState.level === 0 ? (
           <IngredientSelector onSelect={handleIngredientSelect} />
         ) : (
-          <div className="h-full flex">
+          <div className="flex h-full">
             {/* Level 1: Selected Ingredient */}
             {navigationState.selectedIngredient && (
               <div className="flex-1 border-r">
-                <div className="p-4 h-full">
-                  <h3 className="text-lg font-semibold mb-4">Selected Ingredient</h3>
-                  <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
-                    <div className="text-lg font-medium">{navigationState.selectedIngredient.label}</div>
-                    <div className="text-sm text-muted-foreground mt-2">
+                <div className="h-full p-4">
+                  <h3 className="mb-4 text-lg font-semibold">
+                    Selected Ingredient
+                  </h3>
+                  <div className="bg-primary/10 border-primary/20 rounded-lg border p-4">
+                    <div className="text-lg font-medium">
+                      {navigationState.selectedIngredient.label}
+                    </div>
+                    <div className="text-muted-foreground mt-2 text-sm">
                       {navigationState.products.length} products found
                     </div>
                   </div>
@@ -180,8 +208,8 @@ const RelationshipPreviewList = ({ className, height = "100dvh" }: RelationshipP
             {navigationState.level >= 1 && (
               <div className="flex items-center justify-center px-2">
                 <div className="flex items-center">
-                  <div className="w-12 h-0.5 bg-primary"></div>
-                  <div className="w-0 h-0 border-l-4 border-l-primary border-t-4 border-t-transparent border-b-4 border-b-transparent ml-1"></div>
+                  <div className="bg-primary h-0.5 w-12"></div>
+                  <div className="border-l-primary ml-1 h-0 w-0 border-t-4 border-b-4 border-l-4 border-t-transparent border-b-transparent"></div>
                 </div>
               </div>
             )}
@@ -189,20 +217,24 @@ const RelationshipPreviewList = ({ className, height = "100dvh" }: RelationshipP
             {/* Level 1: Products Table */}
             {navigationState.level >= 1 && (
               <div className="flex-1 border-r">
-                <div className="p-4 h-full">
-                  <h3 className="text-lg font-semibold mb-4">Products</h3>
+                <div className="h-full p-4">
+                  <h3 className="mb-4 text-lg font-semibold">Products</h3>
                   {navigationState.selectedProduct && (
                     <div className="mb-4">
-                      <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 mb-4">
-                        <div className="text-sm font-medium">Selected Product</div>
-                        <div className="text-lg font-medium">{navigationState.selectedProduct.label}</div>
-                        <div className="text-sm text-muted-foreground mt-1">
+                      <div className="bg-primary/10 border-primary/20 mb-4 rounded-lg border p-3">
+                        <div className="text-sm font-medium">
+                          Selected Product
+                        </div>
+                        <div className="text-lg font-medium">
+                          {navigationState.selectedProduct.label}
+                        </div>
+                        <div className="text-muted-foreground mt-1 text-sm">
                           {navigationState.ingredients.length} ingredients found
                         </div>
                       </div>
                     </div>
                   )}
-                  <ProductsTable 
+                  <ProductsTable
                     products={navigationState.products}
                     onProductSelect={handleProductSelect}
                     selectedProduct={navigationState.selectedProduct}
@@ -215,8 +247,8 @@ const RelationshipPreviewList = ({ className, height = "100dvh" }: RelationshipP
             {navigationState.level >= 2 && navigationState.selectedProduct && (
               <div className="flex items-center justify-center px-2">
                 <div className="flex items-center">
-                  <div className="w-12 h-0.5 bg-primary"></div>
-                  <div className="w-0 h-0 border-l-4 border-l-primary border-t-4 border-t-transparent border-b-4 border-b-transparent ml-1"></div>
+                  <div className="bg-primary h-0.5 w-12"></div>
+                  <div className="border-l-primary ml-1 h-0 w-0 border-t-4 border-b-4 border-l-4 border-t-transparent border-b-transparent"></div>
                 </div>
               </div>
             )}
@@ -224,8 +256,8 @@ const RelationshipPreviewList = ({ className, height = "100dvh" }: RelationshipP
             {/* Level 2: Ingredients Table */}
             {navigationState.level >= 2 && navigationState.selectedProduct && (
               <div className="flex-1">
-                <div className="p-4 h-full">
-                  <h3 className="text-lg font-semibold mb-4">Ingredients</h3>
+                <div className="h-full p-4">
+                  <h3 className="mb-4 text-lg font-semibold">Ingredients</h3>
                   <IngredientsTable ingredients={navigationState.ingredients} />
                 </div>
               </div>
@@ -237,7 +269,11 @@ const RelationshipPreviewList = ({ className, height = "100dvh" }: RelationshipP
   );
 };
 
-const IngredientSelector = ({ onSelect }: { onSelect: (ingredient: Node) => void }) => {
+const IngredientSelector = ({
+  onSelect,
+}: {
+  onSelect: (ingredient: Node) => void;
+}) => {
   const [value, setValue] = useState<string | undefined>(undefined);
   const [options, setOptions] = useState<Option[]>([]);
   const [input, setInput] = useState("");
@@ -247,7 +283,7 @@ const IngredientSelector = ({ onSelect }: { onSelect: (ingredient: Node) => void
   // Handle auto-selection when value and options are available
   useEffect(() => {
     if (value && options.length > 0) {
-      const selectedOption = options.find(opt => opt.value === value);
+      const selectedOption = options.find((opt) => opt.value === value);
       if (selectedOption) {
         console.log("🚀 ~ useEffect ~ auto-selecting:", selectedOption);
         // Use setTimeout to avoid infinite loops
@@ -287,9 +323,11 @@ const IngredientSelector = ({ onSelect }: { onSelect: (ingredient: Node) => void
   };
 
   return (
-    <div className="flex items-center justify-center h-full p-8">
+    <div className="flex h-full items-center justify-center p-8">
       <div className="w-full max-w-md">
-        <h2 className="text-xl font-semibold mb-4 text-center">Select an Ingredient</h2>
+        <h2 className="mb-4 text-center text-xl font-semibold">
+          Select an Ingredient
+        </h2>
         <ComboBox
           options={options}
           className="w-full"
@@ -313,31 +351,31 @@ const IngredientSelector = ({ onSelect }: { onSelect: (ingredient: Node) => void
   );
 };
 
-const ProductsTable = ({ 
-  products, 
-  onProductSelect, 
-  selectedProduct 
-}: { 
+const ProductsTable = ({
+  products,
+  onProductSelect,
+  selectedProduct,
+}: {
   products: Node[];
   onProductSelect: (product: Node) => void;
   selectedProduct: Node | null;
 }) => {
   return (
-    <div className="h-full flex flex-col">
+    <div className="flex h-full flex-col">
       <div className="flex-1 overflow-y-auto">
         <Table>
-          <TableHeader className="sticky top-0 bg-background z-10">
+          <TableHeader className="bg-background sticky top-0 z-10">
             <TableRow>
               <TableHead>Product Name</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {products.map((product) => (
-              <TableRow 
+              <TableRow
                 key={product.id}
                 className={cn(
-                  "cursor-pointer hover:bg-muted/50",
-                  selectedProduct?.id === product.id && "bg-primary/10"
+                  "hover:bg-muted/50 cursor-pointer",
+                  selectedProduct?.id === product.id && "bg-primary/10",
                 )}
                 onClick={() => onProductSelect(product)}
               >
@@ -347,9 +385,9 @@ const ProductsTable = ({
           </TableBody>
         </Table>
       </div>
-      
+
       {products.length > 0 && (
-        <div className="mt-2 text-sm text-muted-foreground text-center">
+        <div className="text-muted-foreground mt-2 text-center text-sm">
           {products.length} products found
         </div>
       )}
@@ -359,10 +397,10 @@ const ProductsTable = ({
 
 const IngredientsTable = ({ ingredients }: { ingredients: Node[] }) => {
   return (
-    <div className="h-full flex flex-col">
+    <div className="flex h-full flex-col">
       <div className="flex-1 overflow-y-auto">
         <Table>
-          <TableHeader className="sticky top-0 bg-background z-10">
+          <TableHeader className="bg-background sticky top-0 z-10">
             <TableRow>
               <TableHead>Ingredient Name</TableHead>
             </TableRow>
@@ -370,15 +408,17 @@ const IngredientsTable = ({ ingredients }: { ingredients: Node[] }) => {
           <TableBody>
             {ingredients.map((ingredient) => (
               <TableRow key={ingredient.id}>
-                <TableCell className="font-medium">{ingredient.label}</TableCell>
+                <TableCell className="font-medium">
+                  {ingredient.label}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
-      
+
       {ingredients.length > 0 && (
-        <div className="mt-2 text-sm text-muted-foreground text-center">
+        <div className="text-muted-foreground mt-2 text-center text-sm">
           {ingredients.length} ingredients found
         </div>
       )}

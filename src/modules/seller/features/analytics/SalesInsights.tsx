@@ -1,7 +1,7 @@
-import { ComingSoon } from "@/core/components/ui/coming-soon";
+import EcommerceAnalyticsDashboard from "@/modules/analytics/features/ecommerce-dashboard";
 
 const SalesInsights = () => {
-  return <ComingSoon title="Sales Insights" />;
+  return <EcommerceAnalyticsDashboard />;
 };
 
 export default SalesInsights;

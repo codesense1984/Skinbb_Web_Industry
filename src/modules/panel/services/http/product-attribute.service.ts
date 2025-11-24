@@ -23,7 +23,8 @@ interface ProductAttributeCreateData {
   sortOrder?: number;
 }
 
-interface ProductAttributeUpdateData extends Partial<ProductAttributeCreateData> {
+interface ProductAttributeUpdateData
+  extends Partial<ProductAttributeCreateData> {
   _id: string;
 }
 
@@ -72,7 +73,7 @@ export async function apiGetProductAttributes(
   if (params?.search) searchParams.append("search", params.search);
   if (params?.sortBy) searchParams.append("sortBy", params.sortBy);
   if (params?.order) searchParams.append("order", params.order);
-  if (params?.isVariantField !== undefined) 
+  if (params?.isVariantField !== undefined)
     searchParams.append("isVariantField", params.isVariantField.toString());
 
   const queryString = searchParams.toString();
@@ -87,14 +88,24 @@ export async function apiGetProductAttributes(
 export async function apiGetProductAttributeById(
   id: string,
   signal?: AbortSignal,
-): Promise<{ statusCode: number; success: boolean; message: string; data: ProductAttributeResponse }> {
+): Promise<{
+  statusCode: number;
+  success: boolean;
+  message: string;
+  data: ProductAttributeResponse;
+}> {
   return api.get(`${ENDPOINTS.PRODUCT.ATTRIBUTE}/${id}`, { signal });
 }
 
 // Create product attribute
 export async function apiCreateProductAttribute(
   data: ProductAttributeCreateData,
-): Promise<{ statusCode: number; success: boolean; message: string; data: ProductAttributeResponse }> {
+): Promise<{
+  statusCode: number;
+  success: boolean;
+  message: string;
+  data: ProductAttributeResponse;
+}> {
   return api.post(ENDPOINTS.PRODUCT.ATTRIBUTE, data);
 }
 
@@ -102,7 +113,12 @@ export async function apiCreateProductAttribute(
 export async function apiUpdateProductAttribute(
   id: string,
   data: Partial<ProductAttributeCreateData>,
-): Promise<{ statusCode: number; success: boolean; message: string; data: ProductAttributeResponse }> {
+): Promise<{
+  statusCode: number;
+  success: boolean;
+  message: string;
+  data: ProductAttributeResponse;
+}> {
   return api.put(`${ENDPOINTS.PRODUCT.ATTRIBUTE}/${id}`, data);
 }
 
@@ -115,9 +131,5 @@ export async function apiDeleteProductAttribute(
 
 // Export types for use in components
 export type {
-  ProductAttributeListParams,
-  ProductAttributeCreateData,
-  ProductAttributeUpdateData,
-  ProductAttributeResponse,
-  ProductAttributeListResponse,
+  ProductAttributeCreateData, ProductAttributeListParams, ProductAttributeListResponse, ProductAttributeResponse, ProductAttributeUpdateData
 };

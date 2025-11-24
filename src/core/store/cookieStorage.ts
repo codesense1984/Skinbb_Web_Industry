@@ -1,4 +1,3 @@
-
 export type CookieOptions = {
   expires?: number | Date; // number = days, Date = exact expiration
   path?: string;

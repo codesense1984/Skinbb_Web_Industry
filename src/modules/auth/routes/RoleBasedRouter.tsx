@@ -2,6 +2,9 @@ import { FullLoader } from "@/core/components/ui/loader";
 import { chatRoutes } from "@/modules/chat/routes";
 import { panelRoutes } from "@/modules/panel/routes";
 import { sellerRoutes } from "@/modules/seller/routes";
+import { doctorRoutes } from "@/modules/doctor/routes";
+import { distributorRoutes } from "@/modules/distributor/routes";
+import { manufacturerRoutes } from "@/modules/manufacturer/routes";
 import React from "react";
 import { Navigate, useRoutes } from "react-router";
 import { useAuth } from "../hooks/useAuth";
@@ -29,6 +32,12 @@ const RoleBasedRouter: React.FC = () => {
     routes = [panelRoutes, surveyRoutes, analyticsRoutes, chatRoutes];
   } else if (role === ROLE.SELLER) {
     routes = [sellerRoutes];
+  } else if (role === ROLE.DOCTOR) {
+    routes = [doctorRoutes];
+  } else if (role === ROLE.DISTRIBUTOR) {
+    routes = [distributorRoutes];
+  } else if (role === ROLE.MANUFACTURER) {
+    routes = [manufacturerRoutes];
   } else {
     // Customer routes - include survey routes
     routes = [

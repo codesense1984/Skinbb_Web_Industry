@@ -1,10 +1,9 @@
-import MainLayout from "@/core/layouts/main-layout";
 import { lazy } from "react";
 import type { RouteObject } from "react-router";
 import { SURVEY_ROUTES } from "./constant";
 
 export const surveyRoutes: RouteObject = {
-  element: <MainLayout />,
+  Component: lazy(() => import("@/core/layouts/main-layout")),
   children: [
     {
       path: SURVEY_ROUTES.LIST,

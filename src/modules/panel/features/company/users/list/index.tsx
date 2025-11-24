@@ -6,7 +6,6 @@ import { apiGetCompanyUsers } from "@/modules/panel/services/http/company.servic
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { useNavigate, useParams } from "react-router";
 import { columns } from "./data.tsx";
-import { LocationFilter } from "../../../brands/components/LocationFilter.tsx";
 
 const fetcher = (companyId: string) =>
   createSimpleFetcher((...item) => apiGetCompanyUsers(companyId, ...item), {

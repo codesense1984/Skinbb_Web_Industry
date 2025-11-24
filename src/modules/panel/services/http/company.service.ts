@@ -67,10 +67,7 @@ export interface VerifyEmailOTPData {
 }
 
 export async function apiVerifyEmailOTP(data: VerifyEmailOTPData) {
-  return api.post<ApiResponse<string>>(
-    ENDPOINTS.ONBOARDING.VERIFY_MAIL,
-    data,
-  );
+  return api.post<ApiResponse<string>>(ENDPOINTS.ONBOARDING.VERIFY_MAIL, data);
 }
 
 export async function apiSendMobileOTP(data: { phoneNumber: string }) {

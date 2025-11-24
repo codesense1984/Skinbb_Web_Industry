@@ -21,12 +21,19 @@ export const SalesTargetCard: React.FC<SalesTargetCardProps> = ({
   className,
 }) => {
   const percentage = Math.round((current / target) * 100);
-  const currentFormatted = current >= 1000 ? `${(current / 1000).toFixed(1)}K` : current.toString();
-  const targetFormatted = target >= 1000 ? `${(target / 1000).toFixed(1)}K` : target.toString();
+  const currentFormatted =
+    current >= 1000 ? `${(current / 1000).toFixed(1)}K` : current.toString();
+  const targetFormatted =
+    target >= 1000 ? `${(target / 1000).toFixed(1)}K` : target.toString();
 
   return (
-    <div className={cn("bg-white rounded-lg p-6 shadow-sm border border-gray-100", className)}>
-      <div className="flex items-center justify-between mb-4">
+    <div
+      className={cn(
+        "rounded-lg border border-gray-100 bg-white p-6 shadow-sm",
+        className,
+      )}
+    >
+      <div className="mb-4 flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-900">Sales target</h3>
         <TimePeriodSelector
           value={period}
@@ -34,10 +41,10 @@ export const SalesTargetCard: React.FC<SalesTargetCardProps> = ({
           className="scale-75"
         />
       </div>
-      
+
       <div className="flex items-center gap-4">
         <div className="flex-1">
-          <div className="text-2xl font-bold text-gray-900 mb-1">
+          <div className="mb-1 text-2xl font-bold text-gray-900">
             {currentFormatted} / {targetFormatted} Units
           </div>
           <p className="text-sm text-gray-500">{description}</p>
@@ -50,7 +57,9 @@ export const SalesTargetCard: React.FC<SalesTargetCardProps> = ({
             className="text-blue-600"
           >
             <div className="text-center">
-              <div className="text-lg font-bold text-gray-900">{percentage}%</div>
+              <div className="text-lg font-bold text-gray-900">
+                {percentage}%
+              </div>
             </div>
           </CircularProgress>
         </div>

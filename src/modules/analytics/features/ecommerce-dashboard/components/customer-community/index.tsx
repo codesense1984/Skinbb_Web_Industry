@@ -1,10 +1,15 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/core/components/ui/card";
 import { StatChartCard } from "@/core/components/ui/card";
 import { Button } from "@/core/components/ui/button";
 import { Badge } from "@/core/components/ui/badge";
-import { 
+import {
   UserGroupIcon,
   ArrowTrendingUpIcon,
   StarIcon,
@@ -12,7 +17,7 @@ import {
   ChatBubbleLeftRightIcon,
   SparklesIcon,
   EyeIcon,
-  ClockIcon
+  ClockIcon,
 } from "@heroicons/react/24/outline";
 import { cn } from "@/core/utils";
 import { type ChartConfig } from "@/core/components/ui/chart";
@@ -30,25 +35,31 @@ interface CustomerSegmentsOverviewCardProps {
   brandId?: string;
 }
 
-export const CustomerSegmentsOverviewCard: React.FC<CustomerSegmentsOverviewCardProps> = ({ 
-  className,
-  startDate,
-  endDate,
-  brandId,
-}) => {
+export const CustomerSegmentsOverviewCard: React.FC<
+  CustomerSegmentsOverviewCardProps
+> = ({ className, startDate, endDate, brandId }) => {
   // Calculate default date range (last 30 days)
   const defaultEndDate = React.useMemo(() => {
-    return new Date().toISOString().split('T')[0];
+    return new Date().toISOString().split("T")[0];
   }, []);
 
   const defaultStartDate = React.useMemo(() => {
     const date = new Date();
     date.setDate(date.getDate() - 30);
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split("T")[0];
   }, []);
 
-  const { data: customerInsights, isLoading, isError } = useQuery({
-    queryKey: ["customer-insights", startDate || defaultStartDate, endDate || defaultEndDate, brandId],
+  const {
+    data: customerInsights,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: [
+      "customer-insights",
+      startDate || defaultStartDate,
+      endDate || defaultEndDate,
+      brandId,
+    ],
     queryFn: async () => {
       const response = await apiGetCustomerInsights({
         startDate: startDate || defaultStartDate,
@@ -65,36 +76,38 @@ export const CustomerSegmentsOverviewCard: React.FC<CustomerSegmentsOverviewCard
   const newCustomers = customerInsights?.newCustomers || 0;
   const returningCustomers = customerInsights?.returningCustomers || 0;
   const totalCustomers = customerInsights?.totalCustomers || 0;
-  
+
   // Estimate VIP customers from top customers (top 10% of customers by spend)
   // VIP customers are a subset of returning customers
   const topCustomers = customerInsights?.topCustomers || [];
-  const vipThreshold = topCustomers.length > 0 
-    ? Math.floor(topCustomers.length * 0.1) 
-    : 0;
+  const vipThreshold =
+    topCustomers.length > 0 ? Math.floor(topCustomers.length * 0.1) : 0;
   const vipCustomers = Math.min(
-    vipThreshold, 
+    vipThreshold,
     Math.floor(totalCustomers * 0.1),
-    returningCustomers // VIP cannot exceed returning customers
+    returningCustomers, // VIP cannot exceed returning customers
   );
-  
+
   // Calculate repeat customers (non-VIP) to avoid double counting
   // VIP customers are already included in returningCustomers, so we subtract them
   const repeatCustomersNonVIP = Math.max(0, returningCustomers - vipCustomers);
-  
+
   // Calculate dormant customers (customers who haven't made recent purchases)
   // Dormant = total - new - returning (which includes VIP)
-  const dormantCustomers = Math.max(0, totalCustomers - newCustomers - returningCustomers);
-  
+  const dormantCustomers = Math.max(
+    0,
+    totalCustomers - newCustomers - returningCustomers,
+  );
+
   // Use #F08484 as the base color for all segments
   const baseColor = "#F08484";
-  
+
   const segmentsData = [
     { key: "New", value: newCustomers, fill: baseColor },
     { key: "Repeat", value: repeatCustomersNonVIP, fill: baseColor },
     { key: "VIP", value: vipCustomers, fill: baseColor },
     { key: "Dormant", value: dormantCustomers, fill: baseColor },
-  ].filter(segment => segment.value > 0); // Only show segments with data
+  ].filter((segment) => segment.value > 0); // Only show segments with data
   const segmentsChartConfig = {
     value: {
       label: "Total Customers",
@@ -119,54 +132,44 @@ export const CustomerSegmentsOverviewCard: React.FC<CustomerSegmentsOverviewCard
   } satisfies ChartConfig;
 
   return (
-    <StatChartCard 
-      name="Customer Segments Overview" 
-      className={className}
-      actions={
-        <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-          <EyeIcon className="h-4 w-4 mr-1" />
-          View Details
-        </Button>
-      }
+    <StatChartCard
+      name="Customer Segments Overview"
+      className={cn("md:max-h-auto", className)}
+      // actions={
+      //   <Button
+      //     variant="ghost"
+      //     size="sm"
+      //     className="text-blue-600 hover:text-blue-700"
+      //   >
+      //     <EyeIcon className="mr-1 h-4 w-4" />
+      //     View Details
+      //   </Button>
+      // }
     >
       {isLoading && (
-        <div className="text-center py-8 text-gray-500 text-sm">Loading customer data...</div>
+        <div className="py-8 text-center text-sm text-gray-500">
+          Loading customer data...
+        </div>
       )}
       {isError && (
-        <div className="text-center py-8 text-red-500 text-sm">Error loading customer data</div>
+        <div className="py-8 text-center text-sm text-red-500">
+          Error loading customer data
+        </div>
       )}
       {!isLoading && !isError && totalCustomers === 0 && (
-        <div className="text-center py-8 text-gray-500 text-sm">No customer data available</div>
+        <div className="py-8 text-center text-sm text-gray-500">
+          No customer data available
+        </div>
       )}
       {!isLoading && !isError && totalCustomers > 0 && (
-        <div className="flex flex-col items-center gap-4">
-          <DonutPieChart
-            data={segmentsData}
-            config={segmentsChartConfig}
-            className="h-64"
-            showLegend={true}
-            showTooltip={true}
-            showOuterLabel={true}
-          />
-          <div className="grid grid-cols-2 gap-4 w-full mt-2">
-            {segmentsData.map((segment) => {
-              const percentage = totalCustomers > 0 ? ((segment.value / totalCustomers) * 100).toFixed(1) : "0";
-              return (
-                <div key={segment.key} className="text-center p-2 rounded-lg bg-gray-50">
-                  <p className="text-sm font-semibold text-gray-900">{segment.value}</p>
-                  <p className="text-xs text-gray-600">{segment.key}</p>
-                  <p className="text-xs text-gray-500">{percentage}%</p>
-                </div>
-              );
-            })}
-          </div>
-          {totalCustomers > 0 && (
-            <div className="text-center mt-2 pt-2 border-t border-gray-200 w-full">
-              <p className="text-xs text-gray-600">Total Customers</p>
-              <p className="text-lg font-bold text-gray-900">{totalCustomers}</p>
-            </div>
-          )}
-        </div>
+        <DonutPieChart
+          data={segmentsData}
+          config={segmentsChartConfig}
+          className="h-64"
+          showLegend={true}
+          showTooltip={true}
+          showOuterLabel={true}
+        />
       )}
     </StatChartCard>
   );
@@ -180,25 +183,31 @@ interface CustomerRetentionRateCardProps {
   brandId?: string;
 }
 
-export const CustomerRetentionRateCard: React.FC<CustomerRetentionRateCardProps> = ({ 
-  className,
-  startDate,
-  endDate,
-  brandId,
-}) => {
+export const CustomerRetentionRateCard: React.FC<
+  CustomerRetentionRateCardProps
+> = ({ className, startDate, endDate, brandId }) => {
   // Calculate default date range (last 30 days)
   const defaultEndDate = React.useMemo(() => {
-    return new Date().toISOString().split('T')[0];
+    return new Date().toISOString().split("T")[0];
   }, []);
 
   const defaultStartDate = React.useMemo(() => {
     const date = new Date();
     date.setDate(date.getDate() - 30);
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split("T")[0];
   }, []);
 
-  const { data: customerInsights, isLoading, isError } = useQuery({
-    queryKey: ["customer-insights", startDate || defaultStartDate, endDate || defaultEndDate, brandId],
+  const {
+    data: customerInsights,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: [
+      "customer-insights",
+      startDate || defaultStartDate,
+      endDate || defaultEndDate,
+      brandId,
+    ],
     queryFn: async () => {
       const response = await apiGetCustomerInsights({
         startDate: startDate || defaultStartDate,
@@ -218,19 +227,26 @@ export const CustomerRetentionRateCard: React.FC<CustomerRetentionRateCardProps>
   // Since API doesn't provide historical data, we'll show current snapshot
   // For visualization, we'll create a simple trend showing current period
   const retentionData = [
-    { period: "Current Period", returning: returningCustomers, new: newCustomers },
+    {
+      period: "Current Period",
+      returning: returningCustomers,
+      new: newCustomers,
+    },
   ];
-  
+
   // If we have data, create a visual representation with previous periods (estimated)
   // This is a workaround since API doesn't provide historical data
   if (totalCustomers > 0 && returningCustomers > 0) {
     // Create trend visualization by showing current vs estimated previous
-    const estimatedPreviousReturning = Math.max(0, Math.floor(returningCustomers * 0.9));
+    const estimatedPreviousReturning = Math.max(
+      0,
+      Math.floor(returningCustomers * 0.9),
+    );
     const estimatedPreviousNew = Math.max(0, Math.floor(newCustomers * 0.85));
-    retentionData.unshift({ 
-      period: "Previous Period", 
-      returning: estimatedPreviousReturning, 
-      new: estimatedPreviousNew 
+    retentionData.unshift({
+      period: "Previous Period",
+      returning: estimatedPreviousReturning,
+      new: estimatedPreviousNew,
     });
   }
 
@@ -262,78 +278,66 @@ export const CustomerRetentionRateCard: React.FC<CustomerRetentionRateCardProps>
 
   // Calculate retention rate
   const totalActiveCustomers = returningCustomers + newCustomers;
-  const retentionRate = totalActiveCustomers > 0 
-    ? ((returningCustomers / totalActiveCustomers) * 100).toFixed(1)
-    : "0.0";
+  const retentionRate =
+    totalActiveCustomers > 0
+      ? ((returningCustomers / totalActiveCustomers) * 100).toFixed(1)
+      : "0.0";
 
   return (
-    <StatChartCard 
-      name="Customer Retention Rate" 
-      className={className}
-      actions={
-        <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-          <EyeIcon className="h-4 w-4 mr-1" />
-          View Details
-        </Button>
-      }
+    <StatChartCard
+      name="Customer Retention Rate"
+      className={cn("md:max-h-auto", className)}
+      // actions={
+      //   <Button
+      //     variant="ghost"
+      //     size="sm"
+      //     className="text-blue-600 hover:text-blue-700"
+      //   >
+      //     <EyeIcon className="mr-1 h-4 w-4" />
+      //     View Details
+      //   </Button>
+      // }
     >
       {isLoading && (
-        <div className="text-center py-8 text-gray-500 text-sm">Loading retention data...</div>
+        <div className="py-8 text-center text-sm text-gray-500">
+          Loading retention data...
+        </div>
       )}
       {isError && (
-        <div className="text-center py-8 text-red-500 text-sm">Error loading retention data</div>
+        <div className="py-8 text-center text-sm text-red-500">
+          Error loading retention data
+        </div>
       )}
       {!isLoading && !isError && totalCustomers === 0 && (
-        <div className="text-center py-8 text-gray-500 text-sm">No customer data available</div>
+        <div className="py-8 text-center text-sm text-gray-500">
+          No customer data available
+        </div>
       )}
       {!isLoading && !isError && totalCustomers > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-3xl font-bold text-gray-900">{retentionRate}%</p>
-              <p className="text-sm text-gray-600">Current Retention Rate</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {retentionRate}%
+              </p>
+              <p className="text-sm">Current Retention Rate</p>
             </div>
-            <div className="bg-green-100 rounded-full p-3">
+            <div className="rounded-full bg-green-100 p-2">
               <ArrowTrendingUpIcon className="h-6 w-6 text-green-600" />
             </div>
           </div>
-          {retentionData.length > 1 ? (
-            <LineChart
-              data={retentionData}
-              config={retentionChartConfig}
-              lineProps={retentionLineProps}
-              className="h-48"
-              xAxisProps={{ dataKey: "period" }}
-              showLegends={true}
-              legendProps={{ verticalAlign: "bottom", height: 36 }}
-            />
-          ) : (
-            <div className="h-48 flex items-center justify-center bg-gray-50 rounded-lg">
-              <div className="text-center">
-                <p className="text-sm text-gray-600 mb-2">Current Period Stats</p>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-gray-900">{returningCustomers}</p>
-                    <p className="text-xs text-gray-600">Returning</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-gray-900">{newCustomers}</p>
-                    <p className="text-xs text-gray-600">New</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-          <div className="grid grid-cols-2 gap-2 mt-2">
-            <div className="text-center p-2 rounded-lg bg-gray-50">
-              <p className="text-xs text-gray-600">Total Customers</p>
-              <p className="text-sm font-semibold text-gray-900">{totalCustomers}</p>
-            </div>
-            <div className="text-center p-2 rounded-lg bg-gray-50">
-              <p className="text-xs text-gray-600">Returning Customers</p>
-              <p className="text-sm font-semibold text-gray-900">{returningCustomers}</p>
-            </div>
-          </div>
+          <LineChart
+            data={retentionData}
+            config={retentionChartConfig}
+            lineProps={retentionLineProps}
+            className="h-48"
+            xAxisProps={{ dataKey: "period" }}
+            showLegends={true}
+            yAxisProps={{
+              width: 30,
+            }}
+            legendProps={{ verticalAlign: "bottom", height: 36 }}
+          />
         </div>
       )}
     </StatChartCard>
@@ -355,7 +359,9 @@ interface RecentReviewsCardProps {
   className?: string;
 }
 
-export const RecentReviewsCard: React.FC<RecentReviewsCardProps> = ({ className }) => {
+export const RecentReviewsCard: React.FC<RecentReviewsCardProps> = ({
+  className,
+}) => {
   // Mock data - replace with actual API call to ENDPOINTS.REVIEW.LIST
   const reviews: RecentReview[] = [
     {
@@ -422,49 +428,117 @@ export const RecentReviewsCard: React.FC<RecentReviewsCardProps> = ({ className 
   };
 
   return (
-    <Card className={cn("bg-white border-gray-200", className)}>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-gray-900">
-            Recent Reviews
-          </CardTitle>
-          <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-            <EyeIcon className="h-4 w-4 mr-1" />
-            View All
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent className="pt-0 space-y-3">
+    <StatChartCard
+      name="Recent Reviews"
+      className={cn("md:max-h-auto", className)}
+    >
+      <div className="space-y-4 py-2">
         {reviews.map((review) => (
           <div
             key={review.id}
-            className="p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
+            className="rounded-lg border border-gray-100 p-3"
           >
-            <div className="flex items-start justify-between mb-2">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
+            <div className="mb-1 flex items-start justify-between">
+              <div className="min-w-0 flex-1">
+                <p className="text-muted-foreground truncate font-medium">
                   {review.productName}
                 </p>
-                <div className="flex items-center gap-2 mt-1">
+                <div className="mt-1 flex items-center gap-2">
                   <div className="flex items-center">
                     {[...Array(5)].map((_, i) => (
                       <StarIcon
                         key={i}
                         className={cn(
                           "h-4 w-4",
-                          i < review.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
+                          i < review.rating
+                            ? "fill-yellow-400 text-yellow-400"
+                            : "text-gray-300",
                         )}
                       />
                     ))}
                   </div>
-                  <span className="text-xs text-gray-500">{review.customerName}</span>
+                  <span className="text-xs text-gray-500">
+                    {review.customerName}
+                  </span>
                 </div>
               </div>
-              <Badge className={cn("text-xs", getSentimentColor(review.sentiment))}>
+              <Badge
+                className={cn(
+                  "text-xs capitalize",
+                  getSentimentColor(review.sentiment),
+                )}
+              >
                 {review.sentiment}
               </Badge>
             </div>
-            <p className="text-xs text-gray-600 line-clamp-2 mb-1">{review.comment}</p>
+            <p className="text-muted-foreground line-clamp-2 text-sm">
+              {review.comment}
+            </p>
+            <div className="text-muted-foreground flex items-center gap-1 text-sm">
+              <ClockIcon className="h-3 w-3" />
+              {formatDate(review.date)}
+            </div>
+          </div>
+        ))}
+      </div>
+    </StatChartCard>
+  );
+  return (
+    <Card className={cn("border-gray-200 bg-white", className)}>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg font-semibold text-gray-900">
+            Recent Reviews
+          </CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-blue-600 hover:text-blue-700"
+          >
+            <EyeIcon className="mr-1 h-4 w-4" />
+            View All
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3 pt-0">
+        {reviews.map((review) => (
+          <div
+            key={review.id}
+            className="rounded-lg border border-gray-100 p-3 transition-colors hover:bg-gray-50"
+          >
+            <div className="mb-2 flex items-start justify-between">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-gray-900">
+                  {review.productName}
+                </p>
+                <div className="mt-1 flex items-center gap-2">
+                  <div className="flex items-center">
+                    {[...Array(5)].map((_, i) => (
+                      <StarIcon
+                        key={i}
+                        className={cn(
+                          "h-4 w-4",
+                          i < review.rating
+                            ? "fill-yellow-400 text-yellow-400"
+                            : "text-gray-300",
+                        )}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-xs text-gray-500">
+                    {review.customerName}
+                  </span>
+                </div>
+              </div>
+              <Badge
+                className={cn("text-xs", getSentimentColor(review.sentiment))}
+              >
+                {review.sentiment}
+              </Badge>
+            </div>
+            <p className="mb-1 line-clamp-2 text-xs text-gray-600">
+              {review.comment}
+            </p>
             <div className="flex items-center gap-1 text-xs text-gray-500">
               <ClockIcon className="h-3 w-3" />
               {formatDate(review.date)}
@@ -491,7 +565,9 @@ interface TopRoutinesSharedCardProps {
   className?: string;
 }
 
-export const TopRoutinesSharedCard: React.FC<TopRoutinesSharedCardProps> = ({ className }) => {
+export const TopRoutinesSharedCard: React.FC<TopRoutinesSharedCardProps> = ({
+  className,
+}) => {
   // Mock data - replace with actual API call
   const routines: Routine[] = [
     {
@@ -542,52 +618,65 @@ export const TopRoutinesSharedCard: React.FC<TopRoutinesSharedCardProps> = ({ cl
   ];
 
   return (
-    <Card className={cn("bg-white border-gray-200", className)}>
+    <StatChartCard
+      name="Top Routines Shared"
+      className={cn("md:max-h-auto", className)}
+    >
+      <div className="space-y-4 py-2">
+        {routines.map((routine, index) => (
+          <div
+            key={routine.id}
+            className="rounded-lg border border-gray-100 p-3"
+          >
+            <div className="flex items-start gap-3">
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-purple-500 text-sm font-bold text-white">
+                {index + 1}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-muted-foreground truncate font-medium">
+                  {routine.name}
+                </p>
+                <p className="text-muted-foreground mt-1 line-clamp-1 text-sm">
+                  {routine.description}
+                </p>
+                <div className="text-muted-foreground mt-2 flex items-center gap-4 text-sm">
+                  <div className="flex items-center gap-1">
+                    <HeartIcon className="h-3 w-3 fill-red-500 text-red-500" />
+                    <span>{routine.likes}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <SparklesIcon className="h-3 w-3 fill-blue-500 text-blue-500" />
+                    <span>{routine.shares}</span>
+                  </div>
+                  <span>{routine.products} products</span>
+                  <span>by {routine.creator}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </StatChartCard>
+  );
+
+  return (
+    <Card className={cn("border-gray-200 bg-white", className)}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold text-gray-900">
             Top Routines Shared
           </CardTitle>
-          <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-            <EyeIcon className="h-4 w-4 mr-1" />
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-blue-600 hover:text-blue-700"
+          >
+            <EyeIcon className="mr-1 h-4 w-4" />
             View All
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="pt-0 space-y-3">
-        {routines.map((routine, index) => (
-          <div
-            key={routine.id}
-            className="p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
-          >
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
-                {index + 1}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
-                  {routine.name}
-                </p>
-                <p className="text-xs text-gray-600 mt-1 line-clamp-1">
-                  {routine.description}
-                </p>
-                <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                  <div className="flex items-center gap-1">
-                    <HeartIcon className="h-3 w-3" />
-                    <span>{routine.likes}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <SparklesIcon className="h-3 w-3" />
-                    <span>{routine.shares}</span>
-                  </div>
-                  <span>{routine.products} products</span>
-                </div>
-                <p className="text-xs text-gray-400 mt-1">by {routine.creator}</p>
-              </div>
-            </div>
-          </div>
-        ))}
-      </CardContent>
+      <CardContent className="space-y-3 pt-0"></CardContent>
     </Card>
   );
 };
@@ -833,7 +922,7 @@ export const CommunityActivityCard: React.FC<CommunityActivityCardProps> = ({ cl
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="outlined" className="text-xs">
                     {post.type}
                   </Badge>
                 </div>
@@ -868,4 +957,5 @@ export const CommunityActivityCard: React.FC<CommunityActivityCardProps> = ({ cl
 */
 
 // Placeholder export to prevent import errors
-export const CommunityActivityCard: React.FC<{ className?: string }> = () => null;
+export const CommunityActivityCard: React.FC<{ className?: string }> = () =>
+  null;

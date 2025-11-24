@@ -77,7 +77,9 @@ export interface OrderStatusResponse {
   };
 }
 
-export async function apiGetOrderStatus(orderId: string): Promise<OrderStatusResponse> {
+export async function apiGetOrderStatus(
+  orderId: string,
+): Promise<OrderStatusResponse> {
   return api.get<OrderStatusResponse>(`/api/v1/orders/status/${orderId}`);
 }
 
@@ -103,6 +105,36 @@ export async function apiCancelOrderByAdmin(
 ): Promise<CancelOrderResponse> {
   return api.put<CancelOrderResponse>(
     `/api/v1/orders/admin/cancel/${orderId}`,
+    data,
+  );
+}
+
+export interface RefundOrderRequest {
+  amount?: number;
+  reason: string;
+  notes?: {
+    [key: string]: string;
+  };
+  receipt?: string;
+}
+
+export interface RefundOrderResponse {
+  statusCode: number;
+  success: boolean;
+  message: string;
+  data: {
+    id: string;
+    status: string;
+    amount: number;
+  };
+}
+
+export async function apiRefundOrderByAdmin(
+  orderIdOrNumber: string,
+  data: RefundOrderRequest,
+): Promise<RefundOrderResponse> {
+  return api.post<RefundOrderResponse>(
+    `/api/v1/orders/admin/${orderIdOrNumber}/refund`,
     data,
   );
 }

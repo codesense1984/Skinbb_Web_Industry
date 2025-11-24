@@ -1,13 +1,28 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/core/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/core/components/ui/card";
 import { Form } from "@/core/components/ui/form";
 import { FormInput } from "@/core/components/ui/form-input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/core/components/ui/select";
 import { Checkbox } from "@/core/components/ui/checkbox";
 import { Input } from "@/core/components/ui/input";
-import { productAttributeFormSchema, generateSlug, type ProductAttributeFormData } from "./formSchema";
+import {
+  productAttributeFormSchema,
+  generateSlug,
+  type ProductAttributeFormData,
+} from "./formSchema";
 import { useState } from "react";
 
 interface ProductAttributeFormProps {
@@ -63,8 +78,11 @@ export default function ProductAttributeForm({
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               {/* Name Field */}
               <FormInput
                 control={form.control}
@@ -85,7 +103,7 @@ export default function ProductAttributeForm({
                   />
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="outlined"
                     onClick={handleGenerateSlug}
                     disabled={isGeneratingSlug || !form.watch("name")}
                   >
@@ -109,7 +127,10 @@ export default function ProductAttributeForm({
                     label="Data Type"
                     required
                     render={({ field }) => (
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Select data type" />
                         </SelectTrigger>
@@ -130,13 +151,20 @@ export default function ProductAttributeForm({
                     label="Field Type"
                     required
                     render={({ field }) => (
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Select field type" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="multi-select">Multi Select</SelectItem>
-                          <SelectItem value="single-select">Single Select</SelectItem>
+                          <SelectItem value="multi-select">
+                            Multi Select
+                          </SelectItem>
+                          <SelectItem value="single-select">
+                            Single Select
+                          </SelectItem>
                           <SelectItem value="text">Text</SelectItem>
                           <SelectItem value="number">Number</SelectItem>
                           <SelectItem value="boolean">Boolean</SelectItem>
@@ -172,7 +200,9 @@ export default function ProductAttributeForm({
                   <Checkbox
                     id="isFilterable"
                     checked={form.watch("isFilterable")}
-                    onCheckedChange={(checked) => form.setValue("isFilterable", !!checked)}
+                    onCheckedChange={(checked) =>
+                      form.setValue("isFilterable", !!checked)
+                    }
                   />
                   <label htmlFor="isFilterable" className="text-sm font-medium">
                     Is Filterable
@@ -183,7 +213,9 @@ export default function ProductAttributeForm({
                   <Checkbox
                     id="isRequired"
                     checked={form.watch("isRequired")}
-                    onCheckedChange={(checked) => form.setValue("isRequired", !!checked)}
+                    onCheckedChange={(checked) =>
+                      form.setValue("isRequired", !!checked)
+                    }
                   />
                   <label htmlFor="isRequired" className="text-sm font-medium">
                     Is Required
@@ -194,9 +226,14 @@ export default function ProductAttributeForm({
                   <Checkbox
                     id="isVariantField"
                     checked={form.watch("isVariantField")}
-                    onCheckedChange={(checked) => form.setValue("isVariantField", !!checked)}
+                    onCheckedChange={(checked) =>
+                      form.setValue("isVariantField", !!checked)
+                    }
                   />
-                  <label htmlFor="isVariantField" className="text-sm font-medium">
+                  <label
+                    htmlFor="isVariantField"
+                    className="text-sm font-medium"
+                  >
                     Is Variant Field
                   </label>
                 </div>
@@ -205,7 +242,7 @@ export default function ProductAttributeForm({
 
             {/* Submit Button */}
             <div className="flex justify-end space-x-4">
-              <Button type="button" variant="outline">
+              <Button type="button" variant="outlined">
                 Cancel
               </Button>
               <Button type="submit" disabled={isLoading}>

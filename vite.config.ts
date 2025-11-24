@@ -9,6 +9,15 @@ export default defineConfig({
     host: "0.0.0.0",
     port: 5174,
   },
+  build: {
+    // chunkSizeWarningLimit: 2000,
+    // target: "esnext",
+    // Reduce memory usage during build
+    // assetsInlineLimit: 4096,
+    // rollupOptions: {
+    // output: {},
+  },
+
   resolve: {
     alias: {
       "@": "/src",

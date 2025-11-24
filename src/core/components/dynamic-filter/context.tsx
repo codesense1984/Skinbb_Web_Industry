@@ -88,7 +88,6 @@ export function FilterProvider({
   const [state, dispatch] = React.useReducer(filterReducer, {
     value: defaultValue ?? {},
   });
-  console.log("🚀 ~ FilterProvider ~ state:", state, defaultValue);
 
   // Validate defaultValue on mount
   React.useEffect(() => {
@@ -96,7 +95,7 @@ export function FilterProvider({
       assertFilterValueMap(defaultValue, "defaultValue");
       dispatch({ type: "SET_VALUE", value: defaultValue });
     }
-  }, [defaultValue]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [defaultValue]);
 
   // Validate controlled value
   React.useEffect(() => {

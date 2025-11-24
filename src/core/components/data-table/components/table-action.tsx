@@ -43,27 +43,31 @@ export const renderActionButton = (
     ...restProps
   } = action;
 
-  const buttonProps = {
-    variant: defaultVariant,
-    size,
-    className: cn("size-7 border", buttonClassName),
-    ...restProps,
-  };
-
-  // If 'to' prop is provided, wrap the button with Link
+  // If 'to' prop is provided, use Link with Button asChild
   if (to) {
     return (
-      <Button asChild {...buttonProps}>
-        <Link to={to}>
-          {startIcon}
-          {children}
-        </Link>
+      <Button
+        variant={variant}
+        size={size}
+        className={cn("size-7 border", buttonClassName)}
+        startIcon={startIcon}
+        asChild
+        {...restProps}
+      >
+        <Link to={to}>{children}</Link>
       </Button>
     );
   }
 
+  // Otherwise, use regular button with onClick
   return (
-    <Button {...buttonProps} startIcon={startIcon}>
+    <Button
+      variant={variant}
+      size={size}
+      className={cn("size-7 border", buttonClassName)}
+      startIcon={startIcon}
+      {...restProps}
+    >
       {children}
     </Button>
   );

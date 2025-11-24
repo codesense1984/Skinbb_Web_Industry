@@ -6,8 +6,62 @@ import {
 import type { CustomerList } from "@/modules/panel/types/customer.type";
 import { formatCurrency, formatDate } from "@/core/utils";
 import type { ColumnDef } from "@tanstack/react-table";
-import { TableAction } from "@/core/components/data-table/components/table-action";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
+import { Button } from "@/core/components/ui/button";
+import { useNavigate } from "react-router";
+import { EyeIcon, PencilIcon } from "@heroicons/react/24/solid";
+
+// Component for Orders button
+const OrdersButton = ({ customerId }: { customerId: string }) => {
+  const navigate = useNavigate();
+
+  const handleViewOrders = () => {
+    navigate(`${PANEL_ROUTES.ORDER.LIST}?customerId=${customerId}`);
+  };
+
+  return (
+    <Button
+      variant="outlined"
+      size="sm"
+      onClick={handleViewOrders}
+      className="w-max"
+    >
+      View Orders
+    </Button>
+  );
+};
+
+// Component for Action buttons
+const CustomerActions = ({ customerId }: { customerId: string }) => {
+  const navigate = useNavigate();
+
+  return (
+    <div className="flex items-center gap-1">
+      <Button
+        variant="outlined"
+        size="icon"
+        className="size-7 border"
+        startIcon={<EyeIcon className="!size-4" />}
+        onClick={() => {
+          console.log(
+            "View clicked, navigating to:",
+            PANEL_ROUTES.CUSTOMER.VIEW(customerId),
+          );
+          navigate(PANEL_ROUTES.CUSTOMER.VIEW(customerId));
+        }}
+        title="View customer details"
+      />
+      <Button
+        variant="outlined"
+        size="icon"
+        className="size-7 border"
+        startIcon={<PencilIcon className="!size-4" />}
+        onClick={() => navigate(PANEL_ROUTES.CUSTOMER.EDIT(customerId))}
+        title="Edit customer"
+      />
+    </div>
+  );
+};
 
 export const statsData = [
   {
@@ -121,25 +175,23 @@ export const columns: ColumnDef<CustomerList>[] = [
     },
   },
   {
+    header: "Orders",
+    accessorKey: "orders",
+    enableSorting: false,
+    enableHiding: false,
+    cell: ({ row }) => {
+      const customer = row.original;
+      return <OrdersButton customerId={customer._id} />;
+    },
+  },
+  {
     header: "Action",
     accessorKey: "actions",
     enableSorting: false,
     enableHiding: false,
     cell: ({ row }) => {
       const customer = row.original;
-
-      return (
-        <TableAction
-          view={{
-            to: PANEL_ROUTES.CUSTOMER.VIEW(customer._id),
-            tooltip: "View customer details",
-          }}
-          edit={{
-            to: PANEL_ROUTES.CUSTOMER.EDIT(customer._id),
-            tooltip: "Edit customer",
-          }}
-        />
-      );
+      return <CustomerActions customerId={customer._id} />;
     },
   },
 ];

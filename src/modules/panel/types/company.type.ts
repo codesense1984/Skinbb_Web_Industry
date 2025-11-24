@@ -51,7 +51,10 @@ export interface ShortCompany {
 // }
 
 export interface CompanyList
-  extends Pick<Company, "_id" | "logo" | "companyName" | "category" | "status"> {
+  extends Pick<
+    Company,
+    "_id" | "logo" | "companyName" | "category" | "status"
+  > {
   products: number;
   surveys: number;
   promotions: number;

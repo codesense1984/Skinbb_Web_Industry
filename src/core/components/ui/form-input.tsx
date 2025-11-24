@@ -282,18 +282,20 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
 
   const rawValue = (inputProps?.value ?? field.value) as PathValue<T, N>;
   const value = transform ? transform.input(rawValue) : rawValue;
-  
+
   // Local state to track selected file name for immediate UI update
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
-  
+
   // Watch for file selection - check if name already ends with _files or use name directly
-  const filesFieldName = (String(name).endsWith('_files') ? name : `${String(name)}_files`) as FieldPath<T>;
+  const filesFieldName = (
+    String(name).endsWith("_files") ? name : `${String(name)}_files`
+  ) as FieldPath<T>;
   const selectedFiles = useWatch({
     control,
     name: filesFieldName,
     defaultValue: undefined,
   }) as FileList | File[] | null | undefined;
-  
+
   // Update selectedFileName when selectedFiles changes
   useEffect(() => {
     if (selectedFiles) {
@@ -411,7 +413,8 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
               <SelectValue placeholder={placeholder}></SelectValue>
             </SelectTrigger>
             <SelectContent>
-              {"options" in props && Array.isArray(props?.options) &&
+              {"options" in props &&
+                Array.isArray(props?.options) &&
                 props.options.map((option: SelectOption) => (
                   <SelectItem
                     key={option.value}
@@ -478,16 +481,23 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
           // Skip empty arrays - they should not prevent displaying existing URLs
           if (Array.isArray(selectedFiles) && selectedFiles.length === 0) {
             // Empty array, skip to check value
-          } else if (selectedFiles instanceof FileList && selectedFiles.length > 0) {
+          } else if (
+            selectedFiles instanceof FileList &&
+            selectedFiles.length > 0
+          ) {
             return selectedFiles[0].name;
-          } else if (Array.isArray(selectedFiles) && selectedFiles.length > 0 && selectedFiles[0] instanceof File) {
+          } else if (
+            Array.isArray(selectedFiles) &&
+            selectedFiles.length > 0 &&
+            selectedFiles[0] instanceof File
+          ) {
             return selectedFiles[0].name;
           } else if (selectedFiles instanceof File) {
             return selectedFiles.name;
           }
         }
         // Fallback to value (for existing URLs or paths) - prioritize URL display
-        if (typeof value === 'string' && value) {
+        if (typeof value === "string" && value) {
           // If it's a URL, extract filename for display
           if (isURL(value)) {
             return value.split("/").pop() || value;
@@ -500,10 +510,10 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
         }
         return null;
       };
-      
+
       const fileName = getFileName();
       const displayText = fileName || placeholder || "Choose File";
-      
+
       return (
         <FormControl {...formControlProps}>
           <div>
@@ -523,20 +533,22 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
                 value={undefined}
                 onChange={(e) => {
                   const files = e.target?.files;
-                  
+
                   // Update local state immediately for UI responsiveness
                   if (files && files.length > 0) {
                     setSelectedFileName(files[0].name);
                   } else {
                     setSelectedFileName(null);
                   }
-                  
+
                   field.onChange(transform ? transform.output(e) : e);
                   if (type === INPUT_TYPES.FILE && files) {
                     // Convert FileList to Array for proper reactivity in react-hook-form
                     const filesArray = files ? Array.from(files) : [];
                     // Use the same logic as filesFieldName to determine the field name
-                    const fieldName = String(name).endsWith('_files') ? name : `${String(name)}_files`;
+                    const fieldName = String(name).endsWith("_files")
+                      ? name
+                      : `${String(name)}_files`;
                     setValue(fieldName as FieldPath<T>, filesArray);
                     trigger(name);
                   }
@@ -545,7 +557,7 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
                 disabled={disabled}
                 {...(inputProps?.accept && { accept: inputProps.accept })}
               />
-              <p className="text-nowrap">{displayText}</p>
+              <p className="text-nowrap">{placeholder}</p>
             </label>
 
             {fileName && isURL(value) ? (
@@ -557,9 +569,7 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
                 {fileName}
               </Link>
             ) : fileName ? (
-              <p className="text-foreground truncate">
-                {fileName}
-              </p>
+              <p className="text-foreground truncate">{fileName}</p>
             ) : null}
           </div>
         </FormControl>
