@@ -13,6 +13,7 @@ export const ROLE = {
   SELLER_MEMBER: "seller-member",
   DISTRIBUTOR: "distributor",
   MANUFACTURER: "manufacturer",
+  FORMULATOR: "formulator",
 } as const;
 
 export const PAGE = {
