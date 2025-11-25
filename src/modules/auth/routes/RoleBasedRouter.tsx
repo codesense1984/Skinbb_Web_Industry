@@ -5,6 +5,7 @@ import { sellerRoutes } from "@/modules/seller/routes";
 import { doctorRoutes } from "@/modules/doctor/routes";
 import { distributorRoutes } from "@/modules/distributor/routes";
 import { manufacturerRoutes } from "@/modules/manufacturer/routes";
+import { formulatorRoutes } from "@/modules/formulator/routes";
 import React from "react";
 import { Navigate, useRoutes } from "react-router";
 import { useAuth } from "../hooks/useAuth";
@@ -37,6 +38,8 @@ const RoleBasedRouter: React.FC = () => {
     routes = [distributorRoutes];
   } else if (role === ROLE.MANUFACTURER) {
     routes = [manufacturerRoutes];
+  } else if (role === ROLE.FORMULATOR) {
+    routes = [formulatorRoutes];
   } else {
     // Default customer routes or unauthorized
     routes = [
