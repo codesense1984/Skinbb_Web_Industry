@@ -24,6 +24,12 @@ export const formulatorRoutes: RouteObject = {
         () => import("@/modules/formulator/features/formulations/CreateFormulations"),
       ),
     },
+
+    // Account Route
+    {
+      path: FORMULATOR_ROUTES.ACCOUNT.BASE,
+      Component: lazy(() => import("@/modules/formulator/features/account")),
+    },
   ],
 };
 

@@ -8,9 +8,12 @@ import {
   AccordionTrigger,
 } from "@/core/components/ui/accordion";
 import { Textarea } from "@/core/components/ui/textarea";
+import { Input } from "@/core/components/ui/input";
+import { cn } from "@/core/utils";
 import {
   BuildingStorefrontIcon,
   MagnifyingGlassIcon,
+  LinkIcon,
 } from "@heroicons/react/24/outline";
 import React, {
   useCallback,
@@ -181,9 +184,13 @@ const EmptyState = React.memo(
 );
 EmptyState.displayName = "EmptyState";
 
+type InputMode = "inci" | "url";
+
 function IngredientAnalyzer() {
   // State management
+  const [inputMode, setInputMode] = useState<InputMode>("inci");
   const [text, setText] = useState("");
+  const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [resp, setResp] = useState<AnalyzeResponse | null>(null);
   const [activeTab, setActiveTab] = useState<ActiveTab>("grouped");
@@ -208,11 +215,24 @@ function IngredientAnalyzer() {
 
   // API callbacks
   const onAnalyze = useCallback(async () => {
-    if (!parsed.length) return;
+    if (inputMode === "inci" && !parsed.length) return;
+    if (inputMode === "url" && !url.trim()) return;
 
     setLoading(true);
     try {
-      const data = await api.analyzeIngredients({ inci_names: parsed });
+      let ingredientsToAnalyze = parsed;
+      
+      // If URL mode, you would typically fetch ingredients from the URL first
+      // For now, we'll use the parsed INCI list or handle URL separately
+      if (inputMode === "url") {
+        // TODO: Add API call to extract ingredients from URL
+        // For now, show a message or handle it differently
+        console.log("URL analysis not yet implemented:", url);
+        setLoading(false);
+        return;
+      }
+
+      const data = await api.analyzeIngredients({ inci_names: ingredientsToAnalyze });
       setResp(data);
       setActiveTab("grouped");
     } catch (error) {
@@ -220,7 +240,7 @@ function IngredientAnalyzer() {
     } finally {
       setLoading(false);
     }
-  }, [parsed]);
+  }, [parsed, inputMode, url]);
 
   const generateReport = useCallback(async () => {
     if (!parsed.length) return;
@@ -326,27 +346,87 @@ function IngredientAnalyzer() {
     <div className="w-full px-4 py-6">
       {/* Top card */}
       <div className="bg-card border-border rounded-xl border p-6 shadow-lg w-full">
-        <h1 className="text-xl font-semibold">
-          Paste your product&apos;s INCI list
-        </h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Enter ingredients separated by commas, as they appear on your product
-          label
-        </p>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-xl font-semibold">
+              {inputMode === "inci"
+                ? "Paste your product's INCI list"
+                : "Enter product URL"}
+            </h1>
+            <p className="text-muted-foreground mt-1 text-sm">
+              {inputMode === "inci"
+                ? "Enter ingredients separated by commas, as they appear on your product label"
+                : "Paste the product page URL to automatically extract ingredients"}
+            </p>
+          </div>
+          
+          {/* Input Mode Toggle */}
+          <div className="flex gap-2 border rounded-lg p-1 bg-muted/50">
+            <button
+              type="button"
+              onClick={() => setInputMode("inci")}
+              className={cn(
+                "px-4 py-2 rounded-md text-sm font-medium transition-colors",
+                inputMode === "inci"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              INCI List
+            </button>
+            <button
+              type="button"
+              onClick={() => setInputMode("url")}
+              className={cn(
+                "px-4 py-2 rounded-md text-sm font-medium transition-colors",
+                inputMode === "url"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Product URL
+            </button>
+          </div>
+        </div>
 
         <div className="relative mt-4">
-          <label htmlFor="inci" className="sr-only">
-            INCI list
-          </label>
-          <Textarea
-            id="inci"
-            ref={inputRef}
-            className="min-h-[180px]"
-            placeholder="e.g. Aqua, Glycerin, Decyl Glucoside, 1,2-Hexanediol…"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            aria-describedby="inci-help"
-          />
+          {inputMode === "inci" ? (
+            <>
+              <label htmlFor="inci" className="sr-only">
+                INCI list
+              </label>
+              <Textarea
+                id="inci"
+                ref={inputRef}
+                className="min-h-[180px]"
+                placeholder="e.g. Aqua, Glycerin, Decyl Glucoside, 1,2-Hexanediol…"
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                aria-describedby="inci-help"
+              />
+            </>
+          ) : (
+            <>
+              <label htmlFor="url" className="sr-only">
+                Product URL
+              </label>
+              <div className="relative">
+                <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-muted-foreground" />
+                <Input
+                  id="url"
+                  type="url"
+                  className="pl-10 h-12"
+                  placeholder="https://example.com/product/..."
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  aria-describedby="url-help"
+                />
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Supported: Amazon, Nykaa, Flipkart, and other e-commerce product pages
+              </p>
+            </>
+          )}
         </div>
 
         <div className="mt-5 flex flex-wrap items-center gap-3">
@@ -355,16 +435,26 @@ function IngredientAnalyzer() {
             color={"primary"}
             type="button"
             onClick={onAnalyze}
-            disabled={loading || parsed?.length === 0}
+            disabled={
+              loading ||
+              (inputMode === "inci" && parsed?.length === 0) ||
+              (inputMode === "url" && !url.trim())
+            }
           >
             <MagnifyingGlassIcon />
-            {loading ? "Analyzing…" : "Analyze Ingredients"}
+            {loading
+              ? "Analyzing…"
+              : inputMode === "inci"
+                ? "Analyze Ingredients"
+                : "Extract & Analyze"}
           </Button>
 
-          <div className="ml-auto text-sm text-gray-600">
-            <span className="mr-2">📦</span>
-            {detectedCount} ingredient{textEnding(detectedCount)} detected
-          </div>
+          {inputMode === "inci" && (
+            <div className="ml-auto text-sm text-gray-600">
+              <span className="mr-2">📦</span>
+              {detectedCount} ingredient{textEnding(detectedCount)} detected
+            </div>
+          )}
         </div>
       </div>
 

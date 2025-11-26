@@ -11,6 +11,7 @@ import { useAuth } from "@/modules/auth/hooks/useAuth";
 import { ROLE } from "@/modules/auth/types/permission.type.";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { DOCTOR_ROUTES } from "@/modules/doctor/routes/constant";
+import { FORMULATOR_ROUTES } from "@/modules/formulator/routes/constant";
 import { useEffect, useMemo } from "react";
 import { NavLink } from "react-router";
 
@@ -25,13 +26,21 @@ const FormulatorHeader = () => {
     return role === ROLE.DOCTOR;
   }, [role]);
 
+  // Check if user is a formulator
+  const isFormulator = useMemo(() => {
+    return role === ROLE.FORMULATOR;
+  }, [role]);
+
   // Get account route based on role
   const accountRoute = useMemo(() => {
     if (isDoctor) {
       return DOCTOR_ROUTES.ACCOUNT.BASE;
     }
+    if (isFormulator) {
+      return FORMULATOR_ROUTES.ACCOUNT.BASE;
+    }
     return PANEL_ROUTES.ACCOUNT;
-  }, [isDoctor]);
+  }, [isDoctor, isFormulator]);
 
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
