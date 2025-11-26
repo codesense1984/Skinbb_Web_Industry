@@ -15,5 +15,10 @@ export const FORMULATOR_ROUTES = {
     DECODE: "/formulations/decode",
     CREATE: "/formulations/create",
   },
+
+  // ---- Account ----
+  ACCOUNT: {
+    BASE: "/account",
+  },
 } as const;
 
