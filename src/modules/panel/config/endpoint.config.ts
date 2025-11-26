@@ -207,6 +207,20 @@ export const ENDPOINTS = {
     VERIFY_GST: `${API_PREFIX}/company-verification/verify-gst`,
     VERIFY_CIN: `${API_PREFIX}/company-verification/verify-cin`,
   },
+
+  PROMOTION: {
+    MAIN: `${API_PREFIX}/promotions`,
+    LIST: `${API_PREFIX}/promotions/list`,
+    CREATE: (adminId: string) => `${API_PREFIX}/promotions/${adminId}`,
+    GET_BY_ID: (id: string) => `${API_PREFIX}/promotions/${id}`,
+    UPDATE: (id: string) => `${API_PREFIX}/promotions/${id}`,
+    DELETE: (id: string) => `${API_PREFIX}/promotions/${id}`,
+    TOGGLE_STATUS: (id: string) => `${API_PREFIX}/promotions/${id}/toggle-status`,
+    STATS: `${API_PREFIX}/promotions/stats`,
+    ACTIVE: `${API_PREFIX}/promotions/active`,
+    CURATED_STORES_PRODUCTS: (promotionId: string) =>
+      `${API_PREFIX}/promotions/curated-stores/${promotionId}/products`,
+  },
 } as const;
 
 export type Endpoints = typeof ENDPOINTS;

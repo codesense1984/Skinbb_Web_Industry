@@ -377,6 +377,19 @@ export const PANEL_ROUTES = {
       ROUTE.build(MASTER_BASE, DISCOUNT_COUPON_BASE, id, ROUTE.seg.view), // /master/discount-coupons/view/:id
   },
 
+  // ---- Promotions ----
+  PROMOTION: {
+    BASE: "/promo", // /promo
+    LIST: "/promo", // /promo
+    CREATE: ROUTE.build("/promo", ROUTE.seg.create), // /promo/create
+    EDIT: (id: string = ROUTE.seg.id) =>
+      ROUTE.build("/promo", id, ROUTE.seg.edit), // /promo/edit/:id
+    VIEW: (id: string = ROUTE.seg.id) =>
+      ROUTE.build("/promo", id, ROUTE.seg.view), // /promo/view/:id
+    DETAIL: (id: string = ROUTE.seg.id) => ROUTE.build("/promo", id), // /promo/:id
+    STATS: "/promo/stats",
+  },
+
   // ---- Misc panel pages ----
   CHAT: "/chat",
   RELATIONSHIP_PREVIEW: "/relationship",

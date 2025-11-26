@@ -244,6 +244,11 @@ export const panelSidebarItems: Readonly<Record<string, SidebarItem>> = {
     href: PANEL_ROUTES.MASTER.DISCOUNT_COUPON,
     requiredRoles: [ROLE.ADMIN],
   },
+  promotions: {
+    name: "Promotions",
+    href: PANEL_ROUTES.PROMOTION.LIST,
+    requiredRoles: [ROLE.ADMIN],
+  },
   marketing: {
     name: "Marketing",
     icon: (

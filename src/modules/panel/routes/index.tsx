@@ -437,10 +437,30 @@ export const panelRoutes: RouteObject = {
       ),
     },
 
-    // Promotions Route
+    // Promotions Routes
     {
-      path: "/promo",
-      Component: lazy(() => import("@/modules/panel/features/promotions")),
+      path: PANEL_ROUTES.PROMOTION.LIST,
+      Component: lazy(
+        () => import("@/modules/panel/features/promotions/list"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.PROMOTION.CREATE,
+      Component: lazy(
+        () => import("@/modules/panel/features/promotions/create"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.PROMOTION.EDIT(),
+      Component: lazy(
+        () => import("@/modules/panel/features/promotions/edit"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.PROMOTION.VIEW(),
+      Component: lazy(
+        () => import("@/modules/panel/features/promotions/view"),
+      ),
     },
 
     // Settings Subpages
