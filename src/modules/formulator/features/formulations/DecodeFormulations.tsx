@@ -64,7 +64,29 @@ interface ReportState {
   pdfLoading: boolean;
 }
 
+interface ExtractUrlRequest {
+  url: string;
+}
+
+interface ExtractUrlResponse {
+  ingredients: string[];
+  extracted_text: string;
+  platform: string;
+  url: string;
+  processing_time: number;
+}
+
 const api = {
+  async extractIngredientsFromUrl(
+    req: ExtractUrlRequest,
+  ): Promise<ExtractUrlResponse> {
+    const response = await axios.post(
+      `${basePythonApiUrl}/api/extract-ingredients-from-url`,
+      req,
+    );
+    return response.data;
+  },
+
   async analyzeIngredients(req: AnalyzeRequest): Promise<AnalyzeResponse> {
     const response = await axios.post(
       `${basePythonApiUrl}/api/analyze-inci`,
@@ -192,6 +214,8 @@ function IngredientAnalyzer() {
   const [text, setText] = useState("");
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
+  const [extracting, setExtracting] = useState(false);
+  const [extractedData, setExtractedData] = useState<ExtractUrlResponse | null>(null);
   const [resp, setResp] = useState<AnalyzeResponse | null>(null);
   const [activeTab, setActiveTab] = useState<ActiveTab>("grouped");
   const [reportState, setReportState] = useState<ReportState>({
@@ -213,23 +237,37 @@ function IngredientAnalyzer() {
 
   const detectedCount = parsed?.length;
 
+  // Extract ingredients from URL
+  const onExtract = useCallback(async () => {
+    if (!url.trim()) return;
+
+    setExtracting(true);
+    setExtractedData(null);
+    try {
+      const data = await api.extractIngredientsFromUrl({ url: url.trim() });
+      setExtractedData(data);
+      // Auto-populate the INCI textarea with extracted ingredients
+      setText(data.ingredients.join(", "));
+    } catch (error) {
+      console.error("Error extracting ingredients from URL:", error);
+      window.alert("Error extracting ingredients from URL. Please try again.");
+    } finally {
+      setExtracting(false);
+    }
+  }, [url]);
+
   // API callbacks
   const onAnalyze = useCallback(async () => {
     if (inputMode === "inci" && !parsed.length) return;
-    if (inputMode === "url" && !url.trim()) return;
+    if (inputMode === "url" && !extractedData?.ingredients.length) return;
 
     setLoading(true);
     try {
       let ingredientsToAnalyze = parsed;
       
-      // If URL mode, you would typically fetch ingredients from the URL first
-      // For now, we'll use the parsed INCI list or handle URL separately
-      if (inputMode === "url") {
-        // TODO: Add API call to extract ingredients from URL
-        // For now, show a message or handle it differently
-        console.log("URL analysis not yet implemented:", url);
-        setLoading(false);
-        return;
+      // If URL mode, use extracted ingredients
+      if (inputMode === "url" && extractedData) {
+        ingredientsToAnalyze = extractedData.ingredients;
       }
 
       const data = await api.analyzeIngredients({ inci_names: ingredientsToAnalyze });
@@ -240,7 +278,7 @@ function IngredientAnalyzer() {
     } finally {
       setLoading(false);
     }
-  }, [parsed, inputMode, url]);
+  }, [parsed, inputMode, extractedData]);
 
   const generateReport = useCallback(async () => {
     if (!parsed.length) return;
@@ -430,32 +468,101 @@ function IngredientAnalyzer() {
         </div>
 
         <div className="mt-5 flex flex-wrap items-center gap-3">
-          <Button
-            variant={"contained"}
-            color={"primary"}
-            type="button"
-            onClick={onAnalyze}
-            disabled={
-              loading ||
-              (inputMode === "inci" && parsed?.length === 0) ||
-              (inputMode === "url" && !url.trim())
-            }
-          >
-            <MagnifyingGlassIcon />
-            {loading
-              ? "Analyzing…"
-              : inputMode === "inci"
-                ? "Analyze Ingredients"
-                : "Extract & Analyze"}
-          </Button>
-
-          {inputMode === "inci" && (
-            <div className="ml-auto text-sm text-gray-600">
-              <span className="mr-2">📦</span>
-              {detectedCount} ingredient{textEnding(detectedCount)} detected
-            </div>
+          {inputMode === "url" ? (
+            <>
+              <Button
+                variant={"contained"}
+                color={"primary"}
+                type="button"
+                onClick={onExtract}
+                disabled={extracting || !url.trim()}
+              >
+                <LinkIcon className="size-4" />
+                {extracting ? "Extracting…" : "Extract Ingredients"}
+              </Button>
+              {extractedData && (
+                <Button
+                  variant={"contained"}
+                  color={"primary"}
+                  type="button"
+                  onClick={onAnalyze}
+                  disabled={loading}
+                >
+                  <MagnifyingGlassIcon />
+                  {loading ? "Analyzing…" : "Analyze Ingredients"}
+                </Button>
+              )}
+            </>
+          ) : (
+            <>
+              <Button
+                variant={"contained"}
+                color={"primary"}
+                type="button"
+                onClick={onAnalyze}
+                disabled={loading || parsed?.length === 0}
+              >
+                <MagnifyingGlassIcon />
+                {loading ? "Analyzing…" : "Analyze Ingredients"}
+              </Button>
+              <div className="ml-auto text-sm text-gray-600">
+                <span className="mr-2">📦</span>
+                {detectedCount} ingredient{textEnding(detectedCount)} detected
+              </div>
+            </>
           )}
         </div>
+
+        {/* Extracted Data Display */}
+        {extractedData && inputMode === "url" && (
+          <div className="mt-6 space-y-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-semibold text-blue-900">
+                  Extraction Results
+                </h3>
+                <span className="text-xs text-blue-700">
+                  Platform: {extractedData.platform} • {extractedData.ingredients.length} ingredients found
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-1.5 mb-3">
+                {extractedData.ingredients.slice(0, 10).map((ing, idx) => (
+                  <Badge
+                    key={idx}
+                    variant={"outline"}
+                    className="text-xs bg-white border-blue-300 text-blue-800"
+                  >
+                    {ing}
+                  </Badge>
+                ))}
+                {extractedData.ingredients.length > 10 && (
+                  <Badge
+                    variant={"outline"}
+                    className="text-xs bg-white border-blue-300 text-blue-800"
+                  >
+                    +{extractedData.ingredients.length - 10} more
+                  </Badge>
+                )}
+              </div>
+            </div>
+
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-semibold text-gray-900">
+                  Extracted Text
+                </h3>
+                <span className="text-xs text-gray-600">
+                  Processing time: {extractedData.processing_time.toFixed(2)}s
+                </span>
+              </div>
+              <div className="max-h-48 overflow-y-auto">
+                <p className="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed">
+                  {extractedData.extracted_text}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Results */}
