@@ -77,8 +77,13 @@ export function clearDateFormatCache(): void {
 export function getCompanySchema(
   mode?: string,
   companyOptions?: Array<{ companyName: string }>,
+  validateVerificationOnChange: boolean = false,
 ) {
-  return createCompanySchema(mode, companyOptions);
+  return createCompanySchema(
+    mode,
+    companyOptions,
+    validateVerificationOnChange,
+  );
 }
 
 /**

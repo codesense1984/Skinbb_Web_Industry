@@ -70,7 +70,13 @@ export async function apiVerifyEmailOTP(data: VerifyEmailOTPData) {
   return api.post<ApiResponse<string>>(ENDPOINTS.ONBOARDING.VERIFY_MAIL, data);
 }
 
-export async function apiSendMobileOTP(data: { phoneNumber: string }) {
+export interface SendMobileOTPData {
+  phoneNumber: string;
+  countryCode: string;
+  sendVia: "whatsapp" | "sms";
+}
+
+export async function apiSendMobileOTP(data: SendMobileOTPData) {
   return api.post<ApiResponse<string>>(ENDPOINTS.ONBOARDING.SEND_MOBILE, data);
 }
 

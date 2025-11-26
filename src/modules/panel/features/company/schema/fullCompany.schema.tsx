@@ -210,6 +210,8 @@ const sellingPlatformSchema = z
  * For other modes (ADD, VIEW): applies full validation with all required checks
  *
  * @param mode - The mode string (MODE.ADD, MODE.EDIT, MODE.VIEW)
+ * @param companyOptions - Optional array of existing company names for uniqueness validation
+ * @param validateVerificationOnChange - If true, validates phone/email verification on every validation. If false (default), only validates on submit.
  * @returns Zod schema with conditional validation rules
  *
  * @example
@@ -226,6 +228,7 @@ const sellingPlatformSchema = z
 export function createCompanySchema(
   mode?: string,
   companyOptions?: Array<{ companyName: string }>,
+  validateVerificationOnChange: boolean = false,
 ) {
   const isEditMode = mode === MODE.EDIT;
 
@@ -362,14 +365,26 @@ export function createCompanySchema(
         });
       }
 
-      // Phone verification validation
-      const phoneVerified = data?.phoneVerified;
-      if (!phoneVerified && data?.phoneNumber) {
-        ctx.addIssue({
-          path: ["phoneNumber"],
-          code: z.ZodIssueCode.custom,
-          message: "Phone number is not verified",
-        });
+      // Phone and email verification validation
+      // Only validate verification when explicitly requested (on submit)
+      // This prevents showing verification errors on blur/change events
+      if (validateVerificationOnChange) {
+        const phoneVerified = data?.phoneVerified;
+        if (!phoneVerified && data?.phoneNumber) {
+          ctx.addIssue({
+            path: ["phoneNumber"],
+            code: z.ZodIssueCode.custom,
+            message: "Phone number is not verified",
+          });
+        }
+        const emailVerified = data?.emailVerified;
+        if (!emailVerified && data?.email) {
+          ctx.addIssue({
+            path: ["email"],
+            code: z.ZodIssueCode.custom,
+            message: "Email is not verified",
+          });
+        }
       }
 
       const brands = data?.brands;
