@@ -596,7 +596,14 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
                 : ""
             }
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              field.onChange(transform ? transform.output(e) : e.target?.value);
+              const inputValue = e.target?.value;
+              // Convert number inputs to actual numbers
+              if (type === INPUT_TYPES.NUMBER) {
+                const numValue = inputValue === "" ? undefined : Number(inputValue);
+                field.onChange(transform ? transform.output(numValue) : (isNaN(numValue as number) ? undefined : numValue));
+              } else {
+                field.onChange(transform ? transform.output(e) : inputValue);
+              }
             }}
             {...inputProps}
           />
