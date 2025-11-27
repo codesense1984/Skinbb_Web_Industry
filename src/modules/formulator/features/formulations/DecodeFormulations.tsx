@@ -9,6 +9,23 @@ import {
 } from "@/core/components/ui/accordion";
 import { Textarea } from "@/core/components/ui/textarea";
 import { Input } from "@/core/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/core/components/ui/dialog";
+import {
+  SelectRoot,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/core/components/ui/select";
+import { PaginationComboBox } from "@/core/components/ui/pagination-combo-box";
+import type { ServerTableFetcher } from "@/core/components/ui/pagination-combo-box";
 import { cn } from "@/core/utils";
 import {
   BuildingStorefrontIcon,
@@ -74,6 +91,40 @@ interface ExtractUrlResponse {
   platform: string;
   url: string;
   processing_time: number;
+  is_estimated?: boolean;
+  source?: string;
+  product_name?: string;
+  message?: string;
+}
+
+interface DistributorInfo {
+  _id: string;
+  firmName: string;
+  category: string;
+  registeredAddress: string;
+  contactPersons?: Array<{
+    name: string;
+    number: string;
+    email: string;
+    zones: string[];
+  }>;
+  contactPerson?: {  // Legacy support for old data
+    name: string;
+    number: string;
+    email: string;
+    zone: string;
+  };
+  ingredientName: string;
+  principlesSuppliers: string[];
+  yourInfo: {
+    name: string;
+    email: string;
+    designation: string;
+    contactNo: string;
+  };
+  status: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 const api = {
@@ -91,6 +142,58 @@ const api = {
     const response = await axios.post(
       `${basePythonApiUrl}/api/analyze-inci`,
       req,
+    );
+    return response.data;
+  },
+
+  async getSuppliers(): Promise<{ suppliers: string[] }> {
+    const response = await axios.get(`${basePythonApiUrl}/api/suppliers`);
+    return response.data;
+  },
+
+  async getDistributorsByIngredient(
+    ingredientName: string,
+  ): Promise<DistributorInfo[]> {
+    try {
+      const response = await axios.get(
+        `${basePythonApiUrl}/api/distributor/by-ingredient/${encodeURIComponent(ingredientName)}`
+      );
+      return Array.isArray(response.data) ? response.data : (response.data ? [response.data] : []);
+    } catch (error: unknown) {
+      if (error && typeof error === "object" && "response" in error) {
+        const httpError = error as { response?: { status?: number } };
+        if (httpError.response?.status === 404) {
+          return [];
+        }
+      }
+      console.error("Error fetching distributors:", error);
+      return [];
+    }
+  },
+
+  async registerDistributor(data: {
+    firmName: string;
+    category: string;
+    registeredAddress: string;
+    contactPersons: Array<{
+      name: string;
+      number: string;
+      email: string;
+      zones: string[];
+    }>;
+    ingredientName: string;
+    principlesSuppliers: string[];
+    yourInfo: {
+      name: string;
+      email: string;
+      designation: string;
+      contactNo: string;
+    };
+    acceptTerms: boolean;
+  }): Promise<{ success: boolean; message: string; distributorId?: string }> {
+    const response = await axios.post(
+      `${basePythonApiUrl}/api/distributor/register`,
+      data
     );
     return response.data;
   },
@@ -208,6 +311,28 @@ EmptyState.displayName = "EmptyState";
 
 type InputMode = "inci" | "url";
 
+interface ContactPerson {
+  name: string;
+  number: string;
+  email: string;
+  zones: string[]; // Multiple zones
+}
+
+interface DistributorFormData {
+  firmName: string;
+  category: string;
+  registeredAddress: string;
+  contactPersons: ContactPerson[]; // Multiple contact persons
+  principlesSuppliers: string[]; // Multiple selected suppliers
+  yourInfo: {
+    name: string;
+    email: string;
+    designation: string;
+    contactNo: string;
+  };
+  acceptTerms: boolean;
+}
+
 function IngredientAnalyzer() {
   // State management
   const [inputMode, setInputMode] = useState<InputMode>("inci");
@@ -224,6 +349,35 @@ function IngredientAnalyzer() {
     pdfLoading: false,
   });
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  
+  // Distributor claim state
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
+  const [showDistributorForm, setShowDistributorForm] = useState(false);
+  const [selectedIngredient, setSelectedIngredient] = useState<string | null>(null);
+  const [submittingForm, setSubmittingForm] = useState(false);
+  const [distributorInfo, setDistributorInfo] = useState<Record<string, DistributorInfo[]>>({});
+  const [showDistributorDetails, setShowDistributorDetails] = useState<string | null>(null);
+  const [formData, setFormData] = useState<DistributorFormData>({
+    firmName: "",
+    category: "",
+    registeredAddress: "",
+    contactPersons: [
+      {
+        name: "",
+        number: "",
+        email: "",
+        zones: [],
+      },
+    ],
+    principlesSuppliers: [],
+    yourInfo: {
+      name: "",
+      email: "",
+      designation: "",
+      contactNo: "",
+    },
+    acceptTerms: false,
+  });
 
   // Parse list on the fly (fast + memoized)
   const parsed = useMemo(() => {
@@ -236,6 +390,197 @@ function IngredientAnalyzer() {
   }, [text]);
 
   const detectedCount = parsed?.length;
+
+  // Create supplier fetcher for PaginationComboBox
+  const supplierFetcher: ServerTableFetcher<{ supplierName: string }> = useCallback(
+    async ({ pageIndex, pageSize, globalFilter, signal }) => {
+      try {
+        const response = await axios.get(`${basePythonApiUrl}/api/suppliers/paginated`, {
+          params: {
+            skip: pageIndex * pageSize,
+            limit: pageSize,
+            search: globalFilter || undefined,
+          },
+          signal,
+        });
+        const data = response.data;
+        
+        return {
+          rows: data.suppliers.map((name: string) => ({ supplierName: name })),
+          total: data.total,
+        };
+      } catch (err: unknown) {
+        if (err && typeof err === "object" && "name" in err && err.name === "CanceledError") {
+          // Request was cancelled, return empty result
+          return { rows: [], total: 0 };
+        }
+        throw err;
+      }
+    },
+    []
+  );
+
+  // Handle claim button click
+  const handleClaimClick = useCallback((ingredientName: string) => {
+    setSelectedIngredient(ingredientName);
+    setShowRegistrationModal(true);
+  }, []);
+
+  // Handle proceed to form
+  const handleProceedToForm = useCallback(() => {
+    setShowRegistrationModal(false);
+    setShowDistributorForm(true);
+  }, []);
+
+
+  // Update your info field
+  const updateYourInfo = useCallback((field: string, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      yourInfo: {
+        ...prev.yourInfo,
+        [field]: value,
+      },
+    }));
+  }, []);
+
+  // Add contact person
+  const addContactPerson = useCallback(() => {
+    setFormData((prev) => ({
+      ...prev,
+      contactPersons: [
+        ...prev.contactPersons,
+        {
+          name: "",
+          number: "",
+          email: "",
+          zones: [],
+        },
+      ],
+    }));
+  }, []);
+
+  // Remove contact person
+  const removeContactPerson = useCallback((index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      contactPersons: prev.contactPersons.filter((_, i) => i !== index),
+    }));
+  }, []);
+
+  // Update contact person field
+  const updateContactPerson = useCallback((index: number, field: string, value: string | string[]) => {
+    setFormData((prev) => ({
+      ...prev,
+      contactPersons: prev.contactPersons.map((cp, i) =>
+        i === index ? { ...cp, [field]: value } : cp
+      ),
+    }));
+  }, []);
+
+  // Handle form submission
+  const handleFormSubmit = useCallback(async () => {
+    if (!selectedIngredient) {
+      window.alert("No ingredient selected");
+      return;
+    }
+
+    if (!formData.acceptTerms) {
+      window.alert("Please accept the terms and conditions");
+      return;
+    }
+
+    // Validate all required fields
+    if (!formData.firmName || !formData.category || !formData.registeredAddress) {
+      window.alert("Please fill in all required fields");
+      return;
+    }
+
+    // Validate contact persons
+    if (formData.contactPersons.length === 0) {
+      window.alert("Please add at least one contact person");
+      return;
+    }
+    
+    for (let i = 0; i < formData.contactPersons.length; i++) {
+      const cp = formData.contactPersons[i];
+      if (!cp.name || !cp.number || !cp.email || cp.zones.length === 0) {
+        window.alert(`Please fill in all fields for Contact Person ${i + 1}`);
+        return;
+      }
+    }
+
+    // Validate principles suppliers
+    if (formData.principlesSuppliers.length === 0) {
+      window.alert("Please select at least one supplier in Principles You Represent");
+      return;
+    }
+
+    // Validate your info
+    if (!formData.yourInfo.name || !formData.yourInfo.email || 
+        !formData.yourInfo.designation || !formData.yourInfo.contactNo) {
+      window.alert("Please fill in all Your Info fields");
+      return;
+    }
+
+    setSubmittingForm(true);
+    try {
+      const result = await api.registerDistributor({
+        ...formData,
+        ingredientName: selectedIngredient,
+      });
+
+      if (result.success) {
+        window.alert("Distributor registration submitted successfully!");
+        
+        // Refresh distributor info for the ingredient
+        if (selectedIngredient) {
+          const distributors = await api.getDistributorsByIngredient(selectedIngredient);
+          setDistributorInfo(prev => ({
+            ...prev,
+            [selectedIngredient]: distributors,
+          }));
+        }
+        
+        // Reset form and close modal
+        setFormData({
+          firmName: "",
+          category: "",
+          registeredAddress: "",
+          contactPersons: [
+            {
+              name: "",
+              number: "",
+              email: "",
+              zones: [],
+            },
+          ],
+          principlesSuppliers: [],
+          yourInfo: {
+            name: "",
+            email: "",
+            designation: "",
+            contactNo: "",
+          },
+          acceptTerms: false,
+        });
+        setShowDistributorForm(false);
+        setSelectedIngredient(null);
+      }
+    } catch (error: unknown) {
+      console.error("Error submitting distributor registration:", error);
+      let errorMessage = "Failed to submit registration";
+      if (error && typeof error === "object" && "response" in error) {
+        const httpError = error as { response?: { data?: { detail?: string } }; message?: string };
+        errorMessage = httpError.response?.data?.detail || httpError.message || errorMessage;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      window.alert(`Error: ${errorMessage}`);
+    } finally {
+      setSubmittingForm(false);
+    }
+  }, [formData, selectedIngredient]);
 
   // Extract ingredients from URL
   const onExtract = useCallback(async () => {
@@ -273,6 +618,29 @@ function IngredientAnalyzer() {
       const data = await api.analyzeIngredients({ inci_names: ingredientsToAnalyze });
       setResp(data);
       setActiveTab("grouped");
+      
+      // Fetch distributor info for all ingredients
+      if (data.grouped) {
+        const ingredientNames = new Set<string>();
+        data.grouped.forEach((group: GroupItem) => {
+          group.items.forEach((item: MatchedItem) => {
+            ingredientNames.add(item.ingredient_name);
+          });
+        });
+        
+        // Fetch distributor info for each ingredient
+        const distributorPromises = Array.from(ingredientNames).map(async (ingredientName) => {
+          const distributors = await api.getDistributorsByIngredient(ingredientName);
+          return { ingredientName, distributors };
+        });
+        
+        const distributorResults = await Promise.all(distributorPromises);
+        const distributorMap: Record<string, DistributorInfo[]> = {};
+        distributorResults.forEach(({ ingredientName, distributors }) => {
+          distributorMap[ingredientName] = distributors;
+        });
+        setDistributorInfo(distributorMap);
+      }
     } catch (error) {
       console.error("Error analyzing ingredients:", error);
     } finally {
@@ -516,6 +884,41 @@ function IngredientAnalyzer() {
         {/* Extracted Data Display */}
         {extractedData && inputMode === "url" && (
           <div className="mt-6 space-y-4">
+            {/* Estimated Ingredients Warning */}
+            {extractedData.is_estimated && (
+              <div className="bg-amber-50 border border-amber-300 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 mt-0.5">
+                    <svg
+                      className="w-5 h-5 text-amber-600"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-semibold text-amber-900 mb-1">
+                      Estimated Ingredients
+                    </h4>
+                    <p className="text-xs text-amber-800 leading-relaxed">
+                      {extractedData.message ||
+                        "Unable to extract ingredients directly from the URL. These are estimated ingredients found via AI search. Please verify these ingredients match the actual product formulation."}
+                    </p>
+                    {extractedData.product_name && (
+                      <p className="text-xs text-amber-700 mt-1">
+                        Product detected: <span className="font-medium">{extractedData.product_name}</span>
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-sm font-semibold text-blue-900">
@@ -523,10 +926,13 @@ function IngredientAnalyzer() {
                 </h3>
                 <span className="text-xs text-blue-700">
                   Platform: {extractedData.platform} • {extractedData.ingredients.length} ingredients found
+                  {extractedData.is_estimated && (
+                    <span className="ml-1 text-amber-600">(Estimated)</span>
+                  )}
                 </span>
               </div>
-              <div className="flex flex-wrap gap-1.5 mb-3">
-                {extractedData.ingredients.slice(0, 10).map((ing, idx) => (
+              <div className="flex flex-wrap gap-1.5">
+                {extractedData.ingredients.map((ing, idx) => (
                   <Badge
                     key={idx}
                     variant={"outline"}
@@ -535,30 +941,9 @@ function IngredientAnalyzer() {
                     {ing}
                   </Badge>
                 ))}
-                {extractedData.ingredients.length > 10 && (
-                  <Badge
-                    variant={"outline"}
-                    className="text-xs bg-white border-blue-300 text-blue-800"
-                  >
-                    +{extractedData.ingredients.length - 10} more
-                  </Badge>
-                )}
               </div>
-            </div>
-
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-semibold text-gray-900">
-                  Extracted Text
-                </h3>
-                <span className="text-xs text-gray-600">
-                  Processing time: {extractedData.processing_time.toFixed(2)}s
-                </span>
-              </div>
-              <div className="max-h-48 overflow-y-auto">
-                <p className="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed">
-                  {extractedData.extracted_text}
-                </p>
+              <div className="mt-3 text-xs text-gray-600">
+                Processing time: {extractedData.processing_time.toFixed(2)}s
               </div>
             </div>
           </div>
@@ -648,13 +1033,45 @@ function IngredientAnalyzer() {
                                   {item.supplier_name}
                                 </span>
                                 <BuildingStorefrontIcon className="size-5" />
+                                {distributorInfo[item.ingredient_name] && distributorInfo[item.ingredient_name].length > 0 && (
+                                  <Badge
+                                    variant="outline"
+                                    className="text-xs bg-green-50 text-green-700 border-green-300 cursor-pointer hover:bg-green-100"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setShowDistributorDetails(item.ingredient_name);
+                                    }}
+                                  >
+                                    India Distributor{distributorInfo[item.ingredient_name].length > 1 ? ` (${distributorInfo[item.ingredient_name].length})` : ""}
+                                  </Badge>
+                                )}
                               </div>
                             </div>
                           </AccordionTrigger>
                           <AccordionContent className="px-5 pb-4">
-                            <p className="text-sm leading-6 text-gray-700">
-                              {item.description}
-                            </p>
+                            <div className="space-y-4">
+                              <p className="text-sm leading-6 text-gray-700">
+                                {item.description}
+                              </p>
+                              <div className="flex justify-end pt-2 border-t">
+                                <div className="group relative">
+                                  <Button
+                                    variant="outlined"
+                                    size="sm"
+                                    onClick={() => handleClaimClick(item.ingredient_name)}
+                                    className="flex items-center gap-2"
+                                  >
+                                    <BuildingStorefrontIcon className="size-4" />
+                                    Claim this as India distributor
+                                  </Button>
+                                  <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block z-10">
+                                    <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 shadow-lg max-w-xs">
+                                      Claim this ingredient as your India distributor territory. You need to register as a distributor on SkinBB Metaverse.
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
                           </AccordionContent>
                         </AccordionItem>
                       ))}
@@ -774,6 +1191,461 @@ function IngredientAnalyzer() {
           )}
         </div>
       )}
+
+      {/* Registration Modal */}
+      <Dialog open={showRegistrationModal} onOpenChange={setShowRegistrationModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Distributor Registration Required</DialogTitle>
+            <DialogDescription>
+              You need to register as a distributor on SkinBB Metaverse to be able to claim this ingredient as your India distributor territory.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-gray-600">
+              Ingredient: <span className="font-semibold">{selectedIngredient}</span>
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outlined" onClick={() => setShowRegistrationModal(false)}>
+              Cancel
+            </Button>
+            <Button variant="contained" color="primary" onClick={handleProceedToForm}>
+              Go Ahead
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Distributor Onboarding Form Modal */}
+      <Dialog open={showDistributorForm} onOpenChange={setShowDistributorForm}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Distributor Onboarding Form</DialogTitle>
+            <DialogDescription>
+              Please fill in all the required information to register as a distributor
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {/* Firm Name */}
+            <div>
+              <label htmlFor="firmName" className="text-sm font-medium mb-1 block">
+                Name of the firm: <span className="text-red-500">*</span>
+              </label>
+              <Input
+                id="firmName"
+                value={formData.firmName}
+                onChange={(e) => setFormData({ ...formData, firmName: e.target.value })}
+                placeholder="Enter firm name"
+              />
+            </div>
+
+            {/* Category */}
+            <div>
+              <label htmlFor="category" className="text-sm font-medium mb-1 block">
+                Category: <span className="text-red-500">*</span>
+              </label>
+              <SelectRoot
+                value={formData.category}
+                onValueChange={(value) => setFormData({ ...formData, category: value })}
+              >
+                <SelectTrigger id="category" className="w-full">
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Public">Public</SelectItem>
+                  <SelectItem value="Pvt Ltd">Pvt Ltd</SelectItem>
+                  <SelectItem value="LLP">LLP</SelectItem>
+                  <SelectItem value="Proprietorship">Proprietorship</SelectItem>
+                </SelectContent>
+              </SelectRoot>
+            </div>
+
+            {/* Registered Address */}
+            <div>
+              <label htmlFor="registeredAddress" className="text-sm font-medium mb-1 block">
+                Registered Address: <span className="text-red-500">*</span>
+              </label>
+              <Textarea
+                id="registeredAddress"
+                value={formData.registeredAddress}
+                onChange={(e) => setFormData({ ...formData, registeredAddress: e.target.value })}
+                placeholder="Enter registered address"
+                rows={3}
+              />
+            </div>
+
+            {/* Contact Persons */}
+            <div className="space-y-3 border-t pt-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold">
+                  Contact Person(s): <span className="text-red-500">*</span>
+                </h3>
+                <Button
+                  type="button"
+                  variant="outlined"
+                  size="sm"
+                  onClick={addContactPerson}
+                >
+                  + Add Contact Person
+                </Button>
+              </div>
+              
+              {formData.contactPersons.map((contactPerson, index) => (
+                <div key={index} className="border rounded-lg p-4 space-y-3 relative">
+                  {formData.contactPersons.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="outlined"
+                      size="sm"
+                      onClick={() => removeContactPerson(index)}
+                      className="absolute top-2 right-2"
+                    >
+                      Remove
+                    </Button>
+                  )}
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label htmlFor={`cp-name-${index}`} className="text-xs font-medium mb-1 block">
+                        Name: <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        id={`cp-name-${index}`}
+                        value={contactPerson.name}
+                        onChange={(e) => updateContactPerson(index, "name", e.target.value)}
+                        placeholder="Enter contact person name"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor={`cp-number-${index}`} className="text-xs font-medium mb-1 block">
+                        Number: <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        id={`cp-number-${index}`}
+                        type="tel"
+                        value={contactPerson.number}
+                        onChange={(e) => updateContactPerson(index, "number", e.target.value)}
+                        placeholder="Enter phone number"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor={`cp-email-${index}`} className="text-xs font-medium mb-1 block">
+                        Email: <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        id={`cp-email-${index}`}
+                        type="email"
+                        value={contactPerson.email}
+                        onChange={(e) => updateContactPerson(index, "email", e.target.value)}
+                        placeholder="Enter email address"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor={`cp-zones-${index}`} className="text-xs font-medium mb-1 block">
+                        Zone(s): <span className="text-red-500">*</span>
+                      </label>
+                      <PaginationComboBox<{ zone: string }>
+                        apiFunction={async () => {
+                          const zones = ["India", "North Zone", "West Zone", "East Zone", "South Zone"];
+                          return {
+                            rows: zones.map(zone => ({ zone })),
+                            total: zones.length,
+                          };
+                        }}
+                        transform={(item) => ({
+                          label: item.zone,
+                          value: item.zone,
+                        })}
+                        placeholder="Select zone(s)..."
+                        value={contactPerson.zones}
+                        onChange={(value) => {
+                          if (Array.isArray(value)) {
+                            updateContactPerson(index, "zones", value);
+                          }
+                        }}
+                        className="w-full"
+                        multi={true}
+                        searchable={true}
+                        clearable={true}
+                        pageSize={10}
+                        enableInfiniteScroll={false}
+                        minSearchLength={0}
+                        queryKey={["zones", index.toString()]}
+                        enabled={true}
+                        fetchOnMount={true}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Principles You Represent Section */}
+            <div className="border-t pt-4">
+              <h3 className="text-sm font-semibold mb-3">
+                Principles You Represent: <span className="text-red-500">*</span>
+              </h3>
+              
+              <PaginationComboBox<{ supplierName: string }>
+                apiFunction={supplierFetcher}
+                transform={(supplier) => ({
+                  label: supplier.supplierName,
+                  value: supplier.supplierName,
+                })}
+                placeholder="Search and select suppliers..."
+                value={formData.principlesSuppliers}
+                onChange={(value, _options) => {
+                  if (Array.isArray(value)) {
+                    setFormData((prev) => ({
+                      ...prev,
+                      principlesSuppliers: value,
+                    }));
+                  }
+                }}
+                className="w-full"
+                multi={true}
+                searchable={true}
+                clearable={true}
+                pageSize={50}
+                enableInfiniteScroll={true}
+                minSearchLength={0}
+                queryKey={["distributor-suppliers"]}
+                enabled={showDistributorForm}
+                fetchOnMount={true}
+              />
+              
+              {formData.principlesSuppliers.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {formData.principlesSuppliers.map((supplier) => (
+                    <Badge key={supplier} variant="outline" className="text-xs">
+                      {supplier}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Your Info Section */}
+            <div className="border-t pt-4">
+              <h3 className="text-sm font-semibold mb-3">
+                Your Info: <span className="text-red-500">*</span>
+              </h3>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="yourName" className="text-xs font-medium mb-1 block">
+                    Your Name: <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    id="yourName"
+                    value={formData.yourInfo.name}
+                    onChange={(e) => updateYourInfo("name", e.target.value)}
+                    placeholder="Enter name"
+                    size="sm"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="yourEmail" className="text-xs font-medium mb-1 block">
+                    Your Off Email ID: <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    id="yourEmail"
+                    type="email"
+                    value={formData.yourInfo.email}
+                    onChange={(e) => updateYourInfo("email", e.target.value)}
+                    placeholder="Enter email"
+                    size="sm"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="yourDesignation" className="text-xs font-medium mb-1 block">
+                    Your Designation: <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    id="yourDesignation"
+                    value={formData.yourInfo.designation}
+                    onChange={(e) => updateYourInfo("designation", e.target.value)}
+                    placeholder="Enter designation"
+                    size="sm"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="yourContactNo" className="text-xs font-medium mb-1 block">
+                    Your Contact No: <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    id="yourContactNo"
+                    type="tel"
+                    value={formData.yourInfo.contactNo}
+                    onChange={(e) => updateYourInfo("contactNo", e.target.value)}
+                    placeholder="Enter contact number"
+                    size="sm"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Terms and Conditions */}
+            <div className="flex items-start gap-2 pt-2">
+              <input
+                type="checkbox"
+                id="acceptTerms"
+                checked={formData.acceptTerms}
+                onChange={(e) => setFormData({ ...formData, acceptTerms: e.target.checked })}
+                className="mt-1"
+              />
+              <label htmlFor="acceptTerms" className="text-sm text-gray-700">
+                I accept terms and conditions <span className="text-red-500">*</span>
+              </label>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button 
+              variant="outlined" 
+              onClick={() => setShowDistributorForm(false)}
+              disabled={submittingForm}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleFormSubmit}
+              disabled={!formData.acceptTerms || submittingForm}
+            >
+              {submittingForm ? "Submitting..." : "Submit"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Distributor Details Modal */}
+      <Dialog open={!!showDistributorDetails} onOpenChange={(open) => !open && setShowDistributorDetails(null)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>India Distributor Details</DialogTitle>
+            <DialogDescription>
+              Distributor information for {showDistributorDetails}
+              {showDistributorDetails && distributorInfo[showDistributorDetails]?.length > 1 && (
+                <span> ({distributorInfo[showDistributorDetails].length} distributors)</span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {showDistributorDetails && distributorInfo[showDistributorDetails] && distributorInfo[showDistributorDetails].length > 0 && (
+            <div className="space-y-6 py-4">
+              {distributorInfo[showDistributorDetails].map((distributor, index) => (
+                <div key={distributor._id || index} className="border rounded-lg p-4 space-y-4">
+                  {distributorInfo[showDistributorDetails].length > 1 && (
+                    <div className="text-sm font-semibold text-gray-600 border-b pb-2">
+                      Distributor {index + 1} of {distributorInfo[showDistributorDetails].length}
+                    </div>
+                  )}
+
+                  {/* Status */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">Status:</span>
+                    <Badge
+                      variant="outline"
+                      className={
+                        distributor.status === "approved"
+                          ? "bg-green-50 text-green-700 border-green-300"
+                          : distributor.status === "rejected"
+                          ? "bg-red-50 text-red-700 border-red-300"
+                          : "bg-yellow-50 text-yellow-700 border-yellow-300"
+                      }
+                    >
+                      {distributor.status || "Under Review"}
+                    </Badge>
+                  </div>
+
+                  {/* Firm Information */}
+                  <div className="border-t pt-4">
+                    <h4 className="text-sm font-semibold mb-3">Firm Information</h4>
+                    <div className="space-y-2 text-sm">
+                      <div>
+                        <span className="font-medium">Firm Name:</span>{" "}
+                        {distributor.firmName}
+                      </div>
+                      <div>
+                        <span className="font-medium">Category:</span>{" "}
+                        {distributor.category}
+                      </div>
+                      <div>
+                        <span className="font-medium">Registered Address:</span>{" "}
+                        {distributor.registeredAddress}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Contact Persons */}
+                  <div className="border-t pt-4">
+                    <h4 className="text-sm font-semibold mb-3">
+                      Contact Person{(distributor.contactPersons?.length ?? 0) > 1 ? "s" : ""}
+                    </h4>
+                    <div className="space-y-4">
+                      {(distributor.contactPersons || (distributor.contactPerson ? [distributor.contactPerson] : [])).map((cp: { name: string; number: string; email: string; zones?: string[]; zone?: string }, cpIndex: number) => (
+                        <div key={cpIndex} className="border rounded-lg p-3 space-y-2 text-sm">
+                          <div>
+                            <span className="font-medium">Name:</span> {cp.name}
+                          </div>
+                          <div>
+                            <span className="font-medium">Number:</span> {cp.number}
+                          </div>
+                          <div>
+                            <span className="font-medium">Email:</span> {cp.email}
+                          </div>
+                          <div>
+                            <span className="font-medium">Zone{(cp.zones?.length ?? 0) > 1 ? "s" : ""}:</span>{" "}
+                            {(cp.zones?.length ?? 0) > 0 ? (
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {(cp.zones ?? []).map((zone: string, zIndex: number) => (
+                                  <Badge key={zIndex} variant="outline" className="text-xs">
+                                    {zone}
+                                  </Badge>
+                                ))}
+                              </div>
+                            ) : (
+                              cp.zone || "N/A"
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Principles Suppliers */}
+                  <div className="border-t pt-4">
+                    <h4 className="text-sm font-semibold mb-3">Principles They Represent</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {distributor.principlesSuppliers.map((supplier) => (
+                        <Badge key={supplier} variant="outline" className="text-xs">
+                          {supplier}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outlined" onClick={() => setShowDistributorDetails(null)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
