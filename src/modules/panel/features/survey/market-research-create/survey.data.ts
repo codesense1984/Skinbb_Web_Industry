@@ -37,10 +37,6 @@ export const surveySchema = z.object({
     }),
     z.string().datetime(),
   ]),
-  // .refine(
-  //   (val) => val instanceof Date && !isNaN(val.getTime()),
-  //   "Invalid date",
-  // ),
   audience: audienceSchema,
 });
 

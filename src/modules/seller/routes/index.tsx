@@ -159,15 +159,15 @@ export const sellerRoutes: RouteObject = {
     // },
     // {
     //   path: SELLER_ROUTES.MARKETING.SURVEYS.CREATE,
-    //   Component: lazy(() => import("@/modules/survey/features/market-research-create")),
+    //   Component: lazy(() => import("@panel/features/survey/market-research-create")),
     // },
     // {
     //   path: SELLER_ROUTES.MARKETING.SURVEYS.VIEW(),
-    //   Component: lazy(() => import("@/modules/survey/features/market-research-detail")),
+    //   Component: lazy(() => import("@panel/features/survey/market-research-detail")),
     // },
     // {
     //   path: SELLER_ROUTES.MARKETING.SURVEYS.EDIT(),
-    //   Component: lazy(() => import("@/modules/survey/features/market-research-create")),
+    //   Component: lazy(() => import("@panel/features/survey/market-research-create")),
     // },
     // Promotions Routes
     {

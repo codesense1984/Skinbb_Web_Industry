@@ -9,7 +9,7 @@ import { formatCurrency, formatDate, formatNumber } from "@/core/utils";
 import { CalendarDateRangeIcon, EyeIcon } from "@heroicons/react/24/outline";
 import type { ColumnDef } from "@tanstack/react-table";
 import { NavLink } from "react-router";
-import { SURVEY_ROUTES } from "../../routes/constant";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 
 const statsData = [
   {
@@ -218,12 +218,12 @@ const columns: ColumnDef<Survey>[] = [
       return (
         <Button variant="ghost" size="icon" asChild>
           {isEdit ? (
-            <NavLink to={`${SURVEY_ROUTES.EDIT(row.original.id)}`}>
+            <NavLink to={`${PANEL_ROUTES.SURVEY.EDIT(row.original.id)}`}>
               <span className="sr-only">Open Survey Details</span>
               <EyeIcon />
             </NavLink>
           ) : (
-            <NavLink to={`${SURVEY_ROUTES.DETAIL(row.original.id)}`}>
+            <NavLink to={`${PANEL_ROUTES.SURVEY.DETAIL(row.original.id)}`}>
               <span className="sr-only">Open Survey Details</span>
               <EyeIcon />
             </NavLink>
@@ -248,13 +248,13 @@ const MarketResearchList = () => {
               mode="range"
             />
             <Button color={"primary"} asChild>
-              <NavLink to={SURVEY_ROUTES.CREATE}>Add Brand Survey</NavLink>
+              <NavLink to={PANEL_ROUTES.SURVEY.CREATE}>Add Brand Survey</NavLink>
             </Button>
           </div>
         ),
       }}
     >
-      <section className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:gap-5 lg:grid-cols-4">
+      {/* <section className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:gap-5 lg:grid-cols-4">
         {statsData.map((item) => (
           <StatCard
             key={item.title}
@@ -267,7 +267,7 @@ const MarketResearchList = () => {
             barColor={item.barColor}
           />
         ))}
-      </section>
+      </section> */}
 
       <DataTableToogle
         rows={researchData}
@@ -286,8 +286,8 @@ function Card({ research }: { research: Survey }) {
     <NavLink
       to={
         research.status === "draft"
-          ? `${SURVEY_ROUTES.EDIT(research.id)}`
-          : `${SURVEY_ROUTES.DETAIL(research.id)}`
+          ? `${PANEL_ROUTES.SURVEY.EDIT(research.id)}`
+          : `${PANEL_ROUTES.SURVEY.DETAIL(research.id)}`
       }
     >
       <article className="bg-card hover:ring-primary w-full rounded-xl p-5 shadow-md transition hover:ring-3">

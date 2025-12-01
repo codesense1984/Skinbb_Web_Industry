@@ -443,6 +443,32 @@ export const panelRoutes: RouteObject = {
       Component: lazy(() => import("@/modules/panel/features/promotions")),
     },
 
+    // Survey Routes
+    {
+      path: PANEL_ROUTES.SURVEY.LIST,
+      Component: lazy(
+        () => import("@/modules/panel/features/survey/market-research-list"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.SURVEY.CREATE,
+      Component: lazy(
+        () => import("@/modules/panel/features/survey/market-research-create"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.SURVEY.EDIT(),
+      Component: lazy(
+        () => import("@/modules/panel/features/survey/market-research-create"),
+      ),
+    },
+    {
+      path: PANEL_ROUTES.SURVEY.DETAIL(),
+      Component: lazy(
+        () => import("@/modules/panel/features/survey/market-research-detail"),
+      ),
+    },
+
     // Settings Subpages
     {
       path: "/settings/company-management",

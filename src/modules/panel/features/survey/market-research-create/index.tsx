@@ -26,7 +26,7 @@ import {
 
 import { ConfirmationDialog } from "@/core/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { SURVEY_ROUTES } from "../../routes/constant";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 
 const MarketResearchCreate = () => {
   const { id } = useParams();
@@ -133,7 +133,7 @@ const MarketResearchCreate = () => {
     setConfirmation(false);
     toast.success("Brand is saved successfully!");
     setTimeout(() => {
-      navigate(SURVEY_ROUTES.BASE);
+      navigate(PANEL_ROUTES.SURVEY.BASE);
     }, 1000);
   };
 

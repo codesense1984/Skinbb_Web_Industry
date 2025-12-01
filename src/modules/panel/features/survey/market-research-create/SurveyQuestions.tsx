@@ -103,7 +103,7 @@ function SurveyQuestions({ control }: SurveyQuestionsProps<SurveySchema>) {
                 className="col-span-2"
               />
               <FormInput
-                type="rich_text"
+                type="textarea"
                 name={`questions.${index}.description`}
                 label="Description(Optional)"
                 placeholder="Enter description"
