@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { SurveyQuestionType } from "@/core/types/research.type";
+import type { QuestionType } from "@/modules/panel/types/survey.types";
 
 // Sub-schemas
 export const questionSchema = z.object({
   text: z.string().min(5, "Question must be at least 5 characters"),
-  type: z.nativeEnum(SurveyQuestionType),
+  type: z.enum(["MCQ", "Yes/No", "Scaling", "Descriptive"] as const),
   description: z.string().optional(),
   options: z.array(z.string().min(1, "Option cannot be empty")).optional(),
 });

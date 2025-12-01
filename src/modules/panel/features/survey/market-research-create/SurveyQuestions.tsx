@@ -2,7 +2,7 @@ import { Button } from "@/core/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/core/components/ui/card";
 import { FormInput } from "@/core/components/ui/form-input";
 import { SURVEY } from "@/core/config/constants";
-import { SurveyQuestionType } from "@/core/types/research.type";
+import type { QuestionType } from "@/modules/panel/types/survey.types";
 import { mapToSelectOptions } from "@/core/utils";
 import {
   DocumentDuplicateIcon,
@@ -130,7 +130,7 @@ function SurveyQuestions({ control }: SurveyQuestionsProps<SurveySchema>) {
             append({
               text: "",
               description: "",
-              type: SurveyQuestionType.yes_no,
+              type: "Yes/No",
               options: [""],
             })
           }
@@ -160,7 +160,7 @@ function QuestionOptions({
   const watchQuestionType = watch(`questions.${index}.type`);
 
   useEffect(() => {
-    if (watchQuestionType === SurveyQuestionType.yes_no) {
+    if (watchQuestionType === "Yes/No") {
       setValue(`questions.${index}.options`, ["Yes", "No"]);
     }
     //  else {
@@ -184,7 +184,7 @@ function QuestionOptions({
     setValue(`questions.${index}.options`, updated);
   };
 
-  if (watchQuestionType === SurveyQuestionType.yes_no) {
+  if (watchQuestionType === "Yes/No") {
     return null;
   }
 

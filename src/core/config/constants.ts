@@ -45,7 +45,7 @@ export const MASTER_DATA = {
 export const SURVEY = {
   MAX_QUESTIONS: 5,
   MAX_OPTIONS: 7,
-  INPUT_TYPES: ["yes/no", "multiple choice", "single choice"],
+  INPUT_TYPES: ["Yes/No", "MCQ", "Scaling", "Descriptive"],
 
   BRAND_PRODUCT_CATEGORY_OPTIONS: {
     colourCosmetics: { value: "colour-cosmetics", label: "Colour Cosmetics" },

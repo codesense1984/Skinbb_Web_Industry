@@ -447,7 +447,7 @@ export const panelRoutes: RouteObject = {
     {
       path: PANEL_ROUTES.SURVEY.LIST,
       Component: lazy(
-        () => import("@/modules/panel/features/survey/market-research-list"),
+        () => import("@/modules/panel/features/survey/SurveyList"),
       ),
     },
     {

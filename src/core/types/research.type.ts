@@ -1,4 +1,4 @@
-export type MarketResearchStatus = "active" | "draft" | "closed";
+// export type MarketResearchStatus = "draft" | "active" | "available" | "completed";
 
 // export interface MarketResearch {
 //   id: string;
@@ -11,16 +11,13 @@ export type MarketResearchStatus = "active" | "draft" | "closed";
 //   status: MarketResearchStatus;
 // }
 
-export enum SurveyQuestionType {
-  yes_no = "yes/no",
-  multiple_choice = "multiple choice",
-  single_choice = "single choice",
-}
+import type { QuestionType } from "@/modules/panel/types/survey.types";
+import type { SurveyStatus } from "@/modules/panel/types/survey.types";
 
 export interface SurveyQuestion {
   text: string;
   description: string;
-  type: SurveyQuestionType;
+  type: QuestionType;
   options: string[];
 }
 
@@ -44,5 +41,5 @@ export interface Survey {
   audience: SurveyAudience;
   startDate: Date | string;
   cost?: string;
-  status: MarketResearchStatus;
+  status: SurveyStatus;
 }
