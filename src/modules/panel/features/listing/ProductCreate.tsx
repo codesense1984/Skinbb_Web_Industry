@@ -1834,7 +1834,7 @@ const ProductCreate = (props?: ProductCreateProps) => {
                       htmlFor="productVariationType"
                       className="text-sm font-medium text-gray-700"
                     >
-                      Product Type *
+                      Listing Type *
                     </Label>
                     <PaginationComboBox
                       apiFunction={variationTypesFetcher}
@@ -1842,7 +1842,7 @@ const ProductCreate = (props?: ProductCreateProps) => {
                         label: type.name,
                         value: type._id,
                       })}
-                      placeholder="Select product type"
+                      placeholder="Select listing type"
                       value={formData.productVariationType || ""}
                       onChange={(value: string | string[]) => {
                         const stringValue = Array.isArray(value)
@@ -2830,14 +2830,14 @@ const ProductCreate = (props?: ProductCreateProps) => {
                   </div>
 
                   <div>
-                    <Label htmlFor="productType">Product Type</Label>
+                    <Label htmlFor="productType">Listing Type</Label>
                     <PaginationComboBox
                       apiFunction={productTypeFetcher}
                       transform={(item: { _id: string; label: string }) => ({
                         label: item.label,
                         value: item._id,
                       })}
-                      placeholder="Select product type"
+                      placeholder="Select listing type"
                       value={formData.productType || ""}
                       onChange={(value: string | string[]) => {
                         const stringValue = Array.isArray(value)

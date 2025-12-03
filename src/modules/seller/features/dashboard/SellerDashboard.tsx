@@ -34,7 +34,7 @@ type CardConfig = {
 const cardData: CardConfig[] = [
   {
     title: "Orders",
-    description: "View and manage all your orders and fulfillment",
+    description: "View all your orders and fulfillment",
     buttons: [{ name: "Explore", href: SELLER_ROUTES.ORDERS.LIST }],
     requiredPermissions: {
       page: PAGE.ORDERS,
@@ -58,7 +58,7 @@ const cardData: CardConfig[] = [
   },
   {
     title: "Brands",
-    description: "Discover top brands from around the world.",
+    description: "Discover the brands created by you",
     buttons: [{ name: "Explore", href: "/brands" }],
     requiredPermissions: {
       page: PAGE.BRANDS,
@@ -118,7 +118,7 @@ const cardData: CardConfig[] = [
     description: "View comprehensive insights and performance metrics",
     buttons: [
       {
-        name: "Seller Analytics",
+        name: "Analytics",
         href: SELLER_ROUTES.ANALYTICS.SALES_INSIGHTS.BASE,
       },
     ],
@@ -397,10 +397,10 @@ const Card = ({ title, description, buttons, icon, index }: CardProps) => {
   const element = (
     <>
       <BlobIcon size="lg">{icon}</BlobIcon>
-      <div className="flex flex-col items-center text-center">
+      <div className="flex h-full flex-col items-center text-center">
         <h5 className="mb-1 font-medium">{title}</h5>
-        <p className="mb-4 text-sm leading-relaxed">{description}</p>
-        <div className="divide-primary/20 divide-y-0.5 grid auto-cols-max grid-flow-col items-center">
+        <p className="mb-4 leading-relaxed">{description}</p>
+        <div className="divide-primary/20 divide-y-0.5 mt-auto grid auto-cols-max grid-flow-col items-center">
           {buttons.map((link, index) => (
             <Fragment key={link.name}>
               <Button
@@ -408,7 +408,7 @@ const Card = ({ title, description, buttons, icon, index }: CardProps) => {
                 color={"primary"}
                 variant={"link"}
                 asChild
-                className="text-xs"
+                className="text-sm"
               >
                 {buttons.length !== 1 ? (
                   <NavLink to={link.href}>{link.name}</NavLink>
@@ -427,7 +427,7 @@ const Card = ({ title, description, buttons, icon, index }: CardProps) => {
   );
 
   const className =
-    "bg-background hover:ring-primary visited:ring-3 visited:ring-primary flex flex-col items-center gap-3 rounded-lg py-7 px-6 shadow-md hover:ring-3 min-h-[200px]";
+    "bg-background hover:ring-primary visited:ring-3 visited:ring-primary flex flex-col items-center gap-3 rounded-lg py-7 px-6 shadow-md hover:ring-3 min-h-[200px] h-full";
 
   if (buttons.length === 1) {
     return (

@@ -244,7 +244,7 @@ const Dashboard = () => {
       {/* Coming Soon Banner */}
       <motion.div
         {...fadeInUp}
-        className="bg-background mb-6 flex w-full flex-col items-center gap-3 rounded-lg px-6 py-7 shadow-md"
+        className="bg-background mb-3 flex w-full flex-col items-center gap-3 rounded-lg px-6 py-7 shadow-md"
       >
         <BlobIcon size="lg">
           <svg
@@ -311,10 +311,10 @@ const Card = ({ title, description, buttons, icon, index }: CardProps) => {
   const element = (
     <>
       <BlobIcon size="lg">{icon}</BlobIcon>
-      <div className="flex flex-col items-center text-center">
+      <div className="flex h-full flex-col items-center text-center">
         <h5 className="mb-1 font-medium">{title}</h5>
         <p>{description}</p>
-        <div className="divide-primary/20 divide-y-0.5 grid auto-cols-max grid-flow-col items-center">
+        <div className="divide-primary/20 divide-y-0.5 mt-auto grid auto-cols-max grid-flow-col items-center">
           {buttons.map((link, index) => (
             <Fragment key={link.name}>
               <Button
@@ -340,7 +340,7 @@ const Card = ({ title, description, buttons, icon, index }: CardProps) => {
   );
 
   const className =
-    "bg-background hover:ring-primary visited:ring-3 visited:ring-primary flex flex-col items-center gap-3 rounded-lg py-7 px-6 shadow-md hover:ring-3";
+    "bg-background hover:ring-primary visited:ring-3 h-full visited:ring-primary flex flex-col items-center gap-3 rounded-lg py-7 px-6 shadow-md hover:ring-3";
 
   if (buttons.length === 1) {
     return (

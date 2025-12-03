@@ -353,7 +353,7 @@ const ProductView: React.FC = () => {
                     htmlFor="product-type"
                     className="text-sm font-medium text-gray-700"
                   >
-                    Product Type
+                    Listing Type
                   </label>
                   <p id="product-type" className="text-sm">
                     {product.productType || "N/A"}
