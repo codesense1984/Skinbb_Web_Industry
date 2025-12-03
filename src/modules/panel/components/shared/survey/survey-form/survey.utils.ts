@@ -1,5 +1,8 @@
 import { MASTER_DATA } from "@/core/config/constants";
-import type { SurveyDetailResponse } from "@/modules/panel/types/survey.types";
+import type {
+  QuestionType,
+  SurveyDetailResponse,
+} from "@/modules/panel/types/survey.types";
 import type { SurveyFormData } from "./survey.schema";
 
 /**
@@ -40,9 +43,7 @@ export const transformSurveyFormDataToSurvey = (data: SurveyFormData): any => {
         : new Date().toISOString();
 
   // Convert respondents string to number
-  const maxResponses = audience.respondents
-    ? parseInt(audience.respondents, 10)
-    : undefined;
+  const maxResponses = audience.respondents;
 
   // Map questions to API format
   const questions = data.questions.map((q) => {
@@ -171,35 +172,13 @@ export const transformSurveyToFormData = (
     title: survey.title,
     description: survey.description || "",
     type: survey.surveyTypeId?._id || survey.type || "STANDARD",
-    maxQuestions:
-      survey.maxQuestions || (survey.surveyTypeId?.name === "FLASH" ? 10 : 10),
+    maxQuestions: survey.maxQuestions || 0,
     questions: questions.map((q) => {
-      // Map question type from API to form type
-      // SurveyDetailQuestion uses questionTypeId.name
-      let formType:
-        | "SINGLE_CHOICE"
-        | "YES/NO"
-        | "RATING"
-        | "TEXT"
-        | "MULTIPLE_CHOICE" = "TEXT";
       const apiType = q.questionTypeId?.name || "";
-      if (
-        apiType === "MCQ" ||
-        apiType === "SINGLE_CHOICE" ||
-        apiType === "MULTIPLE_CHOICE"
-      ) {
-        formType = "SINGLE_CHOICE";
-      } else if (apiType === "Yes/No" || apiType === "YES/NO") {
-        formType = "YES/NO";
-      } else if (apiType === "Scaling" || apiType === "RATING") {
-        formType = "RATING";
-      } else if (apiType === "Descriptive" || apiType === "TEXT") {
-        formType = "TEXT";
-      }
 
       return {
         text: q.questionText,
-        type: formType,
+        type: apiType as QuestionType,
         description: "",
         options: q.options || [],
         scaleMin: q.scaleMin?.toString(),
@@ -248,7 +227,7 @@ export const transformSurveyToFormData = (
           );
           return ageGroup?.label || `${ar.min}-${ar.max}`;
         }) || [],
-      respondents: survey.eligibleRespondentsCount?.toString() || "0",
+      respondents: survey.maxResponses ?? 0,
       selectedCategories: (() => {
         const categories: ("Skin" | "Hair")[] = [];
         if (

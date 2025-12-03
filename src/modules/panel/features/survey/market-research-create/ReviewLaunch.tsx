@@ -297,17 +297,11 @@ function ReviewLaunch({
           <div className="bg-card space-y-6 rounded-md p-5 shadow">
             <div className="flex justify-between">
               <StatValue
-                title="Available Respondents"
+                title="Number of Respondents"
                 note="Available Respondents"
                 value={
-                  estimateResponse ? (
-                    <>
-                      <span className="">
-                        {estimateResponse?.count?.toLocaleString()}
-                      </span>{" "}
-                      /{" "}
-                      {estimateResponse?.breakdown?.totalUsers?.toLocaleString()}
-                    </>
+                  respondentsValue ? (
+                    <span className="text-primary">{respondentsValue}</span>
                   ) : (
                     <span className="text-muted-foreground">-</span>
                   )
@@ -316,16 +310,6 @@ function ReviewLaunch({
               />
               <BlobIcon size="md" icon={<UserIcon strokeWidth={1} />} />
             </div>
-            {respondentsValue && (
-              <div className="space-y-2">
-                <p className="text-muted-foreground text-sm">
-                  Number of Respondents
-                </p>
-                <p className="text-foreground text-primary text-3xl font-bold">
-                  {respondentsValue}
-                </p>
-              </div>
-            )}
           </div>
           <div className="bg-card space-y-6 rounded-md p-5 shadow">
             <div className="flex justify-between">

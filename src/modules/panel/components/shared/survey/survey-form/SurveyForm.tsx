@@ -83,7 +83,7 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
       locationTarget: "All",
       targetGender: undefined,
       age: [],
-      respondents: "",
+      respondents: 0,
       selectedCategories: [],
       targetSkinTypes: [],
       targetSkinConcerns: [],

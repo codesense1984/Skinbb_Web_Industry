@@ -100,6 +100,7 @@ export interface Survey {
   productIds: string[];
   surveyTypeId: SurveyTypeId;
   maxQuestions: number;
+  maxResponses: number;
   extraQuestionsCount: number;
   extraQuestionsPrice: number;
   extraQuestionsDiscount: number;

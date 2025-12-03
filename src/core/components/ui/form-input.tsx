@@ -379,8 +379,10 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
             max={300}
             value={[value]}
             onValueChange={(e) => {
-              field.onChange(transform ? transform.output(e[0]) : String(e[0]));
+              field.onChange(transform ? transform.output(e[0]) : Number(e[0]));
+              trigger(name);
             }}
+            onChange={() => {}}
             {...inputProps}
           />
         </FormControl>

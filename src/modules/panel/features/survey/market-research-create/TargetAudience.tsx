@@ -252,8 +252,9 @@ function TargetAudience({ control }: TargetAudienceProps<SurveyFormData>) {
     }
   }, [estimateResponse, setValue]);
 
-  // Call API once on mount if params are available
+  // Call API once on mount if params are available (only if not editing with existing data)
   useEffect(() => {
+    // Only auto-fetch if we don't have estimate response (meaning it's a new survey)
     if (buildApiParams && !fetchParams) {
       setFetchParams(buildApiParams);
     }
@@ -334,7 +335,7 @@ function TargetAudience({ control }: TargetAudienceProps<SurveyFormData>) {
   //   }
   // }, [selectedCategory, setValue]);
 
-  const selectedRespondents: (keyof typeof MASTER_DATA)[] = useMemo(
+  const selectedRespondents = useMemo(
     () => respondentsValue ?? [],
     [respondentsValue],
   );

@@ -67,7 +67,7 @@ export const audienceSchema = z
     targetGender: z.enum(["male", "female", "unisex"]).optional(),
     interests: z.array(z.string()).optional(),
     age: z.array(z.string()).optional(),
-    respondents: z.string().optional(),
+    respondents: z.number().optional(),
     selectedCategories: z.array(z.enum(["Skin", "Hair"])).optional(),
     targetSkinTypes: z.array(z.string()).optional(),
     targetSkinConcerns: z.array(z.string()).optional(),
@@ -95,13 +95,22 @@ export const audienceSchema = z
         path: ["targetCity"],
       });
     }
-    // Number of Respondents must be greater than 0
+    // Number of Respondents must be greater than 0 and not exceed estimateResponse.count
     if (data.respondents) {
-      const respondentsNum = parseInt(data.respondents, 10);
+      const respondentsNum = data.respondents;
       if (isNaN(respondentsNum) || respondentsNum === 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: "Number of Respondents must be greater than 0",
+          path: ["respondents"],
+        });
+      } else if (
+        data.estimateResponse?.count &&
+        respondentsNum > data.estimateResponse?.count
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Number of Respondents cannot exceed ${data.estimateResponse?.count.toLocaleString()} available respondents`,
           path: ["respondents"],
         });
       }
