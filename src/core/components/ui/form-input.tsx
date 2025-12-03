@@ -216,7 +216,9 @@ function FormInput<T extends FieldValues, N extends FieldPath<T>>(
 
   const formItemPropsClass = cn(
     "h-fit block space-y-2",
-    type === "checkbox" && "flex items-center flex-row-reverse justify-end",
+    type === INPUT_TYPES.SELECT && "[&>[data-slot=select-trigger]]:mb-0",
+    type === INPUT_TYPES.CHECKBOX &&
+      "flex items-center flex-row-reverse justify-end space-y-0",
     className,
   );
 
@@ -352,20 +354,18 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
     case INPUT_TYPES.CHECKBOX:
       return (
         <FormControl {...formControlProps}>
-          <div>
-            <Checkbox
-              checked={!!value}
-              onCheckedChange={(checked) =>
-                field.onChange(transform ? transform.output(checked) : checked)
-              }
-              className="order-1"
-              id={inputId}
-              disabled={disabled}
-              readOnly={readOnly}
-              {...field}
-              {...inputProps}
-            />
-          </div>
+          <Checkbox
+            checked={!!value}
+            onCheckedChange={(checked) =>
+              field.onChange(transform ? transform.output(checked) : checked)
+            }
+            className="order-1"
+            id={inputId}
+            disabled={disabled}
+            readOnly={readOnly}
+            {...field}
+            {...inputProps}
+          />
         </FormControl>
       );
     case INPUT_TYPES.SLIDER:
@@ -406,6 +406,7 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
               if (val) {
                 clearErrors(name);
                 field.onChange(transform ? transform.output(val) : val);
+                trigger(name);
               }
             }}
           >
@@ -447,6 +448,7 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
             onChange={(val) => {
               clearErrors(name);
               field.onChange(transform ? transform.output(val) : val);
+              trigger(name);
             }}
           />
         </FormControl>
@@ -463,7 +465,8 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
           placeholder={placeholder}
           disabled={disabled}
           onChange={(date) => {
-            return field.onChange(transform ? transform.output(date) : date);
+            field.onChange(transform ? transform.output(date) : date);
+            trigger(name);
           }}
           aria-invalid={!!formState.errors[name]}
         />
@@ -512,7 +515,7 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
       };
 
       const fileName = getFileName();
-      const displayText = fileName || placeholder || "Choose File";
+      // const displayText = fileName || placeholder || "Choose File";
 
       return (
         <FormControl {...formControlProps}>
@@ -580,6 +583,28 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
         ? props.render({ field, fieldState, formState })
         : null;
 
+    case INPUT_TYPES.NUMBER:
+      return (
+        <FormControl {...formControlProps}>
+          <Input
+            id={inputId}
+            placeholder={placeholder}
+            type="number"
+            disabled={disabled}
+            readOnly={readOnly}
+            {...field}
+            value={value ?? ""}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              field.onChange(
+                transform ? transform.output(e) : e.target?.valueAsNumber,
+              );
+              trigger(name);
+            }}
+            {...inputProps}
+          />
+        </FormControl>
+      );
+
     default:
       return (
         <FormControl {...formControlProps}>
@@ -597,6 +622,7 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
             }
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               field.onChange(transform ? transform.output(e) : e.target?.value);
+              trigger(name);
             }}
             {...inputProps}
           />

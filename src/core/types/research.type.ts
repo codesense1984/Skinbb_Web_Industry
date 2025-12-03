@@ -23,12 +23,20 @@ export interface SurveyQuestion {
 
 export interface SurveyAudience {
   age: string[];
-  location: string[];
-  gender: string[];
+  location?: string[];
+  gender?: string[];
+  locationTarget?: "All" | "Metro" | "City";
+  targetMetro?: string[];
+  targetCity?: string;
+  targetGender?: "Male" | "Female" | "All";
   // interests: string[];
-  skin: string[];
-  concern: string[];
-  skinType: string[];
+  skin?: string[];
+  concern?: string[];
+  skinType?: string[];
+  targetSkinTypes?: string[];
+  targetSkinConcerns?: string[];
+  targetHairTypes?: string[];
+  targetHairConcerns?: string[];
   respondents: number | string;
 }
 

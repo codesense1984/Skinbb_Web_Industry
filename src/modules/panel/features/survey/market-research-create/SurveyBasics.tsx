@@ -1,8 +1,15 @@
 import { Card, CardContent } from "@/core/components/ui/card";
 import { FormInput } from "@/core/components/ui/form-input";
-import { mapToSelectOptions } from "@/core/utils";
+import { apiGetSurveyTypes } from "@/modules/panel/services/survey.service";
+import { useQuery } from "@tanstack/react-query";
 import type { Dispatch, SetStateAction } from "react";
-import type { Control, FieldValues, Path } from "react-hook-form";
+import { useEffect } from "react";
+import {
+  useFormContext,
+  type Control,
+  type FieldValues,
+  type Path,
+} from "react-hook-form";
 
 interface SurveyBasicsProps<T extends FieldValues> {
   control: Control<T>;
@@ -12,6 +19,38 @@ interface SurveyBasicsProps<T extends FieldValues> {
 function SurveyBasics<T extends FieldValues>({
   control,
 }: SurveyBasicsProps<T>) {
+  const { setValue, watch } = useFormContext<T>();
+  const selectedType = watch("type" as Path<T>);
+
+  // Fetch survey types from API
+  const { data: surveyTypesData, isLoading } = useQuery({
+    queryKey: ["survey-types"],
+    queryFn: async () => {
+      return await apiGetSurveyTypes();
+    },
+  });
+
+  const surveyTypes = surveyTypesData?.data || [];
+  const typeOptions = surveyTypes.map((type) => ({
+    value: type._id,
+    label: type.displayName,
+  }));
+
+  // Update maxQuestions when type is selected
+  useEffect(() => {
+    if (selectedType) {
+      const selectedSurveyType = surveyTypes.find(
+        (type) => type._id === selectedType,
+      );
+      if (selectedSurveyType) {
+        setValue(
+          "maxQuestions" as Path<T>,
+          selectedSurveyType.maxQuestions as any,
+        );
+      }
+    }
+  }, [selectedType, surveyTypes, setValue]);
+
   return (
     <>
       <div className="mb-3 flex flex-wrap items-center justify-between">
@@ -32,27 +71,14 @@ function SurveyBasics<T extends FieldValues>({
           />
           <FormInput
             type="select"
-            options={mapToSelectOptions([
-              "health care",
-              "Brand Perception",
-              "Packaging Feedback",
-              "Competition Analysis",
-              "Price Sensitivity",
-              "Purchase Behaviour",
-              "Others",
-            ])}
-            name={"category" as Path<T>}
-            label="Category"
-            placeholder="Enter category"
+            options={typeOptions}
+            name={"type" as Path<T>}
+            label="Type"
+            placeholder="Select survey type"
             control={control}
-          />
-          <FormInput
-            type="textarea"
-            name={"description" as Path<T>}
-            label="Description(Optional)"
-            control={control}
-            placeholder="Enter description"
-            className="col-span-2"
+            inputProps={{
+              disabled: isLoading,
+            }}
           />
           <FormInput
             className=""
@@ -61,6 +87,23 @@ function SurveyBasics<T extends FieldValues>({
             name={"startDate" as Path<T>}
             label="Start Date"
             control={control}
+          />
+          <FormInput
+            className=""
+            type="datepicker"
+            mode="single"
+            name={"endDate" as Path<T>}
+            label="End Date"
+            control={control}
+          />
+
+          <FormInput
+            type="textarea"
+            name={"description" as Path<T>}
+            label="Description(Optional)"
+            control={control}
+            placeholder="Enter description"
+            className="col-span-2"
           />
         </CardContent>
       </Card>

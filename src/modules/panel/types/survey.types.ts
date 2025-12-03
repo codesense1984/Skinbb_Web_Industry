@@ -7,7 +7,12 @@ export type SurveyAttemptStatus = "in_progress" | "completed" | "abandoned";
 export type PaymentStatus = "pending" | "paid" | "failed" | "refunded";
 export type RefundStatus = "none" | "partial" | "full";
 
-export type QuestionType = "MCQ" | "Yes/No" | "Scaling" | "Descriptive";
+export type QuestionType =
+  | "SINGLE_CHOICE"
+  | "YES/NO"
+  | "RATING"
+  | "TEXT"
+  | "MULTIPLE_CHOICE"; // Keeping old types for backward compatibility
 
 export interface User {
   _id: string;
@@ -54,6 +59,38 @@ export interface Question {
   isDeleted?: boolean;
 }
 
+export interface SurveyDetailQuestion {
+  _id: string
+  surveyId: string
+  questionText: string
+  questionTypeId: QuestionTypeId
+  basePrice: number
+  options: any[]
+  scaleMin: number
+  scaleMax: number
+  order: number
+  isRequired: boolean
+  isDeleted: boolean
+  __v: number
+  createdAt: string
+  updatedAt: string
+  scaleLabel:{
+    min: string
+    max: string
+  }
+}
+
+export interface QuestionTypeId {
+  _id: string
+  name: string
+  displayName: string
+}
+
+export interface SurveyDetailResponse {
+  survey: Survey;
+  questions: SurveyDetailQuestion[];
+}
+
 export interface Survey {
   _id: string;
   sellerId: SellerId;
@@ -76,8 +113,7 @@ export interface Survey {
   targetMetro?: string[]; // array of metro city names, required when locationTarget = "Metro"
   targetCity?: string; // required when locationTarget = "City"
   targetGender?: string[] | null;
-  targetAgeMin?: number | null;
-  targetAgeMax?: number | null;
+  targetAgeRanges?: AgeRange[];
   targetSkinTypes: string[];
   targetSkinConcerns: string[];
   targetHairTypes: string[];
@@ -139,20 +175,90 @@ export interface SurveyStats {
 
 export interface EligibleRespondentsResponse {
   count: number;
+  breakdown: {
+    totalUsers: number;
+    afterLocation: number;
+    afterGender: number;
+    afterAge: number;
+    afterSkinType: number;
+    afterSkinConcerns: number;
+    afterHairType: number;
+    afterHairConcerns: number;
+    finalCount: number;
+  };
+  estimatedCost: {
+    eligibleRespondentsCount: number;
+    effectiveRespondentsCount: number;
+    maxResponses: number;
+    totalCost: number;
+    costBreakdown: {
+      questions: Record<string, number>;
+      extraQuestions: Record<string, number>;
+      rewards: Record<string, number>;
+      perRespondentCharge: Record<string, number>;
+      coupon: Record<string, number>;
+      subtotal: Record<string, number>;
+      total: Record<string, number>;
+    };
+    priceCalculation: Record<string, unknown>;
+  };
   surveyId?: string;
 }
 
+export interface AgeRange {
+  min: number;
+  max: number;
+  label?: string;
+}
+
 export interface EstimateEligibleRespondentsParams {
-  locationTarget: LocationTarget;
-  targetMetro?: string;
+  locationTarget?: "All" | "Metro" | "City";
+  targetMetro?: string[];
   targetCity?: string;
+  targetGender?: "male" | "female" | "unisex";
+  targetAgeRanges?: AgeRange[];
+  targetSkinTypes?: string[];
+  targetSkinConcerns?: string[];
+  targetHairTypes?: string[];
+  targetHairConcerns?: string[];
+  questions?: Array<{
+    questionTypeId: string;
+  }>;
+  reward?: number;
+  maxResponses?: number;
 }
 
 export interface MetroCitiesResponse {
   metroCities: string[];
 }
 
+export interface TargetingOptionsResponse {
+  skinTypes: string[];
+  skinConcerns: string[];
+  hairTypes: string[];
+  hairConcerns: string[];
+}
+
 // API Request/Response Types
+
+export interface EstimatedCompletionTime {
+  hours: number;
+  minutes: number;
+  seconds: number;
+}
+
+export interface CreateSurveyQuestion {
+  questionText: string;
+  type: QuestionType;
+  options?: string[];
+  scaleMin?: number;
+  scaleMax?: number;
+  scaleLabel?: {
+    min?: string;
+    max?: string;
+  };
+  isRequired: boolean;
+}
 
 export interface CreateSurveyRequest {
   title: string;
@@ -161,10 +267,24 @@ export interface CreateSurveyRequest {
   priceMultiplier?: number;
   reward?: number;
   locationTarget: LocationTarget;
+  targetMetro?: string[];
   targetCity?: string;
-  targetMetro?: string;
+  brandIds?: string[];
+  productIds?: string[];
+  targetGender?: string;
+  targetAgeMin?: number;
+  targetAgeMax?: number;
+  targetAgeRanges?: AgeRange[];
+  targetSkinTypes?: string[];
+  targetSkinConcerns?: string[];
+  targetHairTypes?: string[];
+  targetHairConcerns?: string[];
+  maxResponses?: number;
+  startDate: string; // ISO string
+  endDate: string; // ISO string
   status?: SurveyStatus;
-  questions: Omit<Question, "_id" | "surveyId" | "isDeleted">[];
+  estimatedCompletionTime?: EstimatedCompletionTime;
+  questions: CreateSurveyQuestion[];
 }
 
 export interface UpdateSurveyRequest extends Partial<CreateSurveyRequest> {

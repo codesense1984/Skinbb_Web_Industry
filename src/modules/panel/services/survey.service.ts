@@ -1,4 +1,5 @@
 import { api } from "@/core/services/http";
+import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
 import type {
   AvailableSurveysParams,
   AvailableSurveysResponse,
@@ -14,14 +15,58 @@ import type {
   SurveyAttempt,
   SurveyAttemptsParams,
   SurveyAttemptsResponse,
+  SurveyDetailResponse,
   SurveyListParams,
   SurveyListResponse,
   SurveyStats,
+  TargetingOptionsResponse,
   UpdateSurveyRequest,
   VerifyPaymentRequest,
 } from "../types/survey.types";
+import type { ApiResponse } from "@/core/types";
 
-const SURVEY_BASE = "/api/v1/surveys";
+const SURVEY_BASE = ENDPOINTS.SURVEY.MAIN;
+const SURVEY_TYPES_BASE = ENDPOINTS.SURVEY.TYPES;
+
+// Survey Types API
+export interface SurveyType {
+  _id: string;
+  name: string;
+  displayName: string;
+  maxQuestions: number;
+  isActive: boolean;
+  isDeleted: boolean;
+  pricePerExtraQuestion: number | null;
+  extraQuestionDiscountTiers?: Array<{
+    extraQuestions: number;
+    discountPercent: number;
+    _id: string;
+  }>;
+  createdBy?: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function apiGetSurveyTypes(signal?: AbortSignal): Promise<{
+  statusCode: number;
+  success: boolean;
+  message: string;
+  data: SurveyType[];
+}> {
+  return api.get<{
+    statusCode: number;
+    success: boolean;
+    message: string;
+    data: SurveyType[];
+  }>(SURVEY_TYPES_BASE, {
+    signal,
+  });
+}
 
 // Panel APIs (Seller/Manufacturer/Admin)
 
@@ -34,7 +79,7 @@ export async function apiCreateSurvey(
   message: string;
   data: Survey;
 }> {
-  return api.post(`${SURVEY_BASE}`, data, { signal });
+  return api.post(`${SURVEY_BASE}/create`, data, { signal });
 }
 
 export async function apiGetSurveys(
@@ -51,7 +96,7 @@ export async function apiGetSurveys(
     success: boolean;
     message: string;
     data: SurveyListResponse;
-  }>(SURVEY_BASE, {
+  }>(`${ENDPOINTS.SURVEY.MAIN}/list`, {
     params,
     signal,
   });
@@ -60,13 +105,11 @@ export async function apiGetSurveys(
 export async function apiGetSurveyById(
   surveyId: string,
   signal?: AbortSignal,
-): Promise<{
-  statusCode: number;
-  success: boolean;
-  message: string;
-  data: Survey;
-}> {
-  return api.get(`${SURVEY_BASE}/${surveyId}`, { signal });
+): Promise<ApiResponse<SurveyDetailResponse>> {
+  return api.get<ApiResponse<SurveyDetailResponse>>(
+    `${SURVEY_BASE}/${surveyId}`,
+    { signal },
+  );
 }
 
 export async function apiUpdateSurvey(
@@ -136,6 +179,15 @@ export async function apiGetMetroCities(signal?: AbortSignal): Promise<{
   data: MetroCitiesResponse;
 }> {
   return api.get(`${SURVEY_BASE}/metro-cities`, { signal });
+}
+
+export async function apiGetTargetingOptions(signal?: AbortSignal): Promise<{
+  statusCode: number;
+  success: boolean;
+  message: string;
+  data: TargetingOptionsResponse;
+}> {
+  return api.get(`${SURVEY_BASE}/targeting-options`, { signal });
 }
 
 // Payment APIs

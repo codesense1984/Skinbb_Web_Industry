@@ -36,10 +36,21 @@ export const PERSONAL_CARE_DATA = {
   },
 };
 
+export interface AgeGroup {
+  label: string;
+  min: number;
+  max: number;
+}
+
 export const MASTER_DATA = {
   location: ["Metro", "Tier 1", "Tier 2"],
   gender: ["Male", "Female"],
-  ageGroup: ["18-24", "25-32", "33-40", "41-50", "51+"],
+  ageGroup: [
+    { label: "18-24", min: 18, max: 24 },
+    { label: "25-32", min: 25, max: 32 },
+    { label: "33-50", min: 33, max: 50 },
+    { label: "51+", min: 51, max: 150 },
+  ] as AgeGroup[],
 };
 
 export const SURVEY = {
