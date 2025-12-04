@@ -313,7 +313,7 @@ const Card = ({ title, description, buttons, icon, index }: CardProps) => {
       <BlobIcon size="lg">{icon}</BlobIcon>
       <div className="flex h-full flex-col items-center text-center">
         <h5 className="mb-1 font-medium">{title}</h5>
-        <p>{description}</p>
+        <p className="mb-3">{description}</p>
         <div className="divide-primary/20 divide-y-0.5 mt-auto grid auto-cols-max grid-flow-col items-center">
           {buttons.map((link, index) => (
             <Fragment key={link.name}>
@@ -321,6 +321,7 @@ const Card = ({ title, description, buttons, icon, index }: CardProps) => {
                 key={link.name}
                 color={"primary"}
                 variant={"link"}
+                className="h-auto"
                 asChild
               >
                 {buttons.length !== 1 ? (
@@ -340,7 +341,7 @@ const Card = ({ title, description, buttons, icon, index }: CardProps) => {
   );
 
   const className =
-    "bg-background hover:ring-primary visited:ring-3 h-full visited:ring-primary flex flex-col items-center gap-3 rounded-lg py-7 px-6 shadow-md hover:ring-3";
+    "bg-background hover:ring-primary visited:ring-1 ring-primary/50 flex flex-col items-center gap-3 rounded-lg py-4 px-6 shadow-md ring-1 hover:ring-2 h-full";
 
   if (buttons.length === 1) {
     return (
