@@ -458,7 +458,7 @@ const ProductForm = (props: ProductFormProps) => {
                       htmlFor="productVariationType"
                       className="mb-1 block text-sm font-medium text-gray-700"
                     >
-                      Product Type *
+                      Listing Type *
                     </label>
                     <PaginationComboBox
                       apiFunction={productTypeFetcher}
@@ -466,7 +466,7 @@ const ProductForm = (props: ProductFormProps) => {
                         label: option.name,
                         value: option._id,
                       })}
-                      placeholder="Select Product Type"
+                      placeholder="Select Listing Type"
                       value={productVariationType?.value || ""}
                       onChange={(value: string | string[]) => {
                         const stringValue = Array.isArray(value)

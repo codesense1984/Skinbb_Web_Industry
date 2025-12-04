@@ -1,24 +1,18 @@
-import React from "react";
-import { useQuery } from "@tanstack/react-query";
-import { StatChartCard } from "@/core/components/ui/card";
-import { Button } from "@/core/components/ui/button";
-import {
-  ChartBarIcon,
-  BeakerIcon,
-  ArrowTrendingUpIcon,
-  BuildingOfficeIcon,
-  UserGroupIcon,
-  EyeIcon,
-} from "@heroicons/react/24/outline";
-import { cn, formatCurrency } from "@/core/utils";
-import { type ChartConfig } from "@/core/components/ui/chart";
-import LineChart from "@/core/components/charts/LineChart";
 import BarChart from "@/core/components/charts/BarChart";
+import LineChart from "@/core/components/charts/LineChart";
+import { StatChartCard } from "@/core/components/ui/card";
+import { type ChartConfig } from "@/core/components/ui/chart";
+import { cn, formatCurrency, formatNumber } from "@/core/utils";
 import {
-  apiGetSalesInsights,
+  ArrowTrendingUpIcon
+} from "@heroicons/react/24/outline";
+import { useQuery } from "@tanstack/react-query";
+import React from "react";
+import {
+  apiGetAnalyticsOverview,
   apiGetBrandInsights,
   apiGetCustomerInsights,
-  apiGetAnalyticsOverview,
+  apiGetSalesInsights,
 } from "../../../ecommerce/services";
 
 // Sales Trend Graph Card (Graph Tile) - Uses Sales Insights API
@@ -249,7 +243,7 @@ export const IngredientTrendsCard: React.FC<IngredientTrendsCardProps> = ({
 
   return (
     <StatChartCard
-      name="Ingredient Trends"
+      name="Product Trends"
       className={cn("md:max-h-auto", className)}
     >
       {isLoading && (
@@ -292,10 +286,10 @@ export const IngredientTrendsCard: React.FC<IngredientTrendsCardProps> = ({
                     Qty: {product.totalQuantity}
                   </p>
                   <p className="text-muted-foreground text-sm">
-                    Price: {product.averagePrice}
+                    Price: {formatNumber(product.averagePrice)}
                   </p>
                   <p className="text-muted-foreground text-sm">
-                    Revenue: {product.totalRevenue}
+                    Revenue: {formatNumber(product.totalRevenue)}
                   </p>
                 </div>
               </div>
@@ -448,7 +442,7 @@ export const MarketTrendsOverviewCard: React.FC<
                     {category.orderCount} orders
                   </p>
                   <p className="text-muted-foreground text-sm">
-                    ₹{(category.revenue / 1000).toFixed(0)}k revenue
+                    {formatNumber(category.revenue)} revenue
                   </p>
                 </div>
               </div>

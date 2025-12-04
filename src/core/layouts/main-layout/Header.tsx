@@ -168,7 +168,7 @@ const Header = () => {
                 children: (
                   <NavLink
                     to={accountRoute}
-                    className="flex w-full items-center gap-2"
+                    className="flex w-full items-center gap-2 text-foreground no-underline"
                   >
                     Account
                   </NavLink>
@@ -185,9 +185,9 @@ const Header = () => {
                           to={PANEL_ROUTES.COMPANY.VIEW(
                             sellerInfo?.companyId || "",
                           )}
-                          className="flex w-full items-center gap-2"
+                          className="flex w-full items-center gap-2 text-foreground no-underline"
                         >
-                          <svg
+                          {/* <svg
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
                             viewBox="0 0 24 24"
@@ -200,7 +200,7 @@ const Header = () => {
                               strokeLinejoin="round"
                               d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3a3 3 0 0 1 3-3h3a3 3 0 0 1 3 3v3M6 3h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"
                             />
-                          </svg>
+                          </svg> */}
                           Company Details
                         </NavLink>
                       ),
@@ -229,7 +229,9 @@ const Header = () => {
               </AvatarRoot>
               <div className="hidden space-y-0 text-left leading-none md:block">
                 <p className="text-foreground">{fullName}</p>
-                <p className="text-sm capitalize">{role}</p>
+                <p className="text-sm capitalize">
+                  {role === "seller" ? "Brand admin" : role}
+                </p>
               </div>
             </Button>
           </DropdownMenu>

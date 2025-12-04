@@ -97,12 +97,12 @@ export const ActiveCampaignsCard: React.FC<ActiveCampaignsCardProps> = ({
     <StatChartCard
       name={
         <div className="flex items-center gap-2">
-          <MegaphoneIcon className="h-5 w-5" /> Active Campaigns
+          <MegaphoneIcon className="h-5 w-5" /> Active Campaigns/Promotions
         </div>
       }
       className={cn("md:max-h-auto", className)}
     >
-      <div>
+      <div className="space-y-4">
         {isLoading && (
           <div className="text-muted-foreground py-4 text-center text-sm">
             Loading campaigns...

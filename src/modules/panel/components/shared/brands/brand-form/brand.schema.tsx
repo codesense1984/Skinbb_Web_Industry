@@ -259,7 +259,7 @@ export const brandFormSchema: BrandFormSchema = {
     {
       type: "select",
       name: "product_category",
-      label: "Product Category",
+      label: "Nature of category",
       placeholder: "Select product category",
       required: true,
       options: [], // Will be populated dynamically
