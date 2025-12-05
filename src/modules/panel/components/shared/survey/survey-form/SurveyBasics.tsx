@@ -14,10 +14,16 @@ import {
 interface SurveyBasicsProps<T extends FieldValues> {
   control: Control<T>;
   setCurrentStep?: Dispatch<SetStateAction<number>>;
+  disabled?: boolean;
+  mode?: "create" | "edit" | "view";
+  disableStatusInEdit?: boolean;
 }
 
 function SurveyBasics<T extends FieldValues>({
   control,
+  disabled = false,
+  mode = "create",
+  disableStatusInEdit = false,
 }: SurveyBasicsProps<T>) {
   const { setValue, watch } = useFormContext<T>();
   const selectedType = watch("type" as Path<T>);
@@ -65,6 +71,7 @@ function SurveyBasics<T extends FieldValues>({
             label="Name"
             placeholder="Enter name"
             control={control}
+            disabled={disabled}
             inputProps={{
               autoFocus: true,
             }}
@@ -76,27 +83,44 @@ function SurveyBasics<T extends FieldValues>({
             label="Type"
             placeholder="Select survey type"
             control={control}
-            inputProps={{
-              disabled: isLoading,
-            }}
+            disabled={disabled || isLoading}
+            inputProps={{}}
           />
+
           <FormInput
-            className=""
             type="datepicker"
             mode="single"
             name={"startDate" as Path<T>}
             label="Start Date"
             control={control}
+            disabled={disabled}
           />
           <FormInput
-            className=""
             type="datepicker"
             mode="single"
             name={"endDate" as Path<T>}
             label="End Date"
             control={control}
+            disabled={disabled}
           />
-
+          {mode !== "create" && (
+            <FormInput
+              type="select"
+              options={[
+                { value: "draft", label: "Draft" },
+                { value: "active", label: "Active" },
+                { value: "available", label: "Available" },
+                { value: "completed", label: "Completed" },
+              ]}
+              name={"status" as Path<T>}
+              label="Status"
+              placeholder="Select status"
+              className="md:col-span-2"
+              control={control}
+              disabled={disabled || (mode === "edit" && disableStatusInEdit)}
+              inputProps={{}}
+            />
+          )}
           <FormInput
             type="textarea"
             name={"description" as Path<T>}
@@ -104,6 +128,7 @@ function SurveyBasics<T extends FieldValues>({
             control={control}
             placeholder="Enter description"
             className="col-span-2"
+            disabled={disabled}
           />
         </CardContent>
       </Card>

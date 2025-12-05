@@ -14,8 +14,8 @@ export const questionSchema = z
     ] as const),
     description: z.string().optional(),
     options: z.array(z.string().min(1, "Option cannot be empty")).optional(),
-    scaleMin: z.string().optional(),
-    scaleMax: z.string().optional(),
+    scaleMin: z.number().optional(),
+    scaleMax: z.number().optional(),
     scaleLabel: z
       .object({
         min: z.string().optional(),
@@ -68,6 +68,7 @@ export const audienceSchema = z
     interests: z.array(z.string()).optional(),
     age: z.array(z.string()).optional(),
     respondents: z.number().optional(),
+    totalPrice: z.number().optional(), // Total price from estimate or survey (for edit/view mode)
     selectedCategories: z.array(z.enum(["Skin", "Hair"])).optional(),
     targetSkinTypes: z.array(z.string()).optional(),
     targetSkinConcerns: z.array(z.string()).optional(),
@@ -143,6 +144,7 @@ export const surveySchema = z
     title: z.string().min(5, "Title must be at least 5 characters"),
     description: z.string().optional(),
     type: z.string().min(1, "Type is required"),
+    status: z.enum(["draft", "active", "available", "completed"]).optional(),
     maxQuestions: z.number().optional(),
     questions: z
       .array(questionSchema)

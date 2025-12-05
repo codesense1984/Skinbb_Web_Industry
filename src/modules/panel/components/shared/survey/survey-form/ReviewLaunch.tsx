@@ -20,11 +20,13 @@ import { formatCurrency } from "@/core/utils/number";
 interface ReviewLaunchProps<T extends FieldValues> {
   control: Control<T>;
   setCurrentStep?: Dispatch<SetStateAction<number>>;
+  disabled?: boolean;
 }
 
 function ReviewLaunch({
   control,
   setCurrentStep,
+  disabled = false,
 }: ReviewLaunchProps<SurveyFormData>) {
   const { watch } = useFormContext();
   const {
@@ -59,6 +61,7 @@ function ReviewLaunch({
     targetMetro,
     targetCity,
     targetGender,
+    totalPrice,
     age: ageGroups,
     targetSkinTypes,
     targetSkinConcerns,
@@ -317,8 +320,8 @@ function ReviewLaunch({
                 title="Estimated Cost"
                 note="Available Respondents"
                 value={
-                  estimateResponse?.estimatedCost ? (
-                    formatCurrency(estimateResponse.estimatedCost.totalCost, {
+                  totalPrice ? (
+                    formatCurrency(totalPrice, {
                       useAbbreviation: false,
                     })
                   ) : (
@@ -338,6 +341,7 @@ function ReviewLaunch({
                   type="number"
                   name="estimatedCompletionTime.hours"
                   label="Hours"
+                  disabled={disabled}
                   inputProps={{
                     min: 0,
                     max: 24,
@@ -350,6 +354,7 @@ function ReviewLaunch({
                   type="number"
                   name="estimatedCompletionTime.minutes"
                   label="Minutes"
+                  disabled={disabled}
                   inputProps={{
                     min: 0,
                     max: 60,
@@ -362,6 +367,7 @@ function ReviewLaunch({
                   type="number"
                   name="estimatedCompletionTime.seconds"
                   label="Seconds"
+                  disabled={disabled}
                   inputProps={{
                     min: 0,
                     max: 60,

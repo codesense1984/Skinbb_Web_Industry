@@ -1,2 +1,2 @@
-// Re-export the original survey create component
-export { default } from "@panel/features/survey/market-research-create";
+// Re-export the seller survey create component
+export { default } from "../survey/SurveyCreate";

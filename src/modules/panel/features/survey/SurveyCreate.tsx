@@ -1,33 +1,27 @@
-import { MODE } from "@/core/types";
+import { MODE } from "@/core/types/base.type";
 import {
   UnifiedSurveyForm,
-  useSurveyUpdateMutation,
+  useSurveyCreateMutation,
 } from "@/modules/panel/components/shared/survey/survey-form";
 import type { SurveySubmitRequest } from "@/modules/panel/components/shared/survey/survey-form/types";
 import { useParams } from "react-router";
 
-const SurveyEdit = () => {
-  const { id: surveyId } = useParams();
-  const surveyMutation = useSurveyUpdateMutation();
+const SurveyCreate = () => {
+  const { id } = useParams();
+  const surveyMutation = useSurveyCreateMutation(undefined, true); // Skip navigation for payment flow
 
-  const handleSubmit = async ({ surveyId, data }: SurveySubmitRequest) => {
+  const handleSubmit = async ({ data }: SurveySubmitRequest) => {
     return new Promise<{ surveyId: string; survey?: any }>(
       (resolve, reject) => {
-        if (!surveyId) {
-          console.error("Missing surveyId");
-          reject(new Error("Missing surveyId"));
-          return;
-        }
         surveyMutation.mutate(
           {
-            surveyId,
             data,
           },
           {
             onSuccess: (response) => {
               resolve({
-                surveyId: surveyId,
-                survey: response.survey,
+                surveyId: response.surveyId || response.data.survey._id,
+                survey: response.survey || response.data.survey,
               });
             },
             onError: (error) => {
@@ -39,12 +33,14 @@ const SurveyEdit = () => {
     );
   };
 
+  const mode = MODE.ADD;
+
   return (
     <UnifiedSurveyForm
-      mode={MODE.EDIT}
-      title="Edit Survey"
-      description="Update survey information and details"
-      surveyId={surveyId}
+      mode={mode}
+      title="Create New Survey"
+      description="Design your survey, define your audience, and gather insights"
+      surveyId={id || undefined}
       onSubmit={handleSubmit}
       submitting={surveyMutation.isPending}
       enablePayment={false}
@@ -57,4 +53,4 @@ const SurveyEdit = () => {
   );
 };
 
-export default SurveyEdit;
+export default SurveyCreate;

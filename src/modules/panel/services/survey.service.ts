@@ -4,6 +4,7 @@ import type {
   AvailableSurveysParams,
   AvailableSurveysResponse,
   CreateSurveyRequest,
+  CreateSurveyResponse,
   EligibleRespondentsResponse,
   EstimateEligibleRespondentsParams,
   InitiatePaymentResponse,
@@ -21,6 +22,7 @@ import type {
   SurveyStats,
   TargetingOptionsResponse,
   UpdateSurveyRequest,
+  UpdateSurveyResponse,
   VerifyPaymentRequest,
 } from "../types/survey.types";
 import type { ApiResponse } from "@/core/types";
@@ -77,7 +79,7 @@ export async function apiCreateSurvey(
   statusCode: number;
   success: boolean;
   message: string;
-  data: Survey;
+  data: CreateSurveyResponse;
 }> {
   return api.post(`${SURVEY_BASE}/create`, data, { signal });
 }
@@ -120,7 +122,7 @@ export async function apiUpdateSurvey(
   statusCode: number;
   success: boolean;
   message: string;
-  data: Survey;
+  data: UpdateSurveyResponse;
 }> {
   return api.put(`${SURVEY_BASE}/${surveyId}`, data, { signal });
 }

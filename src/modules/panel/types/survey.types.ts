@@ -60,35 +60,45 @@ export interface Question {
 }
 
 export interface SurveyDetailQuestion {
-  _id: string
-  surveyId: string
-  questionText: string
-  questionTypeId: QuestionTypeId
-  basePrice: number
-  options: any[]
-  scaleMin: number
-  scaleMax: number
-  order: number
-  isRequired: boolean
-  isDeleted: boolean
-  __v: number
-  createdAt: string
-  updatedAt: string
-  scaleLabel:{
-    min: string
-    max: string
-  }
+  _id: string;
+  surveyId: string;
+  questionText: string;
+  questionTypeId: QuestionTypeId;
+  basePrice: number;
+  options: any[];
+  scaleMin: number;
+  scaleMax: number;
+  order: number;
+  isRequired: boolean;
+  isDeleted: boolean;
+  __v: number;
+  createdAt: string;
+  updatedAt: string;
+  scaleLabel: {
+    min: string;
+    max: string;
+  };
 }
 
 export interface QuestionTypeId {
-  _id: string
-  name: string
-  displayName: string
+  _id: string;
+  name: string;
+  displayName: string;
 }
 
 export interface SurveyDetailResponse {
   survey: Survey;
-  questions: SurveyDetailQuestion[];
+  // questions: SurveyDetailQuestion[];
+}
+
+export interface CreateSurveyResponse {
+  survey: Survey;
+  questions: Question[];
+}
+
+export interface UpdateSurveyResponse {
+  survey: Survey;
+  questions: Question[];
 }
 
 export interface Survey {
@@ -163,7 +173,9 @@ export interface SurveyAttempt {
   completedAt?: string;
   abandonedAt?: string;
   survey?: Survey; // included when fetching attempt details
-  questions?: Question[]; // included when fetching attempt details
+  // questions?: Question[]; // included when fetching attempt details
+  questions?: SurveyDetailQuestion[];
+  // included when fetching attempt details
 }
 
 export interface SurveyStats {
@@ -404,13 +416,63 @@ export interface RespondentActionResponse {
 
 // Payment Types
 
-export interface InitiatePaymentResponse {
-  orderId: string;
+export interface PaymentDetails {
+  razorpayOrderId: string;
+  receipt: string;
+  paymentType: string;
+  surveyTitle: string;
+  subtotal: number;
+  discountAmount: number;
+  couponCode: string | null;
+  couponId: string | null;
+}
+
+export interface Payment {
+  surveyId: string;
+  entityType: string;
+  entityId: string;
+  createdBy: string;
   amount: number;
   currency: string;
-  razorpayOrderId: string;
-  razorpayKey: string;
-  paymentId?: string;
+  paymentMethod: string;
+  paymentGateway: string;
+  status: PaymentStatus;
+  transactionId: string | null;
+  providerOrderId: string;
+  isCaptured: boolean;
+  capturedAt: string | null;
+  paidAt: string | null;
+  paymentDetails: PaymentDetails;
+  refundedAmount: number;
+  refundedAt: string | null;
+  metadata: Record<string, unknown>;
+  paymentType: string;
+  description: string;
+  _id: string;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
+export interface RazorpayOrder {
+  id: string;
+  amount: number; // Amount in paise
+  currency: string;
+  status: string;
+  key: string;
+}
+
+export interface PriceBreakdown {
+  subtotal: number;
+  discountAmount: number;
+  total: number;
+  couponApplied: string | null;
+}
+
+export interface InitiatePaymentResponse {
+  payment: Payment;
+  razorpayOrder: RazorpayOrder;
+  priceBreakdown: PriceBreakdown;
 }
 
 export interface VerifyPaymentRequest {

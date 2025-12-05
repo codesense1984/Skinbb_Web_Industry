@@ -9,7 +9,7 @@ import { MASTER_DATA } from "@/core/config/constants";
 import { type SurveyAudience } from "@/core/types/research.type";
 import { cn } from "@/core/utils";
 import { BanknotesIcon, UserIcon } from "@heroicons/react/24/outline";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   useFormContext,
   useWatch,
@@ -31,9 +31,15 @@ import type { EstimateEligibleRespondentsParams } from "@/modules/panel/types/su
 
 interface TargetAudienceProps<T extends FieldValues> {
   control: Control<T>;
+  disabled?: boolean;
+  mode?: "create" | "edit" | "view";
 }
 
-function TargetAudience({ control }: TargetAudienceProps<SurveyFormData>) {
+function TargetAudience({
+  control,
+  disabled = false,
+  mode = "create",
+}: TargetAudienceProps<SurveyFormData>) {
   const { setValue } = useFormContext();
 
   const [questions] = useWatch({
@@ -42,6 +48,7 @@ function TargetAudience({ control }: TargetAudienceProps<SurveyFormData>) {
 
   const [
     respondentsValue,
+    totalPrice,
     locationTarget,
     targetMetro,
     targetCity,
@@ -55,6 +62,7 @@ function TargetAudience({ control }: TargetAudienceProps<SurveyFormData>) {
   ] = useWatch({
     name: [
       "audience.respondents",
+      "audience.totalPrice",
       "audience.locationTarget",
       "audience.targetMetro",
       "audience.targetCity",
@@ -114,6 +122,8 @@ function TargetAudience({ control }: TargetAudienceProps<SurveyFormData>) {
   // ]);
 
   const selectedCategory = selectedCategories || [];
+  const prevSelectedCategoryRef = useRef<("Skin" | "Hair")[]>([]);
+  const prevLocationTargetRef = useRef<string | undefined>(undefined);
 
   // Build API params from form values
   const buildApiParams =
@@ -249,16 +259,23 @@ function TargetAudience({ control }: TargetAudienceProps<SurveyFormData>) {
   useEffect(() => {
     if (estimateResponse) {
       setValue("audience.estimateResponse", estimateResponse);
+      // Save totalPrice from estimate response to form (similar to respondents)
+      if (estimateResponse.estimatedCost?.totalCost !== undefined) {
+        setValue(
+          "audience.totalPrice",
+          estimateResponse.estimatedCost.totalCost,
+        );
+      }
     }
   }, [estimateResponse, setValue]);
 
-  // Call API once on mount if params are available (only if not editing with existing data)
+  // Call API once on mount if params are available (only for create mode)
   useEffect(() => {
-    // Only auto-fetch if we don't have estimate response (meaning it's a new survey)
-    if (buildApiParams && !fetchParams) {
+    // Only auto-fetch in create mode, not in edit/view mode
+    if (mode === "create" && buildApiParams && !fetchParams) {
       setFetchParams(buildApiParams);
     }
-  }, [buildApiParams, fetchParams]);
+  }, [mode, buildApiParams, fetchParams]);
 
   // Handle calculate button click
   const handleCalculate = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -312,28 +329,47 @@ function TargetAudience({ control }: TargetAudienceProps<SurveyFormData>) {
   );
 
   // Clean up metro/city when locationTarget changes
-  // useEffect(() => {
-  //   if (locationTarget === "All") {
-  //     setValue("audience.targetMetro", undefined);
-  //     setValue("audience.targetCity", undefined);
-  //   } else if (locationTarget === "Metro") {
-  //     setValue("audience.targetCity", undefined);
-  //   } else if (locationTarget === "City") {
-  //     setValue("audience.targetMetro", undefined);
-  //   }
-  // }, [locationTarget, setValue]);
+  useEffect(() => {
+    const prevLocation = prevLocationTargetRef.current;
+    const currentLocation = locationTarget;
+
+    // Only clear if location was previously Metro but is now changed
+    if (prevLocation === "Metro" && currentLocation !== "Metro") {
+      setValue("audience.targetMetro", []);
+    }
+
+    // Only clear if location was previously City but is now changed
+    if (prevLocation === "City" && currentLocation !== "City") {
+      setValue("audience.targetCity", undefined);
+    }
+
+    // Update ref for next comparison
+    prevLocationTargetRef.current = currentLocation;
+  }, [locationTarget, setValue]);
 
   // Clean up skin/hair data when category selection changes
-  // useEffect(() => {
-  //   if (!selectedCategory.includes("Skin")) {
-  //     setValue("audience.targetSkinTypes", undefined);
-  //     setValue("audience.targetSkinConcerns", undefined);
-  //   }
-  //   if (!selectedCategory.includes("Hair")) {
-  //     setValue("audience.targetHairTypes", undefined);
-  //     setValue("audience.targetHairConcerns", undefined);
-  //   }
-  // }, [selectedCategory, setValue]);
+  useEffect(() => {
+    const prevSelected = prevSelectedCategoryRef.current;
+    const currentSelected = selectedCategory;
+
+    // Only clear if category was previously selected but is now unselected
+    const wasSkinSelected = prevSelected.includes("Skin");
+    const isSkinSelected = currentSelected.includes("Skin");
+    if (wasSkinSelected && !isSkinSelected) {
+      setValue("audience.targetSkinTypes", []);
+      setValue("audience.targetSkinConcerns", []);
+    }
+
+    const wasHairSelected = prevSelected.includes("Hair");
+    const isHairSelected = currentSelected.includes("Hair");
+    if (wasHairSelected && !isHairSelected) {
+      setValue("audience.targetHairTypes", []);
+      setValue("audience.targetHairConcerns", []);
+    }
+
+    // Update ref for next comparison
+    prevSelectedCategoryRef.current = currentSelected;
+  }, [selectedCategory, setValue]);
 
   const selectedRespondents = useMemo(
     () => respondentsValue ?? [],
@@ -358,6 +394,7 @@ function TargetAudience({ control }: TargetAudienceProps<SurveyFormData>) {
               label="Location"
               name="locationTarget"
               options={["All", "Metro", "City"]}
+              disabled={disabled}
             />
 
             {/* Metro Cities Toggle - Show when Metro is selected */}
@@ -368,6 +405,7 @@ function TargetAudience({ control }: TargetAudienceProps<SurveyFormData>) {
                 name="targetMetro"
                 values={metroCities}
                 isLoading={isLoadingMetroCities}
+                disabled={disabled}
               />
             )}
 
@@ -383,6 +421,7 @@ function TargetAudience({ control }: TargetAudienceProps<SurveyFormData>) {
                   placeholder="Enter city name"
                   inputProps={{
                     className: "mt-2",
+                    disabled: disabled,
                   }}
                 />
               </motion.div>
@@ -393,6 +432,7 @@ function TargetAudience({ control }: TargetAudienceProps<SurveyFormData>) {
               label="Gender"
               name="targetGender"
               options={["male", "female", "unisex"]}
+              disabled={disabled}
             />
 
             {/* Age - Toggle Buttons */}
@@ -401,6 +441,7 @@ function TargetAudience({ control }: TargetAudienceProps<SurveyFormData>) {
               label="Age"
               name="age"
               values={MASTER_DATA.ageGroup.map((ag) => ag.label)}
+              disabled={disabled}
             />
 
             {/* Skin/Hair Category Selector - Not saved to form */}
@@ -410,17 +451,28 @@ function TargetAudience({ control }: TargetAudienceProps<SurveyFormData>) {
                 type="multiple"
                 value={selectedCategory}
                 onValueChange={(value) => {
-                  setValue(
-                    "audience.selectedCategories",
-                    value as ("Skin" | "Hair")[],
-                  );
+                  if (!disabled) {
+                    setValue(
+                      "audience.selectedCategories",
+                      value as ("Skin" | "Hair")[],
+                    );
+                  }
                 }}
+                disabled={disabled}
                 // className="w-full [&_*]:min-h-13 [&_*]:grow"
               >
-                <ToggleButtonGroupItem value="Skin" aria-label="Toggle Skin">
+                <ToggleButtonGroupItem
+                  value="Skin"
+                  aria-label="Toggle Skin"
+                  disabled={disabled}
+                >
                   Skin
                 </ToggleButtonGroupItem>
-                <ToggleButtonGroupItem value="Hair" aria-label="Toggle Hair">
+                <ToggleButtonGroupItem
+                  value="Hair"
+                  aria-label="Toggle Hair"
+                  disabled={disabled}
+                >
                   Hair
                 </ToggleButtonGroupItem>
               </ToggleButtonGroup>
@@ -432,6 +484,7 @@ function TargetAudience({ control }: TargetAudienceProps<SurveyFormData>) {
                 label="Skin Types"
                 name="targetSkinTypes"
                 values={skinTypes}
+                disabled={disabled}
               />
             )}
 
@@ -441,6 +494,7 @@ function TargetAudience({ control }: TargetAudienceProps<SurveyFormData>) {
                 label="Skin Concerns"
                 name="targetSkinConcerns"
                 values={skinConcerns}
+                disabled={disabled}
               />
             )}
 
@@ -450,6 +504,7 @@ function TargetAudience({ control }: TargetAudienceProps<SurveyFormData>) {
                 label="Hair Types"
                 name="targetHairTypes"
                 values={hairTypes}
+                disabled={disabled}
               />
             )}
 
@@ -459,6 +514,7 @@ function TargetAudience({ control }: TargetAudienceProps<SurveyFormData>) {
                 label="Hair Concerns"
                 name="targetHairConcerns"
                 values={hairConcerns}
+                disabled={disabled}
               />
             )}
           </div>
@@ -469,7 +525,7 @@ function TargetAudience({ control }: TargetAudienceProps<SurveyFormData>) {
           <Button
             type="button"
             onClick={handleCalculate}
-            disabled={!buildApiParams || isEstimating}
+            disabled={disabled || !buildApiParams || isEstimating}
             color={"secondary"}
             className="w-full"
           >
@@ -513,6 +569,7 @@ function TargetAudience({ control }: TargetAudienceProps<SurveyFormData>) {
                 className="w-full"
                 inputProps={{
                   className: "mt-2",
+                  disabled: disabled,
                   step: 1,
                   min: 1,
                   max: estimateResponse?.count || 0,
@@ -529,8 +586,8 @@ function TargetAudience({ control }: TargetAudienceProps<SurveyFormData>) {
                 value={
                   isEstimating ? (
                     <div className="bg-muted h-9 w-32 animate-pulse rounded" />
-                  ) : estimateResponse?.estimatedCost ? (
-                    formatCurrency(estimateResponse.estimatedCost.totalCost, {
+                  ) : totalPrice !== undefined && totalPrice !== null ? (
+                    formatCurrency(totalPrice, {
                       useAbbreviation: false,
                     })
                   ) : (
@@ -588,6 +645,7 @@ interface TargetRadioProps {
   options: string[];
   label: string;
   className?: string;
+  disabled?: boolean;
 }
 
 export function TargetRadio({
@@ -595,6 +653,7 @@ export function TargetRadio({
   options = [],
   label,
   className,
+  disabled = false,
   ...props
 }: TargetRadioProps & Omit<MotionProps, "className">) {
   const { watch, setValue, formState } = useFormContext();
@@ -616,10 +675,11 @@ export function TargetRadio({
         type="single"
         value={targetValue}
         onValueChange={(value) => {
-          if (value) {
+          if (value && !disabled) {
             setValue(`audience.${name}`, value, { shouldValidate: true });
           }
         }}
+        disabled={disabled}
         // className="w-full [&_*]:min-h-13 [&_*]:grow"
       >
         {options.map((option) => (
@@ -628,6 +688,7 @@ export function TargetRadio({
             value={option}
             aria-label={`Select ${option}`}
             className="capitalize"
+            disabled={disabled}
           >
             <div
               data-slot="checkbox"
@@ -663,6 +724,7 @@ interface TargetToggleProps {
   label: string;
   className?: string;
   isLoading?: boolean;
+  disabled?: boolean;
 }
 
 export function TargetToggle({
@@ -671,6 +733,7 @@ export function TargetToggle({
   label,
   className,
   isLoading = false,
+  disabled = false,
   ...props
 }: TargetToggleProps & Omit<MotionProps, "className" | "values">) {
   const { watch, setValue, formState } = useFormContext();
@@ -709,8 +772,11 @@ export function TargetToggle({
         type="multiple"
         value={targetValues}
         onValueChange={(value) => {
-          setValue(`audience.${name}`, value, { shouldValidate: true });
+          if (!disabled) {
+            setValue(`audience.${name}`, value, { shouldValidate: true });
+          }
         }}
+        disabled={disabled}
         // className="w-full [&_*]:min-h-13 [&_*]:grow"
       >
         {values.map((item) => {
@@ -720,6 +786,7 @@ export function TargetToggle({
               value={item}
               aria-label={`Toggle ${item}`}
               className="capitalize"
+              disabled={disabled}
             >
               <div
                 data-slot="checkbox"

@@ -66,10 +66,10 @@ export const transformSurveyFormDataToSurvey = (data: SurveyFormData): any => {
     // Add scale fields for Scaling type
     if (apiType === "RATING") {
       if (q.scaleMin !== undefined) {
-        questionData.scaleMin = parseInt(q.scaleMin, 10);
+        questionData.scaleMin = q.scaleMin;
       }
       if (q.scaleMax !== undefined) {
-        questionData.scaleMax = parseInt(q.scaleMax, 10);
+        questionData.scaleMax = q.scaleMax;
       }
       if (q.scaleLabel) {
         questionData.scaleLabel = {
@@ -90,7 +90,7 @@ export const transformSurveyFormDataToSurvey = (data: SurveyFormData): any => {
     locationTarget: audience.locationTarget || "All",
     startDate: startDate,
     endDate: endDate,
-    status: "draft",
+    status: data.status || "draft",
     questions: questions,
   };
 
@@ -166,23 +166,24 @@ export const transformSurveyToFormData = (
   data: SurveyDetailResponse,
 ): SurveyFormData => {
   const survey = data.survey;
-  const questions = data.questions || [];
+  const questions = survey.questions || [];
 
   return {
     title: survey.title,
     description: survey.description || "",
     type: survey.surveyTypeId?._id || survey.type || "STANDARD",
+    status: survey.status || "draft",
     maxQuestions: survey.maxQuestions || 0,
     questions: questions.map((q) => {
-      const apiType = q.questionTypeId?.name || "";
+      const apiType = q.type || "";
 
       return {
         text: q.questionText,
         type: apiType as QuestionType,
         description: "",
         options: q.options || [],
-        scaleMin: q.scaleMin?.toString(),
-        scaleMax: q.scaleMax?.toString(),
+        scaleMin: q.scaleMin,
+        scaleMax: q.scaleMax,
         scaleLabel: q.scaleLabel,
         isRequired: q.isRequired ?? true,
       };
@@ -228,6 +229,7 @@ export const transformSurveyToFormData = (
           return ageGroup?.label || `${ar.min}-${ar.max}`;
         }) || [],
       respondents: survey.maxResponses ?? 0,
+      totalPrice: survey.totalPrice,
       selectedCategories: (() => {
         const categories: ("Skin" | "Hair")[] = [];
         if (

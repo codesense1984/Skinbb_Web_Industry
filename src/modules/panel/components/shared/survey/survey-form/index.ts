@@ -1,5 +1,8 @@
 // Components
-export { default as SurveyForm, default as UnifiedSurveyForm } from "./SurveyForm";
+export {
+  default as SurveyForm,
+  default as UnifiedSurveyForm,
+} from "./SurveyForm";
 
 // Hooks
 export {
@@ -34,4 +37,3 @@ export {
   STEP_VALIDATION_FIELDS,
   type SurveyFormData,
 } from "./survey.schema";
-

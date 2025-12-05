@@ -17,13 +17,22 @@ import type { SurveySubmitRequest } from "./types";
 /**
  * Custom hook for survey creation mutation
  */
-export const useSurveyCreateMutation = (navigateTo?: string) => {
+export const useSurveyCreateMutation = (
+  navigateTo?: string,
+  skipNavigation = false,
+) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ data }: SurveySubmitRequest) => {
-      return apiCreateSurvey(data);
+      const response = await apiCreateSurvey(data);
+      return {
+        ...response,
+        surveyId: response.data.survey._id,
+        survey: response.data.survey,
+        questions: response.data.questions,
+      };
     },
     onSuccess: () => {
       toast.success(SURVEY_MESSAGES.CREATE_SUCCESS);
@@ -33,12 +42,15 @@ export const useSurveyCreateMutation = (navigateTo?: string) => {
         queryKey: SURVEY_QUERY_KEYS.SURVEYS_LIST(),
       });
 
-      if (navigateTo) {
-        navigate(navigateTo);
-      } else {
-        navigate(PANEL_ROUTES.SURVEY.LIST, {
-          replace: true,
-        });
+      // Only navigate if not skipping (e.g., when payment flow is enabled)
+      if (!skipNavigation) {
+        if (navigateTo) {
+          navigate(navigateTo);
+        } else {
+          navigate(PANEL_ROUTES.SURVEY.LIST, {
+            replace: true,
+          });
+        }
       }
     },
     onError: (error: AxiosError<{ message?: string; error?: string }>) => {
@@ -52,7 +64,10 @@ export const useSurveyCreateMutation = (navigateTo?: string) => {
 /**
  * Custom hook for survey update mutation
  */
-export const useSurveyUpdateMutation = (navigateTo?: string) => {
+export const useSurveyUpdateMutation = (
+  navigateTo?: string,
+  skipNavigation = false,
+) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -61,7 +76,13 @@ export const useSurveyUpdateMutation = (navigateTo?: string) => {
       if (!surveyId) {
         throw new Error(SURVEY_ERROR_MESSAGES.MISSING_SURVEY_ID);
       }
-      return apiUpdateSurvey(surveyId, data);
+      const response = await apiUpdateSurvey(surveyId, data);
+      return {
+        ...response,
+        surveyId: surveyId,
+        survey: response.data.survey,
+        questions: response.data.questions,
+      };
     },
     onSuccess: () => {
       toast.success(SURVEY_MESSAGES.UPDATE_SUCCESS);
@@ -71,13 +92,15 @@ export const useSurveyUpdateMutation = (navigateTo?: string) => {
         queryKey: SURVEY_QUERY_KEYS.SURVEYS_LIST(),
       });
 
-      // Navigate back to surveys list
-      if (navigateTo) {
-        navigate(navigateTo);
-      } else {
-        navigate(PANEL_ROUTES.SURVEY.LIST, {
-          replace: true,
-        });
+      // Only navigate if not skipping (e.g., when payment flow is enabled)
+      if (!skipNavigation) {
+        if (navigateTo) {
+          navigate(navigateTo);
+        } else {
+          navigate(PANEL_ROUTES.SURVEY.LIST, {
+            replace: true,
+          });
+        }
       }
     },
     onError: (error: AxiosError<{ message?: string; error?: string }>) => {

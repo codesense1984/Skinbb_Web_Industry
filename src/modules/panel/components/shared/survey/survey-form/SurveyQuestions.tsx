@@ -23,6 +23,7 @@ import {
 
 interface SurveyQuestionsProps<T extends FieldValues> {
   control: Control<T>;
+  disabled?: boolean;
 }
 
 const QUESTION_TYPES = [
@@ -33,7 +34,10 @@ const QUESTION_TYPES = [
   { label: "Multiple Choice", value: "MULTIPLE_CHOICE" },
 ];
 
-function SurveyQuestions({ control }: SurveyQuestionsProps<SurveyFormData>) {
+function SurveyQuestions({
+  control,
+  disabled = false,
+}: SurveyQuestionsProps<SurveyFormData>) {
   const { fields, append, remove, move } = useFieldArray({
     control,
     name: "questions",
@@ -89,9 +93,12 @@ function SurveyQuestions({ control }: SurveyQuestionsProps<SurveyFormData>) {
                   label="Required"
                   control={control}
                   className="flex-row px-2 text-base font-normal"
+                  inputProps={{
+                    disabled: disabled,
+                  }}
                 />
                 {/* Up button */}
-                {index > 0 && (
+                {index > 0 && !disabled && (
                   <Button
                     size={"icon"}
                     variant={"link"}
@@ -103,7 +110,7 @@ function SurveyQuestions({ control }: SurveyQuestionsProps<SurveyFormData>) {
                   </Button>
                 )}
                 {/* Down button */}
-                {index < fields.length - 1 && (
+                {index < fields.length - 1 && !disabled && (
                   <Button
                     size={"icon"}
                     variant={"link"}
@@ -115,7 +122,7 @@ function SurveyQuestions({ control }: SurveyQuestionsProps<SurveyFormData>) {
                   </Button>
                 )}
                 {/* Delete button */}
-                {fields.length !== 1 && (
+                {fields.length !== 1 && !disabled && (
                   <Button
                     size={"icon"}
                     variant={"link"}
@@ -129,7 +136,7 @@ function SurveyQuestions({ control }: SurveyQuestionsProps<SurveyFormData>) {
                   </Button>
                 )}
                 {/* Duplicate button */}
-                {fields.length < maxQuestionsValue && (
+                {fields.length < maxQuestionsValue && !disabled && (
                   <Button
                     size={"icon"}
                     variant={"link"}
@@ -167,6 +174,9 @@ function SurveyQuestions({ control }: SurveyQuestionsProps<SurveyFormData>) {
                 placeholder="Select Type"
                 options={QUESTION_TYPES}
                 control={control}
+                inputProps={{
+                  disabled: disabled,
+                }}
               />
               <FormInput
                 type="textarea"
@@ -175,6 +185,9 @@ function SurveyQuestions({ control }: SurveyQuestionsProps<SurveyFormData>) {
                 placeholder="Enter Question"
                 control={control}
                 className=""
+                inputProps={{
+                  disabled: disabled,
+                }}
               />
               {/* <FormInput
                 type="textarea"
@@ -185,13 +198,17 @@ function SurveyQuestions({ control }: SurveyQuestionsProps<SurveyFormData>) {
                 className="col-span-3"
               /> */}
 
-              <QuestionOptions index={index} control={control} />
+              <QuestionOptions
+                index={index}
+                control={control}
+                disabled={disabled}
+              />
             </CardContent>
           </Card>
         );
       })}
 
-      {fields.length < maxQuestionsValue && (
+      {fields.length < maxQuestionsValue && !disabled && (
         <Button
           className="bg-card ml-auto shadow-md"
           type="button"
@@ -217,9 +234,11 @@ function SurveyQuestions({ control }: SurveyQuestionsProps<SurveyFormData>) {
 function QuestionOptions({
   control,
   index,
+  disabled = false,
   ...props
 }: SurveyQuestionsProps<SurveyFormData> & {
   index: number;
+  disabled?: boolean;
 } & ComponentProps<"div">) {
   const { setValue, watch } = useFormContext();
   const watchQuestionType = watch(`questions.${index}.type`);
@@ -299,6 +318,7 @@ function QuestionOptions({
                   control={control}
                   className="flex-1"
                   inputProps={{
+                    disabled: disabled,
                     onChange: (e) => {
                       handleOptionChange(
                         (e.target as HTMLInputElement).value,
@@ -307,7 +327,7 @@ function QuestionOptions({
                     },
                   }}
                 />
-                {options.length !== 1 && (
+                {options.length !== 1 && !disabled && (
                   <Button
                     size={"icon"}
                     variant={"outlined"}
@@ -318,16 +338,18 @@ function QuestionOptions({
                     <TrashIcon />
                   </Button>
                 )}
-                {options.length - 1 === optionIndex && options.length < 7 && (
-                  <Button
-                    size={"icon"}
-                    variant={"outlined"}
-                    type="button"
-                    onClick={handleAddOption}
-                  >
-                    <PlusCircleIcon />
-                  </Button>
-                )}
+                {options.length - 1 === optionIndex &&
+                  options.length < 7 &&
+                  !disabled && (
+                    <Button
+                      size={"icon"}
+                      variant={"outlined"}
+                      type="button"
+                      onClick={handleAddOption}
+                    >
+                      <PlusCircleIcon />
+                    </Button>
+                  )}
               </div>
             );
           })}
@@ -350,6 +372,7 @@ function QuestionOptions({
           placeholder="Enter min value"
           control={control}
           inputProps={{
+            disabled: disabled,
             min: 0,
             step: 1,
           }}
@@ -361,6 +384,7 @@ function QuestionOptions({
           placeholder="Enter max value"
           control={control}
           inputProps={{
+            disabled: disabled,
             min: scaleMin !== undefined ? scaleMin + 1 : 1,
             step: 1,
           }}
@@ -371,6 +395,9 @@ function QuestionOptions({
           label="Min Label (Optional)"
           placeholder="Enter min label"
           control={control}
+          inputProps={{
+            disabled: disabled,
+          }}
         />
         <FormInput
           type="text"
@@ -378,6 +405,9 @@ function QuestionOptions({
           label="Max Label (Optional)"
           placeholder="Enter max label"
           control={control}
+          inputProps={{
+            disabled: disabled,
+          }}
         />
       </div>
     );

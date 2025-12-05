@@ -1,8 +1,5 @@
 import { MODE } from "@/core/types";
-import type {
-  CreateSurveyRequest,
-  Survey,
-} from "@/modules/panel/types/survey.types";
+import type { Survey } from "@/modules/panel/types/survey.types";
 import type { transformSurveyFormDataToSurvey } from "./survey.utils";
 
 /**
@@ -25,7 +22,9 @@ export type SurveySubmitRequest<
 
 export type SurveySubmitHandler<
   T = ReturnType<typeof transformSurveyFormDataToSurvey>,
-> = (params: SurveySubmitRequest<T>) => void;
+> = (
+  params: SurveySubmitRequest<T>,
+) => void | Promise<{ surveyId: string; survey?: Survey } | void>;
 
 /**
  * Props for survey form component
@@ -36,6 +35,9 @@ export interface SurveyFormProps extends SurveyFormBaseProps {
   description: string;
   onSubmit?: SurveySubmitHandler;
   submitting?: boolean;
+  enablePayment?: boolean; // Enable payment flow after survey creation
+  onPaymentSuccess?: (survey: any) => void; // Callback when payment is successful
+  disableStatusInEdit?: boolean; // Disable status field in edit mode (e.g., for seller)
 }
 
 /**

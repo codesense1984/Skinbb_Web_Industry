@@ -1,14 +1,16 @@
 import { MODE } from "@/core/types";
+import type { SurveySubmitRequest } from "@/modules/panel/components/shared/survey/survey-form/types";
+import { useParams, useNavigate } from "react-router";
 import {
   UnifiedSurveyForm,
   useSurveyUpdateMutation,
 } from "@/modules/panel/components/shared/survey/survey-form";
-import type { SurveySubmitRequest } from "@/modules/panel/components/shared/survey/survey-form/types";
-import { useParams } from "react-router";
+import { SELLER_ROUTES } from "@/modules/seller/routes/constant";
 
 const SurveyEdit = () => {
   const { id: surveyId } = useParams();
-  const surveyMutation = useSurveyUpdateMutation();
+  const navigate = useNavigate();
+  const surveyMutation = useSurveyUpdateMutation(undefined, true); // Skip navigation for payment flow
 
   const handleSubmit = async ({ surveyId, data }: SurveySubmitRequest) => {
     return new Promise<{ surveyId: string; survey?: any }>(
@@ -47,11 +49,11 @@ const SurveyEdit = () => {
       surveyId={surveyId}
       onSubmit={handleSubmit}
       submitting={surveyMutation.isPending}
-      enablePayment={false}
-      onPaymentSuccess={(survey) => {
-        // Navigate after successful payment
-        // You can customize this navigation
-        console.log("Payment successful for survey:", survey);
+      enablePayment={true}
+      disableStatusInEdit={true}
+      onPaymentSuccess={() => {
+        // Navigate to survey list after successful payment
+        navigate(SELLER_ROUTES.MARKETING.SURVEYS.LIST);
       }}
     />
   );

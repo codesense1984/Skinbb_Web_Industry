@@ -1,15 +1,15 @@
+import { ConfirmationDialog } from "@/core/components/ui/alert-dialog";
 import { Button } from "@/core/components/ui/button";
 import { Form } from "@/core/components/ui/form";
 import { FullLoader } from "@/core/components/ui/loader";
 import { PageContent } from "@/core/components/ui/structure";
-import { ConfirmationDialog } from "@/core/components/ui/alert-dialog";
 import { MODE } from "@/core/types/base.type";
 import { handleFormErrors } from "@/core/utils/react-hook-form.utils";
-import ResearchStepper from "@/modules/panel/features/survey/market-research-create/ResearchStepper";
-import ReviewLaunch from "@/modules/panel/features/survey/market-research-create/ReviewLaunch";
-import SurveyBasics from "@/modules/panel/features/survey/market-research-create/SurveyBasics";
-import SurveyQuestions from "@/modules/panel/features/survey/market-research-create/SurveyQuestions";
-import TargetAudience from "@/modules/panel/features/survey/market-research-create/TargetAudience";
+import ResearchStepper from "@/modules/panel/components/shared/survey/survey-form/ResearchStepper";
+import ReviewLaunch from "@/modules/panel/components/shared/survey/survey-form/ReviewLaunch";
+import SurveyBasics from "@/modules/panel/components/shared/survey/survey-form/SurveyBasics";
+import SurveyQuestions from "@/modules/panel/components/shared/survey/survey-form/SurveyQuestions";
+import TargetAudience from "@/modules/panel/components/shared/survey/survey-form/TargetAudience";
 import { apiGetSurveyById } from "@/modules/panel/services/survey.service";
 import {
   ArrowLeftIcon,
@@ -37,7 +37,8 @@ import {
   transformSurveyFormDataToSurvey,
   transformSurveyToFormData,
 } from "./survey.utils";
-import type { SurveyApiResponse, SurveyFormProps } from "./types";
+import type { SurveyFormProps } from "./types";
+import { useSurveyPayment } from "./useSurveyPayment";
 
 const SurveyForm: React.FC<SurveyFormProps> = ({
   mode,
@@ -46,12 +47,29 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
   surveyId,
   onSubmit,
   submitting = false,
+  enablePayment = false,
+  onPaymentSuccess,
+  disableStatusInEdit = false,
 }) => {
   const [currentStep, setCurrentStep] = useState<SurveyStep>(SurveyStep.BASICS);
   const [confirmation, setConfirmation] = useState<[boolean, any]>([
     false,
     undefined,
   ]);
+
+  // Payment hook - only initialize if payment is enabled
+  const {
+    initiatePayment,
+    isProcessing: isPaymentProcessing,
+    isRazorpayReady,
+  } = useSurveyPayment({
+    onPaymentSuccess: (survey) => {
+      onPaymentSuccess?.(survey);
+    },
+    onPaymentError: () => {
+      // Error handling is done via callback
+    },
+  });
 
   const zodSchema = useMemo(() => surveySchema, []);
 
@@ -84,6 +102,7 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
       targetGender: undefined,
       age: [],
       respondents: 0,
+      totalPrice: undefined,
       selectedCategories: [],
       targetSkinTypes: [],
       targetSkinConcerns: [],
@@ -115,12 +134,25 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
     enabled: !!surveyId && (mode === MODE.EDIT || mode === MODE.VIEW),
   });
 
+  // Get survey status from API response
+  const surveyStatus = useMemo(() => {
+    if (!surveyData) return null;
+    return surveyData.data.survey.status;
+  }, [surveyData]);
+
   // Transform survey data to form data
   const transformedData = useMemo(() => {
     if (!surveyData) return null;
     const data = surveyData.data;
     return transformSurveyToFormData(data);
   }, [surveyData]);
+
+  // Calculate disabled states
+  const isViewMode = mode === MODE.VIEW;
+  const isEditModeWithActiveStatus =
+    mode === MODE.EDIT && surveyStatus === "active";
+  const isQuestionsDisabled = isViewMode || isEditModeWithActiveStatus;
+  const isTargetAudienceDisabled = isViewMode || isEditModeWithActiveStatus;
 
   // Populate form with existing data when in edit or view mode
   useEffect(() => {
@@ -169,12 +201,46 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
       );
 
       // Call onSubmit with transformed data
-      onSubmit({
+      const result = await onSubmit({
         surveyId,
         data: convertedData,
       });
+      debugger;
+
+      // Handle payment flow after survey creation (only for CREATE mode) or EDIT mode with draft status
+      if (
+        (enablePayment && result?.surveyId && mode === MODE.ADD) ||
+        (enablePayment &&
+          mode === MODE.EDIT &&
+          result?.survey?.status === "draft")
+      ) {
+        const newSurveyId = result.surveyId;
+
+        // Wait for Razorpay to be ready if it's not already
+        if (!isRazorpayReady) {
+          // Wait for Razorpay script to load (check window.Razorpay directly)
+          let attempts = 0;
+          const maxAttempts = 30; // 3 seconds max wait
+          while (!window.Razorpay && attempts < maxAttempts) {
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            attempts++;
+          }
+        }
+
+        // Initiate payment directly after survey creation
+        if ((isRazorpayReady || window.Razorpay) && newSurveyId) {
+          try {
+            await initiatePayment(newSurveyId);
+          } catch (error) {
+            // Error is already handled in the hook, just log here
+            console.error("Payment initiation failed:", error);
+          }
+        } else {
+          console.error("Razorpay is not ready. Please try again.");
+        }
+      }
     },
-    [onSubmit, surveyId],
+    [onSubmit, surveyId, enablePayment, mode, isRazorpayReady, initiatePayment],
   );
 
   const onError = useCallback((errors: FieldErrors<SurveyFormData>) => {
@@ -204,6 +270,7 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
   const isLoading =
     isLoadingSurvey && (mode === MODE.EDIT || mode === MODE.VIEW);
   const hasError = surveyError && (mode === MODE.EDIT || mode === MODE.VIEW);
+  const isSubmitting = submitting || isPaymentProcessing;
 
   if (hasError) {
     return (
@@ -233,16 +300,47 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
   const renderStepContent = () => {
     switch (currentStep) {
       case SurveyStep.BASICS:
-        return <SurveyBasics control={control as any} />;
+        return (
+          <SurveyBasics
+            control={control as any}
+            disabled={isViewMode}
+            mode={
+              mode === MODE.ADD
+                ? "create"
+                : mode === MODE.VIEW
+                  ? "view"
+                  : "edit"
+            }
+            disableStatusInEdit={disableStatusInEdit}
+          />
+        );
       case SurveyStep.QUESTIONS:
-        return <SurveyQuestions control={control as any} />;
+        return (
+          <SurveyQuestions
+            control={control as any}
+            disabled={isQuestionsDisabled}
+          />
+        );
       case SurveyStep.AUDIENCE:
-        return <TargetAudience control={control as any} />;
+        return (
+          <TargetAudience
+            control={control as any}
+            disabled={isTargetAudienceDisabled}
+            mode={
+              mode === MODE.ADD
+                ? "create"
+                : mode === MODE.VIEW
+                  ? "view"
+                  : "edit"
+            }
+          />
+        );
       case SurveyStep.REVIEW:
         return (
           <ReviewLaunch
             control={control as any}
             setCurrentStep={setCurrentStep}
+            disabled={isViewMode}
           />
         );
       default:
@@ -269,7 +367,7 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
         <form onSubmit={handleSubmit(onSubmitForm, onError)}>
           {renderStepContent()}
           <div className="mt-2 flex justify-end gap-2 md:mt-5 md:gap-3">
-            {currentStep > SurveyStep.BASICS && mode !== MODE.VIEW && (
+            {currentStep > SurveyStep.BASICS && (
               <Button
                 variant="outlined"
                 className="bg-background"
@@ -280,29 +378,31 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
                 Back
               </Button>
             )}
-            {mode !== MODE.VIEW && (
-              <>
-                {currentStep < SurveyStep.REVIEW ? (
-                  <Button
-                    color="secondary"
-                    type="button"
-                    endIcon={<ArrowRightIcon />}
-                    onClick={onNext}
-                  >
-                    Next
-                  </Button>
-                ) : (
-                  <Button
-                    color="secondary"
-                    type="button"
-                    startIcon={<DocumentIcon />}
-                    disabled={submitting}
-                    onClick={handleFormSubmit}
-                  >
-                    {submitting ? "Saving..." : "Submit"}
-                  </Button>
-                )}
-              </>
+            {currentStep < SurveyStep.REVIEW ? (
+              <Button
+                color="secondary"
+                type="button"
+                endIcon={<ArrowRightIcon />}
+                onClick={onNext}
+              >
+                Next
+              </Button>
+            ) : (
+              mode !== MODE.VIEW && (
+                <Button
+                  color="secondary"
+                  type="button"
+                  startIcon={<DocumentIcon />}
+                  disabled={isSubmitting}
+                  onClick={handleFormSubmit}
+                >
+                  {isSubmitting
+                    ? isPaymentProcessing
+                      ? "Processing Payment..."
+                      : "Saving..."
+                    : "Submit"}
+                </Button>
+              )
             )}
           </div>
         </form>
@@ -313,10 +413,14 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
           description="Are you sure you want to submit this survey? Once submitted, the survey will be created and you'll be able to manage it from the surveys list."
           actionButtons={[
             {
-              label: submitting ? "Submitting..." : "Confirm",
+              label: isSubmitting
+                ? isPaymentProcessing
+                  ? "Processing Payment..."
+                  : "Submitting..."
+                : "Confirm",
               onClick: onConfirm,
               color: "primary",
-              disabled: submitting,
+              disabled: isSubmitting,
             },
           ]}
           showCancel={true}

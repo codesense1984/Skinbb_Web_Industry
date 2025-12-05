@@ -453,7 +453,7 @@ export const panelRoutes: RouteObject = {
     {
       path: PANEL_ROUTES.SURVEY.CREATE,
       Component: lazy(
-        () => import("@/modules/panel/features/survey/market-research-create"),
+        () => import("@/modules/panel/features/survey/SurveyCreate"),
       ),
     },
     {
