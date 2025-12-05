@@ -16,6 +16,16 @@ export const FORMULATOR_ROUTES = {
     CREATE: "/formulations/create",
   },
 
+  // ---- Market Research ----
+  MARKET_RESEARCH: {
+    BASE: "/market-research",
+  },
+
+  // ---- Compare ----
+  COMPARE: {
+    BASE: "/compare",
+  },
+
   // ---- Account ----
   ACCOUNT: {
     BASE: "/account",
