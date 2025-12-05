@@ -388,6 +388,7 @@ export const PANEL_ROUTES = {
     EDIT: (id: string = ROUTE.seg.id) =>
       ROUTE.build(SURVEY_BASE, id, ROUTE.seg.edit), // /survey/:id/edit
     DETAIL: (id: string = ROUTE.seg.id) => ROUTE.build(SURVEY_BASE, id), // /survey/:id
+    VIEW: (id: string = ROUTE.seg.id) => ROUTE.build(SURVEY_BASE, id, ROUTE.seg.view), // /survey/:id/view
   },
 
   // ---- Misc panel pages ----

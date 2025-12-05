@@ -94,7 +94,7 @@ export default function ProductCategoryList() {
             {parentCategoryFilters.map((filter) => (
               <Badge
                 key={filter.id}
-                variant="outlined"
+                variant="outline"
                 className="flex items-center space-x-1"
               >
                 <span>{filter.name}</span>

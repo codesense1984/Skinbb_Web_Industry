@@ -5,34 +5,94 @@ import {
   type DropdownMenuItemType,
 } from "@/core/components/ui/dropdown-menu";
 import { formatCurrency, formatDate, formatNumber } from "@/core/utils";
-import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import type { Survey } from "@/modules/panel/types/survey.types";
-import type { ColumnDef } from "@tanstack/react-table";
 import {
   EllipsisVerticalIcon,
   EyeIcon,
   PencilIcon,
   TrashIcon,
 } from "@heroicons/react/24/solid";
+import type { ColumnDef } from "@tanstack/react-table";
+import type { FC } from "react";
 
-export const createSurveyColumns = (
-  handleDeleteSurvey?: (id: string) => void,
-  isSellerRoute?: boolean,
-  getEditRoute?: (id: string) => string,
-  getDetailRoute?: (id: string) => string,
-): ColumnDef<Survey>[] => {
-  const defaultGetEditRoute = (id: string) =>
-    isSellerRoute
-      ? `/marketing/surveys/${id}/edit`
-      : PANEL_ROUTES.SURVEY.EDIT(id);
-  const defaultGetDetailRoute = (id: string) =>
-    isSellerRoute
-      ? `/marketing/surveys/${id}/view`
-      : PANEL_ROUTES.SURVEY.DETAIL(id);
+interface SurveyActionsProps {
+  survey: Survey;
+  handleDeleteSurvey?: (id: string) => void;
+  viewUrl?: (id: string) => string;
+  editUrl?: (id: string) => string;
+  isAdmin: boolean;
+}
 
-  const editRoute = getEditRoute || defaultGetEditRoute;
-  const detailRoute = getDetailRoute || defaultGetDetailRoute;
+export const SurveyActions: FC<SurveyActionsProps> = ({
+  survey,
+  handleDeleteSurvey,
+  viewUrl,
+  editUrl,
+  isAdmin,
+}) => {
+  const surveyId = survey._id;
+  const canEdit = survey.status === "draft";
+  const isPaid = survey.paymentStatus === "paid";
 
+  const items: DropdownMenuItemType[] = [
+    {
+      type: "link",
+      to: viewUrl?.(surveyId) || "",
+      title: "View survey details",
+      children: (
+        <>
+          <EyeIcon className="size-4" /> View
+        </>
+      ),
+    },
+  ];
+
+  if ((canEdit && !isPaid) || isAdmin) {
+    items.push({
+      type: "link",
+      to: editUrl?.(surveyId) || "",
+      title: "Edit survey",
+      children: (
+        <>
+          <PencilIcon className="size-4" /> Edit
+        </>
+      ),
+    });
+  }
+
+  if (handleDeleteSurvey && !isPaid) {
+    items.push({
+      type: "item",
+      onClick: () => handleDeleteSurvey(surveyId),
+      variant: "destructive",
+      children: (
+        <>
+          <TrashIcon className="size-4" /> Delete
+        </>
+      ),
+    });
+  }
+
+  return (
+    <DropdownMenu items={items}>
+      <Button variant="ghost" className="size-7">
+        <EllipsisVerticalIcon className="size-4" />
+      </Button>
+    </DropdownMenu>
+  );
+};
+
+export const createSurveyColumns = ({
+  handleDeleteSurvey,
+  viewUrl,
+  editUrl,
+  isAdmin,
+}: {
+  handleDeleteSurvey?: (id: string) => void;
+  viewUrl?: (id: string) => string;
+  editUrl?: (id: string) => string;
+  isAdmin: boolean;
+}): ColumnDef<Survey>[] => {
   return [
     {
       header: "Title",
@@ -115,62 +175,15 @@ export const createSurveyColumns = (
       enableSorting: false,
       enableHiding: false,
       size: 80,
-      cell: ({ row }: { row: { original: Survey } }) => {
-        const survey = row.original;
-        const surveyId = survey._id;
-        const canEdit = survey.status === "draft";
-        const isPaid = survey.paymentStatus === "paid";
-        const isAdmin = !isSellerRoute;
-        const viewUrl = canEdit ? editRoute(surveyId) : detailRoute(surveyId);
-        const editUrl = editRoute(surveyId);
-
-        const items: DropdownMenuItemType[] = [
-          {
-            type: "link",
-            to: viewUrl,
-            title: "View survey details",
-            children: (
-              <>
-                <EyeIcon className="size-4" /> View
-              </>
-            ),
-          },
-        ];
-
-        if ((canEdit && !isPaid) || isAdmin) {
-          items.push({
-            type: "link",
-            to: editUrl,
-            title: "Edit survey",
-            children: (
-              <>
-                <PencilIcon className="size-4" /> Edit
-              </>
-            ),
-          });
-        }
-
-        if (handleDeleteSurvey && !isPaid) {
-          items.push({
-            type: "item",
-            onClick: () => handleDeleteSurvey(surveyId),
-            variant: "destructive",
-            children: (
-              <>
-                <TrashIcon className="size-4" /> Delete
-              </>
-            ),
-          });
-        }
-
-        return (
-          <DropdownMenu items={items}>
-            <Button variant="outlined" size="icon">
-              <EllipsisVerticalIcon className="size-4" />
-            </Button>
-          </DropdownMenu>
-        );
-      },
+      cell: ({ row }: { row: { original: Survey } }) => (
+        <SurveyActions
+          survey={row.original}
+          handleDeleteSurvey={handleDeleteSurvey}
+          viewUrl={viewUrl}
+          editUrl={editUrl}
+          isAdmin={isAdmin}
+        />
+      ),
     },
   ];
 };

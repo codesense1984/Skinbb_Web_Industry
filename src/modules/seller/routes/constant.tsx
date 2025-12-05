@@ -185,13 +185,13 @@ export const SELLER_ROUTES = {
       EDIT: (id: string = ROUTE.seg.id) =>
         `/marketing/discount-coupons/${id}/edit`,
     },
-    SURVEYS: {
-      BASE: "/marketing/surveys",
-      LIST: "/marketing/surveys",
-      CREATE: "/marketing/surveys/create",
-      VIEW: (id: string = ROUTE.seg.id) => `/marketing/surveys/${id}/view`,
-      EDIT: (id: string = ROUTE.seg.id) => `/marketing/surveys/${id}/edit`,
-    },
+    // SURVEYS: {
+    //   BASE: "/marketing/surveys",
+    //   LIST: "/marketing/surveys",
+    //   CREATE: "/marketing/surveys/create",
+    //   VIEW: (id: string = ROUTE.seg.id) => `/marketing/surveys/${id}/view`,
+    //   EDIT: (id: string = ROUTE.seg.id) => `/marketing/surveys/${id}/edit`,
+    // },
     PROMOTIONS: {
       BASE: "/marketing/promotions",
       LIST: "/marketing/promotions",
@@ -259,5 +259,6 @@ export const SELLER_ROUTES = {
     EDIT: (id: string = ROUTE.seg.id) =>
       ROUTE.build(SURVEY_BASE, id, ROUTE.seg.edit), // /survey/:id/edit
     DETAIL: (id: string = ROUTE.seg.id) => ROUTE.build(SURVEY_BASE, id), // /survey/:id
+    VIEW: (id: string = ROUTE.seg.id) => ROUTE.build(SURVEY_BASE, id), // /survey/:id
   },
 } as const;

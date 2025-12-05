@@ -1,25 +1,25 @@
 import { createSimpleFetcher, DataTable } from "@/core/components/data-table";
-import { StatusFilter } from "@/core/components/data-table/components/table-filter";
 import { TableAction } from "@/core/components/data-table/components/table-action";
+import { StatusFilter } from "@/core/components/data-table/components/table-filter";
 import {
-  AvatarRoot,
   AvatarFallback,
   AvatarImage,
+  AvatarRoot,
 } from "@/core/components/ui/avatar";
 import { StatusBadge } from "@/core/components/ui/badge";
 import { Button } from "@/core/components/ui/button";
 import { StatCard } from "@/core/components/ui/stat";
 import { PageContent } from "@/core/components/ui/structure";
 import { formatCurrency, formatDate, formatNumber } from "@/core/utils";
-import { SELLER_ROUTES } from "@/modules/seller/routes/constant";
-import type { Product } from "@/modules/panel/types/product.type";
-import type { ColumnDef } from "@tanstack/react-table";
-import { NavLink } from "react-router";
-import { useCallback, useEffect, useState } from "react";
-import { apiGetProducts } from "@/modules/panel/services/http/product.service";
 import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth";
-import { LocationFilter } from "@/modules/panel/features/brands/components/LocationFilter";
+import { LocationFilter } from "@/modules/panel/components/data-view";
 import { BrandFilter } from "@/modules/panel/features/listing/components/BrandFilter";
+import { apiGetProducts } from "@/modules/panel/services/http/product.service";
+import type { Product } from "@/modules/panel/types/product.type";
+import { SELLER_ROUTES } from "@/modules/seller/routes/constant";
+import type { ColumnDef } from "@tanstack/react-table";
+import { useCallback, useEffect, useState } from "react";
+import { NavLink } from "react-router";
 
 // Initial stats data
 const initialStatsData = [

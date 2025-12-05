@@ -463,6 +463,12 @@ export const panelRoutes: RouteObject = {
       ),
     },
     {
+      path: PANEL_ROUTES.SURVEY.VIEW(),
+      Component: lazy(
+        () => import("@/modules/panel/features/survey/SurveyView"),
+      ),
+    },
+    {
       path: PANEL_ROUTES.SURVEY.DETAIL(),
       Component: lazy(
         () => import("@/modules/panel/features/survey/market-research-detail"),

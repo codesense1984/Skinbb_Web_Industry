@@ -8,7 +8,6 @@ import {
 } from "@/core/components/ui/toggle-group";
 import { MASTER_DATA, PERSONAL_CARE_DATA } from "@/core/config/constants";
 import type { Survey } from "@/core/types/research.type";
-import type { QuestionType } from "@/modules/panel/types/survey.types";
 import {
   BanknotesIcon,
   ChartBarIcon,
@@ -17,10 +16,10 @@ import {
 } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
-import SurveyReview from "../../components/SurveyReview";
 import SurveyQuestions from "./SurveyQuestions";
 import SurveySummary from "./SurveySummary";
 import SurveyUsers from "./SurveyUsers";
+import SurveyReview from "../components/SurveyReview";
 
 const marketData: Survey = {
   title: "Dermatology Product Feedback Survey",

@@ -1,6 +1,6 @@
 import { FormInput, INPUT_TYPES } from "@/core/components/ui/form-input";
 import { useFormContext, useWatch } from "react-hook-form";
-import type { FormSectionBaseProps } from "../types";
+import type { FormSectionBaseProps } from "../../../types/product.types";
 
 type VendorSectionProps = FormSectionBaseProps;
 

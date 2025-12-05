@@ -1,36 +1,42 @@
 import { StatusBadge } from "@/core/components/ui/badge";
 import { formatDate } from "@/core/utils";
-import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import type { Survey } from "@/modules/panel/types/survey.types";
 import type { FC } from "react";
-import { NavLink } from "react-router";
+import { SurveyActions } from "./surveyColumns";
 
 interface SurveyCardProps {
   survey: Survey;
-  getEditRoute?: (id: string) => string;
-  getDetailRoute?: (id: string) => string;
+  viewUrl?: (id: string) => string;
+  editUrl?: (id: string) => string;
+  handleDeleteSurvey?: (id: string) => void;
+  isAdmin?: boolean;
 }
 
 export const SurveyCard: FC<SurveyCardProps> = ({
   survey,
-  getEditRoute,
-  getDetailRoute,
+  handleDeleteSurvey,
+  viewUrl,
+  editUrl,
+  isAdmin = false,
 }) => {
-  const editRoute =
-    getEditRoute || ((id: string) => PANEL_ROUTES.SURVEY.EDIT(id));
-  const detailRoute =
-    getDetailRoute || ((id: string) => PANEL_ROUTES.SURVEY.DETAIL(id));
-  const canEdit = survey.status === "draft";
-  const route = canEdit ? editRoute(survey._id) : detailRoute(survey._id);
-
   return (
-    <NavLink to={route}>
-      <article className="bg-card ring-primary/50 hover:ring-primary w-full rounded-xl p-5 shadow-md ring-1 transition hover:ring-1">
+    <article className="bg-card ring-primary/50 hover:ring-primary flex h-full w-full flex-col rounded-xl p-5 shadow-md ring-1 transition hover:ring-1">
+      <div className="flex items-start justify-between">
         <h3 className="text-lg leading-snug font-semibold text-gray-900">
           {survey.title}
         </h3>
-        <p className="mt-1 line-clamp-2">{survey.description}</p>
+        <SurveyActions
+          survey={survey}
+          handleDeleteSurvey={handleDeleteSurvey}
+          viewUrl={viewUrl}
+          editUrl={editUrl}
+          isAdmin={isAdmin}
+        />
+      </div>
 
+      <p className="mt-1 line-clamp-2 grow">{survey.description}</p>
+
+      <div>
         <hr className="my-3" />
 
         <div className="mt-4 grid grid-cols-2">
@@ -79,12 +85,12 @@ export const SurveyCard: FC<SurveyCardProps> = ({
           </div>
           <div className="flex flex-col items-center justify-center">
             <div className="text-muted-foreground text-center text-sm">
-              Status
+              Payment Status
             </div>
             <StatusBadge status={survey.paymentStatus} module="payment" />
           </div>
         </div>
-      </article>
-    </NavLink>
+      </div>
+    </article>
   );
 };

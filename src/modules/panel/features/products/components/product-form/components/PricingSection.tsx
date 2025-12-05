@@ -1,5 +1,5 @@
 import { FormInput, INPUT_TYPES } from "@/core/components/ui/form-input";
-import type { FormSectionBaseProps } from "../types";
+import type { FormSectionBaseProps } from "../../../types/product.types";
 
 type PricingSectionProps = FormSectionBaseProps;
 
