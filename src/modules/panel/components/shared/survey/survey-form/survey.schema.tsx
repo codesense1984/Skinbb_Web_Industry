@@ -75,6 +75,7 @@ export const audienceSchema = z
     targetHairTypes: z.array(z.string()).optional(),
     targetHairConcerns: z.array(z.string()).optional(),
     estimateResponse: z.custom<EligibleRespondentsResponse>().optional(),
+    isOptionChanged: z.boolean().default(false),
   })
   .superRefine((data, ctx) => {
     // If locationTarget is Metro, targetMetro must be provided
@@ -120,6 +121,15 @@ export const audienceSchema = z
         code: z.ZodIssueCode.custom,
         message: "Number of Respondents is required",
         path: ["respondents"],
+      });
+    }
+
+    // Validate if options were changed but estimate was not recalculated
+    if (data.isOptionChanged === true) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Please calculate the estimate cost",
+        path: ["isOptionChanged"],
       });
     }
     // // At least one of skin or hair concerns/types must be selected

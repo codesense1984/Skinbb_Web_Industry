@@ -40,7 +40,11 @@ function TargetAudience({
   disabled = false,
   mode = "create",
 }: TargetAudienceProps<SurveyFormData>) {
-  const { setValue } = useFormContext();
+  const { setValue, formState } = useFormContext();
+  const audienceErrors = formState.errors.audience as
+    | Record<string, { message?: string }>
+    | undefined;
+  const isOptionChangedError = audienceErrors?.isOptionChanged;
 
   const [questions] = useWatch({
     name: ["questions"],
@@ -124,6 +128,7 @@ function TargetAudience({
   const selectedCategory = selectedCategories || [];
   const prevSelectedCategoryRef = useRef<("Skin" | "Hair")[]>([]);
   const prevLocationTargetRef = useRef<string | undefined>(undefined);
+  const prevTargetCityRef = useRef<string | undefined>(undefined);
 
   // Build API params from form values
   const buildApiParams =
@@ -266,6 +271,8 @@ function TargetAudience({
           estimateResponse.estimatedCost.totalCost,
         );
       }
+      // Reset isOptionChanged to false after calculation
+      setValue("audience.isOptionChanged", false, { shouldValidate: true });
     }
   }, [estimateResponse, setValue]);
 
@@ -347,6 +354,20 @@ function TargetAudience({
     prevLocationTargetRef.current = currentLocation;
   }, [locationTarget, setValue]);
 
+  // Track city input changes to set isOptionChanged
+  useEffect(() => {
+    const prevCity = prevTargetCityRef.current;
+    const currentCity = targetCity;
+
+    // Only set isOptionChanged if city value actually changed (not on initial mount)
+    if (prevCity !== undefined && prevCity !== currentCity) {
+      setValue("audience.isOptionChanged", true, { shouldValidate: true });
+    }
+
+    // Update ref for next comparison
+    prevTargetCityRef.current = currentCity;
+  }, [targetCity, setValue]);
+
   // Clean up skin/hair data when category selection changes
   useEffect(() => {
     const prevSelected = prevSelectedCategoryRef.current;
@@ -386,6 +407,11 @@ function TargetAudience({
           <p>
             Select your survey audience and see the estimated cost in real time.
           </p>
+          {isOptionChangedError && (
+            <p data-slot="form-message" className="text-destructive text-sm">
+              {isOptionChangedError.message}
+            </p>
+          )}
         </div>
         <AnimatePresence>
           <div className="flex flex-col gap-2 md:gap-5">
@@ -456,6 +482,9 @@ function TargetAudience({
                       "audience.selectedCategories",
                       value as ("Skin" | "Hair")[],
                     );
+                    setValue("audience.isOptionChanged", true, {
+                      shouldValidate: true,
+                    });
                   }
                 }}
                 disabled={disabled}
@@ -677,6 +706,9 @@ export function TargetRadio({
         onValueChange={(value) => {
           if (value && !disabled) {
             setValue(`audience.${name}`, value, { shouldValidate: true });
+            setValue("audience.isOptionChanged", true, {
+              shouldValidate: true,
+            });
           }
         }}
         disabled={disabled}
@@ -774,6 +806,9 @@ export function TargetToggle({
         onValueChange={(value) => {
           if (!disabled) {
             setValue(`audience.${name}`, value, { shouldValidate: true });
+            setValue("audience.isOptionChanged", true, {
+              shouldValidate: true,
+            });
           }
         }}
         disabled={disabled}

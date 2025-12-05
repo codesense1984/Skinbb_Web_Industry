@@ -119,7 +119,7 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
 
   const { control, handleSubmit, trigger, reset } = form;
 
-  console.log(form.watch(), form.formState.errors, "watch");
+  // console.log(form.watch(), form.formState, "watch");
 
   // Fetch survey data for edit and view modes
   const {
@@ -205,7 +205,6 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
         surveyId,
         data: convertedData,
       });
-      debugger;
 
       // Handle payment flow after survey creation (only for CREATE mode) or EDIT mode with draft status
       if (
