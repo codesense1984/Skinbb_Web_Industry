@@ -31,6 +31,7 @@ import {
   BuildingStorefrontIcon,
   MagnifyingGlassIcon,
   LinkIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import React, {
   useCallback,
@@ -41,6 +42,7 @@ import React, {
 } from "react";
 import axios from "axios";
 import { basePythonApiUrl } from "@/core/config/baseUrls";
+import { useAuth } from "@/modules/auth/hooks/useAuth";
 
 // Types and Interfaces
 interface AnalyzeRequest {
@@ -49,14 +51,16 @@ interface AnalyzeRequest {
 
 interface MatchedItem {
   ingredient_name: string;
-  supplier_name: string;
-  description: string;
+  supplier_name: string | null;
+  description: string | null;
   functionality_category_tree: string[][];
   chemical_class_category_tree: string[][];
   match_score: number;
   matched_inci: string[];
   matched_count: number;
   total_brand_inci: number;
+  tag?: string; // 'B' for branded, 'G' for general
+  match_method?: string; // 'exact', 'fuzzy', or 'synonym'
 }
 
 interface GroupItem {
@@ -66,14 +70,19 @@ interface GroupItem {
 }
 
 interface AnalyzeResponse {
-  grouped: GroupItem[];
-  unmatched: string[];
+  grouped: GroupItem[]; // For backward compatibility
+  branded_ingredients?: MatchedItem[]; // NEW: Branded ingredients only (tag='B') - flat list
+  branded_grouped?: GroupItem[]; // NEW: Branded ingredients grouped by INCI - shows all options per INCI
+  general_ingredients_list?: MatchedItem[]; // NEW: General INCI ingredients only (tag='G')
+  unable_to_decode?: string[]; // NEW: Ingredients that couldn't be decoded
+  unmatched: string[]; // DEPRECATED: Use unable_to_decode
   overall_confidence: number;
   processing_time: number;
   bis_cautions?: Record<string, string[]>; // BIS cautions from RAG
+  ingredient_tags?: Record<string, string>; // Maps ingredient names to 'B' or 'G'
 }
 
-type ActiveTab = "grouped" | "unmatched" | "analysis";
+type ActiveTab = "matched" | "unableToDecode" | "analysis";
 
 interface ReportState {
   loading: boolean;
@@ -224,6 +233,101 @@ const api = {
     );
     return response.data;
   },
+
+  async saveDecodeHistory(
+    data: {
+      name: string;
+      tag?: string;
+      input_type: string;
+      input_data: string;
+      analysis_result: AnalyzeResponse;
+      report_data?: string | null;
+    },
+    userId: string | undefined
+  ): Promise<{ success: boolean; id: string; message: string }> {
+    if (!userId) {
+      throw new Error("User ID is required to save history");
+    }
+    const response = await axios.post(
+      `${basePythonApiUrl}/api/save-decode-history`,
+      data,
+      {
+        headers: {
+          "X-User-Id": userId,
+        },
+      }
+    );
+    return response.data;
+  },
+
+  async getDecodeHistory(
+    params?: {
+      search?: string;
+      limit?: number;
+      skip?: number;
+    },
+    userId?: string
+  ): Promise<{ items: Array<{
+    id: string;
+    name: string;
+    tag?: string;
+    input_type: string;
+    input_data: string;
+    analysis_result: AnalyzeResponse;
+    created_at: string;
+  }>; total: number }> {
+    if (!userId) {
+      throw new Error("User ID is required to fetch history");
+    }
+    const response = await axios.get(
+      `${basePythonApiUrl}/api/decode-history`,
+      {
+        params,
+        headers: {
+          "X-User-Id": userId,
+        },
+      }
+    );
+    return response.data;
+  },
+
+  async updateDecodeHistory(
+    historyId: string,
+    data: { report_data?: string | null },
+    userId: string | undefined
+  ): Promise<{ success: boolean; message: string }> {
+    if (!userId) {
+      throw new Error("User ID is required to update history");
+    }
+    const response = await axios.patch(
+      `${basePythonApiUrl}/api/decode-history/${historyId}`,
+      data,
+      {
+        headers: {
+          "X-User-Id": userId,
+        },
+      }
+    );
+    return response.data;
+  },
+
+  async deleteDecodeHistory(
+    historyId: string,
+    userId: string | undefined
+  ): Promise<{ success: boolean; message: string }> {
+    if (!userId) {
+      throw new Error("User ID is required to delete history");
+    }
+    const response = await axios.delete(
+      `${basePythonApiUrl}/api/decode-history/${historyId}`,
+      {
+        headers: {
+          "X-User-Id": userId,
+        },
+      }
+    );
+    return response.data;
+  },
 };
 
 // UI Components
@@ -333,22 +437,47 @@ interface DistributorFormData {
   acceptTerms: boolean;
 }
 
-function IngredientAnalyzer() {
+function IngredientAnalyzer({ 
+  showHistory, 
+  setShowHistory 
+}: { 
+  showHistory: boolean; 
+  setShowHistory: (show: boolean) => void;
+}) {
+  // Get user ID for history
+  const { userId } = useAuth();
+  
   // State management
   const [inputMode, setInputMode] = useState<InputMode>("inci");
   const [text, setText] = useState("");
   const [url, setUrl] = useState("");
+  const [name, setName] = useState("");
+  const [tag, setTag] = useState("");
   const [loading, setLoading] = useState(false);
   const [extracting, setExtracting] = useState(false);
   const [extractedData, setExtractedData] = useState<ExtractUrlResponse | null>(null);
   const [resp, setResp] = useState<AnalyzeResponse | null>(null);
-  const [activeTab, setActiveTab] = useState<ActiveTab>("grouped");
+  const [activeTab, setActiveTab] = useState<ActiveTab>("matched");
   const [reportState, setReportState] = useState<ReportState>({
     loading: false,
     data: null,
     pdfLoading: false,
   });
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  
+  // History sidebar state (now passed as props)
+  const [historyItems, setHistoryItems] = useState<Array<{
+    id: string;
+    name: string;
+    tag?: string;
+    input_type: string;
+    input_data: string;
+    analysis_result: AnalyzeResponse;
+    report_data?: string | null;
+    created_at: string;
+  }>>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historySearch, setHistorySearch] = useState("");
   
   // Distributor claim state
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
@@ -357,6 +486,9 @@ function IngredientAnalyzer() {
   const [submittingForm, setSubmittingForm] = useState(false);
   const [distributorInfo, setDistributorInfo] = useState<Record<string, DistributorInfo[]>>({});
   const [showDistributorDetails, setShowDistributorDetails] = useState<string | null>(null);
+  const [currentHistoryId, setCurrentHistoryId] = useState<string | null>(null); // Track current history ID
+  const [isLoadingFromHistory, setIsLoadingFromHistory] = useState(false); // Track if loading from history
+  const hasLoadedFromHistoryRef = useRef(false); // Ref to track if we loaded from history (persists across renders)
   const [formData, setFormData] = useState<DistributorFormData>({
     firmName: "",
     category: "",
@@ -601,6 +733,174 @@ function IngredientAnalyzer() {
     }
   }, [url]);
 
+  // Load history
+  const loadHistory = useCallback(async () => {
+    if (!userId) {
+      console.warn("User ID not available, cannot load history");
+      return;
+    }
+    setHistoryLoading(true);
+    try {
+      const result = await api.getDecodeHistory(
+        {
+          search: historySearch || undefined,
+          limit: 50,
+        },
+        userId
+      );
+      setHistoryItems(result.items);
+    } catch (error) {
+      console.error("Error loading history:", error);
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, [historySearch, userId]);
+
+  // Load history on mount and when search changes
+  useEffect(() => {
+    if (showHistory) {
+      loadHistory();
+    }
+  }, [showHistory, historySearch, loadHistory]);
+
+  // Load history item into form
+  const loadHistoryItem = useCallback(async (item: {
+    id: string;
+    name: string;
+    tag?: string;
+    input_type: string;
+    input_data: string;
+    analysis_result: AnalyzeResponse;
+    report_data?: string | null;
+    created_at: string;
+  }) => {
+    // Set flags to prevent auto-generation
+    setIsLoadingFromHistory(true);
+    hasLoadedFromHistoryRef.current = true;
+    
+    // IMPORTANT: Restore report FIRST before setting other state
+    // This ensures reportState.data is set before any effects run
+    if (item.report_data) {
+      console.log("Loading report from history:", item.report_data.substring(0, 100) + "...");
+      setReportState({
+        loading: false,
+        data: item.report_data,
+        pdfLoading: false,
+      });
+    } else {
+      console.log("No report data in history item");
+      setReportState({
+        loading: false,
+        data: null,
+        pdfLoading: false,
+      });
+    }
+    
+    // Set input mode and data
+    if (item.input_type === "inci") {
+      setInputMode("inci");
+      setText(item.input_data);
+      setUrl("");
+    } else {
+      setInputMode("url");
+      setUrl(item.input_data);
+      setText("");
+    }
+    
+    // Set name and tag
+    setName(item.name);
+    setTag(item.tag || "");
+    
+    // Restore analysis results
+    setResp(item.analysis_result);
+    
+    // Set current history ID
+    setCurrentHistoryId(item.id);
+    
+    // Set active tab to matched to show results
+    setActiveTab("matched");
+    
+    // Close sidebar
+    setShowHistory(false);
+    
+    // Reset flag after a longer delay to ensure all state updates are complete
+    setTimeout(() => {
+      setIsLoadingFromHistory(false);
+      // Keep ref true so we know this was loaded from history
+    }, 500);
+    
+    // Fetch distributor info for all ingredients (same as after analysis)
+    const ingredientNames = new Set<string>();
+    const data = item.analysis_result;
+    
+    // Collect from branded ingredients (prefer grouped, fallback to flat list)
+    if (data.branded_grouped) {
+      data.branded_grouped.forEach((group: GroupItem) => {
+        group.items.forEach((item: MatchedItem) => {
+          ingredientNames.add(item.ingredient_name);
+        });
+      });
+    } else if (data.branded_ingredients) {
+      data.branded_ingredients.forEach((item: MatchedItem) => {
+        ingredientNames.add(item.ingredient_name);
+      });
+    }
+    
+    // Collect from general ingredients (though they typically don't have distributors)
+    if (data.general_ingredients_list) {
+      data.general_ingredients_list.forEach((item: MatchedItem) => {
+        ingredientNames.add(item.ingredient_name);
+      });
+    }
+    
+    // Fallback to grouped for backward compatibility
+    if (data.grouped && ingredientNames.size === 0) {
+      data.grouped.forEach((group: GroupItem) => {
+        group.items.forEach((item: MatchedItem) => {
+          ingredientNames.add(item.ingredient_name);
+        });
+      });
+    }
+    
+    // Fetch distributor info for each ingredient
+    if (ingredientNames.size > 0) {
+      try {
+        const distributorPromises = Array.from(ingredientNames).map(async (ingredientName) => {
+          const distributors = await api.getDistributorsByIngredient(ingredientName);
+          return { ingredientName, distributors };
+        });
+        
+        const distributorResults = await Promise.all(distributorPromises);
+        const distributorMap: Record<string, DistributorInfo[]> = {};
+        distributorResults.forEach(({ ingredientName, distributors }) => {
+          distributorMap[ingredientName] = distributors;
+        });
+        setDistributorInfo(distributorMap);
+      } catch (error) {
+        console.error("Error fetching distributor info:", error);
+        // Don't block the user if distributor fetch fails
+      }
+    }
+  }, [setShowHistory]);
+
+  // Delete history item
+  const deleteHistoryItem = useCallback(async (historyId: string) => {
+    if (!userId) {
+      window.alert("User ID not available");
+      return;
+    }
+    if (!window.confirm("Are you sure you want to delete this history item?")) {
+      return;
+    }
+    try {
+      await api.deleteDecodeHistory(historyId, userId);
+      loadHistory();
+    } catch (error) {
+      console.error("Error deleting history:", error);
+      window.alert("Failed to delete history item");
+    }
+  }, [loadHistory, userId]);
+
   // API callbacks
   const onAnalyze = useCallback(async () => {
     if (inputMode === "inci" && !parsed.length) return;
@@ -617,16 +917,73 @@ function IngredientAnalyzer() {
 
       const data = await api.analyzeIngredients({ inci_names: ingredientsToAnalyze });
       setResp(data);
-      setActiveTab("grouped");
+      setActiveTab("matched");
+      
+      // Reset loading from history flags (in case it was set)
+      setIsLoadingFromHistory(false);
+      hasLoadedFromHistoryRef.current = false;
+      
+      // Save to history if name is provided and user is logged in
+      // Note: Report will be saved later when it's generated
+      if (name.trim() && userId) {
+        try {
+          const inputData = inputMode === "inci" ? text : url;
+          const result = await api.saveDecodeHistory(
+            {
+              name: name.trim(),
+              tag: tag.trim() || undefined,
+              input_type: inputMode,
+              input_data: inputData,
+              analysis_result: data,
+              report_data: null, // Will be updated when report is generated
+            },
+            userId
+          );
+          // Store history ID so we can update it with report later
+          setCurrentHistoryId(result.id);
+          // Refresh history if sidebar is open
+          if (showHistory) {
+            loadHistory();
+          }
+        } catch (error) {
+          console.error("Error saving history:", error);
+          // Don't block the user if history save fails
+        }
+      }
       
       // Fetch distributor info for all ingredients
-      if (data.grouped) {
-        const ingredientNames = new Set<string>();
+      const ingredientNames = new Set<string>();
+      
+      // Collect from branded ingredients (prefer grouped, fallback to flat list)
+      if (data.branded_grouped) {
+        data.branded_grouped.forEach((group: GroupItem) => {
+          group.items.forEach((item: MatchedItem) => {
+            ingredientNames.add(item.ingredient_name);
+          });
+        });
+      } else if (data.branded_ingredients) {
+        data.branded_ingredients.forEach((item: MatchedItem) => {
+          ingredientNames.add(item.ingredient_name);
+        });
+      }
+      
+      // Collect from general ingredients (though they typically don't have distributors)
+      if (data.general_ingredients_list) {
+        data.general_ingredients_list.forEach((item: MatchedItem) => {
+          ingredientNames.add(item.ingredient_name);
+        });
+      }
+      
+      // Fallback to grouped for backward compatibility
+      if (data.grouped && ingredientNames.size === 0) {
         data.grouped.forEach((group: GroupItem) => {
           group.items.forEach((item: MatchedItem) => {
             ingredientNames.add(item.ingredient_name);
           });
         });
+      }
+      
+      if (ingredientNames.size > 0) {
         
         // Fetch distributor info for each ingredient
         const distributorPromises = Array.from(ingredientNames).map(async (ingredientName) => {
@@ -646,11 +1003,9 @@ function IngredientAnalyzer() {
     } finally {
       setLoading(false);
     }
-  }, [parsed, inputMode, extractedData]);
+  }, [parsed, inputMode, extractedData, name, tag, text, url, showHistory, loadHistory, userId]);
 
   const generateReport = useCallback(async () => {
-    if (!parsed.length) return;
-
     // Ensure we have analysis results before generating report
     if (!resp) {
       console.warn(
@@ -659,14 +1014,88 @@ function IngredientAnalyzer() {
       return;
     }
 
+    // Extract all ingredients from analysis result if parsed is empty (e.g., when loading from history)
+    let ingredientsList: string[] = parsed;
+    if (!parsed.length) {
+      // Build ingredient list from analysis result
+      const allIngredients = new Set<string>();
+      
+      // Extract from branded ingredients
+      if (resp.branded_ingredients) {
+        resp.branded_ingredients.forEach((item) => {
+          allIngredients.add(item.ingredient_name);
+        });
+      }
+      
+      // Extract from general ingredients
+      if (resp.general_ingredients_list) {
+        resp.general_ingredients_list.forEach((item) => {
+          allIngredients.add(item.ingredient_name);
+        });
+      }
+      
+      // Extract from unable to decode
+      if (resp.unable_to_decode) {
+        resp.unable_to_decode.forEach((ingredient) => {
+          allIngredients.add(ingredient);
+        });
+      }
+      
+      // Fallback to grouped structure
+      if (allIngredients.size === 0 && resp.grouped) {
+        resp.grouped.forEach((group) => {
+          group.inci_list.forEach((inci) => {
+            allIngredients.add(inci);
+          });
+        });
+      }
+      
+      ingredientsList = Array.from(allIngredients);
+      
+      if (ingredientsList.length === 0) {
+        console.warn("No ingredients found in analysis result");
+        return;
+      }
+    }
+
     setReportState((prev) => ({ ...prev, loading: true }));
     try {
-      // Extract branded and not branded ingredients from analyze_inci response
+      // Extract branded and general ingredients from analyze_inci response
       const brandedIngredients: string[] = [];
-      const notBrandedIngredients: string[] = resp.unmatched || [];
+      const notBrandedIngredients: string[] = [];
 
-      // Extract all INCI names from grouped (branded) ingredients
-      if (resp.grouped) {
+      // Extract branded ingredients (tag='B') - prefer grouped, fallback to flat list
+      if (resp.branded_grouped) {
+        resp.branded_grouped.forEach((group: GroupItem) => {
+          group.inci_list.forEach((inci) => {
+            if (!brandedIngredients.includes(inci)) {
+              brandedIngredients.push(inci);
+            }
+          });
+        });
+      } else if (resp.branded_ingredients) {
+        resp.branded_ingredients.forEach((item) => {
+          item.matched_inci.forEach((inci) => {
+            if (!brandedIngredients.includes(inci)) {
+              brandedIngredients.push(inci);
+            }
+          });
+        });
+      }
+
+      // Extract general ingredients (tag='G')
+      if (resp.general_ingredients_list) {
+        resp.general_ingredients_list.forEach((item) => {
+          item.matched_inci.forEach((inci) => {
+            if (!notBrandedIngredients.includes(inci)) {
+              notBrandedIngredients.push(inci);
+            }
+          });
+        });
+      }
+
+      // Fallback to old structure for backward compatibility
+      if (brandedIngredients.length === 0 && resp.grouped) {
         resp.grouped.forEach((group) => {
           group.inci_list.forEach((inci) => {
             if (!brandedIngredients.includes(inci)) {
@@ -675,17 +1104,34 @@ function IngredientAnalyzer() {
           });
         });
       }
+      if (notBrandedIngredients.length === 0 && resp.unmatched) {
+        notBrandedIngredients.push(...resp.unmatched);
+      }
 
       // Extract BIS cautions from analyze_inci response
       const bisCautions = resp.bis_cautions || undefined;
 
       const data = await api.generateReport(
-        parsed,
+        ingredientsList,
         brandedIngredients,
         notBrandedIngredients,
         bisCautions,
       );
       setReportState((prev) => ({ ...prev, data, loading: false }));
+      
+      // Update history with report data if history ID exists
+      if (currentHistoryId && userId && data) {
+        try {
+          await api.updateDecodeHistory(
+            currentHistoryId,
+            { report_data: data },
+            userId
+          );
+        } catch (error) {
+          console.error("Error updating history with report:", error);
+          // Don't block the user if update fails
+        }
+      }
     } catch (error) {
       console.error("Error generating report:", error);
       setReportState((prev) => ({
@@ -694,7 +1140,7 @@ function IngredientAnalyzer() {
         loading: false,
       }));
     }
-  }, [parsed, resp]);
+  }, [parsed, resp, currentHistoryId, userId]);
 
   const downloadPDF = useCallback(async () => {
     setReportState((prev) => ({ ...prev, pdfLoading: true }));
@@ -728,16 +1174,34 @@ function IngredientAnalyzer() {
     }
   }, [reportState.data]);
 
-  // Auto-generate report when switching to analysis tab
+  // Auto-generate report when switching to analysis tab (only if report doesn't exist)
   useEffect(() => {
+    // Don't auto-generate if:
+    // 1. We're loading from history (to prevent regeneration during load)
+    // 2. Report already exists (to prevent regeneration of stored reports)
+    // 3. We just loaded from history (using ref to persist across renders)
+    if (isLoadingFromHistory || reportState.data || hasLoadedFromHistoryRef.current) {
+      // If report exists, reset the ref since we're done loading
+      if (reportState.data) {
+        hasLoadedFromHistoryRef.current = false;
+      }
+      return;
+    }
+    
     if (
       activeTab === "analysis" &&
-      parsed.length > 0 &&
       resp && // Ensure analysis results are available
-      !reportState.data &&
-      !reportState.loading
+      !reportState.loading // Don't generate if already generating
     ) {
-      generateReport();
+      // Check if we have ingredients (either from parsed or can extract from resp)
+      const hasIngredients = parsed.length > 0 || 
+        (resp.branded_ingredients && resp.branded_ingredients.length > 0) ||
+        (resp.general_ingredients_list && resp.general_ingredients_list.length > 0) ||
+        (resp.grouped && resp.grouped.length > 0);
+      
+      if (hasIngredients) {
+        generateReport();
+      }
     }
   }, [
     activeTab,
@@ -746,14 +1210,130 @@ function IngredientAnalyzer() {
     reportState.data,
     reportState.loading,
     generateReport,
+    isLoadingFromHistory,
   ]);
 
   return (
-    <div className="w-full px-4 py-6">
+    <div className="w-full px-4 py-6 relative">
+
+      {/* History Sidebar - Slide in from left (ChatGPT style) */}
+      <div
+        className={cn(
+          "fixed left-0 top-0 h-full w-80 bg-background border-r shadow-2xl z-40 transform transition-transform duration-300 ease-in-out",
+          showHistory ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <div className="h-full flex flex-col">
+          {/* Sidebar Header */}
+          <div className="p-4 border-b flex items-center justify-between bg-muted/30">
+            <h2 className="text-lg font-semibold">Decode History</h2>
+            <button
+              onClick={() => setShowHistory(false)}
+              className="text-muted-foreground hover:text-foreground p-1 rounded-md hover:bg-muted transition-colors"
+              aria-label="Close sidebar"
+              type="button"
+            >
+              <XMarkIcon className="h-5 w-5" />
+            </button>
+          </div>
+          
+          {/* Unified Search */}
+          <div className="p-4 border-b">
+            <Input
+              placeholder="Search by name or tag..."
+              value={historySearch}
+              onChange={(e) => setHistorySearch(e.target.value)}
+              className="h-9"
+            />
+          </div>
+          
+          {/* History List - Scrollable */}
+          <div className="flex-1 overflow-y-auto p-4">
+            <div className="space-y-2">
+              {historyLoading ? (
+                <div className="text-center py-8 text-muted-foreground">Loading...</div>
+              ) : historyItems.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p className="text-sm">No history found</p>
+                  <p className="text-xs mt-1">Your decode history will appear here</p>
+                </div>
+              ) : (
+                historyItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="p-3 border rounded-lg hover:bg-muted/50 cursor-pointer group transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div
+                        className="flex-1 min-w-0"
+                        onClick={() => loadHistoryItem(item)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            loadHistoryItem(item);
+                          }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                      >
+                        <div className="font-medium text-sm truncate">{item.name}</div>
+                        <div className="text-xs text-muted-foreground mt-1.5">
+                          {item.input_type === "inci" ? "INCI List" : "URL"}
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-0.5">
+                          {(() => {
+                            try {
+                              const date = new Date(item.created_at);
+                              if (isNaN(date.getTime())) {
+                                return "";
+                              }
+                              // Show only date (no time)
+                              return date.toLocaleDateString("en-IN", {
+                                year: "numeric",
+                                month: "numeric",
+                                day: "numeric"
+                              });
+                            } catch {
+                              return "";
+                            }
+                          })()}
+                        </div>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteHistoryItem(item.id);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 text-xs px-2 py-1 rounded transition-opacity flex-shrink-0"
+                        type="button"
+                        aria-label="Delete history item"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Overlay when sidebar is open */}
+      {showHistory && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 backdrop-blur-sm"
+          onClick={() => setShowHistory(false)}
+          aria-hidden="true"
+        />
+      )}
+      
+      {/* Main Content */}
+      <div className="w-full">
       {/* Top card */}
       <div className="bg-card border-border rounded-xl border p-6 shadow-lg w-full">
         <div className="flex items-center justify-between mb-4">
-          <div>
+          <div className="flex-1">
             <h1 className="text-xl font-semibold">
               {inputMode === "inci"
                 ? "Paste your product's INCI list"
@@ -767,7 +1347,7 @@ function IngredientAnalyzer() {
           </div>
           
           {/* Input Mode Toggle */}
-          <div className="flex gap-2 border rounded-lg p-1 bg-muted/50">
+          <div className="flex gap-2 border rounded-lg p-1 bg-muted/50 ml-4">
             <button
               type="button"
               onClick={() => setInputMode("inci")}
@@ -833,6 +1413,34 @@ function IngredientAnalyzer() {
               </p>
             </>
           )}
+        </div>
+
+        {/* Name and Tag Inputs */}
+        <div className="mt-4 grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="decode-name" className="block text-sm font-medium mb-1">
+              Name <span className="text-red-500">*</span>
+            </label>
+            <Input
+              id="decode-name"
+              placeholder="e.g. Vitamin C Serum"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="h-9"
+            />
+          </div>
+          <div>
+            <label htmlFor="decode-tag" className="block text-sm font-medium mb-1">
+              Tag (optional)
+            </label>
+            <Input
+              id="decode-tag"
+              placeholder="e.g. skincare, serum"
+              value={tag}
+              onChange={(e) => setTag(e.target.value)}
+              className="h-9"
+            />
+          </div>
         </div>
 
         <div className="mt-5 flex flex-wrap items-center gap-3">
@@ -960,26 +1568,26 @@ function IngredientAnalyzer() {
           {/* Tabs */}
           <div className="mb-5 flex flex-wrap gap-2">
             <TabButton
-              active={activeTab === "grouped"}
-              onClick={() => setActiveTab("grouped")}
+              active={activeTab === "matched"}
+              onClick={() => setActiveTab("matched")}
               icon={
                 <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-indigo-600 text-[11px] font-bold text-white">
                   ⓘ
                 </span>
               }
-              label={"Branded Ingredients"}
-              count={resp.grouped?.length}
+              label={"Matched Ingredients"}
+              count={(resp.branded_grouped?.reduce((sum, group) => sum + group.count, 0) || resp.branded_ingredients?.length || 0) + (resp.general_ingredients_list?.length || 0)}
             />
             <TabButton
-              active={activeTab === "unmatched"}
-              onClick={() => setActiveTab("unmatched")}
+              active={activeTab === "unableToDecode"}
+              onClick={() => setActiveTab("unableToDecode")}
               icon={
-                <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-gray-900 text-[11px] text-white">
-                  ⚡
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-red-600 text-[11px] text-white">
+                  ⚠
                 </span>
               }
-              label="Not Branded Ingredients"
-              count={resp.unmatched?.length}
+              label="Unable to Decode"
+              count={resp.unable_to_decode?.length || resp.unmatched?.length || 0}
             />
             <TabButton
               active={activeTab === "analysis"}
@@ -994,30 +1602,151 @@ function IngredientAnalyzer() {
             />
           </div>
 
-          {activeTab === "grouped" && (
-            <div className="space-y-4">
-              {resp.grouped?.map((m: GroupItem) => {
-                return (
-                  <div key={m.inci_list.join("-")} className="space-y-3">
-                    <div className="flex flex-wrap gap-1.5">
-                      {m.inci_list?.map((i) => (
-                        <Badge
-                          variant={"outline"}
-                          className="text-muted-foreground border-primary capitalize"
-                          key={i}
-                        >
-                          {i}
-                        </Badge>
-                      ))}
-                    </div>
+          {activeTab === "matched" && (
+            <div className="space-y-6">
+              {/* Branded Ingredients Section - Grouped by INCI */}
+              {resp.branded_grouped && resp.branded_grouped.length > 0 && (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <SectionTitle>Branded Ingredients</SectionTitle>
+                    <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-300">
+                      B
+                    </Badge>
+                    <span className="text-sm text-gray-600">({resp.branded_grouped.reduce((sum, group) => sum + group.count, 0)} branded options)</span>
+                  </div>
+                  {resp.branded_grouped.map((group: GroupItem) => (
+                    <div key={group.inci_list.join("-")} className="space-y-3">
+                      <div className="flex flex-wrap gap-1.5">
+                        {group.inci_list?.map((i) => (
+                          <Badge
+                            variant={"outline"}
+                            className="text-muted-foreground border-primary capitalize"
+                            key={i}
+                          >
+                            {i}
+                          </Badge>
+                        ))}
+                      </div>
 
-                    <Accordion
-                      type="single"
-                      collapsible
-                      className="w-full rounded-lg border bg-white shadow-sm"
-                      defaultValue="item-1"
-                    >
-                      {m.items.map((item) => (
+                      <Accordion
+                        type="single"
+                        collapsible
+                        className="w-full rounded-lg border bg-white shadow-sm"
+                      >
+                        {group.items.map((item) => (
+                          <AccordionItem
+                            value={item.ingredient_name}
+                            key={item.ingredient_name}
+                            className="border-b last:border-b-0"
+                          >
+                            <AccordionTrigger className="px-5 py-4 hover:no-underline">
+                              <div className="flex w-full items-center justify-between pr-4">
+                                <div className="flex items-center gap-2">
+                                  <h3 className="truncate text-lg font-medium capitalize">
+                                    {item.ingredient_name}
+                                  </h3>
+                                  <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-300 text-xs">
+                                    B
+                                  </Badge>
+                                  {item.match_method && (
+                                    <Badge variant="outline" className="text-xs">
+                                      {item.match_method}
+                                    </Badge>
+                                  )}
+                                </div>
+                                <div className="text-muted-foreground flex items-center gap-2 shrink-0">
+                                  {item.supplier_name && (
+                                    <>
+                                      <span className="text-sm">
+                                        {item.supplier_name}
+                                      </span>
+                                      <BuildingStorefrontIcon className="size-5" />
+                                    </>
+                                  )}
+                                  {distributorInfo[item.ingredient_name] && distributorInfo[item.ingredient_name].length > 0 && (
+                                    <Badge
+                                      variant="outline"
+                                      className="text-xs bg-green-50 text-green-700 border-green-300 cursor-pointer hover:bg-green-100"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setShowDistributorDetails(item.ingredient_name);
+                                      }}
+                                    >
+                                      India Distributor{distributorInfo[item.ingredient_name].length > 1 ? ` (${distributorInfo[item.ingredient_name].length})` : ""}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            </AccordionTrigger>
+                            <AccordionContent className="px-5 pb-4">
+                              <div className="space-y-4">
+                                {item.description && (
+                                  <p className="text-sm leading-6 text-gray-700">
+                                    {item.description}
+                                  </p>
+                                )}
+                                <div className="flex justify-end pt-2 border-t">
+                                  <div className="group relative">
+                                    <Button
+                                      variant="outlined"
+                                      size="sm"
+                                      onClick={() => handleClaimClick(item.ingredient_name)}
+                                      className="flex items-center gap-2"
+                                    >
+                                      <BuildingStorefrontIcon className="size-4" />
+                                      Claim this as India distributor
+                                    </Button>
+                                    <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block z-10">
+                                      <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 shadow-lg max-w-xs">
+                                        Claim this ingredient as your India distributor territory. You need to register as a distributor on SkinBB Metaverse.
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        ))}
+                      </Accordion>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Fallback to flat branded_ingredients if branded_grouped not available */}
+              {(!resp.branded_grouped || resp.branded_grouped.length === 0) && resp.branded_ingredients && resp.branded_ingredients.length > 0 && (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <SectionTitle>Branded Ingredients</SectionTitle>
+                    <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-300">
+                      B
+                    </Badge>
+                    <span className="text-sm text-gray-600">({resp.branded_ingredients.length})</span>
+                  </div>
+                  {resp.branded_ingredients.map((item) => (
+                    <div key={item.ingredient_name} className="space-y-3">
+                      <div className="flex flex-wrap gap-1.5">
+                        {item.matched_inci?.map((i) => (
+                          <Badge
+                            variant={"outline"}
+                            className="text-muted-foreground border-primary capitalize"
+                            key={i}
+                          >
+                            {i}
+                          </Badge>
+                        ))}
+                        {item.match_method && (
+                          <Badge variant="outline" className="text-xs">
+                            {item.match_method}
+                          </Badge>
+                        )}
+                      </div>
+
+                      <Accordion
+                        type="single"
+                        collapsible
+                        className="w-full rounded-lg border bg-white shadow-sm"
+                      >
                         <AccordionItem
                           value={item.ingredient_name}
                           key={item.ingredient_name}
@@ -1025,14 +1754,23 @@ function IngredientAnalyzer() {
                         >
                           <AccordionTrigger className="px-5 py-4 hover:no-underline">
                             <div className="flex w-full items-center justify-between pr-4">
-                              <h3 className="truncate text-lg font-medium capitalize">
-                                {item.ingredient_name}
-                              </h3>
+                              <div className="flex items-center gap-2">
+                                <h3 className="truncate text-lg font-medium capitalize">
+                                  {item.ingredient_name}
+                                </h3>
+                                <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-300 text-xs">
+                                  B
+                                </Badge>
+                              </div>
                               <div className="text-muted-foreground flex items-center gap-2 shrink-0">
-                                <span className="text-sm">
-                                  {item.supplier_name}
-                                </span>
-                                <BuildingStorefrontIcon className="size-5" />
+                                {item.supplier_name && (
+                                  <>
+                                    <span className="text-sm">
+                                      {item.supplier_name}
+                                    </span>
+                                    <BuildingStorefrontIcon className="size-5" />
+                                  </>
+                                )}
                                 {distributorInfo[item.ingredient_name] && distributorInfo[item.ingredient_name].length > 0 && (
                                   <Badge
                                     variant="outline"
@@ -1050,9 +1788,11 @@ function IngredientAnalyzer() {
                           </AccordionTrigger>
                           <AccordionContent className="px-5 pb-4">
                             <div className="space-y-4">
-                              <p className="text-sm leading-6 text-gray-700">
-                                {item.description}
-                              </p>
+                              {item.description && (
+                                <p className="text-sm leading-6 text-gray-700">
+                                  {item.description}
+                                </p>
+                              )}
                               <div className="flex justify-end pt-2 border-t">
                                 <div className="group relative">
                                   <Button
@@ -1074,27 +1814,188 @@ function IngredientAnalyzer() {
                             </div>
                           </AccordionContent>
                         </AccordionItem>
-                      ))}
-                    </Accordion>
+                      </Accordion>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* General Ingredients Section */}
+              {resp.general_ingredients_list && resp.general_ingredients_list.length > 0 && (
+                <div className="space-y-4 pt-4 border-t">
+                  <div className="flex items-center gap-2">
+                    <SectionTitle>General INCI Ingredients</SectionTitle>
+                    <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-300">
+                      G
+                    </Badge>
+                    <span className="text-sm text-gray-600">({resp.general_ingredients_list.length})</span>
                   </div>
-                );
-              })}
+                  {resp.general_ingredients_list.map((item) => (
+                    <div key={item.ingredient_name} className="space-y-3">
+                      <div className="flex flex-wrap gap-1.5">
+                        {item.matched_inci?.map((i) => (
+                          <Badge
+                            variant={"outline"}
+                            className="text-muted-foreground border-primary capitalize"
+                            key={i}
+                          >
+                            {i}
+                          </Badge>
+                        ))}
+                      </div>
+
+                      <Accordion
+                        type="single"
+                        collapsible
+                        className="w-full rounded-lg border bg-white shadow-sm"
+                      >
+                        <AccordionItem
+                          value={item.ingredient_name}
+                          key={item.ingredient_name}
+                          className="border-b last:border-b-0"
+                        >
+                          <AccordionTrigger className="px-5 py-4 hover:no-underline">
+                            <div className="flex w-full items-center justify-between pr-4">
+                              <div className="flex items-center gap-2">
+                                <h3 className="truncate text-lg font-medium capitalize">
+                                  {item.ingredient_name}
+                                </h3>
+                                <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-300 text-xs">
+                                  G
+                                </Badge>
+                              </div>
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="px-5 pb-4">
+                            <div className="space-y-4">
+                              {item.description && (
+                                <p className="text-sm leading-6 text-gray-700">
+                                  {item.description}
+                                </p>
+                              )}
+                              <p className="text-sm text-gray-500 italic">
+                                This is a standard INCI ingredient (not branded).
+                              </p>
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Fallback to grouped if new fields not available (backward compatibility) */}
+              {(!resp.branded_ingredients || resp.branded_ingredients.length === 0) && 
+               (!resp.general_ingredients_list || resp.general_ingredients_list.length === 0) && 
+               resp.grouped && resp.grouped.length > 0 && (
+                <div className="space-y-4">
+                  {resp.grouped.map((m: GroupItem) => {
+                    return (
+                      <div key={m.inci_list.join("-")} className="space-y-3">
+                        <div className="flex flex-wrap gap-1.5">
+                          {m.inci_list?.map((i) => (
+                            <Badge
+                              variant={"outline"}
+                              className="text-muted-foreground border-primary capitalize"
+                              key={i}
+                            >
+                              {i}
+                            </Badge>
+                          ))}
+                        </div>
+
+                        <Accordion
+                          type="single"
+                          collapsible
+                          className="w-full rounded-lg border bg-white shadow-sm"
+                          defaultValue="item-1"
+                        >
+                          {m.items.map((item) => (
+                            <AccordionItem
+                              value={item.ingredient_name}
+                              key={item.ingredient_name}
+                              className="border-b last:border-b-0"
+                            >
+                              <AccordionTrigger className="px-5 py-4 hover:no-underline">
+                                <div className="flex w-full items-center justify-between pr-4">
+                                  <h3 className="truncate text-lg font-medium capitalize">
+                                    {item.ingredient_name}
+                                  </h3>
+                                  <div className="text-muted-foreground flex items-center gap-2 shrink-0">
+                                    <span className="text-sm">
+                                      {item.supplier_name}
+                                    </span>
+                                    <BuildingStorefrontIcon className="size-5" />
+                                    {distributorInfo[item.ingredient_name] && distributorInfo[item.ingredient_name].length > 0 && (
+                                      <Badge
+                                        variant="outline"
+                                        className="text-xs bg-green-50 text-green-700 border-green-300 cursor-pointer hover:bg-green-100"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setShowDistributorDetails(item.ingredient_name);
+                                        }}
+                                      >
+                                        India Distributor{distributorInfo[item.ingredient_name].length > 1 ? ` (${distributorInfo[item.ingredient_name].length})` : ""}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              </AccordionTrigger>
+                              <AccordionContent className="px-5 pb-4">
+                                <div className="space-y-4">
+                                  <p className="text-sm leading-6 text-gray-700">
+                                    {item.description}
+                                  </p>
+                                  <div className="flex justify-end pt-2 border-t">
+                                    <div className="group relative">
+                                      <Button
+                                        variant="outlined"
+                                        size="sm"
+                                        onClick={() => handleClaimClick(item.ingredient_name)}
+                                        className="flex items-center gap-2"
+                                      >
+                                        <BuildingStorefrontIcon className="size-4" />
+                                        Claim this as India distributor
+                                      </Button>
+                                      <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block z-10">
+                                        <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 shadow-lg max-w-xs">
+                                          Claim this ingredient as your India distributor territory. You need to register as a distributor on SkinBB Metaverse.
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </AccordionContent>
+                            </AccordionItem>
+                          ))}
+                        </Accordion>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
-          {activeTab === "unmatched" && (
+          {activeTab === "unableToDecode" && (
             <div className="space-y-4">
-              <SectionTitle>Not Branded Ingredients</SectionTitle>
+              <SectionTitle>Unable to Decode</SectionTitle>
               <p className="text-sm text-gray-600">
-                These are standard INCI ingredients that are not part of
-                proprietary branded ingredient systems. They are common cosmetic
-                ingredients.
+                These ingredients could not be found in our database even after:
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  <li>Direct MongoDB query (exact match)</li>
+                  <li>Fuzzy matching (spelling mistakes)</li>
+                  <li>CAS API synonym lookup</li>
+                  <li>General INCI collection check</li>
+                </ul>
+                They may be misspelled, proprietary names, or not yet in our database.
               </p>
               <div className="flex flex-wrap gap-2">
-                {resp.unmatched?.map((u) => (
+                {(resp.unable_to_decode || resp.unmatched || []).map((u) => (
                   <Badge
                     variant={"outline"}
-                    className="text-muted-foreground border-primary capitalize bg-white"
+                    className="text-muted-foreground border-red-300 capitalize bg-red-50 text-red-700"
                     key={u}
                   >
                     {u}
@@ -1155,7 +2056,7 @@ function IngredientAnalyzer() {
                         Report Preview
                       </h3>
                       <div className="max-h-96 overflow-y-auto rounded-lg border">
-                        {reportState.data.includes("<html") ? (
+                        {reportState.data && typeof reportState.data === "string" && reportState.data.includes("<html") ? (
                           <iframe
                             srcDoc={reportState.data}
                             className="h-96 w-full border-0"
@@ -1163,15 +2064,16 @@ function IngredientAnalyzer() {
                           />
                         ) : (
                           <pre className="p-4 font-mono text-xs whitespace-pre-wrap text-gray-700">
-                            {reportState.data}
+                            {typeof reportState.data === "string" ? reportState.data : JSON.stringify(reportState.data)}
                           </pre>
                         )}
                       </div>
                     </div>
                   </div>
                 )}
+                
 
-                {!parsed.length && (
+                {!parsed.length && !resp && !reportState.data && (
                   <EmptyState
                     title="No ingredients to analyze"
                     description="Please analyze some ingredients first to view the report."
@@ -1646,6 +2548,7 @@ function IngredientAnalyzer() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }
@@ -1655,6 +2558,8 @@ function textEnding(n: number) {
 }
 
 const DecodeFormulations = () => {
+  const [showHistory, setShowHistory] = useState(false);
+  
   return (
     <PageContent
       ariaLabel="decode-formulations"
@@ -1663,9 +2568,25 @@ const DecodeFormulations = () => {
         description: "Analyze and decode existing formulations with detailed ingredient breakdown",
         hasBack: true,
         animate: true,
+        actions: (
+          <Button
+            variant="outlined"
+            onClick={() => setShowHistory(!showHistory)}
+            type="button"
+          >
+            {showHistory ? (
+              <>
+                <XMarkIcon className="h-4 w-4 mr-2" />
+                Close
+              </>
+            ) : (
+              "History"
+            )}
+          </Button>
+        ),
       }}
     >
-      <IngredientAnalyzer />
+      <IngredientAnalyzer showHistory={showHistory} setShowHistory={setShowHistory} />
     </PageContent>
   );
 };
