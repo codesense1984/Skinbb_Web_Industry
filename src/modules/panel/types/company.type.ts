@@ -2,7 +2,14 @@ export type CompanyStatus = "active" | "closed" | "pending" | "inactive";
 
 export interface CompanyDocument {
   number: string;
-  type: "coi" | "gstLicense" | "pan" | "msme" | "brandAuthorisation";
+  type:
+    | "coi"
+    | "gstLicense"
+    | "pan"
+    | "msme"
+    | "brandAuthorisation"
+    | "fssai"
+    | "drug_license";
   url: string;
   verified: boolean;
 }
@@ -71,6 +78,8 @@ export interface CompanyOnboardingSubmitRequest
   authorizationLetter?: File;
   coiCertificate?: File;
   msmeCertificate?: File;
+  fssaiDocument?: File;
+  drugLicenseDocument?: File;
   ownerName: string;
   ownerEmail: string;
   phoneNumber: string;
@@ -101,6 +110,8 @@ export interface CompanyOnboardingSubmitRequest
     panNumber: string;
     cinNumber: string;
     msmeNumber: string;
+    fssai?: string;
+    drug_license?: string;
     addressType: string;
     addressLine1: string;
     addressLine2?: string;
@@ -400,6 +411,8 @@ export interface CompanyOnboardingAddressDetail {
   panNumber: string;
   cinNumber: string;
   msmeNumber: string;
+  fssai?: string;
+  drug_license?: string;
   coiCertificate: string;
   panCertificate: string;
   gstCertificate: string;
@@ -407,6 +420,8 @@ export interface CompanyOnboardingAddressDetail {
   panDocument: string;
   msmeDocument: string;
   msmeCertificate: string;
+  fssaiDocument?: string;
+  drugLicenseDocument?: string;
   status: string;
   statusChangeReason: string;
   statusChangedAt: string | null;

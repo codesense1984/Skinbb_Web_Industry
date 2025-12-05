@@ -1,9 +1,8 @@
-import { useEffect } from "react";
-import { Controller, useFormContext, useWatch } from "react-hook-form";
-import { FormInput, INPUT_TYPES } from "@/core/components/ui/form-input";
 import { Button } from "@/core/components/ui/button";
-import { createSlug } from "@/core/utils/createSlug";
-import type { FormSectionBaseProps } from "../types";
+import { FormInput, INPUT_TYPES } from "@/core/components/ui/form-input";
+import { generateSlug } from "@/modules/panel/features/master/product_attributes/shared/formSchema";
+import { useFormContext, useWatch } from "react-hook-form";
+import type { FormSectionBaseProps } from "../../../types/product.types";
 
 type GeneralSectionProps = FormSectionBaseProps;
 
@@ -43,7 +42,7 @@ const GeneralSection = ({ control, errors }: GeneralSectionProps) => {
             variant="outlined"
             size="sm"
             onClick={() => {
-              const slug = createSlug(nameValue || "");
+              const slug = generateSlug(nameValue || "");
               setValue("slug", slug);
             }}
           >

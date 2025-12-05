@@ -517,7 +517,7 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
       };
 
       const fileName = getFileName();
-      // const displayText = fileName || placeholder || "Choose File";
+      const displayText = placeholder || "Choose File";
 
       return (
         <FormControl {...formControlProps}>
@@ -562,7 +562,7 @@ export function InputRenderer<T extends FieldValues, N extends FieldPath<T>>({
                 disabled={disabled}
                 {...(inputProps?.accept && { accept: inputProps.accept })}
               />
-              <p className="text-nowrap">{placeholder}</p>
+              <p className="text-nowrap">{displayText}</p>
             </label>
 
             {fileName && isURL(value) ? (

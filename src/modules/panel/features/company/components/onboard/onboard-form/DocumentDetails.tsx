@@ -65,14 +65,32 @@ const DOC_CONFIGS: DocumentConfigItemProps[] = [
     numberPlaceholder: "Enter GST number",
     uploadLabel: "Upload GST Certificate",
     uploadPlaceholder: "Upload file",
-    required: false,
+    required: true,
   },
   {
     key: "msme" as CompanyDocument["type"],
-    title: "MSME Registration (optional)",
+    title: "MSME Registration",
     numberLabel: "MSME Number",
     numberPlaceholder: "Enter MSME number",
     uploadLabel: "Upload MSME Certificate",
+    uploadPlaceholder: "Upload file",
+    required: false,
+  },
+  {
+    key: "fssai" as CompanyDocument["type"],
+    title: "FSSAI Registration",
+    numberLabel: "FSSAI Number",
+    numberPlaceholder: "Enter FSSAI number",
+    uploadLabel: "Upload FSSAI Certificate",
+    uploadPlaceholder: "Upload file",
+    required: false,
+  },
+  {
+    key: "drug_license" as CompanyDocument["type"],
+    title: "Drug License",
+    numberLabel: "Drug License Number",
+    numberPlaceholder: "Enter Drug License number",
+    uploadLabel: "Upload Drug License Certificate",
     uploadPlaceholder: "Upload file",
     required: false,
   },
@@ -160,6 +178,7 @@ const DocumentItem = ({
     uploadPlaceholder: labels.uploadPlaceholder,
     showNumber: labels.showNumber,
     key: key,
+    required: labels.required,
   });
 
   const changeConfigs = configs.map((config) => {

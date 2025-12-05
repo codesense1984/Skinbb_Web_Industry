@@ -53,7 +53,7 @@ const SurveyEdit = () => {
       disableStatusInEdit={true}
       onPaymentSuccess={() => {
         // Navigate to survey list after successful payment
-        navigate(SELLER_ROUTES.MARKETING.SURVEYS.LIST);
+        navigate(SELLER_ROUTES.SURVEY.LIST);
       }}
     />
   );

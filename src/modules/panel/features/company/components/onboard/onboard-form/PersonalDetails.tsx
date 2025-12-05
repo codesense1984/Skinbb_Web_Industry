@@ -4,7 +4,11 @@ import {
   FormInput,
   type FormFieldConfig,
 } from "@/core/components/ui/form-input";
-import { OtpModal, type OtpModalRef } from "@/core/components/ui/input-otp";
+import {
+  EmailOtpModal,
+  PhoneOtpModal,
+  type OtpModalRef,
+} from "@/core/components/ui/input-otp";
 import { MODE } from "@/core/types";
 import {
   apiSendMobileOTP,
@@ -69,7 +73,20 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
 
   // Send OTP
   const sendOtpMutation = useMutation({
-    mutationFn: (phoneNumber: string) => apiSendMobileOTP({ phoneNumber }),
+    mutationFn: ({
+      phoneNumber,
+      countryCode,
+      sendVia,
+    }: {
+      phoneNumber: string;
+      countryCode: string;
+      sendVia: "whatsapp" | "sms";
+    }) =>
+      apiSendMobileOTP({
+        phoneNumber,
+        countryCode,
+        sendVia,
+      }),
     onError: (error: AxiosError<{ message?: string }>) => {
       toast.error(
         `Failed to send OTP - ${(error?.response?.data as { message?: string })?.message || error.message || "Try again later"}`,
@@ -131,6 +148,7 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
               <span className="text-green-500">
                 {emailVerified ? "(Verified)" : ""}
               </span>
+              <span className="text-destructive">*</span>
             </span>
           }
           placeholder="Enter email address"
@@ -174,6 +192,7 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
                   }}
                 ></Button>
               ) : undefined,
+            className: "pr-26",
           }}
           disabled={
             mode === MODE.EDIT ||
@@ -192,6 +211,7 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
               <span className="text-green-500">
                 {phoneVerified ? "(Verified)" : ""}
               </span>
+              <span className="text-destructive">*</span>
             </span>
           }
           placeholder="Enter phone number"
@@ -236,6 +256,7 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
                   }}
                 ></Button>
               ) : undefined,
+            className: "pr-26",
           }}
           disabled={
             mode === MODE.EDIT || phoneVerified || sendOtpMutation.isPending
@@ -261,10 +282,14 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
         />
       </FormFieldsRenderer>
 
-      <OtpModal
+      <PhoneOtpModal
         ref={otpModalRef}
-        onRequestCode={async () => {
-          await sendOtpMutation.mutateAsync(phoneNumber);
+        onRequestCode={async (sendVia: "whatsapp" | "sms") => {
+          await sendOtpMutation.mutateAsync({
+            phoneNumber,
+            countryCode: "+91", // Default to +91, can be made dynamic later
+            sendVia,
+          });
         }}
         onVerifyCode={async (code) => {
           const data = await verifyOtpMutation.mutateAsync({
@@ -277,7 +302,7 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
         }}
       />
 
-      <OtpModal
+      <EmailOtpModal
         ref={emailOtpModalRef}
         onRequestCode={async () => {
           await sendEmailOtpMutation.mutateAsync(email);

@@ -1,9 +1,8 @@
 import { Badge } from "@/core/components/ui/badge";
 import { Button } from "@/core/components/ui/button";
-import { StatusBadge } from "@/core/components/ui/badge";
 import { formatDate } from "@/core/utils";
-import { SELLER_ROUTES } from "@/modules/seller/routes/constant";
 import type { CompanyUserResponse } from "@/modules/panel/services/http/company.service";
+import { SELLER_ROUTES } from "@/modules/seller/routes/constant";
 import { EyeIcon, PencilIcon } from "@heroicons/react/24/outline";
 import type { ColumnDef } from "@tanstack/react-table";
 import { NavLink } from "react-router";

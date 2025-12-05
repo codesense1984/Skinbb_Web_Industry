@@ -1,6 +1,5 @@
 import { FormInput, INPUT_TYPES } from "@/core/components/ui/form-input";
-import type { FormSectionBaseProps } from "../types";
-import type { ProductAttribute } from "../../types/product.types";
+import type { FormSectionBaseProps, ProductAttribute } from "../../../types/product.types";
 
 type MetaFieldSectionProps = FormSectionBaseProps & {
   metaFields: ProductAttribute[];
@@ -39,6 +38,7 @@ const MetaFieldSection = ({
       <div className="space-y-4">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormInput
+
             control={control}
             name="manufacturingDate"
             type={INPUT_TYPES.DATEPICKER}

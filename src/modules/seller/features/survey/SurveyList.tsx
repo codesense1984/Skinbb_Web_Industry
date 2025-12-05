@@ -20,7 +20,7 @@ const SurveyList = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const listRoute = SELLER_ROUTES.MARKETING.SURVEYS.LIST;
+  const listRoute = SELLER_ROUTES.SURVEY.LIST;
 
   const deleteSurveyMutation = useMutation({
     mutationFn: (surveyId: string) => apiDeleteSurvey(surveyId),
@@ -48,23 +48,23 @@ const SurveyList = () => {
   );
 
   const getEditRoute = useCallback(
-    (id: string) => SELLER_ROUTES.MARKETING.SURVEYS.EDIT(id),
+    (id: string) => SELLER_ROUTES.SURVEY.EDIT(id),
     [],
   );
 
   const getDetailRoute = useCallback(
-    (id: string) => SELLER_ROUTES.MARKETING.SURVEYS.VIEW(id),
+    (id: string) => SELLER_ROUTES.SURVEY.VIEW(id),
     [],
   );
 
   const columns = useMemo(
     () =>
-      createSurveyColumns(
+      createSurveyColumns({
         handleDeleteSurvey,
-        true, // isSellerRoute
-        getEditRoute,
-        getDetailRoute,
-      ),
+        viewUrl: getDetailRoute,
+        editUrl: getEditRoute,
+        isAdmin: false,
+      }),
     [handleDeleteSurvey, getEditRoute, getDetailRoute],
   );
 
@@ -72,8 +72,9 @@ const SurveyList = () => {
     () => (survey: Survey) => (
       <SurveyCard
         survey={survey}
-        getEditRoute={getEditRoute}
-        getDetailRoute={getDetailRoute}
+        viewUrl={getDetailRoute}
+        editUrl={getEditRoute}
+        isAdmin={false}
       />
     ),
     [getEditRoute, getDetailRoute],
@@ -92,7 +93,7 @@ const SurveyList = () => {
               mode="range"
             /> */}
             <Button color={"primary"} asChild>
-              <NavLink to={SELLER_ROUTES.MARKETING.SURVEYS.CREATE}>
+              <NavLink to={SELLER_ROUTES.SURVEY.CREATE}>
                 Add Survey
               </NavLink>
             </Button>

@@ -13,6 +13,7 @@ import {
   Select,
   SelectContent,
   SelectItem,
+  SelectRoot,
   SelectTrigger,
   SelectValue,
 } from "@/core/components/ui/select";
@@ -85,6 +86,7 @@ export default function ProductAttributeForm({
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               {/* Name Field */}
               <FormInput
+                type="text"
                 control={form.control}
                 name="name"
                 label="Attribute Name"
@@ -122,12 +124,13 @@ export default function ProductAttributeForm({
                 <>
                   {/* Data Type */}
                   <FormInput
+                    type="custom"
                     control={form.control}
                     name="dataType"
                     label="Data Type"
                     required
                     render={({ field }) => (
-                      <Select
+                      <SelectRoot
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
@@ -140,18 +143,19 @@ export default function ProductAttributeForm({
                           <SelectItem value="number">Number</SelectItem>
                           <SelectItem value="boolean">Boolean</SelectItem>
                         </SelectContent>
-                      </Select>
+                      </SelectRoot>
                     )}
                   />
 
                   {/* Field Type */}
                   <FormInput
+                    type="custom"
                     control={form.control}
                     name="fieldType"
                     label="Field Type"
                     required
                     render={({ field }) => (
-                      <Select
+                      <SelectRoot
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
@@ -169,12 +173,13 @@ export default function ProductAttributeForm({
                           <SelectItem value="number">Number</SelectItem>
                           <SelectItem value="boolean">Boolean</SelectItem>
                         </SelectContent>
-                      </Select>
+                      </SelectRoot>
                     )}
                   />
 
                   {/* Placeholder */}
                   <FormInput
+                    type="text"
                     control={form.control}
                     name="placeholder"
                     label="Placeholder"
@@ -187,7 +192,7 @@ export default function ProductAttributeForm({
                     name="sortOrder"
                     label="Sort Order"
                     type="number"
-                    min="0"
+                    inputProps={{ min: "0" }}
                   />
                 </>
               )}

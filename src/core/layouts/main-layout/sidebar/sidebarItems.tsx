@@ -485,7 +485,7 @@ export const sellerSidebarItems: Readonly<Record<string, SidebarItem>> = {
   // TODO: Uncomment when survey functionality is ready
   surveys: {
     name: "Surveys",
-    href: SELLER_ROUTES.MARKETING.SURVEYS.LIST,
+    href: SELLER_ROUTES.SURVEY.LIST,
   },
   // TODO: Uncomment when promotion functionality is ready
   // promotions: {

@@ -154,25 +154,31 @@ export const sellerRoutes: RouteObject = {
     },
     // Survey Routes
     {
-      path: SELLER_ROUTES.MARKETING.SURVEYS.LIST,
+      path: SELLER_ROUTES.SURVEY.LIST,
       Component: lazy(
         () => import("@/modules/seller/features/survey/SurveyList"),
       ),
     },
     {
-      path: SELLER_ROUTES.MARKETING.SURVEYS.CREATE,
+      path: SELLER_ROUTES.SURVEY.CREATE,
       Component: lazy(
         () => import("@/modules/seller/features/survey/SurveyCreate"),
       ),
     },
     {
-      path: SELLER_ROUTES.MARKETING.SURVEYS.VIEW(),
+      path: SELLER_ROUTES.SURVEY.VIEW(),
       Component: lazy(
-        () => import("@/modules/seller/features/survey/SurveyDetail"),
+        () => import("@/modules/seller/features/survey/SurveyView"),
       ),
     },
+    // {
+    //   path: SELLER_ROUTES.SURVEY.VIEW(),
+    //   Component: lazy(
+    //     () => import("@/modules/seller/features/survey/SurveyDetail"),
+    //   ),
+    // },
     {
-      path: SELLER_ROUTES.MARKETING.SURVEYS.EDIT(),
+      path: SELLER_ROUTES.SURVEY.EDIT(),
       Component: lazy(
         () => import("@/modules/seller/features/survey/SurveyEdit"),
       ),

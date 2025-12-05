@@ -1,8 +1,7 @@
-import type { ColumnDef } from "@tanstack/react-table";
-import { Badge } from "@/core/components/ui/badge";
 import { TableAction } from "@/core/components/data-table/components/table-action";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { apiDeleteProductTag } from "@/modules/panel/services/http/product.service";
+import type { ColumnDef } from "@tanstack/react-table";
 import { toast } from "sonner";
 
 export interface ProductTag {

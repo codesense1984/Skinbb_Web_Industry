@@ -52,11 +52,23 @@ export const useOnboardingForm = ({
       queryFn: () => apiGetCompanyDropdownList(),
     });
 
+  // Create schema without verification validation for normal use (blur/change)
+  const baseSchema = getCompanySchema(
+    mode,
+    companyDropdownResponse?.data || [],
+    false, // Don't validate verification on change/blur
+  );
+
+  // Create schema with verification validation for submit
+  const submitSchema = getCompanySchema(
+    mode,
+    companyDropdownResponse?.data || [],
+    true, // Validate verification on submit
+  );
+
   const methods = useForm<FullCompanyFormType>({
     defaultValues: transformApiResponseToFormData(),
-    resolver: zodResolver(
-      getCompanySchema(mode, companyDropdownResponse?.data || []),
-    ),
+    resolver: zodResolver(baseSchema),
     mode: "onTouched",
     reValidateMode: "onChange",
   });
@@ -133,7 +145,37 @@ export const useOnboardingForm = ({
 
   // Form submission handlers
   const onFinish = handleSubmit(
-    (data) => {
+    async (data) => {
+      // Validate with submit schema to check verification on submit
+      const result = submitSchema.safeParse(data);
+      if (!result.success) {
+        // Set verification errors if any
+        const verificationErrors = result.error.errors.filter(
+          (error) =>
+            error.path[0] === "phoneNumber" || error.path[0] === "email",
+        );
+
+        if (verificationErrors.length > 0) {
+          verificationErrors.forEach((error) => {
+            methods.setError(error.path[0] as keyof FullCompanyFormType, {
+              type: "manual",
+              message: error.message,
+            });
+          });
+          setHasAttemptedSubmit(true);
+          handleFormErrors(
+            verificationErrors.reduce(
+              (acc, err) => {
+                acc[err.path[0] as string] = { message: err.message };
+                return acc;
+              },
+              {} as Record<string, { message: string }>,
+            ),
+          );
+          return;
+        }
+      }
+
       console.log("🚀 ~ OnBoardForm ~ data:", data);
       console.log("🔍 Product Category in form data:", {
         brandType: data.brandType,

@@ -23,6 +23,8 @@ const DOCUMENT_TYPES = {
   PAN: "pan",
   GST_LICENSE: "gstLicense",
   MSME: "msme",
+  FSSAI: "fssai",
+  DRUG_LICENSE: "drug_license",
   BRAND_AUTHORIZATION: "brandAuthorisation",
 } as const;
 
@@ -77,8 +79,13 @@ export function clearDateFormatCache(): void {
 export function getCompanySchema(
   mode?: string,
   companyOptions?: Array<{ companyName: string }>,
+  validateVerificationOnChange: boolean = false,
 ) {
-  return createCompanySchema(mode, companyOptions);
+  return createCompanySchema(
+    mode,
+    companyOptions,
+    validateVerificationOnChange,
+  );
 }
 
 /**
@@ -225,6 +232,8 @@ export function transformFormDataToApiRequest(
   const panDoc = documentMap.get(DOCUMENT_TYPES.PAN);
   const gstDoc = documentMap.get(DOCUMENT_TYPES.GST_LICENSE);
   const msmeDoc = documentMap.get(DOCUMENT_TYPES.MSME);
+  const fssaiDoc = documentMap.get(DOCUMENT_TYPES.FSSAI);
+  const drugLicenseDoc = documentMap.get(DOCUMENT_TYPES.DRUG_LICENSE);
   const authDoc = documentMap.get(DOCUMENT_TYPES.BRAND_AUTHORIZATION);
 
   const apiData: CompanyOnboardingSubmitRequest = {
@@ -275,6 +284,8 @@ export function transformFormDataToApiRequest(
             panNumber: safeString(panDoc?.number),
             cinNumber: safeString(coiDoc?.number),
             msmeNumber: safeString(msmeDoc?.number),
+            fssai: safeString(fssaiDoc?.number),
+            drug_license: safeString(drugLicenseDoc?.number),
             addressLine1: safeString(primaryAddress.address),
             addressLine2: "",
             landlineNumber: safeString(primaryAddress.landlineNumber),
@@ -343,6 +354,14 @@ export function transformFormDataToApiRequest(
     apiData.msmeCertificate = msmeDoc?.url_files;
   }
 
+  if (fssaiDoc?.url_files) {
+    apiData.fssaiDocument = fssaiDoc?.url_files;
+  }
+
+  if (drugLicenseDoc?.url_files) {
+    apiData.drugLicenseDocument = drugLicenseDoc?.url_files;
+  }
+
   return apiData;
 }
 
@@ -405,7 +424,7 @@ export function transformApiResponseToFormData(
     instagramUrl: "",
     facebookUrl: "",
     youtubeUrl: "",
-    marketingBudget: "",
+    marketingBudget: 0,
 
     // Step 2 (single-address array)
     address: [
@@ -422,7 +441,7 @@ export function transformApiResponseToFormData(
       },
     ],
 
-    // Step 3 (four documents)
+    // Step 3 (documents)
     documents: [
       { type: DOCUMENT_TYPES.COI, number: "", url: "", verified: false },
       { type: DOCUMENT_TYPES.PAN, number: "", url: "", verified: false },
@@ -433,6 +452,13 @@ export function transformApiResponseToFormData(
         verified: false,
       },
       { type: DOCUMENT_TYPES.MSME, number: "", url: "", verified: true },
+      { type: DOCUMENT_TYPES.FSSAI, number: "", url: "", verified: true },
+      {
+        type: DOCUMENT_TYPES.DRUG_LICENSE,
+        number: "",
+        url: "",
+        verified: true,
+      },
       {
         type: DOCUMENT_TYPES.BRAND_AUTHORIZATION,
         number: "",
@@ -584,7 +610,7 @@ export function transformApiResponseToFormData(
       mergedData.totalSkus = brand.totalSKU.toString();
       mergedData.brandType = brand.brandType;
       //mergedData.averageSellingPrice = brand.averageSellingPrice.();
-      mergedData.marketingBudget = brand.marketingBudget.toString();
+      mergedData.marketingBudget = Number(brand.marketingBudget);
       mergedData.sellingOn = brand.sellingOn;
       mergedData.instagramUrl = brand.instagramUrl;
       mergedData.facebookUrl = brand.facebookUrl;
@@ -614,6 +640,18 @@ export function transformApiResponseToFormData(
           type: DOCUMENT_TYPES.MSME,
           number: address.msmeNumber,
           url: address.msmeCertificate,
+          verified: false,
+        },
+        {
+          type: DOCUMENT_TYPES.FSSAI,
+          number: address.fssai || "",
+          url: address.fssaiDocument || "",
+          verified: false,
+        },
+        {
+          type: DOCUMENT_TYPES.DRUG_LICENSE,
+          number: address.drug_license || "",
+          url: address.drugLicenseDocument || "",
           verified: false,
         },
         {
