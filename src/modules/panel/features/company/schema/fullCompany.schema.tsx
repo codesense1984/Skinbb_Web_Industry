@@ -52,6 +52,18 @@ const DOCUMENT_CONFIG = {
     requiresNumber: false,
     requiresUpload: false,
   },
+  fssai: {
+    numberLabel: "FSSAI number",
+    uploadLabel: "FSSAI document upload",
+    requiresNumber: false,
+    requiresUpload: false,
+  },
+  drug_license: {
+    numberLabel: "Drug License number",
+    uploadLabel: "Drug License document upload",
+    requiresNumber: false,
+    requiresUpload: false,
+  },
   brandAuthorisation: {
     numberLabel: "Brand authorisation number",
     uploadLabel: "Brand authorisation document upload",
@@ -137,7 +149,15 @@ const validateDocumentRequirements = (
 
 const createDocumentSchema = () =>
   z.object({
-    type: z.enum(["coi", "pan", "gstLicense", "msme", "brandAuthorisation"]),
+    type: z.enum([
+      "coi",
+      "pan",
+      "gstLicense",
+      "msme",
+      "fssai",
+      "drug_license",
+      "brandAuthorisation",
+    ]),
     number: z.string().optional(),
     url: z.string().optional(),
     url_files: z.any().optional(),

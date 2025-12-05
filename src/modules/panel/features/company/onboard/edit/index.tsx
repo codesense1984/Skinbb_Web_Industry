@@ -18,7 +18,7 @@ import { useAuth } from "@/modules/auth/hooks/useAuth";
  */
 const OnboardEdit = () => {
   const { id, locationId } = useParams<{ id: string; locationId: string }>();
-  const { userId } = useAuth();
+  // const { userId } = useAuth();
 
   // Fetch company data for editing
   const {
@@ -27,8 +27,8 @@ const OnboardEdit = () => {
     error,
   } = useQuery({
     queryKey: [PANEL_ROUTES.ONBOARD.COMPANY_EDIT(id!, locationId!)],
-    queryFn: () => apiGetCompanyLocationDetail(id!, locationId!, userId!),
-    enabled: !!id && !!locationId && !!userId,
+    queryFn: () => apiGetCompanyLocationDetail(id!, locationId!),
+    enabled: !!id && !!locationId,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
