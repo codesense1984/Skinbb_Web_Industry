@@ -2,7 +2,12 @@ import { Button } from "@/core/components/ui/button";
 import { DatePicker } from "@/core/components/ui/date-picker";
 import { PageContent } from "@/core/components/ui/structure";
 import { CalendarDateRangeIcon } from "@heroicons/react/24/outline";
-import { NavLink, useLocation, useNavigate } from "react-router";
+import {
+  NavLink,
+  useLocation,
+  useNavigate,
+  useSearchParams,
+} from "react-router";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import type { Survey } from "@/modules/panel/types/survey.types";
 import { apiDeleteSurvey } from "@/modules/panel/services/survey.service";
@@ -17,6 +22,8 @@ import {
 } from "@/modules/panel/components/shared/survey/survey-list";
 
 const SurveyList = () => {
+  const [searchParams] = useSearchParams();
+  const companyId = searchParams.get("companyId");
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const location = useLocation();
@@ -97,22 +104,16 @@ const SurveyList = () => {
         description: "View and manage your surveys.",
         actions: (
           <div className="flex gap-2 md:gap-5">
-            <DatePicker
-              className="max-w-69"
-              startIcon={<CalendarDateRangeIcon />}
-              mode="range"
-            />
             <Button color={"primary"} asChild>
-              <NavLink to={PANEL_ROUTES.SURVEY.CREATE}>
-                Add Brand Survey
-              </NavLink>
+              <NavLink to={PANEL_ROUTES.SURVEY.CREATE}>Add Survey</NavLink>
             </Button>
           </div>
         ),
       }}
     >
       <CommonSurveyList
-        showStatusFilter
+        showCompanyFilter={!companyId}
+        companyId={companyId || undefined}
         defaultViewMode="grid"
         columns={columns}
         renderCard={renderCard}

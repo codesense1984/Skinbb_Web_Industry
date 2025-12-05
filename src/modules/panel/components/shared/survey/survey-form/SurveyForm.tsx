@@ -5,6 +5,7 @@ import { FullLoader } from "@/core/components/ui/loader";
 import { PageContent } from "@/core/components/ui/structure";
 import { MODE } from "@/core/types/base.type";
 import { handleFormErrors } from "@/core/utils/react-hook-form.utils";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import ResearchStepper from "@/modules/panel/components/shared/survey/survey-form/ResearchStepper";
 import ReviewLaunch from "@/modules/panel/components/shared/survey/survey-form/ReviewLaunch";
 import SurveyBasics from "@/modules/panel/components/shared/survey/survey-form/SurveyBasics";
@@ -22,10 +23,12 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type MouseEvent,
 } from "react";
 import { useForm, type FieldErrors } from "react-hook-form";
+import { useNavigate } from "react-router";
 import {
   STEP_VALIDATION_FIELDS,
   surveySchema,
@@ -56,6 +59,8 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
     false,
     undefined,
   ]);
+  const navigate = useNavigate();
+  const paymentSurveyIdRef = useRef<string | null>(null);
 
   // Payment hook - only initialize if payment is enabled
   const {
@@ -64,10 +69,16 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
     isRazorpayReady,
   } = useSurveyPayment({
     onPaymentSuccess: (survey) => {
+      // Clear the ref after successful payment
+      paymentSurveyIdRef.current = null;
       onPaymentSuccess?.(survey);
     },
     onPaymentError: () => {
-      // Error handling is done via callback
+      // Redirect to survey edit page on payment failure
+      if (paymentSurveyIdRef.current) {
+        navigate(PANEL_ROUTES.SURVEY.EDIT(paymentSurveyIdRef.current));
+        paymentSurveyIdRef.current = null;
+      }
     },
   });
 
@@ -108,6 +119,7 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
       targetSkinConcerns: [],
       targetHairTypes: [],
       targetHairConcerns: [],
+      isOptionChanged: false,
     },
   };
 
@@ -229,13 +241,23 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
         // Initiate payment directly after survey creation
         if ((isRazorpayReady || window.Razorpay) && newSurveyId) {
           try {
+            // Store surveyId for error handling
+            paymentSurveyIdRef.current = newSurveyId;
             await initiatePayment(newSurveyId);
           } catch (error) {
             // Error is already handled in the hook, just log here
             console.error("Payment initiation failed:", error);
+            // Redirect to edit page on error
+            if (newSurveyId) {
+              navigate(PANEL_ROUTES.SURVEY.EDIT(newSurveyId));
+            }
           }
         } else {
           console.error("Razorpay is not ready. Please try again.");
+          // Redirect to edit page if Razorpay is not ready
+          if (newSurveyId) {
+            navigate(PANEL_ROUTES.SURVEY.EDIT(newSurveyId));
+          }
         }
       }
     },

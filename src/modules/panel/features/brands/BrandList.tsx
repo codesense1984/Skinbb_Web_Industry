@@ -55,9 +55,9 @@ const BrandList = () => {
     >
       <CommonBrandList
         showCompanyFilter={!companyId}
+        companyId={companyId || undefined}
         showLocationFilter={!locationId}
         showStatusFilter
-        companyId={companyId || undefined}
         locationId={locationId || undefined}
         columns={columns}
         renderCard={renderCard}

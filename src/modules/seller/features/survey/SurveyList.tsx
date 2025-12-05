@@ -1,24 +1,24 @@
 import { Button } from "@/core/components/ui/button";
-import { DatePicker } from "@/core/components/ui/date-picker";
 import { PageContent } from "@/core/components/ui/structure";
-import { CalendarDateRangeIcon } from "@heroicons/react/24/outline";
-import { NavLink, useLocation, useNavigate } from "react-router";
-import { SELLER_ROUTES } from "@/modules/seller/routes/constant";
-import type { Survey } from "@/modules/panel/types/survey.types";
-import { apiDeleteSurvey } from "@/modules/panel/services/survey.service";
-import { useCallback, useMemo } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth";
 import {
   SurveyList as CommonSurveyList,
   SurveyCard,
   createSurveyColumns,
 } from "@/modules/panel/components/shared/survey/survey-list";
+import { apiDeleteSurvey } from "@/modules/panel/services/survey.service";
+import type { Survey } from "@/modules/panel/types/survey.types";
+import { SELLER_ROUTES } from "@/modules/seller/routes/constant";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useMemo } from "react";
+import { NavLink, useNavigate } from "react-router";
+import { toast } from "sonner";
 
-const SurveysList = () => {
+const SurveyList = () => {
+  const { sellerInfo } = useSellerAuth();
+  const companyId = sellerInfo?.companyId;
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const listRoute = SELLER_ROUTES.MARKETING.SURVEYS.LIST;
 
@@ -86,14 +86,14 @@ const SurveysList = () => {
         description: "View and manage your surveys.",
         actions: (
           <div className="flex gap-2 md:gap-5">
-            <DatePicker
+            {/* <DatePicker
               className="max-w-69"
               startIcon={<CalendarDateRangeIcon />}
               mode="range"
-            />
+            /> */}
             <Button color={"primary"} asChild>
               <NavLink to={SELLER_ROUTES.MARKETING.SURVEYS.CREATE}>
-                Add Brand Survey
+                Add Survey
               </NavLink>
             </Button>
           </div>
@@ -101,7 +101,8 @@ const SurveysList = () => {
       }}
     >
       <CommonSurveyList
-        showStatusFilter
+        showCompanyFilter={!companyId}
+        companyId={companyId || undefined}
         defaultViewMode="grid"
         columns={columns}
         renderCard={renderCard}
@@ -110,4 +111,4 @@ const SurveysList = () => {
   );
 };
 
-export default SurveysList;
+export default SurveyList;

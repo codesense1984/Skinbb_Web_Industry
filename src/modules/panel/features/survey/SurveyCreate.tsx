@@ -4,10 +4,12 @@ import {
   useSurveyCreateMutation,
 } from "@/modules/panel/components/shared/survey/survey-form";
 import type { SurveySubmitRequest } from "@/modules/panel/components/shared/survey/survey-form/types";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
+import { PANEL_ROUTES } from "../../routes/constant";
 
 const SurveyCreate = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const surveyMutation = useSurveyCreateMutation(undefined, true); // Skip navigation for payment flow
 
   const handleSubmit = async ({ data }: SurveySubmitRequest) => {
@@ -23,6 +25,7 @@ const SurveyCreate = () => {
                 surveyId: response.surveyId || response.data.survey._id,
                 survey: response.survey || response.data.survey,
               });
+              navigate(PANEL_ROUTES.SURVEY.LIST);
             },
             onError: (error) => {
               reject(error);

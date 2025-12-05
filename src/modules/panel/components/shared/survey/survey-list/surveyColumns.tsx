@@ -1,9 +1,19 @@
 import { StatusBadge } from "@/core/components/ui/badge";
+import { Button } from "@/core/components/ui/button";
+import {
+  DropdownMenu,
+  type DropdownMenuItemType,
+} from "@/core/components/ui/dropdown-menu";
 import { formatCurrency, formatDate, formatNumber } from "@/core/utils";
 import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import type { Survey } from "@/modules/panel/types/survey.types";
 import type { ColumnDef } from "@tanstack/react-table";
-import { TableAction } from "@/core/components/data-table/components/table-action";
+import {
+  EllipsisVerticalIcon,
+  EyeIcon,
+  PencilIcon,
+  TrashIcon,
+} from "@heroicons/react/24/solid";
 
 export const createSurveyColumns = (
   handleDeleteSurvey?: (id: string) => void,
@@ -50,7 +60,11 @@ export const createSurveyColumns = (
       header: "Status",
       accessorKey: "status",
       cell: ({ row }: { row: { original: Survey } }) => (
-        <StatusBadge module="survey" status={row.original.status} variant="badge">
+        <StatusBadge
+          module="survey"
+          status={row.original.status}
+          variant="badge"
+        >
           {row.original.status}
         </StatusBadge>
       ),
@@ -95,33 +109,68 @@ export const createSurveyColumns = (
         </div>
       ),
     },
-    ...(handleDeleteSurvey
-      ? [
-          {
-            id: "actions",
-            header: "Actions",
-            cell: ({ row }: { row: { original: Survey } }) => {
-              const survey = row.original;
-              const canEdit = survey.status === "draft";
+    {
+      header: "Action",
+      accessorKey: "actions",
+      enableSorting: false,
+      enableHiding: false,
+      size: 80,
+      cell: ({ row }: { row: { original: Survey } }) => {
+        const survey = row.original;
+        const surveyId = survey._id;
+        const canEdit = survey.status === "draft";
+        const isPaid = survey.paymentStatus === "paid";
+        const isAdmin = !isSellerRoute;
+        const viewUrl = canEdit ? editRoute(surveyId) : detailRoute(surveyId);
+        const editUrl = editRoute(surveyId);
 
-              return (
-                <TableAction
-                  view={{
-                    to: canEdit
-                      ? editRoute(survey._id)
-                      : detailRoute(survey._id),
-                    title: canEdit ? "Edit survey" : "View survey details",
-                  }}
-                  delete={{
-                    onClick: () => handleDeleteSurvey(survey._id),
-                    title: "Delete survey",
-                  }}
-                />
-              );
-            },
-          } as ColumnDef<Survey>,
-        ]
-      : []),
+        const items: DropdownMenuItemType[] = [
+          {
+            type: "link",
+            to: viewUrl,
+            title: "View survey details",
+            children: (
+              <>
+                <EyeIcon className="size-4" /> View
+              </>
+            ),
+          },
+        ];
+
+        if ((canEdit && !isPaid) || isAdmin) {
+          items.push({
+            type: "link",
+            to: editUrl,
+            title: "Edit survey",
+            children: (
+              <>
+                <PencilIcon className="size-4" /> Edit
+              </>
+            ),
+          });
+        }
+
+        if (handleDeleteSurvey && !isPaid) {
+          items.push({
+            type: "item",
+            onClick: () => handleDeleteSurvey(surveyId),
+            variant: "destructive",
+            children: (
+              <>
+                <TrashIcon className="size-4" /> Delete
+              </>
+            ),
+          });
+        }
+
+        return (
+          <DropdownMenu items={items}>
+            <Button variant="outlined" size="icon">
+              <EllipsisVerticalIcon className="size-4" />
+            </Button>
+          </DropdownMenu>
+        );
+      },
+    },
   ];
 };
-

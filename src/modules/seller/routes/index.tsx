@@ -155,19 +155,27 @@ export const sellerRoutes: RouteObject = {
     // Survey Routes
     {
       path: SELLER_ROUTES.MARKETING.SURVEYS.LIST,
-      Component: lazy(() => import("@/modules/seller/features/survey/SurveysList")),
+      Component: lazy(
+        () => import("@/modules/seller/features/survey/SurveyList"),
+      ),
     },
     {
       path: SELLER_ROUTES.MARKETING.SURVEYS.CREATE,
-      Component: lazy(() => import("@/modules/seller/features/survey/SurveyCreate")),
+      Component: lazy(
+        () => import("@/modules/seller/features/survey/SurveyCreate"),
+      ),
     },
     {
       path: SELLER_ROUTES.MARKETING.SURVEYS.VIEW(),
-      Component: lazy(() => import("@/modules/seller/features/survey/SurveyDetail")),
+      Component: lazy(
+        () => import("@/modules/seller/features/survey/SurveyDetail"),
+      ),
     },
     {
       path: SELLER_ROUTES.MARKETING.SURVEYS.EDIT(),
-      Component: lazy(() => import("@/modules/seller/features/survey/SurveyEdit")),
+      Component: lazy(
+        () => import("@/modules/seller/features/survey/SurveyEdit"),
+      ),
     },
     // Promotions Routes
     {
@@ -384,24 +392,30 @@ export const sellerRoutes: RouteObject = {
       ),
     },
 
-
-
     // Survey Routes
     {
       path: SELLER_ROUTES.SURVEY.LIST,
-      Component: lazy(() => import("@/modules/seller/features/survey/SurveysList")),
+      Component: lazy(
+        () => import("@/modules/seller/features/survey/SurveyList"),
+      ),
     },
     {
       path: SELLER_ROUTES.SURVEY.CREATE,
-      Component: lazy(() => import("@/modules/seller/features/survey/SurveyCreate")),
+      Component: lazy(
+        () => import("@/modules/seller/features/survey/SurveyCreate"),
+      ),
     },
     {
       path: SELLER_ROUTES.SURVEY.DETAIL(),
-      Component: lazy(() => import("@/modules/seller/features/survey/SurveyDetail")),
+      Component: lazy(
+        () => import("@/modules/seller/features/survey/SurveyDetail"),
+      ),
     },
     {
       path: SELLER_ROUTES.SURVEY.EDIT(),
-      Component: lazy(() => import("@/modules/seller/features/survey/SurveyEdit")),
+      Component: lazy(
+        () => import("@/modules/seller/features/survey/SurveyEdit"),
+      ),
     },
 
     // 404 fallback

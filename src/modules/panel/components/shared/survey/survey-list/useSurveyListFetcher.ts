@@ -20,6 +20,10 @@ export const useSurveyListFetcher = (): ServerDataFetcher<Survey> => {
           limit: pageSize,
         };
 
+        console.log("🚀 ~ useSurveyListFetcher ~ filters:", filters);
+        if (filters.companyId?.[0]?.value) {
+          params.companyId = filters.companyId[0].value;
+        }
         if (filters.sortBy?.[0]?.value) {
           params.sortBy = filters.sortBy[0].value;
         }
@@ -39,6 +43,14 @@ export const useSurveyListFetcher = (): ServerDataFetcher<Survey> => {
         //default filters
         if (filters.status?.[0]?.value) {
           params.status = filters.status[0].value;
+        }
+
+        if (filters.startDate?.[0]?.value) {
+          params.startDate = filters.startDate[0].value;
+        }
+
+        if (filters.endDate?.[0]?.value) {
+          params.endDate = filters.endDate[0].value;
         }
 
         try {

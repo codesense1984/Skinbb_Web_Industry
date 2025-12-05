@@ -4,11 +4,13 @@ import {
   useSurveyUpdateMutation,
 } from "@/modules/panel/components/shared/survey/survey-form";
 import type { SurveySubmitRequest } from "@/modules/panel/components/shared/survey/survey-form/types";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
+import { PANEL_ROUTES } from "../../routes/constant";
 
 const SurveyEdit = () => {
   const { id: surveyId } = useParams();
   const surveyMutation = useSurveyUpdateMutation();
+  const navigate = useNavigate();
 
   const handleSubmit = async ({ surveyId, data }: SurveySubmitRequest) => {
     return new Promise<{ surveyId: string; survey?: any }>(
@@ -29,6 +31,7 @@ const SurveyEdit = () => {
                 surveyId: surveyId,
                 survey: response.survey,
               });
+              navigate(PANEL_ROUTES.SURVEY.LIST);
             },
             onError: (error) => {
               reject(error);

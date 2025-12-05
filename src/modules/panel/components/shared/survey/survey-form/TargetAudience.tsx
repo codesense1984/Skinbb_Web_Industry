@@ -601,7 +601,7 @@ function TargetAudience({
                   disabled: disabled,
                   step: 1,
                   min: 1,
-                  max: estimateResponse?.count || 0,
+                  max: estimateResponse?.count || respondentsValue || 0,
                 }}
               />
               {selectedRespondents}
