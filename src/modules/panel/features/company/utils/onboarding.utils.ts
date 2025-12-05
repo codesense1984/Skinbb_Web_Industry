@@ -424,7 +424,7 @@ export function transformApiResponseToFormData(
     instagramUrl: "",
     facebookUrl: "",
     youtubeUrl: "",
-    marketingBudget: "",
+    marketingBudget: 0,
 
     // Step 2 (single-address array)
     address: [
@@ -610,7 +610,7 @@ export function transformApiResponseToFormData(
       mergedData.totalSkus = brand.totalSKU.toString();
       mergedData.brandType = brand.brandType;
       //mergedData.averageSellingPrice = brand.averageSellingPrice.();
-      mergedData.marketingBudget = brand.marketingBudget.toString();
+      mergedData.marketingBudget = Number(brand.marketingBudget);
       mergedData.sellingOn = brand.sellingOn;
       mergedData.instagramUrl = brand.instagramUrl;
       mergedData.facebookUrl = brand.facebookUrl;

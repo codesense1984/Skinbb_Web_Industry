@@ -1,8 +1,8 @@
+import type { DatePickerProps } from "@/core/components/ui/date-picker";
 import {
   INPUT_TYPES,
   type FormFieldConfig,
 } from "@/core/components/ui/form-input";
-import type { DatePickerProps } from "@/core/components/ui/date-picker";
 import { MAX_FILE_SIZE } from "@/core/config/constants";
 import { MODE } from "@/core/types";
 import { COMPANY } from "@/modules/panel/config/constant.config";
@@ -96,7 +96,11 @@ const validateFileUpload = (
 
 // Helper function to validate document requirements
 const validateDocumentRequirements = (
-  doc: z.infer<ReturnType<typeof createCompanySchema>>["documents"][number],
+  doc: z.infer<ReturnType<typeof createCompanySchema>>["documents"][number] & {
+    number?: string;
+    url?: string;
+    url_files?: File[];
+  },
   ctx: z.RefinementCtx,
   businessType?: string,
   isCreatingNewCompany?: boolean,
@@ -164,6 +168,7 @@ const createDocumentSchema = () =>
     verified: z.boolean(),
   });
 
+import { cn } from "@/core/utils";
 import {
   VALIDATION_CONSTANTS,
   createEmailValidator,
@@ -175,7 +180,6 @@ import {
   createRequiredString,
   createUrlValidator,
 } from "@/core/utils/validation.utils";
-import { cn } from "@/core/utils";
 
 // Address schema
 const addressSchema = z.object({
