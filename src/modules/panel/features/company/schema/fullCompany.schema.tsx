@@ -171,6 +171,7 @@ import {
   createPasswordValidator,
   createPhoneValidator,
   createPostalCodeValidator,
+  createRequiredNumber,
   createRequiredString,
   createUrlValidator,
 } from "@/core/utils/validation.utils";
@@ -314,7 +315,7 @@ export function createCompanySchema(
       youtubeUrl: createUrlValidator("YouTube"),
       websiteUrl: createUrlValidator("Website"),
 
-      marketingBudget: createRequiredString("Marketing budget"),
+      marketingBudget: createRequiredNumber("Marketing budget"),
       brand_logo: z.any().optional().or(z.literal("")),
       brand_logo_files: z.any().optional(),
 
@@ -494,6 +495,7 @@ type FieldProps = {
     uploadLabel?: string;
     uploadPlaceholder?: string;
     showNumber?: boolean;
+    required?: boolean;
   };
   selling_platforms: ModeProps & {
     index: number;
@@ -517,6 +519,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       type: INPUT_TYPES.TEXT,
       placeholder: "Enter full name",
       disabled: disabled || mode === MODE.VIEW,
+      required: true,
     },
     {
       name: "email",
@@ -524,6 +527,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       type: INPUT_TYPES.TEXT,
       placeholder: "Enter email address",
       disabled: disabled || mode === MODE.VIEW,
+      required: true,
     },
     {
       name: "designation",
@@ -531,6 +535,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       type: INPUT_TYPES.TEXT,
       placeholder: "Enter designation",
       disabled: mode === MODE.VIEW,
+      required: true,
     },
   ],
   uploadImage: ({ mode, disabled }) => [
@@ -552,6 +557,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       label: <span>Company Name </span>,
       note: "Enter the company name exactly as it appears on the PAN card",
       type: INPUT_TYPES.CUSTOM,
+      required: true,
       render() {
         return <div>Company</div>;
       },
@@ -577,6 +583,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       options: COMPANY.CATEGORY_OPTIONS,
       placeholder: "Select category",
       disabled: disabled || mode === MODE.VIEW,
+      required: true,
     },
     {
       name: "businessType",
@@ -585,6 +592,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       options: COMPANY.TYPE_OPTIONS,
       placeholder: "Select business type",
       disabled: disabled || mode === MODE.VIEW,
+      required: true,
     },
     {
       name: "establishedIn",
@@ -593,6 +601,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       type: INPUT_TYPES.DATEPICKER,
       placeholder: "Enter year of establishment",
       disabled: disabled || mode === MODE.VIEW,
+      required: true,
       mode: "single",
       inputProps: {
         mode: "single" as const,
@@ -618,7 +627,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
 
     {
       name: "website",
-      label: "Website (optional)",
+      label: "Website",
       type: INPUT_TYPES.TEXT,
       placeholder: "Enter website URL",
       disabled: disabled || mode === MODE.VIEW,
@@ -637,6 +646,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       ],
       placeholder: "Select option",
       disabled: disabled || mode === MODE.VIEW,
+      required: true,
     },
     {
       name: "headquarterLocation",
@@ -644,10 +654,11 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       type: INPUT_TYPES.TEXT,
       placeholder: "Enter HQ location",
       disabled: disabled || mode === MODE.VIEW,
+      required: true,
     },
     {
       name: "description",
-      label: "Company Information (optional)",
+      label: "Company Information",
       type: INPUT_TYPES.TEXTAREA,
       placeholder: "Brief description about the company",
       disabled: disabled || mode === MODE.VIEW,
@@ -664,6 +675,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
     uploadLabel = "Upload Document",
     uploadPlaceholder = "Upload Document",
     showNumber = true,
+    required = false,
   }) => {
     const prefix = `documents.${index}`; // dynamic prefix
 
@@ -680,6 +692,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
         placeholder: numberPlaceholder,
         disabled: mode === MODE.VIEW,
         key: key,
+        required: required,
       });
     }
 
@@ -692,6 +705,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       disabled: mode === MODE.VIEW,
       inputProps: { accept: ACCEPTED_FILE_TYPES.join(", ") },
       key: key,
+      required: required,
     });
 
     return fields;
@@ -722,6 +736,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
         placeholder: "Enter address",
         disabled: disabled || disabledAddressType || mode === MODE.VIEW,
         className: "sm:col-span-3",
+        required: true,
       },
       {
         name: makeName("address"),
@@ -730,6 +745,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
         placeholder: "Enter address",
         disabled: disabled || mode === MODE.VIEW,
         className: "sm:col-span-3",
+        required: true,
       },
       {
         name: makeName("landmark"),
@@ -737,6 +753,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
         type: INPUT_TYPES.TEXT,
         placeholder: "Enter landmark",
         disabled: disabled || mode === MODE.VIEW,
+        required: true,
       },
       {
         name: makeName("landlineNumber"),
@@ -744,6 +761,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
         type: INPUT_TYPES.TEXT,
         placeholder: "Enter fixed landline number",
         disabled: disabled || mode === MODE.VIEW,
+        required: true,
         inputProps: {
           keyfilter: "int",
           maxLength: 10,
@@ -760,6 +778,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
         ],
         placeholder: "Select country",
         disabled: disabled || mode === MODE.VIEW,
+        required: true,
       },
       {
         name: makeName("state"),
@@ -771,6 +790,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
         ],
         placeholder: "Select state",
         disabled: disabled || !isCountrySelected || mode === MODE.VIEW,
+        required: true,
       },
       {
         name: makeName("city"),
@@ -778,6 +798,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
         type: INPUT_TYPES.TEXT,
         placeholder: "Enter city",
         disabled: disabled || !isCountrySelected || mode === MODE.VIEW,
+        required: true,
       },
       {
         name: makeName("postalCode"),
@@ -785,6 +806,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
         type: INPUT_TYPES.TEXT,
         placeholder: "Enter postal code",
         disabled: disabled || !isCountrySelected || mode === MODE.VIEW,
+        required: true,
         inputProps: {
           keyfilter: "int",
           maxLength: 6,
@@ -814,6 +836,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       placeholder: "Enter brand name",
       disabled: mode === MODE.VIEW,
       className: "lg:col-span-3",
+      required: true,
     },
     {
       name: "brandType",
@@ -824,10 +847,11 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       disabled: mode === MODE.VIEW,
       className: "hide-scrollbars lg:col-span-3",
       multi: true,
+      required: true,
     },
     {
       name: "websiteUrl",
-      label: "Website URL (Optional)",
+      label: "Website URL",
       type: INPUT_TYPES.TEXT,
       placeholder: "https://example.com",
       disabled: mode === MODE.VIEW,
@@ -864,6 +888,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
       placeholder: "Enter marketing budget",
       disabled: mode === MODE.VIEW,
       className: "lg:col-span-3",
+      required: true,
     },
     // {
     //   name: "sellingPlatforms",
@@ -875,7 +900,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
     // },
     {
       name: "instagramUrl",
-      label: "Instagram URL (Optional)",
+      label: "Instagram URL",
       type: INPUT_TYPES.TEXT,
       placeholder: "https://instagram.com/yourbrand",
       disabled: mode === MODE.VIEW,
@@ -883,7 +908,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
     },
     {
       name: "facebookUrl",
-      label: "Facebook URL (Optional)",
+      label: "Facebook URL",
       type: INPUT_TYPES.TEXT,
       placeholder: "https://facebook.com/yourbrand",
       disabled: mode === MODE.VIEW,
@@ -891,7 +916,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
     },
     {
       name: "youtubeUrl",
-      label: "YouTube URL (Optional)",
+      label: "YouTube URL",
       type: INPUT_TYPES.TEXT,
       placeholder: "https://youtube.com/yourchannel",
       disabled: mode === MODE.VIEW,
@@ -924,6 +949,7 @@ export const fullCompanyDetailsSchema: FullCompanyDetailsSchemaProps = {
         placeholder: "Select platform",
         disabled: mode === MODE.VIEW,
         className: "lg:col-span-2",
+        required: true,
       },
       {
         name: makeName("url"),

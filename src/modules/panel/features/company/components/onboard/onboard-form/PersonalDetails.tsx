@@ -148,6 +148,7 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
               <span className="text-green-500">
                 {emailVerified ? "(Verified)" : ""}
               </span>
+              <span className="text-destructive">*</span>
             </span>
           }
           placeholder="Enter email address"
@@ -210,6 +211,7 @@ const PersonalDetails: FC<PersonalDetailsProps> = ({ mode }) => {
               <span className="text-green-500">
                 {phoneVerified ? "(Verified)" : ""}
               </span>
+              <span className="text-destructive">*</span>
             </span>
           }
           placeholder="Enter phone number"

@@ -45,6 +45,11 @@ export const createUrlValidator = (platformName: string) => {
 export const createRequiredString = (fieldName: string) =>
   z.string().min(1, `${fieldName} is required`);
 
+export const createRequiredNumber = (fieldName: string) =>
+  z.number().refine((val) => val > 0, {
+    message: `${fieldName} is required`,
+  });
+
 export const createOptionalString = () =>
   z.string().optional().or(z.literal(""));
 
@@ -91,4 +96,5 @@ export const commonValidators = {
   password: createPasswordValidator,
   postalCode: createPostalCodeValidator,
   url: createUrlValidator,
+  number: createRequiredNumber,
 } as const;

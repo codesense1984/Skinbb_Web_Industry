@@ -229,7 +229,7 @@ const CompanyDetails: FC<CompanyDetailsProps> = ({ mode }) => {
                     handleCompanyChange(value as string);
                   }
                 }}
-                placeholder="Select a company..."
+                placeholder="Select a company"
                 className={cn(fieldState.error ? "border-red-500" : "")}
                 error={!!fieldState.error}
                 disabled={
