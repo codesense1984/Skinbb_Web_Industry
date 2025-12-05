@@ -30,7 +30,7 @@ export default defineConfig({
       "@types": path.resolve(__dirname, "src/core/types"),
       "@utils": path.resolve(__dirname, "src/core/utils"),
       "@auth": path.resolve(__dirname, "src/modules/auth"),
-      "@survey": path.resolve(__dirname, "src/modules/survey"),
+      "@panel": path.resolve(__dirname, "src/modules/panel"),
     },
   },
 });

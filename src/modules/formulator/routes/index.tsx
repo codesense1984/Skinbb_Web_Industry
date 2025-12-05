@@ -25,6 +25,18 @@ export const formulatorRoutes: RouteObject = {
       ),
     },
 
+    // Market Research Route
+    {
+      path: FORMULATOR_ROUTES.MARKET_RESEARCH.BASE,
+      Component: lazy(() => import("@/modules/formulator/features/market-research")),
+    },
+
+    // Compare Route
+    {
+      path: FORMULATOR_ROUTES.COMPARE.BASE,
+      Component: lazy(() => import("@/modules/formulator/features/compare")),
+    },
+
     // Account Route
     {
       path: FORMULATOR_ROUTES.ACCOUNT.BASE,

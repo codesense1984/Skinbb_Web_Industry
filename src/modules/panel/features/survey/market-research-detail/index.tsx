@@ -7,7 +7,8 @@ import {
   ToggleGroupItem,
 } from "@/core/components/ui/toggle-group";
 import { MASTER_DATA, PERSONAL_CARE_DATA } from "@/core/config/constants";
-import { SurveyQuestionType, type Survey } from "@/core/types/research.type";
+import type { Survey } from "@/core/types/research.type";
+import type { QuestionType } from "@/modules/panel/types/survey.types";
 import {
   BanknotesIcon,
   ChartBarIcon,
@@ -29,7 +30,7 @@ const marketData: Survey = {
   questions: [
     {
       text: "How Effective Was MyBrand To Address Your Skin Concern?",
-      type: SurveyQuestionType.multiple_choice,
+      type: "MCQ",
       description: "Please rate how well the product worked for you.",
       options: [
         "Very Effective",
@@ -41,7 +42,7 @@ const marketData: Survey = {
     },
     {
       text: "Which skin concern do you feel our product range is not addressing? ",
-      type: SurveyQuestionType.single_choice,
+      type: "MCQ",
       description: "Select all that apply to your skin’s condition.",
       options: [
         "Acne or breakouts",
@@ -57,7 +58,7 @@ const marketData: Survey = {
     },
     {
       text: "Would you recommend MYBRAND to your friend? ",
-      type: SurveyQuestionType.yes_no,
+      type: "Yes/No",
       description: "",
       options: [],
     },

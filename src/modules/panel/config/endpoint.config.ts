@@ -207,6 +207,11 @@ export const ENDPOINTS = {
     VERIFY_GST: `${API_PREFIX}/company-verification/verify-gst`,
     VERIFY_CIN: `${API_PREFIX}/company-verification/verify-cin`,
   },
+
+  SURVEY: {
+    MAIN: `${API_PREFIX}/surveys`,
+    TYPES: `${API_PREFIX}/survey-types`,
+  },
 } as const;
 
 export type Endpoints = typeof ENDPOINTS;

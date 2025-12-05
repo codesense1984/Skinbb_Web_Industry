@@ -1,4 +1,4 @@
-import { BlobIcon, Button } from "@/core/components/ui/button";
+import { BlobIcon } from "@/core/components/ui/button";
 import { PageContent } from "@/core/components/ui/structure";
 import { useMotionConfig } from "@/core/store/motion-provider";
 import { fadeInUp } from "@/core/styles/animation/presets";
@@ -9,12 +9,13 @@ import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth";
 import {
   PAGE,
   PERMISSION,
+  ROLE,
   type Permission,
   type PermissionElement,
   type Role,
 } from "@/modules/auth/types/permission.type.";
 import { motion } from "motion/react";
-import { Fragment, type ReactElement, type SVGProps } from "react";
+import { type ReactElement, type SVGProps } from "react";
 import { NavLink } from "react-router";
 import { SELLER_ROUTES } from "../../routes/constant";
 
@@ -34,7 +35,7 @@ type CardConfig = {
 const cardData: CardConfig[] = [
   {
     title: "Orders",
-    description: "View and manage all your orders and fulfillment",
+    description: "View all your orders and fulfillment",
     buttons: [{ name: "Explore", href: SELLER_ROUTES.ORDERS.LIST }],
     requiredPermissions: {
       page: PAGE.ORDERS,
@@ -57,12 +58,17 @@ const cardData: CardConfig[] = [
     ),
   },
   {
-    title: "Brands",
-    description: "Discover top brands from around the world.",
-    buttons: [{ name: "Explore", href: "/brands" }],
+    title: "Analytics",
+    description: "View comprehensive insights and performance metrics",
+    buttons: [
+      {
+        name: "Explore",
+        href: SELLER_ROUTES.ANALYTICS.SALES_INSIGHTS.BASE,
+      },
+    ],
     requiredPermissions: {
-      page: PAGE.BRANDS,
-      action: [PERMISSION.VIEW, PERMISSION.CREATE],
+      page: PAGE.PRODUCTS,
+      action: [PERMISSION.VIEW],
     },
     icon: (
       <svg
@@ -75,7 +81,32 @@ const cardData: CardConfig[] = [
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
-          d="m21 7.5-2.25-1.313M21 7.5v2.25m0-2.25-2.25 1.313M3 7.5l2.25-1.313M3 7.5l2.25 1.313M3 7.5v2.25m9 3 2.25-1.313M12 12.75l-2.25-1.313M12 12.75V15m0 6.75 2.25-1.313M12 21.75V19.5m0 2.25-2.25-1.313m0-16.875L12 2.25l2.25 1.313M21 14.25v2.25l-2.25 1.313m-13.5 0L3 16.5v-2.25"
+          d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6"
+        />
+      </svg>
+    ),
+  },
+  {
+    title: "Products",
+    description:
+      "Manage your product catalog, pricing, descriptions and media assets",
+    requiredPermissions: {
+      page: PAGE.PRODUCTS,
+      action: [PERMISSION.VIEW, PERMISSION.CREATE],
+    },
+    buttons: [{ name: "Explore", href: "/products" }],
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={0.7}
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3"
         />
       </svg>
     ),
@@ -114,17 +145,12 @@ const cardData: CardConfig[] = [
     ),
   },
   {
-    title: "Analytics",
-    description: "View comprehensive insights and performance metrics",
-    buttons: [
-      {
-        name: "Seller Analytics",
-        href: SELLER_ROUTES.ANALYTICS.SALES_INSIGHTS.BASE,
-      },
-    ],
+    title: "Brands",
+    description: "Discover the brands created by you",
+    buttons: [{ name: "Explore", href: "/brands" }],
     requiredPermissions: {
-      page: PAGE.PRODUCTS,
-      action: [PERMISSION.VIEW],
+      page: PAGE.BRANDS,
+      action: [PERMISSION.VIEW, PERMISSION.CREATE],
     },
     icon: (
       <svg
@@ -137,7 +163,7 @@ const cardData: CardConfig[] = [
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
-          d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6"
+          d="m21 7.5-2.25-1.313M21 7.5v2.25m0-2.25-2.25 1.313M3 7.5l2.25-1.313M3 7.5l2.25 1.313M3 7.5v2.25m9 3 2.25-1.313M12 12.75l-2.25-1.313M12 12.75V15m0 6.75 2.25-1.313M12 21.75V19.5m0 2.25-2.25-1.313m0-16.875L12 2.25l2.25 1.313M21 14.25v2.25l-2.25 1.313m-13.5 0L3 16.5v-2.25"
         />
       </svg>
     ),
@@ -166,28 +192,28 @@ const cardData: CardConfig[] = [
       </svg>
     ),
   },
-  // {
-  //   title: "Survey",
-  //   description:
-  //     "Explore trends, ingredient interest, and competitive landscape analysis",
-  //   buttons: [{ name: "Explore", href: SURVEY_ROUTES.LIST }],
-  //   requiredRoles: [ROLE.ADMIN],
-  //   icon: (
-  //     <svg
-  //       xmlns="http://www.w3.org/2000/svg"
-  //       fill="none"
-  //       viewBox="0 0 24 24"
-  //       strokeWidth={0.7}
-  //       stroke="currentColor"
-  //     >
-  //       <path
-  //         strokeLinecap="round"
-  //         strokeLinejoin="round"
-  //         d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v16.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Zm3.75 11.625a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"
-  //       />
-  //     </svg>
-  //   ),
-  // },
+  {
+    title: "Survey",
+    description:
+      "Explore trends, ingredient interest, and competitive landscape analysis",
+    buttons: [{ name: "Explore", href: SELLER_ROUTES.SURVEY.LIST }],
+    requiredRoles: [ROLE.SELLER],
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={0.7}
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v16.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Zm3.75 11.625a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"
+        />
+      </svg>
+    ),
+  },
   // {
   //   title: "Promotion",
   //   description:
@@ -210,31 +236,7 @@ const cardData: CardConfig[] = [
   //     </svg>
   //   ),
   // },
-  {
-    title: "Products",
-    description:
-      "Manage your product catalog, pricing, descriptions and media assets",
-    requiredPermissions: {
-      page: PAGE.PRODUCTS,
-      action: [PERMISSION.VIEW, PERMISSION.CREATE],
-    },
-    buttons: [{ name: "Explore", href: "/products" }],
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={0.7}
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3"
-        />
-      </svg>
-    ),
-  },
+
   // {
   //   title: "Sales & Revenue",
   //   description:
@@ -341,16 +343,14 @@ const SellerDashboard = () => {
       header={{
         title: (
           <div>
-            Hi, Welcome back,{" "}
+            Hi,{" "}
             <span className="text-primary">
               {user?.firstName} {user?.lastName}
             </span>{" "}
             👋
           </div>
         ),
-        description: sellerInfo?.companyName
-          ? `Welcome to ${sellerInfo.companyName} dashboard — explore insights, manage your listings, and grow your reach.`
-          : "Your dashboard is ready — explore insights, manage your listings, and grow your reach.",
+        description: `Welcome to the SkinBB metaverse — manage your listings, explore insights, and grow your business and do much more.`,
         hasBack: false,
         animate: true,
       }}
@@ -397,10 +397,10 @@ const Card = ({ title, description, buttons, icon, index }: CardProps) => {
   const element = (
     <>
       <BlobIcon size="lg">{icon}</BlobIcon>
-      <div className="flex flex-col items-center text-center">
+      <div className="flex h-full flex-col items-center text-center">
         <h5 className="mb-1 font-medium">{title}</h5>
-        <p className="mb-4 text-sm leading-relaxed">{description}</p>
-        <div className="divide-primary/20 divide-y-0.5 grid auto-cols-max grid-flow-col items-center">
+        <p className="mb-0 leading-relaxed">{description}</p>
+        {/* <div className="divide-primary/20 divide-y-0.5 mt-auto grid auto-cols-max grid-flow-col items-center">
           {buttons.map((link, index) => (
             <Fragment key={link.name}>
               <Button
@@ -408,7 +408,7 @@ const Card = ({ title, description, buttons, icon, index }: CardProps) => {
                 color={"primary"}
                 variant={"link"}
                 asChild
-                className="text-xs"
+                className="text-sm"
               >
                 {buttons.length !== 1 ? (
                   <NavLink to={link.href}>{link.name}</NavLink>
@@ -421,13 +421,13 @@ const Card = ({ title, description, buttons, icon, index }: CardProps) => {
               )}
             </Fragment>
           ))}
-        </div>
+        </div> */}
       </div>
     </>
   );
 
   const className =
-    "bg-background hover:ring-primary visited:ring-3 visited:ring-primary flex flex-col items-center gap-3 rounded-lg py-7 px-6 shadow-md hover:ring-3 min-h-[200px]";
+    "bg-background hover:ring-primary visited:ring-1 ring-primary/50 flex flex-col items-center gap-3 rounded-lg py-7 px-6 shadow-md ring-1 hover:ring-2 h-full";
 
   if (buttons.length === 1) {
     return (

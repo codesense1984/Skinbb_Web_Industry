@@ -8,6 +8,8 @@ const COMPANY_LOCATION_BASE = "/company-location";
 const BRAND_BASE = "/brand";
 const BRANDS = "/brands";
 const USERS_BASE = "/company-users";
+const SURVEY_BASE = "/survey";
+const SURVEYS = "/surveys";
 
 export const SELLER_ROUTES = {
   // ---- Dashboard ----
@@ -248,5 +250,14 @@ export const SELLER_ROUTES = {
   // ---- Account ----
   ACCOUNT: {
     BASE: "/account",
+  },
+
+  SURVEY: {
+    BASE: SURVEY_BASE, // /survey
+    LIST: SURVEYS, // /surveys
+    CREATE: ROUTE.build(SURVEY_BASE, ROUTE.seg.create), // /survey/create
+    EDIT: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(SURVEY_BASE, id, ROUTE.seg.edit), // /survey/:id/edit
+    DETAIL: (id: string = ROUTE.seg.id) => ROUTE.build(SURVEY_BASE, id), // /survey/:id
   },
 } as const;

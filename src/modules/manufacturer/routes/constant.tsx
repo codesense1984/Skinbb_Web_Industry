@@ -1,4 +1,3 @@
-import { ROUTE } from "@/core/routes/constant";
 
 const DASHBOARD_BASE = "/dashboard";
 

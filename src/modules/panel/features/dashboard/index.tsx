@@ -14,7 +14,7 @@ import {
   type PermissionElement,
   type Role,
 } from "@/modules/auth/types/permission.type.";
-import { SURVEY_ROUTES } from "@/modules/survey/routes/constant";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { motion } from "motion/react";
 import { Fragment, type ReactElement, type SVGProps } from "react";
 import { NavLink } from "react-router";
@@ -119,7 +119,7 @@ const cardData: CardConfig[] = [
     title: "Survey",
     description:
       "Explore trends, ingredient interest, and competitive landscape analysis",
-    buttons: [{ name: "Explore", href: SURVEY_ROUTES.LIST }],
+    buttons: [{ name: "Explore", href: PANEL_ROUTES.SURVEY.LIST }],
     requiredRoles: [ROLE.ADMIN],
     icon: (
       <svg
@@ -244,7 +244,7 @@ const Dashboard = () => {
       {/* Coming Soon Banner */}
       <motion.div
         {...fadeInUp}
-        className="bg-background mb-6 flex w-full flex-col items-center gap-3 rounded-lg px-6 py-7 shadow-md"
+        className="bg-background mb-3 flex w-full flex-col items-center gap-3 rounded-lg px-6 py-7 shadow-md"
       >
         <BlobIcon size="lg">
           <svg
@@ -311,16 +311,17 @@ const Card = ({ title, description, buttons, icon, index }: CardProps) => {
   const element = (
     <>
       <BlobIcon size="lg">{icon}</BlobIcon>
-      <div className="flex flex-col items-center text-center">
+      <div className="flex h-full flex-col items-center text-center">
         <h5 className="mb-1 font-medium">{title}</h5>
-        <p>{description}</p>
-        <div className="divide-primary/20 divide-y-0.5 grid auto-cols-max grid-flow-col items-center">
+        <p className="mb-3">{description}</p>
+        <div className="divide-primary/20 divide-y-0.5 mt-auto grid auto-cols-max grid-flow-col items-center">
           {buttons.map((link, index) => (
             <Fragment key={link.name}>
               <Button
                 key={link.name}
                 color={"primary"}
                 variant={"link"}
+                className="h-auto"
                 asChild
               >
                 {buttons.length !== 1 ? (
@@ -340,7 +341,7 @@ const Card = ({ title, description, buttons, icon, index }: CardProps) => {
   );
 
   const className =
-    "bg-background hover:ring-primary visited:ring-3 visited:ring-primary flex flex-col items-center gap-3 rounded-lg py-7 px-6 shadow-md hover:ring-3";
+    "bg-background hover:ring-primary visited:ring-1 ring-primary/50 flex flex-col items-center gap-3 rounded-lg py-4 px-6 shadow-md ring-1 hover:ring-2 h-full";
 
   if (buttons.length === 1) {
     return (
