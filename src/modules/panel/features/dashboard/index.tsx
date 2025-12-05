@@ -14,7 +14,7 @@ import {
   type PermissionElement,
   type Role,
 } from "@/modules/auth/types/permission.type.";
-import { SURVEY_ROUTES } from "@/modules/survey/routes/constant";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
 import { motion } from "motion/react";
 import { Fragment, type ReactElement, type SVGProps } from "react";
 import { NavLink } from "react-router";
@@ -119,7 +119,7 @@ const cardData: CardConfig[] = [
     title: "Survey",
     description:
       "Explore trends, ingredient interest, and competitive landscape analysis",
-    buttons: [{ name: "Explore", href: SURVEY_ROUTES.LIST }],
+    buttons: [{ name: "Explore", href: PANEL_ROUTES.SURVEY.LIST }],
     requiredRoles: [ROLE.ADMIN],
     icon: (
       <svg

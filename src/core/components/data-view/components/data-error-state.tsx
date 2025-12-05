@@ -36,7 +36,7 @@ export function DataErrorState({
           <ArrowPathIcon className="mr-2 h-4 w-4" />
           Retry
         </Button>
-        {onClearFilters && (
+        {/* {onClearFilters && (
           <Button
             onClick={onClearFilters}
             variant="outlined"
@@ -45,7 +45,7 @@ export function DataErrorState({
             <XMarkIcon className="mr-2 h-4 w-4" />
             Clear Filters
           </Button>
-        )}
+        )} */}
       </div>
     </div>
   );

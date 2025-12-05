@@ -21,15 +21,24 @@ function Calendar({
   buttonVariant = "ghost",
   formatters,
   components,
+  startMonth,
+  endMonth,
   ...props
 }: React.ComponentProps<typeof DayPicker> & {
   buttonVariant?: React.ComponentProps<typeof Button>["variant"];
 }) {
   const defaultClassNames = getDefaultClassNames();
 
+  // Default fromYear to 1900 if not provided
+  const defaultFromYear = startMonth ?? new Date(2010, 0);
+  // Default toYear to allow future years (current year + 5) if not provided
+  const defaultToYear = endMonth ?? new Date(new Date().getFullYear() + 5, 11);
+
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
+      startMonth={defaultFromYear}
+      endMonth={defaultToYear}
       className={cn(
         "bg-background group/calendar p-3 [--cell-size:--spacing(8)] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent",
         String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,

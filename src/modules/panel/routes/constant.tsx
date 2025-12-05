@@ -31,6 +31,9 @@ const PRODUCT_TAG_BASE = "/product-tag";
 const PRODUCT_ATTRIBUTE_BASE = "/product-attributes";
 const DISCOUNT_COUPON_BASE = "/discount-coupons";
 
+const SURVEY_BASE = "/survey";
+const SURVEYS = "/surveys";
+
 export const PANEL_ROUTES = {
   // ---- Brand ----
   BRAND: {
@@ -375,6 +378,16 @@ export const PANEL_ROUTES = {
       ROUTE.build(MASTER_BASE, DISCOUNT_COUPON_BASE, id, ROUTE.seg.edit), // /master/discount-coupons/edit/:id
     DISCOUNT_COUPON_VIEW: (id: string = ROUTE.seg.id) =>
       ROUTE.build(MASTER_BASE, DISCOUNT_COUPON_BASE, id, ROUTE.seg.view), // /master/discount-coupons/view/:id
+  },
+
+  // ---- Survey ----
+  SURVEY: {
+    BASE: SURVEY_BASE, // /survey
+    LIST: SURVEYS, // /surveys
+    CREATE: ROUTE.build(SURVEY_BASE, ROUTE.seg.create), // /survey/create
+    EDIT: (id: string = ROUTE.seg.id) =>
+      ROUTE.build(SURVEY_BASE, id, ROUTE.seg.edit), // /survey/:id/edit
+    DETAIL: (id: string = ROUTE.seg.id) => ROUTE.build(SURVEY_BASE, id), // /survey/:id
   },
 
   // ---- Misc panel pages ----

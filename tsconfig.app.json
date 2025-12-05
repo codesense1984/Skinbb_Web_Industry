@@ -27,7 +27,7 @@
       "@types/*": ["src/core/types/*"],
       "@utils/*": ["src/core/utils/*"],
       "@auth/*": ["src/modules/auth/*"],
-      "@survey/*": ["src/modules/survey/*"]
+      "@panel/*": ["src/modules/panel/*"]
     },
 
     /* Linting */

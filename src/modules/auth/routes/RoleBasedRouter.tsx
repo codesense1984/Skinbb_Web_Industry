@@ -10,7 +10,6 @@ import React from "react";
 import { Navigate, useRoutes } from "react-router";
 import { useAuth } from "../hooks/useAuth";
 import { ROLE } from "../types/permission.type.";
-import { surveyRoutes } from "@/modules/survey/routes";
 import { analyticsRoutes } from "@/modules/analytics/routes";
 
 const RoleBasedRouter: React.FC = () => {
@@ -29,7 +28,7 @@ const RoleBasedRouter: React.FC = () => {
   let routes = [];
 
   if (role === ROLE.ADMIN) {
-    routes = [panelRoutes, surveyRoutes, analyticsRoutes, chatRoutes];
+    routes = [panelRoutes, analyticsRoutes, chatRoutes];
   } else if (role === ROLE.SELLER) {
     routes = [sellerRoutes];
   } else if (role === ROLE.DOCTOR) {
