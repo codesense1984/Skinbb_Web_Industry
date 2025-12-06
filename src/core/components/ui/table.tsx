@@ -93,9 +93,10 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
     <td
       data-slot="table-cell"
       className={cn(
-        "text-muted-foreground h-12 px-3 py-1 align-middle text-wrap break-all first:pl-5 last:pr-5 [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+        "text-muted-foreground h-12 px-3 py-1 align-middle text-wrap break-all first:pl-5 last:pr-5 [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-normal",
         className,
       )}
+      style={{ fontWeight: 'normal' }}
       {...props}
     />
   );

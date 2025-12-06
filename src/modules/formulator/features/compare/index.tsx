@@ -64,7 +64,7 @@ const Compare = () => {
   const [historySearch, setHistorySearch] = useState("");
 
   // API functions for history
-  const api = {
+const api = {
     async saveCompareHistory(
       data: {
         name: string;
@@ -80,7 +80,7 @@ const Compare = () => {
       if (!userId) {
         throw new Error("User ID is required to save history");
       }
-      const response = await axios.post(
+    const response = await axios.post(
         `${basePythonApiUrl}/api/save-compare-history`,
         data,
         {
@@ -139,10 +139,10 @@ const Compare = () => {
             "X-User-Id": userId,
           },
         }
-      );
-      return response.data;
-    },
-  };
+    );
+    return response.data;
+  },
+};
 
   // Load history
   const loadHistory = useCallback(async () => {
@@ -267,7 +267,7 @@ const Compare = () => {
           if (showHistory) {
             loadHistory();
           }
-        } catch (error) {
+    } catch (error) {
           console.error("Error saving history:", error);
           // Don't block the user if history save fails
         }
@@ -627,7 +627,7 @@ const Compare = () => {
                         <span className="text-muted-foreground text-sm italic">No info available</span>
                       )}
                     </td>
-                    <td className="p-4 text-center">
+                        <td className="p-4 text-center">
                       {comparisonData.product2.brand_name || (
                         <span className="text-muted-foreground text-sm italic">No info available</span>
                       )}
@@ -640,14 +640,14 @@ const Compare = () => {
                     <td className="p-4 text-center border-r">
                       {comparisonData.product1.price || (
                         <span className="text-muted-foreground text-sm italic">No info available</span>
-                      )}
-                    </td>
-                    <td className="p-4 text-center">
+                          )}
+                        </td>
+                        <td className="p-4 text-center">
                       {comparisonData.product2.price || (
                         <span className="text-muted-foreground text-sm italic">No info available</span>
-                      )}
-                    </td>
-                  </tr>
+                          )}
+                        </td>
+                      </tr>
 
                   {/* INCI Ingredients */}
                   <tr className="border-b bg-muted/20">
