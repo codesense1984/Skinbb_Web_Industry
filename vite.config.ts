@@ -9,6 +9,9 @@ export default defineConfig({
     host: "0.0.0.0",
     port: 5174,
   },
+  optimizeDeps: {
+    include: ['jspdf', 'jspdf-autotable'],
+  },
   build: {
     // chunkSizeWarningLimit: 2000,
     // target: "esnext",

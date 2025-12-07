@@ -10,7 +10,8 @@ import {
   TableRow,
 } from "@/core/components/ui/table";
 import { Download, FileText } from "lucide-react";
-import jsPDF from "jspdf";
+import { jsPDF } from "jspdf";
+// @ts-ignore - jspdf-autotable extends jsPDF prototype
 import "jspdf-autotable";
 
 // Types
@@ -326,9 +327,29 @@ export function FormulationReportViewer({
   const renderTable = (rows: ReportTableRow[], title: string) => {
     if (rows.length === 0) return null;
 
-    // Use first row as headers if available
+    // Backend now always includes headers as the first row
+    // Use first row as headers, rest as data
     const headers = rows[0]?.cells || [];
     const dataRows = rows.slice(1);
+    
+    // If no headers found, use defaults based on table type
+    if (headers.length === 0) {
+      if (title === "2) Analysis") {
+        headers.push("Ingredient", "Category", "Functions/Notes", "BIS Cautions");
+      } else if (title === "3) Compliance Panel") {
+        headers.push("Regulation", "Status", "Requirements");
+      } else if (title === "4) Preservative Efficacy Check") {
+        headers.push("Preservative", "Efficacy", "pH Range", "Stability");
+      } else if (title === "5) Risk Panel") {
+        headers.push("Risk Factor", "Level", "Mitigation");
+      } else if (title === "6) Cumulative Benefit Panel") {
+        headers.push("Benefit", "Mechanism", "Evidence Level");
+      } else if (title === "7) Claim Panel") {
+        headers.push("Claim", "Support Level", "Evidence");
+      } else if (title === "9) Expected Benefits Analysis") {
+        headers.push("Expected Benefit", "Can Be Achieved?", "Supporting Ingredients", "Evidence/Mechanism", "Limitations");
+      }
+    }
 
     return (
       <div className="mb-8 bg-white rounded-lg border-2 border-gray-200 shadow-sm p-6">
@@ -336,9 +357,9 @@ export function FormulationReportViewer({
         <div className="overflow-x-auto rounded-lg border border-gray-300">
           <Table>
             <TableHeader>
-              <TableRow>
+              <TableRow className="border-b-0">
                 {headers.map((header, idx) => (
-                  <TableHead key={idx} className="bg-gray-50 font-medium">
+                  <TableHead key={idx} className="bg-gray-50 font-normal text-muted-foreground border-b-0">
                     {header}
                   </TableHead>
                 ))}
@@ -348,7 +369,7 @@ export function FormulationReportViewer({
               {dataRows.map((row, rowIdx) => (
                 <TableRow 
                   key={rowIdx}
-                  className="hover:bg-gray-50 transition-colors [&_td]:font-normal [&_td]:!font-normal"
+                  className="hover:bg-gray-50 transition-colors [&_td]:font-normal [&_td]:!font-normal border-b-0"
                 >
                   {row.cells.map((cell, cellIdx) => {
                     // Check if this is the BIS Cautions column (usually last column)

@@ -132,8 +132,8 @@ const FormulatorDashboard = () => {
     },
     {
       title: "Market Research",
-      description: "Coming Soon",
-      buttons: [{ name: "Coming Soon", href: FORMULATOR_ROUTES.MARKET_RESEARCH.BASE }],
+      description: "Find products with matching ingredients",
+      buttons: [{ name: "Search Products", href: FORMULATOR_ROUTES.MARKET_RESEARCH.BASE }],
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"

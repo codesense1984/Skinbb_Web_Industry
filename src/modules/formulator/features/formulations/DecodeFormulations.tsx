@@ -1507,8 +1507,7 @@ function IngredientAnalyzer({
             placeholder="e.g. Brightening, Anti-aging, Hydration, Acne control..."
             value={expectedBenefits}
             onChange={(e) => setExpectedBenefits(e.target.value)}
-            className="min-h-[80px] resize-y"
-            rows={3}
+            className="h-20 resize-y"
             required
           />
           <p className="text-xs text-muted-foreground mt-1">
@@ -1525,10 +1524,10 @@ function IngredientAnalyzer({
                   color={"primary"}
                   type="button"
                   onClick={onExtract}
-                  disabled={extracting || !url.trim()}
+                  disabled={extracting || loading || !url.trim()}
                 >
                   <LinkIcon className="size-4" />
-                  {extracting ? "Analyzing…" : "Analyze"}
+                  {extracting || loading ? "Analyzing…" : "Analyze"}
                 </Button>
               )}
             </>
@@ -1539,10 +1538,10 @@ function IngredientAnalyzer({
                 color={"primary"}
                 type="button"
                 onClick={onAnalyze}
-                disabled={loading || parsed?.length === 0}
+                disabled={loading || extracting || parsed?.length === 0}
               >
                 <MagnifyingGlassIcon />
-                {loading ? "Analyzing…" : "Analyze Ingredients"}
+                {loading || extracting ? "Analyzing…" : "Analyze Ingredients"}
               </Button>
               <div className="ml-auto text-sm text-gray-600">
                 <span className="mr-2">📦</span>
@@ -1624,11 +1623,11 @@ function IngredientAnalyzer({
                   color={"primary"}
                   type="button"
                   onClick={onAnalyze}
-                  disabled={loading}
+                  disabled={loading || extracting}
                   className="w-full"
                 >
                   <MagnifyingGlassIcon className="size-4" />
-                  {loading ? "Analyzing…" : "Go Ahead"}
+                  {loading || extracting ? "Analyzing…" : "Go Ahead"}
                 </Button>
               </div>
             </div>
@@ -1768,9 +1767,6 @@ function IngredientAnalyzer({
                   <div key="branded-ingredients" className="space-y-4">
                     <div className="flex items-center gap-2">
                       <SectionTitle>Branded Ingredients</SectionTitle>
-                      <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-300">
-                        B
-                      </Badge>
                       <span className="text-sm text-gray-600">({filteredItems.length} unique branded {filteredItems.length === 1 ? "ingredient" : "ingredients"})</span>
                     </div>
                     {Array.from(itemsByInci.entries()).map(([inciKey, items]) => {
@@ -1822,14 +1818,6 @@ function IngredientAnalyzer({
                                   <h3 className="truncate text-lg font-medium capitalize">
                                     {item.ingredient_name}
                                   </h3>
-                                  <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-300 text-xs">
-                                    B
-                                  </Badge>
-                                  {item.match_method && (
-                                    <Badge variant="outline" className="text-xs">
-                                      {item.match_method}
-                                    </Badge>
-                                  )}
                                 </div>
                                 <div className="text-muted-foreground flex items-center gap-2 shrink-0">
                                   {item.supplier_name && (
@@ -2002,14 +1990,6 @@ function IngredientAnalyzer({
                                       <h3 className="truncate text-lg font-medium capitalize">
                                         {item.ingredient_name}
                                       </h3>
-                                      <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-300 text-xs">
-                                        B
-                                      </Badge>
-                                      {item.match_method && (
-                                        <Badge variant="outline" className="text-xs">
-                                          {item.match_method}
-                                        </Badge>
-                                      )}
                                     </div>
                                     <div className="text-muted-foreground flex items-center gap-2 shrink-0">
                                       {item.supplier_name && (
@@ -2310,28 +2290,58 @@ function IngredientAnalyzer({
                     </div>
                   </div>
                 )}
-                {reportState.data && typeof reportState.data === "string" && (
-                  <div className="mt-6">
-                    <div className="rounded-lg border bg-white p-4">
-                      <h3 className="mb-3 text-sm font-medium text-gray-900">
-                        Report Preview
-                      </h3>
-                      <div className="max-h-96 overflow-y-auto rounded-lg border">
-                        {reportState.data.includes("<html") ? (
-                          <iframe
-                            srcDoc={reportState.data}
-                            className="h-96 w-full border-0"
-                            title="Formulation Report Preview"
-                          />
-                        ) : (
+                {reportState.data && typeof reportState.data === "string" && (() => {
+                  // Try to parse JSON string and display as formatted report
+                  try {
+                    const parsedData = JSON.parse(reportState.data);
+                    // Check if it's a valid FormulationReportData object
+                    if (parsedData && typeof parsedData === "object" && parsedData.inci_list && parsedData.analysis_table) {
+                      return (
+                        <div className="mt-6">
+                          <div className="rounded-lg border bg-white p-6">
+                            <FormulationReportViewer reportData={parsedData} />
+                          </div>
+                        </div>
+                      );
+                    }
+                  } catch (e) {
+                    // Not valid JSON, check if it's HTML
+                    if (reportState.data.includes("<html")) {
+                      return (
+                        <div className="mt-6">
+                          <div className="rounded-lg border bg-white p-4">
+                            <h3 className="mb-3 text-sm font-medium text-gray-900">
+                              Report Preview
+                            </h3>
+                            <div className="max-h-96 overflow-y-auto rounded-lg border">
+                              <iframe
+                                srcDoc={reportState.data}
+                                className="h-96 w-full border-0"
+                                title="Formulation Report Preview"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
+                  }
+                  
+                  // Fallback: display as raw text (for error messages, etc.)
+                  return (
+                    <div className="mt-6">
+                      <div className="rounded-lg border bg-white p-4">
+                        <h3 className="mb-3 text-sm font-medium text-gray-900">
+                          Report Preview
+                        </h3>
+                        <div className="max-h-96 overflow-y-auto rounded-lg border">
                           <pre className="p-4 font-mono text-xs whitespace-pre-wrap text-gray-700">
                             {reportState.data}
                           </pre>
-                        )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
                 
 
                 {!parsed.length && !resp && !reportState.data && (
