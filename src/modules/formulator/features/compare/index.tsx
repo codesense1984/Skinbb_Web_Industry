@@ -1,8 +1,7 @@
 import { Button } from "@/core/components/ui/button";
 import { PageContent } from "@/core/components/ui/structure";
 import { Input } from "@/core/components/ui/input";
-import { Badge } from "@/core/components/ui/badge";
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import axios from "axios";
 import { basePythonApiUrl } from "@/core/config/baseUrls";
 import { cn } from "@/core/utils";
@@ -45,7 +44,7 @@ const Compare = () => {
   const [loading, setLoading] = useState(false);
   const [comparisonData, setComparisonData] = useState<CompareProductsResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [currentHistoryId, setCurrentHistoryId] = useState<string | null>(null);
+  const [_currentHistoryId, setCurrentHistoryId] = useState<string | null>(null);
   
   // History sidebar state
   const [showHistory, setShowHistory] = useState(false);
@@ -64,7 +63,7 @@ const Compare = () => {
   const [historySearch, setHistorySearch] = useState("");
 
   // API functions for history
-const api = {
+  const api = useMemo(() => ({
     async saveCompareHistory(
       data: {
         name: string;
@@ -142,7 +141,7 @@ const api = {
     );
     return response.data;
   },
-};
+  }), []);
 
   // Load history
   const loadHistory = useCallback(async () => {
@@ -165,7 +164,7 @@ const api = {
     } finally {
       setHistoryLoading(false);
     }
-  }, [historySearch, userId]);
+  }, [historySearch, userId, api]);
 
   // Load history on mount and when search changes
   useEffect(() => {
@@ -223,7 +222,7 @@ const api = {
       console.error("Error deleting history:", error);
       window.alert("Failed to delete history item");
     }
-  }, [loadHistory, userId]);
+  }, [loadHistory, userId, api]);
 
   const handleCompare = useCallback(async () => {
     if (!input1.trim() || !input2.trim()) {
@@ -272,10 +271,17 @@ const api = {
           // Don't block the user if history save fails
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error comparing products:", error);
-      const errorMessage =
-        error.response?.data?.detail || error.message || "Error comparing products. Please try again.";
+      let errorMessage = "Error comparing products. Please try again.";
+      if (error && typeof error === "object" && "response" in error) {
+        const httpError = error as { response?: { data?: { detail?: string } } };
+        if (httpError.response?.data?.detail) {
+          errorMessage = httpError.response.data.detail;
+        }
+      } else if (error && typeof error === "object" && "message" in error && typeof error.message === "string") {
+        errorMessage = error.message;
+      }
       setError(errorMessage);
       window.alert(errorMessage);
     } finally {
