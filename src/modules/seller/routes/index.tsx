@@ -179,19 +179,19 @@ export const sellerRoutes: RouteObject = {
     {
       path: SELLER_ROUTES.MARKETING.PROMOTIONS.CREATE,
       Component: lazy(
-        () => import("@/modules/seller/features/marketing/PromotionsList"),
+        () => import("@/modules/seller/features/marketing/PromotionForm"),
       ),
     },
     {
       path: SELLER_ROUTES.MARKETING.PROMOTIONS.VIEW(),
       Component: lazy(
-        () => import("@/modules/seller/features/marketing/PromotionsList"),
+        () => import("@/modules/seller/features/marketing/PromotionView"),
       ),
     },
     {
       path: SELLER_ROUTES.MARKETING.PROMOTIONS.EDIT(),
       Component: lazy(
-        () => import("@/modules/seller/features/marketing/PromotionsList"),
+        () => import("@/modules/seller/features/marketing/PromotionForm"),
       ),
     },
 
@@ -381,6 +381,14 @@ export const sellerRoutes: RouteObject = {
           import(
             "@/modules/panel/features/company-location-brands/products/edit"
           ),
+      ),
+    },
+
+    // Subscription Routes
+    {
+      path: SELLER_ROUTES.SUBSCRIPTION.CREDITS,
+      Component: lazy(
+        () => import("@/modules/seller/features/subscription/CreditHistory"),
       ),
     },
 

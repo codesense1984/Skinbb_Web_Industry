@@ -9,7 +9,8 @@ export type ModuleType =
   | "order"
   | "payment"
   | "discount_coupon"
-  | "promotion";
+  | "promotion"
+  | "subscription";
 
 export interface StatusStyle {
   label: string;
@@ -392,6 +393,38 @@ export const STATUS_MAP: Record<ModuleType, Record<string, StatusStyle>> = {
       value: "upcoming",
       textColor: "text-blue-700",
       bgColor: "bg-blue-100",
+    },
+  },
+  subscription: {
+    active: {
+      label: "Active",
+      value: "active",
+      textColor: "text-emerald-700",
+      bgColor: "bg-emerald-100",
+    },
+    inactive: {
+      label: "Inactive",
+      value: "inactive",
+      textColor: "text-gray-700",
+      bgColor: "bg-gray-200",
+    },
+    expired: {
+      label: "Expired",
+      value: "expired",
+      textColor: "text-red-700",
+      bgColor: "bg-red-100",
+    },
+    cancelled: {
+      label: "Cancelled",
+      value: "cancelled",
+      textColor: "text-red-700",
+      bgColor: "bg-red-100",
+    },
+    pending: {
+      label: "Pending",
+      value: "pending",
+      textColor: "text-yellow-700",
+      bgColor: "bg-yellow-100",
     },
   },
 };

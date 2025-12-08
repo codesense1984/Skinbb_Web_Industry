@@ -249,4 +249,11 @@ export const SELLER_ROUTES = {
   ACCOUNT: {
     BASE: "/account",
   },
+
+  // ---- Subscription ----
+  SUBSCRIPTION: {
+    BASE: "/subscription",
+    CREDITS: "/subscription/credits",
+    PLANS: "/subscription/plans",
+  },
 } as const;

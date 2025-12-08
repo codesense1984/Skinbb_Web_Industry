@@ -60,11 +60,30 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
   showDot = true,
   ...props
 }) => {
-  const statusInfo = Object.values(STATUS_MAP[module])?.find(
+  const moduleStatuses = STATUS_MAP[module];
+  if (!moduleStatuses) {
+    // Fallback for unknown modules
+    return (
+      <div className={cn("flex items-center gap-2", className)} {...props}>
+        {showDot && <span className="h-2 w-2 rounded-full bg-current" />}
+        <span className="capitalize">{status}</span>
+      </div>
+    );
+  }
+
+  const statusInfo = Object.values(moduleStatuses)?.find(
     (item) => item.value === status,
   );
 
-  if (!statusInfo) return "Not found";
+  if (!statusInfo) {
+    // Fallback for unknown status
+    return (
+      <div className={cn("flex items-center gap-2", className)} {...props}>
+        {showDot && <span className="h-2 w-2 rounded-full bg-current" />}
+        <span className="capitalize">{status}</span>
+      </div>
+    );
+  }
 
   const { label, textColor, bgColor } = statusInfo;
   const colorClasses = cn(textColor, bgColor);

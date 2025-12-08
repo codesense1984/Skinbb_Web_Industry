@@ -11,6 +11,7 @@ import { useMemo, useState } from "react";
 import { SELLER_ROUTES } from "../../routes/constant";
 import { useSellerAuth } from "@/modules/auth/hooks/useSellerAuth";
 import { BrandFilter } from "@/modules/panel/features/listing/components/BrandFilter";
+import { SubscriptionGuard } from "../../components/subscription";
 
 // Create fetcher for server-side data with seller's company ID and brand filtering
 const createSellerOrderFetcher = (companyId: string, brandId?: string) => {
@@ -163,39 +164,41 @@ const SellerOrderList = () => {
   }
 
   return (
-    <PageContent
-      header={{
-        title: "Orders",
-        description: "Manage and track your customer orders",
-      }}
-    >
-      <div className="w-full">
-        <DataTable
-          columns={columns}
-          isServerSide
-          fetcher={createSellerOrderFetcher(
-            sellerInfo.companyId,
-            selectedBrandId === "all" ? undefined : selectedBrandId,
-          )}
-          queryKeyPrefix={`seller-order-list-table-${selectedBrandId}`}
-          actionProps={() => ({
-            children: (
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">Brand:</span>
-                  <BrandFilter
-                    value={selectedBrandId}
-                    onValueChange={handleBrandChange}
-                    placeholder="All Brands"
-                    companyId={sellerInfo.companyId}
-                  />
+    <SubscriptionGuard page="order" action="list" showCreditModalOnLoad={true}>
+      <PageContent
+        header={{
+          title: "Orders",
+          description: "Manage and track your customer orders",
+        }}
+      >
+        <div className="w-full">
+          <DataTable
+            columns={columns}
+            isServerSide
+            fetcher={createSellerOrderFetcher(
+              sellerInfo.companyId,
+              selectedBrandId === "all" ? undefined : selectedBrandId,
+            )}
+            queryKeyPrefix={`seller-order-list-table-${selectedBrandId}`}
+            actionProps={() => ({
+              children: (
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">Brand:</span>
+                    <BrandFilter
+                      value={selectedBrandId}
+                      onValueChange={handleBrandChange}
+                      placeholder="All Brands"
+                      companyId={sellerInfo.companyId}
+                    />
+                  </div>
                 </div>
-              </div>
-            ),
-          })}
-        />
-      </div>
-    </PageContent>
+              ),
+            })}
+          />
+        </div>
+      </PageContent>
+    </SubscriptionGuard>
   );
 };
 

@@ -43,17 +43,21 @@ interface PromotionFormProps {
   initialData?: Promotion;
   isEdit?: boolean;
   isView?: boolean;
+  listRoute?: string; // Optional route to navigate to after success (defaults to PANEL_ROUTES.PROMOTION.LIST)
 }
 
 export function PromotionForm({
   initialData,
   isEdit = false,
   isView = false,
+  listRoute,
 }: PromotionFormProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { userId } = useAuth();
   const mode = isView ? MODE.VIEW : isEdit ? MODE.EDIT : MODE.ADD;
+  const defaultListRoute = PANEL_ROUTES.PROMOTION.LIST;
+  const navigateToList = listRoute || defaultListRoute;
 
   // Fetch options for dropdowns
   const { data: brandsData, isLoading: isLoadingBrands } = useQuery({
@@ -239,7 +243,7 @@ export function PromotionForm({
         queryKey: [ENDPOINTS.PROMOTION.LIST],
       });
       toast.success("Promotion created successfully");
-      navigate(PANEL_ROUTES.PROMOTION.LIST);
+      navigate(navigateToList);
     },
     onError: (error: any) => {
       // Handle API errors
@@ -293,7 +297,7 @@ export function PromotionForm({
         queryKey: [ENDPOINTS.PROMOTION.GET_BY_ID(initialData!._id)],
       });
       toast.success("Promotion updated successfully");
-      navigate(PANEL_ROUTES.PROMOTION.LIST);
+      navigate(navigateToList);
     },
     onError: (error: any) => {
       // Handle API errors
@@ -546,7 +550,7 @@ export function PromotionForm({
               <Button
                 type="button"
                 variant="outlined"
-                onClick={() => navigate(PANEL_ROUTES.PROMOTION.LIST)}
+                onClick={() => navigate(navigateToList)}
                 disabled={isSubmitting}
               >
                 Cancel
