@@ -131,12 +131,15 @@ export function useFeatureAccess(
       const totalCredits = subscription.totalCreditsRemaining;
       const cost = feature.creditCost || 0;
 
+      // Always return creditCost if feature exists (even if hasAccess is false)
+      // This allows SubscriptionGuard to show credit modal to unlock access
+      
       // Check if feature uses credit-based expiration
       if (feature.expiresOnCreditsExhausted) {
         // For credit-based expiration, check if credits are exhausted
         return {
           hasAccess: totalCredits > 0,
-          creditCost: cost,
+          creditCost: cost, // Always return cost if feature exists
           loading: false,
           subscription,
           canAfford: totalCredits >= cost,
@@ -145,9 +148,10 @@ export function useFeatureAccess(
         };
       } else {
         // For time-based expiration, check subscription status
+        // But still return creditCost so guard can show modal
         return {
           hasAccess: subscription.status === "active",
-          creditCost: cost,
+          creditCost: cost, // Always return cost if feature exists, even if hasAccess is false
           loading: false,
           subscription,
           canAfford: totalCredits >= cost,
@@ -157,10 +161,10 @@ export function useFeatureAccess(
       }
     }
 
-    // No access
+    // No feature found in plan - return creditCost: 0 to indicate feature doesn't exist
     return {
       hasAccess: false,
-      creditCost: 0,
+      creditCost: 0, // 0 means feature doesn't exist in plan
       loading: false,
       subscription,
       canAfford: false,

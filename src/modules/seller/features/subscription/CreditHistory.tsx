@@ -62,17 +62,45 @@ const CreditHistory = () => {
   };
 
   // Calculate statistics
-  const stats = history?.transactions.reduce(
-    (acc, transaction) => {
-      if (transaction.transactionType === "credit" || transaction.transactionType === "bonus" || transaction.transactionType === "refund") {
-        acc.totalCredited += transaction.amount;
-      } else if (transaction.transactionType === "debit") {
-        acc.totalDebited += transaction.amount;
-      }
-      return acc;
-    },
-    { totalCredited: 0, totalDebited: 0 }
-  ) || { totalCredited: 0, totalDebited: 0 };
+  // Priority: 1) API-provided totals, 2) Subscription data, 3) Calculate from transactions
+  const stats = (() => {
+    // First, try to use API-provided totals (if backend includes them in response)
+    if (history?.totalCredited !== undefined && history?.totalDebited !== undefined) {
+      return {
+        totalCredited: history.totalCredited,
+        totalDebited: history.totalDebited,
+      };
+    }
+
+    // Second, use subscription data if available (most accurate)
+    if (subscription) {
+      // Use creditsUsed directly from subscription (most accurate)
+      const totalDebited = subscription.creditsUsed || 0;
+      
+      // Calculate total credited from subscription
+      // Total credited = credits allocated + bonus credits
+      const totalCredited = (subscription.creditsAllocated || 0) + (subscription.bonusCredits || 0);
+      
+      return {
+        totalCredited,
+        totalDebited,
+      };
+    }
+
+    // Fallback: calculate from current page transactions only
+    // Note: This will only show totals for the current page, not all transactions
+    return history?.transactions.reduce(
+      (acc, transaction) => {
+        if (transaction.transactionType === "credit" || transaction.transactionType === "bonus" || transaction.transactionType === "refund") {
+          acc.totalCredited += transaction.amount;
+        } else if (transaction.transactionType === "debit") {
+          acc.totalDebited += transaction.amount;
+        }
+        return acc;
+      },
+      { totalCredited: 0, totalDebited: 0 }
+    ) || { totalCredited: 0, totalDebited: 0 };
+  })();
 
   const totalPages = history ? Math.ceil(history.total / limit) : 0;
 

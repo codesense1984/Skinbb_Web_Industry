@@ -13,6 +13,7 @@ import type {
 /**
  * Get current subscription
  * Handles 404 responses gracefully (no subscription found)
+ * Handles 403 permission errors gracefully
  */
 export async function apiGetCurrentSubscription(
   signal?: AbortSignal,
@@ -52,6 +53,27 @@ export async function apiGetCurrentSubscription(
         message: "No active subscription found",
         success: false,
       };
+    }
+
+    // Handle HTTP 403 permission errors - treat as no subscription for now
+    // This prevents permission errors from blocking the UI
+    if (error?.response?.status === 403) {
+      const errorData = error?.response?.data;
+      // Check if it's a permission error about subscription access
+      const errorMessage = errorData?.message || error?.message || "";
+      if (
+        errorMessage.toLowerCase().includes("permission") ||
+        errorMessage.toLowerCase().includes("access") ||
+        errorMessage.toLowerCase().includes("subscription")
+      ) {
+        // Return normalized response - treat as no subscription
+        return {
+          statusCode: 404,
+          data: null as any,
+          message: "No active subscription found",
+          success: false,
+        };
+      }
     }
     
     // Re-throw other errors

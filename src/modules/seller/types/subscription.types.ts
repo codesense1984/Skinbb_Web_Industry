@@ -145,6 +145,8 @@ export interface CreditHistoryResponse {
     total: number;
     limit: number;
     skip: number;
+    totalCredited?: number; // Total credits added across all transactions
+    totalDebited?: number; // Total credits used across all transactions
   };
   message: string;
 }

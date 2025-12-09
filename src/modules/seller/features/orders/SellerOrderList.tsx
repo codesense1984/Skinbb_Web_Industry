@@ -164,7 +164,7 @@ const SellerOrderList = () => {
   }
 
   return (
-    <SubscriptionGuard page="order" action="list" showCreditModalOnLoad={true}>
+    <SubscriptionGuard page="orders" action="list" showCreditModalOnLoad={true}>
       <PageContent
         header={{
           title: "Orders",
