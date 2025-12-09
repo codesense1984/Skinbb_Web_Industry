@@ -1,5 +1,6 @@
 import { api } from "@/core/services/http";
 import { ENDPOINTS } from "@/modules/seller/config/endpoint.config";
+import type { AxiosError } from "axios";
 import type {
   SubscriptionResponse,
   SubscriptionPlansResponse,
@@ -27,20 +28,23 @@ export async function apiGetCurrentSubscription(
     if (response?.statusCode === 404 || response?.statusCode === 400) {
       return {
         ...response,
-        data: null as any, // Type assertion since data is null when no subscription
+        data: null,
       };
     }
     
     return response;
-  } catch (error: any) {
+  } catch (error: unknown) {
+    // Type guard for AxiosError
+    const axiosError = error as AxiosError<{ statusCode?: number; message?: string }>;
+    
     // Handle HTTP 404/400 errors - return a normalized response instead of throwing
-    if (error?.response?.status === 404 || error?.response?.status === 400) {
+    if (axiosError?.response?.status === 404 || axiosError?.response?.status === 400) {
       // Check if error response has a body with statusCode
-      const errorData = error?.response?.data;
+      const errorData = axiosError.response?.data;
       if (errorData && (errorData.statusCode === 404 || errorData.statusCode === 400)) {
         return {
           statusCode: errorData.statusCode || 404,
-          data: null as any,
+          data: null,
           message: errorData.message || "No active subscription found",
           success: false,
         };
@@ -49,7 +53,7 @@ export async function apiGetCurrentSubscription(
       // Return normalized 404 response
       return {
         statusCode: 404,
-        data: null as any,
+        data: null,
         message: "No active subscription found",
         success: false,
       };
@@ -57,10 +61,10 @@ export async function apiGetCurrentSubscription(
 
     // Handle HTTP 403 permission errors - treat as no subscription for now
     // This prevents permission errors from blocking the UI
-    if (error?.response?.status === 403) {
-      const errorData = error?.response?.data;
+    if (axiosError?.response?.status === 403) {
+      const errorData = axiosError.response?.data;
       // Check if it's a permission error about subscription access
-      const errorMessage = errorData?.message || error?.message || "";
+      const errorMessage = errorData?.message || axiosError.message || "";
       if (
         errorMessage.toLowerCase().includes("permission") ||
         errorMessage.toLowerCase().includes("access") ||
@@ -69,7 +73,7 @@ export async function apiGetCurrentSubscription(
         // Return normalized response - treat as no subscription
         return {
           statusCode: 404,
-          data: null as any,
+          data: null,
           message: "No active subscription found",
           success: false,
         };
