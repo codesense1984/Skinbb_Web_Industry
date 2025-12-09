@@ -18,11 +18,11 @@ export const formulatorRoutes: RouteObject = {
         () => import("@/modules/formulator/features/formulations/DecodeFormulations"),
       ),
     },
+
+    // Create A Wish Route
     {
-      path: FORMULATOR_ROUTES.FORMULATIONS.CREATE,
-      Component: lazy(
-        () => import("@/modules/formulator/features/formulations/CreateFormulations"),
-      ),
+      path: FORMULATOR_ROUTES.CREATE_WISH.BASE,
+      Component: lazy(() => import("@/modules/formulator/features/create-wish")),
     },
 
     // Market Research Route
@@ -41,6 +41,18 @@ export const formulatorRoutes: RouteObject = {
     {
       path: FORMULATOR_ROUTES.ACCOUNT.BASE,
       Component: lazy(() => import("@/modules/formulator/features/account")),
+    },
+
+    // Cost Calculator Route
+    {
+      path: FORMULATOR_ROUTES.COST_CALCULATOR.BASE,
+      Component: lazy(() => import("@/modules/formulator/features/cost-calculator")),
+    },
+
+    // Substitution Finder Route
+    {
+      path: FORMULATOR_ROUTES.SUBSTITUTION_FINDER.BASE,
+      Component: lazy(() => import("@/modules/formulator/features/substitution-finder")),
     },
   ],
 };

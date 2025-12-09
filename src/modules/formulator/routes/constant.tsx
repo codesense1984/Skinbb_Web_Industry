@@ -13,7 +13,11 @@ export const FORMULATOR_ROUTES = {
   FORMULATIONS: {
     BASE: "/formulations",
     DECODE: "/formulations/decode",
-    CREATE: "/formulations/create",
+  },
+
+  // ---- Create A Wish ----
+  CREATE_WISH: {
+    BASE: "/create-wish",
   },
 
   // ---- Market Research ----
@@ -29,6 +33,16 @@ export const FORMULATOR_ROUTES = {
   // ---- Account ----
   ACCOUNT: {
     BASE: "/account",
+  },
+
+  // ---- Cost Calculator ----
+  COST_CALCULATOR: {
+    BASE: "/cost-calculator",
+  },
+
+  // ---- Substitution Finder ----
+  SUBSTITUTION_FINDER: {
+    BASE: "/substitution-finder",
   },
 } as const;
 

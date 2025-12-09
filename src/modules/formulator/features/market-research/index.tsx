@@ -65,7 +65,9 @@ const api = {
   async marketResearch(req: {
     url?: string;
     inci?: string;
-    input_type: "url" | "inci";
+    name?: string;
+    ingredient?: string | string[];
+    input_type: "url" | "inci" | "name" | "ingredient";
   }): Promise<MarketResearchResponse> {
     const response = await axios.post(
       `${basePythonApiUrl}/api/market-research`,
@@ -76,9 +78,10 @@ const api = {
 };
 
 const MarketResearch = () => {
-  const [inputMode, setInputMode] = useState<"inci" | "url">("inci");
+  const [inputMode, setInputMode] = useState<"inci" | "url" | "name" | "ingredient">("inci");
   const [text, setText] = useState("");
   const [url, setUrl] = useState("");
+  const [name, setName] = useState("");
   const [extracting, setExtracting] = useState(false);
   const [loading, setLoading] = useState(false);
   const [extractedData, setExtractedData] = useState<ExtractUrlResponse | null>(null);
@@ -115,6 +118,14 @@ const MarketResearch = () => {
       setError("Please enter INCI ingredients");
       return;
     }
+    if (inputMode === "name" && !name.trim()) {
+      setError("Please enter a product name");
+      return;
+    }
+    if (inputMode === "ingredient" && !text.trim()) {
+      setError("Please enter ingredient(s)");
+      return;
+    }
 
     setLoading(true);
     setResults(null);
@@ -124,15 +135,23 @@ const MarketResearch = () => {
       const requestData: {
         url?: string;
         inci?: string;
-        input_type: "url" | "inci";
+        name?: string;
+        ingredient?: string | string[];
+        input_type: "url" | "inci" | "name" | "ingredient";
       } = {
         input_type: inputMode,
       };
 
       if (inputMode === "url") {
         requestData.url = url.trim();
-      } else {
+      } else if (inputMode === "inci") {
         requestData.inci = text.trim();
+      } else if (inputMode === "name") {
+        requestData.name = name.trim();
+      } else if (inputMode === "ingredient") {
+        // Parse comma-separated ingredients or use as single ingredient
+        const ingredientList = text.split(",").map(ing => ing.trim()).filter(ing => ing);
+        requestData.ingredient = ingredientList.length > 1 ? ingredientList : ingredientList[0];
       }
 
       const data = await api.marketResearch(requestData);
@@ -143,7 +162,7 @@ const MarketResearch = () => {
     } finally {
       setLoading(false);
     }
-  }, [inputMode, url, text]);
+  }, [inputMode, url, text, name]);
 
   return (
     <PageContent
@@ -157,16 +176,20 @@ const MarketResearch = () => {
         <div className="bg-card rounded-lg border p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-lg font-semibold">Input Ingredients</h2>
+              <h2 className="text-lg font-semibold">Search Products</h2>
               <p className="text-sm text-muted-foreground mt-1">
                 {inputMode === "inci"
                   ? "Paste the INCI ingredient list"
-                  : "Paste the product page URL to automatically extract ingredients"}
+                  : inputMode === "url"
+                  ? "Paste the product page URL to automatically extract ingredients"
+                  : inputMode === "name"
+                  ? "Enter product name to search"
+                  : "Enter ingredient(s) to find matching products"}
               </p>
             </div>
 
             {/* Input Mode Toggle */}
-            <div className="flex gap-2 border rounded-lg p-1 bg-muted/50">
+            <div className="flex gap-2 border rounded-lg p-1 bg-muted/50 flex-wrap">
               <button
                 type="button"
                 onClick={() => setInputMode("inci")}
@@ -191,6 +214,30 @@ const MarketResearch = () => {
               >
                 Product URL
               </button>
+              <button
+                type="button"
+                onClick={() => setInputMode("name")}
+                className={cn(
+                  "px-4 py-2 rounded-md text-sm font-medium transition-colors",
+                  inputMode === "name"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Product Name
+              </button>
+              <button
+                type="button"
+                onClick={() => setInputMode("ingredient")}
+                className={cn(
+                  "px-4 py-2 rounded-md text-sm font-medium transition-colors",
+                  inputMode === "ingredient"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Ingredient
+              </button>
             </div>
           </div>
 
@@ -208,7 +255,7 @@ const MarketResearch = () => {
                   onChange={(e) => setText(e.target.value)}
                 />
               </>
-            ) : (
+            ) : inputMode === "url" ? (
               <>
                 <label htmlFor="url" className="sr-only">
                   Product URL
@@ -226,6 +273,39 @@ const MarketResearch = () => {
                 </div>
                 <p className="mt-2 text-xs text-muted-foreground">
                   Supported: Amazon, Nykaa, Flipkart, and other e-commerce product pages
+                </p>
+              </>
+            ) : inputMode === "name" ? (
+              <>
+                <label htmlFor="name" className="sr-only">
+                  Product Name
+                </label>
+                <Input
+                  id="name"
+                  type="text"
+                  className="h-12"
+                  placeholder="e.g. Cetaphil Gentle Cleanser"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Search for products by name (case-insensitive partial match)
+                </p>
+              </>
+            ) : (
+              <>
+                <label htmlFor="ingredient" className="sr-only">
+                  Ingredient(s)
+                </label>
+                <Textarea
+                  id="ingredient"
+                  className="min-h-[120px]"
+                  placeholder="e.g. Water, Glycerin (comma-separated or one per line)"
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                />
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Enter one or more ingredients (comma-separated) to find matching products
                 </p>
               </>
             )}
@@ -273,7 +353,7 @@ const MarketResearch = () => {
                 color={"primary"}
                 type="button"
                 onClick={onSearch}
-                disabled={loading || !text.trim()}
+                disabled={loading || (inputMode === "name" ? !name.trim() : !text.trim())}
               >
                 <MagnifyingGlassIcon className="size-4" />
                 {loading ? "Searching…" : "Search Products"}

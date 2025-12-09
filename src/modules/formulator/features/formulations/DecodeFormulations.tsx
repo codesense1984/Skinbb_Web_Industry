@@ -44,6 +44,7 @@ import axios from "axios";
 import { basePythonApiUrl } from "@/core/config/baseUrls";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
 import { FormulationReportViewer } from "./FormulationReportViewer";
+import { NotesPad } from "../../components/NotesPad";
 
 // Types and Interfaces
 interface AnalyzeRequest {
@@ -86,7 +87,7 @@ interface AnalyzeResponse {
 }
 
 type ActiveTab = "matched" | "unableToDecode" | "analysis";
-type MatchedSubTab = "all" | "actives" | "excipients";
+type MatchedSubTab = "actives" | "excipients";
 
 interface ReportTableRow {
   cells: string[];
@@ -108,7 +109,9 @@ interface FormulationReportData {
 interface ReportState {
   loading: boolean;
   data: string | FormulationReportData | null;
-  pdfLoading: boolean;
+  pptLoading: boolean;
+  pptPreviewUrl?: string | null;
+  showPptPreview?: boolean;
 }
 
 interface ExtractUrlRequest {
@@ -255,23 +258,64 @@ const api = {
     return response.data;
   },
 
-  async downloadPDF(): Promise<Blob> {
-    const response = await axios.get(
-      `${basePythonApiUrl}/api/formulation-report/pdf`,
-      { responseType: "blob" },
+  async downloadPPT(reportData: FormulationReportData): Promise<Blob> {
+    const response = await axios.post(
+      `${basePythonApiUrl}/api/formulation-report/ppt`,
+      { reportData },
+      { 
+        responseType: "blob",
+        validateStatus: (status) => status < 500, // Don't throw on 4xx errors
+      },
     );
-    return response.data;
+    
+    // Check if response is actually an error (JSON error message in blob)
+    if (response.status >= 400) {
+      // Try to read the error message from the blob
+      const text = await response.data.text();
+      let errorMessage = "Failed to generate PPT";
+      try {
+        const errorJson = JSON.parse(text);
+        errorMessage = errorJson.detail || errorMessage;
+      } catch {
+        errorMessage = text || errorMessage;
+      }
+      throw new Error(errorMessage);
+    }
+    
+    // Check if the blob is actually a PPT file (not an error message)
+    // PPTX files start with PK (ZIP signature)
+    const blob = response.data;
+    const firstBytes = await blob.slice(0, 2).arrayBuffer();
+    const uint8Array = new Uint8Array(firstBytes);
+    const isPPTX = uint8Array[0] === 0x50 && uint8Array[1] === 0x4B; // PK (ZIP signature)
+    
+    if (!isPPTX) {
+      // It's probably an error message, try to read it
+      const text = await blob.text();
+      let errorMessage = "Invalid PPT file received";
+      try {
+        const errorJson = JSON.parse(text);
+        errorMessage = errorJson.detail || errorMessage;
+      } catch {
+        errorMessage = text || errorMessage;
+      }
+      throw new Error(errorMessage);
+    }
+    
+    return blob;
   },
 
   async saveDecodeHistory(
     data: {
       name: string;
-      tag?: string;
+      tags?: string[];
       input_type: string;
       input_data: string;
-      analysis_result: AnalyzeResponse;
+      analysis_result?: AnalyzeResponse;
       report_data?: string | null;
       expected_benefits?: string | null;
+      notes?: string;
+      status?: "in_progress" | "completed" | "failed";
     },
     userId: string | undefined
   ): Promise<{ success: boolean; id: string; message: string }> {
@@ -300,13 +344,15 @@ const api = {
   ): Promise<{ items: Array<{
     id: string;
     name: string;
-    tag?: string;
+    tags?: string[];
     input_type: string;
     input_data: string;
-    analysis_result: AnalyzeResponse;
+    analysis_result?: AnalyzeResponse;
     report_data?: string | null;
     expected_benefits?: string | null;
+    notes?: string;
     created_at: string;
+    status?: "in_progress" | "completed" | "failed";
   }>; total: number }> {
     if (!userId) {
       throw new Error("User ID is required to fetch history");
@@ -325,7 +371,13 @@ const api = {
 
   async updateDecodeHistory(
     historyId: string,
-    data: { report_data?: string | null },
+    data: { 
+      report_data?: string | null; 
+      notes?: string;
+      status?: "in_progress" | "completed" | "failed";
+      analysis_result?: AnalyzeResponse;
+      expected_benefits?: string | null;
+    },
     userId: string | undefined
   ): Promise<{ success: boolean; message: string }> {
     if (!userId) {
@@ -484,33 +536,141 @@ function IngredientAnalyzer({
   const [text, setText] = useState("");
   const [url, setUrl] = useState("");
   const [name, setName] = useState("");
-  const [tag, setTag] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
   const [expectedBenefits, setExpectedBenefits] = useState("");
+  const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [extracting, setExtracting] = useState(false);
   const [extractedData, setExtractedData] = useState<ExtractUrlResponse | null>(null);
   const [resp, setResp] = useState<AnalyzeResponse | null>(null);
   const [activeTab, setActiveTab] = useState<ActiveTab>("matched");
-  const [matchedSubTab, setMatchedSubTab] = useState<MatchedSubTab>("all");
+  const [matchedSubTab, setMatchedSubTab] = useState<MatchedSubTab>("actives");
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [reportState, setReportState] = useState<ReportState>({
     loading: false,
     data: null,
-    pdfLoading: false,
+    pptLoading: false,
+    pptPreviewUrl: null,
+    showPptPreview: false,
   });
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  
+  // Cache for ingredient categories from database
+  const [categoryCache, setCategoryCache] = useState<Record<string, string>>({});
+  
+  // Fetch categories from ingre_inci collection
+  const fetchCategoriesFromDB = useCallback(async (inciNames: string[]) => {
+    if (inciNames.length === 0) return {};
+    
+    try {
+      const response = await axios.post(
+        `${basePythonApiUrl}/api/ingredients/categories`,
+        { inci_names: inciNames },
+        { headers: { "Content-Type": "application/json" } }
+      );
+      return response.data.categories || {};
+    } catch (error) {
+      console.error("Error fetching categories from database:", error);
+      return {};
+    }
+  }, []);
+  
+  // Helper function to get category from database for combinations
+  // If ANY one of the INCI ingredients is active, then the whole combination is considered active
+  // Only considered excipient if ALL are excipients (or none are active)
+  const getCategoryFromDB = useCallback((matchedInci: string[] | undefined): string | null => {
+    if (!matchedInci || matchedInci.length === 0) return null;
+    
+    let hasActive = false;
+    let hasExcipient = false;
+    
+    // Check categories for all INCI ingredients in the combination
+    for (const inci of matchedInci) {
+      const normalized = inci.trim().toLowerCase();
+      let category: string | null = null;
+      
+      // Check cache (normalized and original case)
+      if (categoryCache[normalized]) {
+        category = categoryCache[normalized].toUpperCase();
+      } else if (categoryCache[inci]) {
+        category = categoryCache[inci].toUpperCase();
+      }
+      
+      // Check if any is active
+      if (category === "ACTIVE") {
+        hasActive = true;
+      } else if (category === "EXCIPIENT") {
+        hasExcipient = true;
+      }
+    }
+    
+    // If ANY one is active, the whole combination is active
+    if (hasActive) {
+      return "ACTIVE";
+    } else if (hasExcipient) {
+      // Only excipient if all are excipients (no active found)
+      return "EXCIPIENT";
+    }
+    
+    // No categories found
+    return null;
+  }, [categoryCache]);
+  
+  // Pre-fetch categories for all ingredients when resp changes
+  useEffect(() => {
+    if (!resp) return;
+    
+    const allInciNames = new Set<string>();
+    
+    // Collect all INCI names from branded ingredients
+    if (resp.branded_ingredients) {
+      resp.branded_ingredients.forEach((item: MatchedItem) => {
+        if (item.matched_inci) {
+          item.matched_inci.forEach(inci => allInciNames.add(inci));
+        }
+      });
+    }
+    
+    // Collect from branded_grouped
+    if (resp.branded_grouped) {
+      resp.branded_grouped.forEach((group: GroupItem) => {
+        group.items.forEach((item: MatchedItem) => {
+          if (item.matched_inci) {
+            item.matched_inci.forEach(inci => allInciNames.add(inci));
+          }
+        });
+      });
+    }
+    
+    // Collect from general ingredients
+    if (resp.general_ingredients_list) {
+      resp.general_ingredients_list.forEach((item: MatchedItem) => {
+        if (item.matched_inci) {
+          item.matched_inci.forEach(inci => allInciNames.add(inci));
+        }
+      });
+    }
+    
+    // Fetch categories for all INCI names
+    if (allInciNames.size > 0) {
+      fetchCategoriesFromDB(Array.from(allInciNames)).then(categories => {
+        setCategoryCache(prev => ({ ...prev, ...categories }));
+      });
+    }
+  }, [resp, fetchCategoriesFromDB]);
   
   // History sidebar state (now passed as props)
   const [historyItems, setHistoryItems] = useState<Array<{
     id: string;
     name: string;
-    tag?: string;
+    tags?: string[];
     input_type: string;
     input_data: string;
-    analysis_result: AnalyzeResponse;
+    analysis_result?: AnalyzeResponse;
     report_data?: string | null;
     expected_benefits?: string | null;
     created_at: string;
+    status?: "in_progress" | "completed" | "failed";
   }>>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historySearch, setHistorySearch] = useState("");
@@ -563,8 +723,9 @@ function IngredientAnalyzer({
     // Split by multiple delimiters: comma, semicolon, pipe, newline, or dash WITH SPACES (not hyphens in ingredient names)
     // CRITICAL: Only split on hyphens that have spaces around them (e.g., "Water - Glycerin")
     // Do NOT split on hyphens without spaces (e.g., "Crosspolymer-6", "C10-30")
+    // CRITICAL: Only split on commas followed by space or at end of string, not commas in ingredient names (e.g., "1,2-Hexanediol")
     let ingredients = normalized
-      .split(/[,;\n|]+|\s+-\s+/)  // Split on comma, semicolon, newline, pipe, or dash WITH SPACES
+      .split(/,\s+|,\s*$|[;\n|]+|\s+-\s+/)  // Split on comma followed by space or at end, semicolon, newline, pipe, or dash WITH SPACES
       .map((ing) => ing.trim())
       .filter((ing) => ing.length > 0);  // Filter out empty strings
     
@@ -826,14 +987,26 @@ function IngredientAnalyzer({
   const loadHistoryItem = useCallback(async (item: {
     id: string;
     name: string;
-    tag?: string;
+    tags?: string[];
     input_type: string;
     input_data: string;
-    analysis_result: AnalyzeResponse;
+    analysis_result?: AnalyzeResponse;
     report_data?: string | null;
     expected_benefits?: string | null;
     created_at: string;
+    status?: "in_progress" | "completed" | "failed";
   }) => {
+    // Don't load items that are still in progress or failed
+    if (item.status === "in_progress" || item.status === "failed") {
+      window.alert(`This analysis is ${item.status === "in_progress" ? "still in progress" : "failed"}. Please wait for it to complete or start a new analysis.`);
+      return;
+    }
+    
+    // Ensure analysis_result exists
+    if (!item.analysis_result) {
+      window.alert("Analysis result not available. This item may still be processing.");
+      return;
+    }
     // Set flags to prevent auto-generation
     setIsLoadingFromHistory(true);
     hasLoadedFromHistoryRef.current = true;
@@ -842,17 +1015,44 @@ function IngredientAnalyzer({
     // This ensures reportState.data is set before any effects run
     if (item.report_data) {
       console.log("Loading report from history:", item.report_data.substring(0, 100) + "...");
-      setReportState({
-        loading: false,
-        data: item.report_data,
-        pdfLoading: false,
-      });
+      try {
+        // Try to parse as JSON (if it's a JSON string, convert to object)
+        // If it's already an object or HTML string, use as-is
+        let reportData: string | FormulationReportData;
+        if (typeof item.report_data === "string") {
+          // Check if it's a JSON string (starts with { or [)
+          const trimmed = item.report_data.trim();
+          if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+            try {
+              reportData = JSON.parse(item.report_data) as FormulationReportData;
+            } catch (parseError) {
+              // If parsing fails, it might be HTML, use as string
+              reportData = item.report_data;
+            }
+          } else {
+            // It's HTML or other string format, use as-is
+            reportData = item.report_data;
+          }
+        } else {
+          // Already an object
+          reportData = item.report_data;
+        }
+        setReportState({
+          loading: false,
+          data: reportData,
+        });
+      } catch (error) {
+        console.error("Error parsing report data from history:", error);
+        setReportState({
+          loading: false,
+          data: item.report_data, // Fallback to original string
+        });
+      }
     } else {
       console.log("No report data in history item");
       setReportState({
         loading: false,
         data: null,
-        pdfLoading: false,
       });
     }
     
@@ -867,12 +1067,15 @@ function IngredientAnalyzer({
       setText("");
     }
     
-    // Set name and tag
+    // Set name and tags
     setName(item.name);
-    setTag(item.tag || "");
+    setTags(item.tags || []);
     
     // Restore expected benefits
     setExpectedBenefits(item.expected_benefits || "");
+    
+    // Restore notes
+    setNotes(item.notes || "");
     
     // Restore analysis results
     setResp(item.analysis_result);
@@ -975,13 +1178,40 @@ function IngredientAnalyzer({
     if (inputMode === "inci" && !parsed.length) return;
     if (inputMode === "url" && !extractedData?.ingredients.length) return;
     
-    // Validate expected benefits is not empty
-    if (!expectedBenefits.trim()) {
-      window.alert("Please enter expected benefits before analyzing");
-      return;
-    }
+    // Expected benefits is optional - no validation needed
 
     setLoading(true);
+    let historyId: string | null = null;
+    
+    // Save to history immediately with in_progress status if name is provided and user is logged in
+    if (name.trim() && userId) {
+      try {
+        const inputData = inputMode === "inci" ? text : url;
+        const result = await api.saveDecodeHistory(
+          {
+            name: name.trim(),
+            tags: tags.length > 0 ? tags : undefined,
+            input_type: inputMode,
+            input_data: inputData,
+            status: "in_progress",
+            report_data: null,
+            expected_benefits: expectedBenefits.trim() || null,
+            notes: notes.trim() || "",
+          },
+          userId
+        );
+        historyId = result.id;
+        setCurrentHistoryId(historyId);
+        // Refresh history if sidebar is open
+        if (showHistory) {
+          loadHistory();
+        }
+      } catch (error) {
+        console.error("Error saving history (in_progress):", error);
+        // Continue with analysis even if history save fails
+      }
+    }
+    
     try {
       let ingredientsToAnalyze = parsed;
       
@@ -998,24 +1228,44 @@ function IngredientAnalyzer({
       setIsLoadingFromHistory(false);
       hasLoadedFromHistoryRef.current = false;
       
-      // Save to history if name is provided and user is logged in
-      // Note: Report will be saved later when it's generated
-      if (name.trim() && userId) {
+      // Update history with completed status and analysis result
+      if (historyId && userId) {
+        try {
+          await api.updateDecodeHistory(
+            historyId,
+            {
+              status: "completed",
+              analysis_result: data,
+              report_data: null, // Will be updated when report is generated
+            },
+            userId
+          );
+          // Refresh history if sidebar is open
+          if (showHistory) {
+            loadHistory();
+          }
+        } catch (error) {
+          console.error("Error updating history (completed):", error);
+          // Don't block the user if history update fails
+        }
+      } else if (name.trim() && userId && !historyId) {
+        // Fallback: Save to history if we didn't save earlier (shouldn't happen, but just in case)
         try {
           const inputData = inputMode === "inci" ? text : url;
           const result = await api.saveDecodeHistory(
             {
               name: name.trim(),
-              tag: tag.trim() || undefined,
+              tags: tags.length > 0 ? tags : undefined,
               input_type: inputMode,
               input_data: inputData,
               analysis_result: data,
               report_data: null, // Will be updated when report is generated
               expected_benefits: expectedBenefits.trim() || null,
+              notes: notes.trim() || "",
+              status: "completed",
             },
             userId
           );
-          // Store history ID so we can update it with report later
           setCurrentHistoryId(result.id);
           // Refresh history if sidebar is open
           if (showHistory) {
@@ -1077,10 +1327,29 @@ function IngredientAnalyzer({
       }
     } catch (error) {
       console.error("Error analyzing ingredients:", error);
+      
+      // Update history status to failed if we have a historyId
+      if (historyId && userId) {
+        try {
+          await api.updateDecodeHistory(
+            historyId,
+            {
+              status: "failed",
+            },
+            userId
+          );
+          // Refresh history if sidebar is open
+          if (showHistory) {
+            loadHistory();
+          }
+        } catch (updateError) {
+          console.error("Error updating history (failed):", updateError);
+        }
+      }
     } finally {
       setLoading(false);
     }
-  }, [parsed, inputMode, extractedData, name, tag, text, url, showHistory, loadHistory, userId, expectedBenefits]);
+  }, [parsed, inputMode, extractedData, name, tags, text, url, showHistory, loadHistory, userId, expectedBenefits, api]);
 
   const generateReport = useCallback(async () => {
     // Ensure we have analysis results before generating report
@@ -1224,6 +1493,117 @@ function IngredientAnalyzer({
     }
   }, [parsed, resp, currentHistoryId, userId, expectedBenefits]);
 
+  // Generate PPT and show preview
+  const generateAndPreviewPPT = useCallback(async () => {
+    if (!reportState.data) {
+      window.alert("No report data available. Please generate a report first.");
+      return;
+    }
+
+    // Convert string (JSON) to object if needed
+    let reportDataObj: FormulationReportData;
+    if (typeof reportState.data === "string") {
+      // Check if it's a JSON string
+      const trimmed = reportState.data.trim();
+      if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+        try {
+          reportDataObj = JSON.parse(reportState.data) as FormulationReportData;
+        } catch (parseError) {
+          window.alert("Report data is in HTML format. Please regenerate the report to download PPT.");
+          return;
+        }
+      } else {
+        // It's HTML, can't use for PPT
+        window.alert("Report data is in HTML format. Please regenerate the report to download PPT.");
+        return;
+      }
+    } else {
+      // Already an object
+      reportDataObj = reportState.data;
+    }
+    
+    setReportState((prev) => ({ ...prev, pptLoading: true }));
+    try {
+      const blob = await api.downloadPPT(reportDataObj);
+
+      // Ensure blob has correct MIME type
+      const pptBlob = blob instanceof Blob 
+        ? new Blob([blob], { 
+            type: "application/vnd.openxmlformats-officedocument.presentationml.presentation" 
+          })
+        : blob;
+
+      // Create blob URL for preview
+      const previewUrl = window.URL.createObjectURL(pptBlob);
+      
+      // Clean up previous preview URL if exists
+      if (reportState.pptPreviewUrl) {
+        window.URL.revokeObjectURL(reportState.pptPreviewUrl);
+      }
+      
+      setReportState((prev) => ({ 
+        ...prev, 
+        pptLoading: false,
+        pptPreviewUrl: previewUrl,
+        showPptPreview: true,
+      }));
+    } catch (error: any) {
+      console.error("Error generating PPT:", error);
+      const errorMessage = error?.message || "Error generating PPT. Please try again.";
+      window.alert(errorMessage);
+      setReportState((prev) => ({ ...prev, pptLoading: false }));
+    }
+  }, [reportState.data, reportState.pptPreviewUrl]);
+
+  // Download PPT handler (from preview)
+  const downloadPPT = useCallback(async () => {
+    if (!reportState.pptPreviewUrl) {
+      window.alert("No PPT available. Please generate PPT first.");
+      return;
+    }
+
+    try {
+      // Fetch the blob from the URL to ensure we have the actual file
+      const response = await fetch(reportState.pptPreviewUrl);
+      const blob = await response.blob();
+      
+      // Create a new blob with explicit MIME type to ensure compatibility
+      const pptBlob = new Blob([blob], { 
+        type: "application/vnd.openxmlformats-officedocument.presentationml.presentation" 
+      });
+      
+      // Create download link
+      const url = window.URL.createObjectURL(pptBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "formulation_report.pptx");
+      link.style.display = "none";
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }, 100);
+    } catch (error) {
+      console.error("Error downloading PPT:", error);
+      window.alert("Error downloading PPT. Please try again.");
+    }
+  }, [reportState.pptPreviewUrl]);
+
+  // Close preview and clean up
+  const closePptPreview = useCallback(() => {
+    if (reportState.pptPreviewUrl) {
+      window.URL.revokeObjectURL(reportState.pptPreviewUrl);
+    }
+    setReportState((prev) => ({ 
+      ...prev, 
+      showPptPreview: false,
+      pptPreviewUrl: null,
+    }));
+  }, [reportState.pptPreviewUrl]);
+
   // Auto-generate report when switching to analysis tab (only if report doesn't exist)
   useEffect(() => {
     // Don't auto-generate if:
@@ -1332,8 +1712,21 @@ function IngredientAnalyzer({
                         tabIndex={0}
                       >
                         <div className="font-medium text-sm truncate">{item.name}</div>
-                        <div className="text-xs text-muted-foreground mt-1.5">
-                          {item.input_type === "inci" ? "INCI List" : "URL"}
+                        <div className="flex items-center gap-2 mt-1.5">
+                          <div className="text-xs text-muted-foreground">
+                            {item.input_type === "inci" ? "INCI List" : "URL"}
+                          </div>
+                          {item.status && (
+                            <span className={`text-xs px-1.5 py-0.5 rounded ${
+                              item.status === "completed" 
+                                ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                                : item.status === "in_progress"
+                                ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
+                                : "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"
+                            }`}>
+                              {item.status === "in_progress" ? "In Progress" : item.status === "completed" ? "Completed" : "Failed"}
+                            </span>
+                          )}
                         </div>
                         <div className="text-xs text-muted-foreground mt-0.5">
                           {(() => {
@@ -1471,36 +1864,70 @@ function IngredientAnalyzer({
         </div>
 
         {/* Name and Tag Inputs */}
-        <div className="mt-4 grid grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="decode-name" className="block text-sm font-medium mb-1">
-              Name <span className="text-red-500">*</span>
-            </label>
-            <Input
-              id="decode-name"
-              placeholder="e.g. Vitamin C Serum"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="h-9"
-            />
+        <div className="mt-4 flex items-start justify-between gap-4">
+          <div className="grid grid-cols-2 gap-4 flex-1">
+            <div>
+              <label htmlFor="decode-name" className="block text-sm font-medium mb-1">
+                Name <span className="text-red-500">*</span>
+              </label>
+              <Input
+                id="decode-name"
+                placeholder="e.g. Vitamin C Serum"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="h-9"
+              />
+            </div>
+            <div>
+              <label htmlFor="decode-tag" className="block text-sm font-medium mb-1">
+                Tags (optional)
+              </label>
+              <Input
+                id="decode-tag"
+                placeholder="e.g. skincare, serum, anti-aging"
+                value={tags.join(", ")}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  const tagArray = value
+                    .split(",")
+                    .map((tag) => tag.trim())
+                    .filter((tag) => tag.length > 0);
+                  setTags(tagArray);
+                }}
+                className="h-9"
+              />
+            </div>
           </div>
-          <div>
-            <label htmlFor="decode-tag" className="block text-sm font-medium mb-1">
-              Tag (optional)
-            </label>
-            <Input
-              id="decode-tag"
-              placeholder="e.g. skincare, serum"
-              value={tag}
-              onChange={(e) => setTag(e.target.value)}
-              className="h-9"
+          {/* Notes Button - Always Visible */}
+          <div className="flex items-end">
+            <NotesPad
+              notes={notes}
+              onSave={async (newNotes) => {
+                setNotes(newNotes);
+                if (currentHistoryId && userId) {
+                  try {
+                    await api.updateDecodeHistory(
+                      currentHistoryId,
+                      { notes: newNotes },
+                      userId
+                    );
+                  } catch (error) {
+                    console.error("Error saving notes:", error);
+                  }
+                }
+              }}
+              placeholder="Add your notes about this analysis..."
+              autoSave={true}
+              autoSaveDelay={2000}
+              buttonLabel="Notes"
+              buttonVariant="outlined"
             />
           </div>
         </div>
         
         <div className="mt-4">
           <label htmlFor="expected-benefits" className="block text-sm font-medium mb-1">
-            Expected Benefits <span className="text-red-500">*</span>
+            Expected Benefits <span className="text-muted-foreground">(optional)</span>
           </label>
           <Textarea
             id="expected-benefits"
@@ -1508,10 +1935,9 @@ function IngredientAnalyzer({
             value={expectedBenefits}
             onChange={(e) => setExpectedBenefits(e.target.value)}
             className="h-20 resize-y"
-            required
           />
           <p className="text-xs text-muted-foreground mt-1">
-            Enter the benefits you expect from this formulation. The report will analyze if these can be achieved.
+            Enter the benefits you expect from this formulation. The report will analyze if these can be achieved. (Optional - leave blank if not needed)
           </p>
         </div>
 
@@ -1640,6 +2066,29 @@ function IngredientAnalyzer({
         <div className="mt-6 w-full">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-xl font-semibold">Analysis Results</h2>
+            {/* Notes Button */}
+            <NotesPad
+              notes={notes}
+              onSave={async (newNotes) => {
+                setNotes(newNotes);
+                if (currentHistoryId && userId) {
+                  try {
+                    await api.updateDecodeHistory(
+                      currentHistoryId,
+                      { notes: newNotes },
+                      userId
+                    );
+                  } catch (error) {
+                    console.error("Error saving notes:", error);
+                  }
+                }
+              }}
+              placeholder="Add your notes about this analysis..."
+              autoSave={true}
+              autoSaveDelay={2000}
+              buttonLabel="Notes"
+              buttonVariant="outlined"
+            />
           </div>
 
           {/* Tabs */}
@@ -1684,16 +2133,6 @@ function IngredientAnalyzer({
               {/* Sub-tabs for Actives/Excipients */}
               <div className="flex gap-2 border-b pb-2">
                 <button
-                  onClick={() => setMatchedSubTab("all")}
-                  className={`px-4 py-2 rounded-t-lg font-medium transition-colors ${
-                    matchedSubTab === "all"
-                      ? "bg-indigo-600 text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  All Ingredients
-                </button>
-                <button
                   onClick={() => setMatchedSubTab("actives")}
                   className={`px-4 py-2 rounded-t-lg font-medium transition-colors ${
                     matchedSubTab === "actives"
@@ -1733,12 +2172,17 @@ function IngredientAnalyzer({
                   });
                 });
                 
-                // Filter by category if sub-tab is selected
-                const filteredItems = matchedSubTab === "all" 
-                  ? allUniqueItems 
-                  : allUniqueItems.filter((item: MatchedItem) => {
-                      const category = item.category_decided?.toUpperCase();
-                      // Only include items that have a category_decided value and it matches
+                // Filter by category (use category from ingre_inci database with majority rule)
+                const filteredItems = allUniqueItems.filter((item: MatchedItem) => {
+                      // Get category from database using majority rule for combinations
+                      let category: string | null = getCategoryFromDB(item.matched_inci);
+                      
+                      // Fallback to category_decided if not found in database
+                      if (!category) {
+                        category = item.category_decided?.toUpperCase() || null;
+                      }
+                      
+                      // Only include items that have a category and it matches
                       if (!category) return false; // Exclude items without category
                       if (matchedSubTab === "actives") return category === "ACTIVE";
                       if (matchedSubTab === "excipients") return category === "EXCIPIENT";
@@ -1769,7 +2213,14 @@ function IngredientAnalyzer({
                       <SectionTitle>Branded Ingredients</SectionTitle>
                       <span className="text-sm text-gray-600">({filteredItems.length} unique branded {filteredItems.length === 1 ? "ingredient" : "ingredients"})</span>
                     </div>
-                    {Array.from(itemsByInci.entries()).map(([inciKey, items]) => {
+                    {Array.from(itemsByInci.entries())
+                      .sort(([inciKeyA], [inciKeyB]) => {
+                        // Sort by number of INCI: more INCI first, then lower, single at last
+                        const countA = inciKeyA.split(", ").length;
+                        const countB = inciKeyB.split(", ").length;
+                        return countB - countA; // Descending order
+                      })
+                      .map(([inciKey, items]) => {
                       // Use state to track "show more" for each INCI group
                       const showAll = expandedGroups.has(inciKey);
                       const displayItems = showAll ? items : items.slice(0, 3);
@@ -1905,18 +2356,23 @@ function IngredientAnalyzer({
                   }
                 });
                 
-                // Filter by category if sub-tab is selected
-                const filteredBrandedItems = matchedSubTab === "all" 
-                  ? uniqueItems 
-                  : uniqueItems.filter((item: MatchedItem) => {
-                      const category = item.category_decided?.toUpperCase();
+                // Filter by category (use category from ingre_inci database with majority rule)
+                const filteredBrandedItems = uniqueItems.filter((item: MatchedItem) => {
+                      // Get category from database using majority rule for combinations
+                      let category: string | null = getCategoryFromDB(item.matched_inci);
+                      
+                      // Fallback to category_decided if not found in database
+                      if (!category) {
+                        category = item.category_decided?.toUpperCase() || null;
+                      }
+                      
                       if (!category) return false; // Exclude items without category
                       if (matchedSubTab === "actives") return category === "ACTIVE";
                       if (matchedSubTab === "excipients") return category === "EXCIPIENT";
                       return false; // Don't include items that don't match
                     });
                 
-                if (filteredBrandedItems.length === 0 && matchedSubTab !== "all") {
+                if (filteredBrandedItems.length === 0) {
                   return (
                     <div className="text-center py-8 text-gray-500">
                       No {matchedSubTab === "actives" ? "Actives" : matchedSubTab === "excipients" ? "Excipients" : ""} found in this category.
@@ -1943,7 +2399,14 @@ function IngredientAnalyzer({
                       </Badge>
                       <span className="text-sm text-gray-600">({filteredBrandedItems.length} unique branded {filteredBrandedItems.length === 1 ? "ingredient" : "ingredients"})</span>
                     </div>
-                    {Array.from(itemsByInci.entries()).map(([inciKey, items]) => {
+                    {Array.from(itemsByInci.entries())
+                      .sort(([inciKeyA], [inciKeyB]) => {
+                        // Sort by number of INCI: more INCI first, then lower, single at last
+                        const countA = inciKeyA.split(", ").length;
+                        const countB = inciKeyB.split(", ").length;
+                        return countB - countA; // Descending order
+                      })
+                      .map(([inciKey, items]) => {
                       const showAll = expandedGroups.has(inciKey);
                       const displayItems = showAll ? items : items.slice(0, 3);
                       const hasMore = items.length > 3;
@@ -2066,18 +2529,23 @@ function IngredientAnalyzer({
 
               {/* General Ingredients Section */}
               {resp.general_ingredients_list && resp.general_ingredients_list.length > 0 && (() => {
-                // Filter by category if sub-tab is selected (though general ingredients typically don't have category_decided)
-                const filteredGeneralItems = matchedSubTab === "all" 
-                  ? resp.general_ingredients_list 
-                  : resp.general_ingredients_list.filter((item: MatchedItem) => {
-                      const category = item.category_decided?.toUpperCase();
+                // Filter by category (use category from ingre_inci database with majority rule)
+                const filteredGeneralItems = resp.general_ingredients_list.filter((item: MatchedItem) => {
+                      // Get category from database using majority rule for combinations
+                      let category: string | null = getCategoryFromDB(item.matched_inci);
+                      
+                      // Fallback to category_decided if not found in database
+                      if (!category) {
+                        category = item.category_decided?.toUpperCase() || null;
+                      }
+                      
                       if (!category) return false; // Exclude items without category
                       if (matchedSubTab === "actives") return category === "ACTIVE";
                       if (matchedSubTab === "excipients") return category === "EXCIPIENT";
                       return false; // Don't include items that don't match
                     });
                 
-                if (filteredGeneralItems.length === 0 && matchedSubTab !== "all") {
+                if (filteredGeneralItems.length === 0) {
                   return null; // Don't show section if no items match
                 }
                 
@@ -2090,7 +2558,14 @@ function IngredientAnalyzer({
                     </Badge>
                     <span className="text-sm text-gray-600">({filteredGeneralItems.length})</span>
                   </div>
-                  {filteredGeneralItems.map((item) => (
+                  {filteredGeneralItems
+                    .sort((a, b) => {
+                      // Sort by number of INCI: more INCI first, then lower, single at last
+                      const countA = a.matched_inci?.length || 0;
+                      const countB = b.matched_inci?.length || 0;
+                      return countB - countA; // Descending order
+                    })
+                    .map((item) => (
                     <div key={item.ingredient_name} className="space-y-3">
                       <div className="flex flex-wrap gap-1.5">
                         {item.matched_inci?.map((i) => (
@@ -2286,7 +2761,11 @@ function IngredientAnalyzer({
                 {reportState.data && typeof reportState.data === "object" && (
                   <div className="mt-6">
                     <div className="rounded-lg border bg-white p-6">
-                      <FormulationReportViewer reportData={reportState.data} />
+                      <FormulationReportViewer 
+                        reportData={reportState.data} 
+                        onGeneratePPT={generateAndPreviewPPT}
+                        isGeneratingPPT={reportState.pptLoading}
+                      />
                     </div>
                   </div>
                 )}
@@ -2299,7 +2778,11 @@ function IngredientAnalyzer({
                       return (
                         <div className="mt-6">
                           <div className="rounded-lg border bg-white p-6">
-                            <FormulationReportViewer reportData={parsedData} />
+                            <FormulationReportViewer 
+                              reportData={parsedData} 
+                              onGeneratePPT={generateAndPreviewPPT}
+                              isGeneratingPPT={reportState.pptLoading}
+                            />
                           </div>
                         </div>
                       );
@@ -2817,6 +3300,70 @@ function IngredientAnalyzer({
               Close
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* PPT Preview Dialog */}
+      <Dialog open={reportState.showPptPreview || false} onOpenChange={(open) => {
+        if (!open) {
+          closePptPreview();
+        }
+      }}>
+        <DialogContent className="max-w-6xl max-h-[90vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>PPT Preview & Download</DialogTitle>
+            <DialogDescription>
+              Your presentation has been generated successfully. Preview it below or download to your computer.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 py-4">
+            {/* Preview Section */}
+            <div className="border rounded-lg overflow-hidden bg-gradient-to-br from-purple-50 to-blue-50 p-8">
+              <div className="text-center">
+                <div className="text-6xl mb-4">📊</div>
+                <p className="text-lg font-medium text-gray-800 mb-2">
+                  Presentation Generated Successfully!
+                </p>
+                <p className="text-sm text-gray-600 mb-4">
+                  Your formulation report presentation is ready. Download it to view and share with your team.
+                </p>
+                <div className="bg-white rounded-lg p-4 border border-gray-200 max-w-md mx-auto">
+                  <p className="text-xs text-gray-500 mb-2">File Information:</p>
+                  <div className="flex items-center justify-center gap-2 text-sm text-gray-700">
+                    <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span className="font-medium">formulation_report.pptx</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Info and Actions */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-800">
+                <strong>💡 Tip:</strong> After downloading, you can open this file with Microsoft PowerPoint, Google Slides, LibreOffice Impress, or any compatible presentation software.
+              </p>
+            </div>
+            
+            <div className="flex justify-end gap-2 pt-2 border-t">
+              <Button
+                variant="outline"
+                onClick={closePptPreview}
+              >
+                Close
+              </Button>
+              <Button
+                onClick={downloadPPT}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Download PPT
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
       </div>

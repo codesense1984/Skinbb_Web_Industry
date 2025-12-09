@@ -7,6 +7,7 @@ import { basePythonApiUrl } from "@/core/config/baseUrls";
 import { cn } from "@/core/utils";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
 import { XMarkIcon } from "@heroicons/react/24/outline";
+import { NotesPad } from "../../components/NotesPad";
 
 interface ProductComparisonItem {
   product_name: string | null;
@@ -40,18 +41,19 @@ const Compare = () => {
   const [input1, setInput1] = useState("");
   const [input2, setInput2] = useState("");
   const [name, setName] = useState("");
-  const [tag, setTag] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
+  const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [comparisonData, setComparisonData] = useState<CompareProductsResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [_currentHistoryId, setCurrentHistoryId] = useState<string | null>(null);
+  const [currentHistoryId, setCurrentHistoryId] = useState<string | null>(null);
   
   // History sidebar state
   const [showHistory, setShowHistory] = useState(false);
   const [historyItems, setHistoryItems] = useState<Array<{
     id: string;
     name: string;
-    tag?: string;
+    tags?: string[];
     input1: string;
     input2: string;
     input1_type: string;
@@ -67,12 +69,14 @@ const Compare = () => {
     async saveCompareHistory(
       data: {
         name: string;
-        tag?: string;
+        tags?: string[];
         input1: string;
         input2: string;
         input1_type: string;
         input2_type: string;
-        comparison_result: CompareProductsResponse;
+        comparison_result?: CompareProductsResponse;
+        notes?: string;
+        status?: "in_progress" | "completed" | "failed";
       },
       userId: string | undefined
     ): Promise<{ success: boolean; id: string; message: string }> {
@@ -101,12 +105,14 @@ const Compare = () => {
     ): Promise<{ items: Array<{
       id: string;
       name: string;
-      tag?: string;
+      tags?: string[];
       input1: string;
       input2: string;
       input1_type: string;
       input2_type: string;
-      comparison_result: CompareProductsResponse;
+      comparison_result?: CompareProductsResponse;
+      status?: "in_progress" | "completed" | "failed";
+      notes?: string;
       created_at: string;
     }>; total: number }> {
       if (!userId) {
@@ -116,6 +122,30 @@ const Compare = () => {
         `${basePythonApiUrl}/api/compare-history`,
         {
           params,
+          headers: {
+            "X-User-Id": userId,
+          },
+        }
+      );
+      return response.data;
+    },
+
+    async updateCompareHistory(
+      historyId: string,
+      data: { 
+        notes?: string;
+        status?: "in_progress" | "completed" | "failed";
+        comparison_result?: CompareProductsResponse;
+      },
+      userId: string | undefined
+    ): Promise<{ success: boolean; message: string }> {
+      if (!userId) {
+        throw new Error("User ID is required to update history");
+      }
+      const response = await axios.patch(
+        `${basePythonApiUrl}/api/compare-history/${historyId}`,
+        data,
+        {
           headers: {
             "X-User-Id": userId,
           },
@@ -177,14 +207,27 @@ const Compare = () => {
   const loadHistoryItem = useCallback((item: {
     id: string;
     name: string;
-    tag?: string;
+    tags?: string[];
     input1: string;
     input2: string;
     input1_type: string;
     input2_type: string;
-    comparison_result: CompareProductsResponse;
+    comparison_result?: CompareProductsResponse;
+    notes?: string;
     created_at: string;
+    status?: "in_progress" | "completed" | "failed";
   }) => {
+    // Don't load items that are still in progress or failed
+    if (item.status === "in_progress" || item.status === "failed") {
+      window.alert(`This comparison is ${item.status === "in_progress" ? "still in progress" : "failed"}. Please wait for it to complete or start a new comparison.`);
+      return;
+    }
+    
+    // Ensure comparison_result exists
+    if (!item.comparison_result) {
+      window.alert("Comparison result not available. This item may still be processing.");
+      return;
+    }
     // Set input mode (use input1_type as default)
     setInputMode(item.input1_type as "url" | "inci");
     
@@ -192,9 +235,12 @@ const Compare = () => {
     setInput1(item.input1);
     setInput2(item.input2);
     
-    // Set name and tag
+    // Set name and tags
     setName(item.name);
-    setTag(item.tag || "");
+    setTags(item.tags || []);
+    
+    // Restore notes
+    setNotes(item.notes || "");
     
     // Restore comparison results
     setComparisonData(item.comparison_result);
@@ -232,6 +278,36 @@ const Compare = () => {
 
     setLoading(true);
     setError(null);
+    let historyId: string | null = null;
+    
+    // Save to history immediately with in_progress status if name is provided and user is logged in
+    if (name.trim() && userId) {
+      try {
+        const result = await api.saveCompareHistory(
+          {
+            name: name.trim(),
+            tags: tags.length > 0 ? tags : undefined,
+            input1: input1.trim(),
+            input2: input2.trim(),
+            input1_type: inputMode,
+            input2_type: inputMode,
+            status: "in_progress",
+            notes: notes.trim() || "",
+          },
+          userId
+        );
+        historyId = result.id;
+        setCurrentHistoryId(historyId);
+        // Refresh history if sidebar is open
+        if (showHistory) {
+          loadHistory();
+        }
+      } catch (error) {
+        console.error("Error saving history (in_progress):", error);
+        // Continue with comparison even if history save fails
+      }
+    }
+    
     try {
       const response = await axios.post<CompareProductsResponse>(
         `${basePythonApiUrl}/api/compare-products`,
@@ -245,34 +321,73 @@ const Compare = () => {
 
       setComparisonData(response.data);
       
-      // Save to history if name is provided and user is logged in
-      if (name.trim() && userId) {
+      // Update history with completed status and comparison result
+      if (historyId && userId) {
+        try {
+          await api.updateCompareHistory(
+            historyId,
+            {
+              status: "completed",
+              comparison_result: response.data,
+            },
+            userId
+          );
+          // Refresh history if sidebar is open
+          if (showHistory) {
+            loadHistory();
+          }
+        } catch (error) {
+          console.error("Error updating history (completed):", error);
+          // Don't block the user if history update fails
+        }
+      } else if (name.trim() && userId && !historyId) {
+        // Fallback: Save to history if we didn't save earlier (shouldn't happen, but just in case)
         try {
           const result = await api.saveCompareHistory(
             {
               name: name.trim(),
-              tag: tag.trim() || undefined,
+              tags: tags.length > 0 ? tags : undefined,
               input1: input1.trim(),
               input2: input2.trim(),
               input1_type: inputMode,
               input2_type: inputMode,
               comparison_result: response.data,
+              notes: notes.trim() || "",
+              status: "completed",
             },
             userId
           );
-          // Store history ID
           setCurrentHistoryId(result.id);
           // Refresh history if sidebar is open
           if (showHistory) {
             loadHistory();
           }
-    } catch (error) {
+        } catch (error) {
           console.error("Error saving history:", error);
           // Don't block the user if history save fails
         }
       }
     } catch (error: unknown) {
       console.error("Error comparing products:", error);
+      
+      // Update history status to failed if we have a historyId
+      if (historyId && userId) {
+        try {
+          await api.updateCompareHistory(
+            historyId,
+            {
+              status: "failed",
+            },
+            userId
+          );
+          // Refresh history if sidebar is open
+          if (showHistory) {
+            loadHistory();
+          }
+        } catch (updateError) {
+          console.error("Error updating history (failed):", updateError);
+        }
+      }
       let errorMessage = "Error comparing products. Please try again.";
       if (error && typeof error === "object" && "response" in error) {
         const httpError = error as { response?: { data?: { detail?: string } } };
@@ -287,7 +402,7 @@ const Compare = () => {
     } finally {
       setLoading(false);
     }
-  }, [input1, input2, inputMode, name, tag, userId, showHistory, loadHistory, api]);
+  }, [input1, input2, inputMode, name, tags, userId, showHistory, loadHistory, api]);
 
   const renderBooleanValue = (value: boolean | null) => {
     if (value === null) {
@@ -425,8 +540,21 @@ const Compare = () => {
                           tabIndex={0}
                         >
                           <div className="font-medium text-sm truncate">{item.name}</div>
-                          <div className="text-xs text-muted-foreground mt-1.5">
-                            {item.input1_type === "inci" ? "INCI" : "URL"} vs {item.input2_type === "inci" ? "INCI" : "URL"}
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <div className="text-xs text-muted-foreground">
+                              {item.input1_type === "inci" ? "INCI" : "URL"} vs {item.input2_type === "inci" ? "INCI" : "URL"}
+                            </div>
+                            {item.status && (
+                              <span className={`text-xs px-1.5 py-0.5 rounded ${
+                                item.status === "completed" 
+                                  ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                                  : item.status === "in_progress"
+                                  ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
+                                  : "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"
+                              }`}>
+                                {item.status === "in_progress" ? "In Progress" : item.status === "completed" ? "Completed" : "Failed"}
+                              </span>
+                            )}
                           </div>
                           <div className="text-xs text-muted-foreground mt-0.5">
                             {(() => {
@@ -556,32 +684,66 @@ const Compare = () => {
             </div>
             
             {/* Name and Tag Inputs */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="compare-name" className="block text-sm font-medium mb-1">
-                  Name <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  id="compare-name"
-                  placeholder="e.g. Serum Comparison"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="h-9"
+            <div className="flex items-start justify-between gap-4">
+              <div className="grid grid-cols-2 gap-4 flex-1">
+                <div>
+                  <label htmlFor="compare-name" className="block text-sm font-medium mb-1">
+                    Name <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    id="compare-name"
+                    placeholder="e.g. Serum Comparison"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="h-9"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="compare-tag" className="block text-sm font-medium mb-1">
+                    Tags (optional)
+                  </label>
+                  <Input
+                    id="compare-tag"
+                    placeholder="e.g. serums, comparison, anti-aging"
+                    value={tags.join(", ")}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      const tagArray = value
+                        .split(",")
+                        .map((tag) => tag.trim())
+                        .filter((tag) => tag.length > 0);
+                      setTags(tagArray);
+                    }}
+                    className="h-9"
+                  />
+                </div>
+              </div>
+              {/* Notes Button - Always Visible */}
+              <div className="flex items-end">
+                <NotesPad
+                  notes={notes}
+                  onSave={async (newNotes) => {
+                    setNotes(newNotes);
+                    if (currentHistoryId && userId) {
+                      try {
+                        await api.updateCompareHistory(
+                          currentHistoryId,
+                          { notes: newNotes },
+                          userId
+                        );
+                      } catch (error) {
+                        console.error("Error saving notes:", error);
+                      }
+                    }
+                  }}
+                  placeholder="Add your notes about this comparison..."
+                  autoSave={true}
+                  autoSaveDelay={2000}
+                  buttonLabel="Notes"
+                  buttonVariant="outlined"
                 />
               </div>
-              <div>
-                <label htmlFor="compare-tag" className="block text-sm font-medium mb-1">
-                  Tag (optional)
-                </label>
-                <Input
-                  id="compare-tag"
-                  placeholder="e.g. serums, comparison"
-                  value={tag}
-                  onChange={(e) => setTag(e.target.value)}
-                  className="h-9"
-                />
-              </div>
-          </div>
+            </div>
             
           <Button
             onClick={handleCompare}
@@ -600,13 +762,39 @@ const Compare = () => {
 
         {/* Comparison Table */}
         {comparisonData && (
-          <div className="bg-background rounded-lg border overflow-hidden">
-            <div className="p-4 border-b bg-muted/30">
-              <h3 className="text-lg font-semibold">Comparison Results</h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                Processing time: {comparisonData.processing_time.toFixed(2)}s
-              </p>
-            </div>
+          <>
+            <div className="bg-background rounded-lg border overflow-hidden">
+              <div className="p-4 border-b bg-muted/30 flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold">Comparison Results</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Processing time: {comparisonData.processing_time.toFixed(2)}s
+                  </p>
+                </div>
+                {/* Notes Button */}
+                <NotesPad
+                  notes={notes}
+                  onSave={async (newNotes) => {
+                    setNotes(newNotes);
+                    if (currentHistoryId && userId) {
+                      try {
+                        await api.updateCompareHistory(
+                          currentHistoryId,
+                          { notes: newNotes },
+                          userId
+                        );
+                      } catch (error) {
+                        console.error("Error saving notes:", error);
+                      }
+                    }
+                  }}
+                  placeholder="Add your notes about this comparison..."
+                  autoSave={true}
+                  autoSaveDelay={2000}
+                  buttonLabel="Notes"
+                  buttonVariant="outlined"
+                />
+              </div>
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <tbody>
@@ -771,6 +959,7 @@ const Compare = () => {
               </table>
             </div>
           </div>
+          </>
         )}
         </div>
       </div>

@@ -9,10 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/core/components/ui/table";
-import { Download, FileText } from "lucide-react";
-import { jsPDF } from "jspdf";
-// @ts-ignore - jspdf-autotable extends jsPDF prototype
-import "jspdf-autotable";
+import { FileText } from "lucide-react";
 
 // Types
 interface ReportTableRow {
@@ -34,295 +31,19 @@ interface FormulationReportData {
 
 interface FormulationReportViewerProps {
   reportData: FormulationReportData;
-  onDownloadPDF?: () => void;
+  onDownloadPPT?: () => void;
+  onGeneratePPT?: () => void;
+  isGeneratingPPT?: boolean;
 }
 
 export function FormulationReportViewer({
   reportData,
-  onDownloadPDF,
+  onDownloadPPT,
+  onGeneratePPT,
+  isGeneratingPPT: externalIsGeneratingPPT,
 }: FormulationReportViewerProps) {
-  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
-
-  const downloadPDF = () => {
-    setIsGeneratingPDF(true);
-    try {
-      const doc = new jsPDF({
-        orientation: 'p' as const,
-        unit: 'mm' as const,
-        format: 'a4' as const
-      });
-      let yPos = 20;
-
-      // Title
-      doc.setFontSize(20);
-      doc.text("FormulationLooker 1.0", 105, yPos, { align: "center" });
-      yPos += 10;
-      doc.setFontSize(12);
-      doc.text("Professional Cosmetic Formulation Analysis", 105, yPos, {
-        align: "center",
-      });
-      yPos += 15;
-
-      // 1) Submitted INCI List
-      doc.setFontSize(16);
-      doc.text("1) Submitted INCI List", 14, yPos);
-      yPos += 8;
-      doc.setFontSize(10);
-      reportData.inci_list.forEach((ingredient) => {
-        if (yPos > 280) {
-          doc.addPage();
-          yPos = 20;
-        }
-        doc.text(`• ${ingredient}`, 20, yPos);
-        yPos += 6;
-      });
-      yPos += 10;
-
-      // 2) Analysis Table
-      if (reportData.analysis_table.length > 0) {
-        if (yPos > 250) {
-          doc.addPage();
-          yPos = 20;
-        }
-        doc.setFontSize(16);
-        doc.text("2) Analysis", 14, yPos);
-        yPos += 10;
-
-        const analysisData = reportData.analysis_table.map((row) => {
-          // Handle both array format and object with cells property
-          if (Array.isArray(row)) {
-            return row;
-          }
-          return row.cells || [];
-        });
-        if (analysisData.length > 0 && analysisData[0].length > 0) {
-          // Use first row as headers if available
-          const headers = analysisData[0];
-          const rows = analysisData.slice(1);
-
-          (doc as any).autoTable({
-            startY: yPos,
-            head: [headers],
-            body: rows,
-            styles: { fontSize: 8, cellPadding: 2 },
-            headStyles: { fillColor: [0, 123, 255] },
-            margin: { left: 14, right: 14 },
-            didParseCell: function(data: any) {
-              // Handle multi-line cells
-              if (data.cell.text && data.cell.text.length > 0) {
-                const text = data.cell.text[0];
-                if (typeof text === 'string' && text.includes('\n')) {
-                  data.cell.text = text.split('\n');
-                }
-              }
-            }
-          });
-          yPos = (doc as any).lastAutoTable.finalY + 10;
-        }
-      }
-
-      // 3) Compliance Panel
-      if (reportData.compliance_panel.length > 0) {
-        if (yPos > 250) {
-          doc.addPage();
-          yPos = 20;
-        }
-        doc.setFontSize(16);
-        doc.text("3) Compliance Panel", 14, yPos);
-        yPos += 10;
-
-        const complianceData = reportData.compliance_panel.map((row) => {
-          return Array.isArray(row) ? row : (row.cells || []);
-        });
-        if (complianceData.length > 0) {
-          const headers = complianceData[0];
-          const rows = complianceData.slice(1);
-
-          (doc as any).autoTable({
-            startY: yPos,
-            head: [headers],
-            body: rows,
-            styles: { fontSize: 8 },
-            headStyles: { fillColor: [0, 123, 255] },
-            margin: { left: 14, right: 14 },
-          });
-          yPos = (doc as any).lastAutoTable.finalY + 10;
-        }
-      }
-
-      // 4) Preservative Efficacy
-      if (reportData.preservative_efficacy.length > 0) {
-        if (yPos > 250) {
-          doc.addPage();
-          yPos = 20;
-        }
-        doc.setFontSize(16);
-        doc.text("4) Preservative Efficacy Check", 14, yPos);
-        yPos += 10;
-
-        const preservativeData = reportData.preservative_efficacy.map((row) => {
-          return Array.isArray(row) ? row : (row.cells || []);
-        });
-        if (preservativeData.length > 0) {
-          const headers = preservativeData[0];
-          const rows = preservativeData.slice(1);
-
-          (doc as any).autoTable({
-            startY: yPos,
-            head: [headers],
-            body: rows,
-            styles: { fontSize: 8 },
-            headStyles: { fillColor: [0, 123, 255] },
-            margin: { left: 14, right: 14 },
-          });
-          yPos = (doc as any).lastAutoTable.finalY + 10;
-        }
-      }
-
-      // 5) Risk Panel
-      if (reportData.risk_panel.length > 0) {
-        if (yPos > 250) {
-          doc.addPage();
-          yPos = 20;
-        }
-        doc.setFontSize(16);
-        doc.text("5) Risk Panel", 14, yPos);
-        yPos += 10;
-
-        const riskData = reportData.risk_panel.map((row) => {
-          return Array.isArray(row) ? row : (row.cells || []);
-        });
-        if (riskData.length > 0) {
-          const headers = riskData[0];
-          const rows = riskData.slice(1);
-
-          (doc as any).autoTable({
-            startY: yPos,
-            head: [headers],
-            body: rows,
-            styles: { fontSize: 8 },
-            headStyles: { fillColor: [0, 123, 255] },
-            margin: { left: 14, right: 14 },
-          });
-          yPos = (doc as any).lastAutoTable.finalY + 10;
-        }
-      }
-
-      // 6) Cumulative Benefit Panel
-      if (reportData.cumulative_benefit.length > 0) {
-        if (yPos > 250) {
-          doc.addPage();
-          yPos = 20;
-        }
-        doc.setFontSize(16);
-        doc.text("6) Cumulative Benefit Panel", 14, yPos);
-        yPos += 10;
-
-        const benefitData = reportData.cumulative_benefit.map((row) => {
-          return Array.isArray(row) ? row : (row.cells || []);
-        });
-        if (benefitData.length > 0) {
-          const headers = benefitData[0];
-          const rows = benefitData.slice(1);
-
-          (doc as any).autoTable({
-            startY: yPos,
-            head: [headers],
-            body: rows,
-            styles: { fontSize: 8 },
-            headStyles: { fillColor: [0, 123, 255] },
-            margin: { left: 14, right: 14 },
-          });
-          yPos = (doc as any).lastAutoTable.finalY + 10;
-        }
-      }
-
-      // 7) Claim Panel
-      if (reportData.claim_panel.length > 0) {
-        if (yPos > 250) {
-          doc.addPage();
-          yPos = 20;
-        }
-        doc.setFontSize(16);
-        doc.text("7) Claim Panel", 14, yPos);
-        yPos += 10;
-
-        const claimData = reportData.claim_panel.map((row) => {
-          return Array.isArray(row) ? row : (row.cells || []);
-        });
-        if (claimData.length > 0) {
-          const headers = claimData[0];
-          const rows = claimData.slice(1);
-
-          (doc as any).autoTable({
-            startY: yPos,
-            head: [headers],
-            body: rows,
-            styles: { fontSize: 8 },
-            headStyles: { fillColor: [0, 123, 255] },
-            margin: { left: 14, right: 14 },
-          });
-          yPos = (doc as any).lastAutoTable.finalY + 10;
-        }
-      }
-
-      // 8) Recommended pH Range
-      if (reportData.recommended_ph_range) {
-        if (yPos > 270) {
-          doc.addPage();
-          yPos = 20;
-        }
-        doc.setFontSize(16);
-        doc.text("8) Recommended pH Range", 14, yPos);
-        yPos += 10;
-        doc.setFontSize(11);
-        // Split long text into multiple lines if needed
-        const phText = reportData.recommended_ph_range;
-        const splitText = doc.splitTextToSize(phText, 180); // 180mm width
-        doc.text(splitText, 20, yPos);
-        yPos += splitText.length * 6 + 10; // 6mm per line
-      }
-
-      // 9) Expected Benefits Analysis
-      if (reportData.expected_benefits_analysis.length > 0) {
-        if (yPos > 250) {
-          doc.addPage();
-          yPos = 20;
-        }
-        doc.setFontSize(16);
-        doc.text("9) Expected Benefits Analysis", 14, yPos);
-        yPos += 10;
-
-        const benefitsData = reportData.expected_benefits_analysis.map((row) => {
-          return Array.isArray(row) ? row : (row.cells || []);
-        });
-        if (benefitsData.length > 0) {
-          const headers = benefitsData[0];
-          const rows = benefitsData.slice(1);
-
-          (doc as any).autoTable({
-            startY: yPos,
-            head: [headers],
-            body: rows,
-            styles: { fontSize: 8 },
-            headStyles: { fillColor: [0, 123, 255] },
-            margin: { left: 14, right: 14 },
-          });
-        }
-      }
-
-      // Save PDF
-      doc.save("formulation-report.pdf");
-      if (onDownloadPDF) {
-        onDownloadPDF();
-      }
-    } catch (error) {
-      console.error("Error generating PDF:", error);
-      alert("Failed to generate PDF. Please try again.");
-    } finally {
-      setIsGeneratingPDF(false);
-    }
-  };
+  const [internalIsGeneratingPPT, setInternalIsGeneratingPPT] = useState(false);
+  const isGeneratingPPT = externalIsGeneratingPPT !== undefined ? externalIsGeneratingPPT : internalIsGeneratingPPT;
 
   const renderTable = (rows: ReportTableRow[], title: string) => {
     if (rows.length === 0) return null;
@@ -437,6 +158,24 @@ export function FormulationReportViewer({
     );
   };
 
+  const handlePPTButtonClick = async () => {
+    if (onGeneratePPT) {
+      // Use the new generate and preview function
+      await onGeneratePPT();
+    } else if (onDownloadPPT) {
+      // Fallback to old download function
+      setInternalIsGeneratingPPT(true);
+      try {
+        await onDownloadPPT();
+      } catch (error) {
+        console.error("Error downloading PPT:", error);
+        alert("Failed to generate PPT. Please try again.");
+      } finally {
+        setInternalIsGeneratingPPT(false);
+      }
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -448,6 +187,25 @@ export function FormulationReportViewer({
           <p className="text-sm text-gray-700 font-medium mt-1">
             Professional Cosmetic Formulation Analysis
           </p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={handlePPTButtonClick}
+            disabled={isGeneratingPPT}
+            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {isGeneratingPPT ? (
+              <>
+                <span className="animate-spin">⏳</span>
+                Generating PPT...
+              </>
+            ) : (
+              <>
+                <FileText className="w-4 h-4" />
+                Generate & Preview PPT
+              </>
+            )}
+          </button>
         </div>
       </div>
 

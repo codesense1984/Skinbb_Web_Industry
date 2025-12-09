@@ -8,6 +8,7 @@ import { motion } from "motion/react";
 import { Fragment, type ReactElement, type SVGProps } from "react";
 import { NavLink } from "react-router";
 import { FORMULATOR_ROUTES } from "../../routes/constant";
+import FormulatorChatbot from "../../components/FormulatorChatbot";
 
 type ButtonLink = {
   name: string;
@@ -111,26 +112,6 @@ const FormulatorDashboard = () => {
       ),
     },
     {
-      title: "Create Formulations",
-      description: "Create new cosmetic formulations with ingredient management and compliance checking",
-      buttons: [{ name: "Create", href: FORMULATOR_ROUTES.FORMULATIONS.CREATE }],
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={0.7}
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M12 4.5v15m7.5-7.5h-15"
-          />
-        </svg>
-      ),
-    },
-    {
       title: "Market Research",
       description: "Find products with matching ingredients",
       buttons: [{ name: "Search Products", href: FORMULATOR_ROUTES.MARKET_RESEARCH.BASE }],
@@ -170,6 +151,66 @@ const FormulatorDashboard = () => {
         </svg>
       ),
     },
+    {
+      title: "Create A Wish",
+      description: "Describe your dream product and let AI design the perfect formula",
+      buttons: [{ name: "Create Wish", href: FORMULATOR_ROUTES.CREATE_WISH.BASE }],
+      icon: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={0.7}
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z"
+          />
+        </svg>
+      ),
+    },
+    {
+      title: "Cost Calculator",
+      description: "Calculate detailed costs for your formulations with batch analysis and pricing scenarios",
+      buttons: [{ name: "Calculate", href: FORMULATOR_ROUTES.COST_CALCULATOR.BASE }],
+      icon: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={0.7}
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 6v12m-3-3h6m-9-3a9 9 0 1 1 18 0 9 9 0 1 1-18 0Z"
+          />
+        </svg>
+      ),
+    },
+    {
+      title: "Substitution Finder",
+      description: "Find alternative ingredients with detailed comparisons and usage recommendations",
+      buttons: [{ name: "Find Substitutes", href: FORMULATOR_ROUTES.SUBSTITUTION_FINDER.BASE }],
+      icon: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={0.7}
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"
+          />
+        </svg>
+      ),
+    },
   ];
 
   return (
@@ -186,7 +227,7 @@ const FormulatorDashboard = () => {
           </div>
         ),
         description:
-          "Your formulator dashboard — decode existing formulations or create new ones with compliance checking.",
+          "Your formulator dashboard — decode existing formulations, do market research, compare products, and more.",
         hasBack: false,
         animate: true,
       }}
@@ -229,6 +270,9 @@ const FormulatorDashboard = () => {
           />
         ))}
       </div>
+
+      {/* Formulator Chatbot */}
+      <FormulatorChatbot />
     </PageContent>
   );
 };
