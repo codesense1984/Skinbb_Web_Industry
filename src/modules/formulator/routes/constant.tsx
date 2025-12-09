@@ -44,5 +44,10 @@ export const FORMULATOR_ROUTES = {
   SUBSTITUTION_FINDER: {
     BASE: "/substitution-finder",
   },
+
+  // ---- Inspiration Boards ----
+  INSPIRATION_BOARDS: {
+    BASE: "/inspiration-boards",
+  },
 } as const;
 

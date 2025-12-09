@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { PageContent } from "@/core/components/ui/structure";
 import { Button } from "@/core/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
@@ -6,10 +6,11 @@ import { Badge } from "@/core/components/ui/badge";
 import { Input } from "@/core/components/ui/input";
 import { Textarea } from "@/core/components/ui/textarea";
 import { cn } from "@/core/utils";
-import { Sparkles, ArrowRight, ArrowLeft, Save, Wand2, Check, X, Loader2 } from "lucide-react";
+import { Sparkles, ArrowRight, ArrowLeft, Save, Wand2, Check, X, Loader2, History, Trash2, Search } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
 import { basePythonApiUrl } from "@/core/config/baseUrls";
+import { useAuth } from "@/modules/auth/hooks/useAuth";
 
 // Types
 interface WishData {
@@ -91,6 +92,7 @@ interface FormulaWarning {
 }
 
 const CreateAWish = () => {
+  const { userId } = useAuth();
   const [step, setStep] = useState(1);
   const [mounted, setMounted] = useState(false);
   const [wishData, setWishData] = useState<WishData>({
@@ -108,10 +110,166 @@ const CreateAWish = () => {
   const [heroInput, setHeroInput] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedFormula, setGeneratedFormula] = useState<GeneratedFormula | null>(null);
-  const [credits] = useState(247);
+  const [formulaNotes, setFormulaNotes] = useState("");
+  const [formulaName, setFormulaName] = useState("");
+  const [saving, setSaving] = useState(false);
+  
+  // History state
+  const [showHistory, setShowHistory] = useState(false);
+  const [historyItems, setHistoryItems] = useState<Array<{
+    id: string;
+    name: string;
+    wish_data: WishData;
+    formula_result: GeneratedFormula;
+    notes: string;
+    created_at: string;
+  }>>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historySearch, setHistorySearch] = useState("");
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  // API functions for history
+  const api = useMemo(() => ({
+    async saveWishHistory(
+      data: {
+        name: string;
+        wish_data: WishData;
+        formula_result: GeneratedFormula;
+        notes?: string;
+      },
+      userId: string | undefined
+    ): Promise<{ success: boolean; id: string; message: string }> {
+      if (!userId) {
+        throw new Error("User ID is required to save history");
+      }
+      const response = await axios.post(
+        `${basePythonApiUrl}/api/formula/save-wish-history`,
+        data,
+        {
+          headers: {
+            "X-User-Id": userId,
+          },
+        }
+      );
+      return response.data;
+    },
+
+    async getWishHistory(
+      params?: {
+        search?: string;
+        limit?: number;
+        skip?: number;
+      },
+      userId?: string
+    ): Promise<{ items: Array<{
+      id: string;
+      name: string;
+      wish_data: WishData;
+      formula_result: GeneratedFormula;
+      notes: string;
+      created_at: string;
+    }>; total: number }> {
+      if (!userId) {
+        throw new Error("User ID is required to fetch history");
+      }
+      const response = await axios.get(
+        `${basePythonApiUrl}/api/formula/wish-history`,
+        {
+          params,
+          headers: {
+            "X-User-Id": userId,
+          },
+        }
+      );
+      return response.data;
+    },
+
+    async deleteWishHistory(
+      historyId: string,
+      userId: string | undefined
+    ): Promise<{ success: boolean; message: string }> {
+      if (!userId) {
+        throw new Error("User ID is required to delete history");
+      }
+      const response = await axios.delete(
+        `${basePythonApiUrl}/api/formula/wish-history/${historyId}`,
+        {
+          headers: {
+            "X-User-Id": userId,
+          },
+        }
+      );
+      return response.data;
+    },
+  }), []);
+
+  // Load history
+  const loadHistory = useCallback(async () => {
+    if (!userId) {
+      console.warn("User ID not available, cannot load history");
+      return;
+    }
+    setHistoryLoading(true);
+    try {
+      const result = await api.getWishHistory(
+        {
+          search: historySearch || undefined,
+          limit: 50,
+        },
+        userId
+      );
+      setHistoryItems(result.items);
+    } catch (error) {
+      console.error("Error loading history:", error);
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, [historySearch, userId, api]);
+
+  // Load history on mount and when search changes
+  useEffect(() => {
+    if (showHistory) {
+      loadHistory();
+    }
+  }, [showHistory, historySearch, loadHistory]);
+
+  // Delete history item
+  const deleteHistoryItem = useCallback(async (historyId: string) => {
+    if (!userId) {
+      toast.error("User ID not available");
+      return;
+    }
+    if (!window.confirm("Are you sure you want to delete this history item?")) {
+      return;
+    }
+    try {
+      await api.deleteWishHistory(historyId, userId);
+      loadHistory();
+      toast.success("History item deleted");
+    } catch (error) {
+      console.error("Error deleting history:", error);
+      toast.error("Failed to delete history item");
+    }
+  }, [loadHistory, userId, api]);
+
+  // Load history item into form
+  const loadHistoryItem = useCallback((item: {
+    id: string;
+    name: string;
+    wish_data: WishData;
+    formula_result: GeneratedFormula;
+    notes: string;
+    created_at: string;
+  }) => {
+    setWishData(item.wish_data);
+    setGeneratedFormula(item.formula_result);
+    setFormulaName(item.name);
+    setFormulaNotes(item.notes || "");
+    setShowHistory(false);
+    toast.success("Formula loaded from history");
   }, []);
 
   const productTypes: ProductType[] = [
@@ -120,7 +278,7 @@ const CreateAWish = () => {
     { id: "lotion", icon: "🥛", label: "Lotion", desc: "Light moisturizer" },
     { id: "toner", icon: "💆", label: "Toner", desc: "Prep & hydrate" },
     { id: "cleanser", icon: "🧼", label: "Cleanser", desc: "Face wash" },
-    { id: "mask", icon: "😷", label: "Face Mask", desc: "Treatment mask" },
+    { id: "mask", icon: "🎭", label: "Face Mask", desc: "Treatment mask" },
     { id: "essence", icon: "✨", label: "Essence", desc: "Hydrating treatment" },
     { id: "oil", icon: "🫒", label: "Face Oil", desc: "Oil-based care" },
     { id: "mist", icon: "💨", label: "Face Mist", desc: "Spray treatment" },
@@ -264,9 +422,59 @@ const CreateAWish = () => {
     }
   };
 
-  const handleSaveWish = () => {
-    toast.success("Wish saved! 5◆ used");
-    // TODO: Implement save to backend
+  const handleSaveWish = async () => {
+    if (!generatedFormula) {
+      toast.error("No formula to save");
+      return;
+    }
+
+    if (!userId) {
+      toast.error("Please log in to save formulas");
+      return;
+    }
+
+    const nameToSave = formulaName.trim() || generatedFormula.name || "Untitled Formula";
+    
+    setSaving(true);
+    try {
+      console.log("Saving formula to history:", {
+        name: nameToSave,
+        userId,
+        hasWishData: !!wishData,
+        hasFormula: !!generatedFormula,
+      });
+      
+      const result = await api.saveWishHistory(
+        {
+          name: nameToSave,
+          wish_data: wishData,
+          formula_result: generatedFormula,
+          notes: formulaNotes.trim() || "",
+        },
+        userId
+      );
+      
+      console.log("Save result:", result);
+      toast.success("Formula saved to history!");
+      
+      // Refresh history if sidebar is open
+      if (showHistory) {
+        await loadHistory();
+      }
+    } catch (error: any) {
+      console.error("Error saving formula:", error);
+      console.error("Error details:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        url: error.config?.url,
+      });
+      
+      const errorMessage = error.response?.data?.detail || error.message || "Failed to save formula";
+      toast.error(errorMessage);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDesignFormula = async () => {
@@ -325,7 +533,7 @@ const CreateAWish = () => {
       }
       
       // Transform API response to match frontend format
-      setGeneratedFormula({
+      const formula: GeneratedFormula = {
         name: formulaData.name || `${wishData.productType} Formula`,
         version: formulaData.version || "v1",
         cost: formulaData.cost || 0,
@@ -354,7 +562,10 @@ const CreateAWish = () => {
           paraben: !wishData.exclusions.includes("Paraben-free"),
           vegan: wishData.exclusions.includes("Vegan"),
         },
-      });
+      };
+      
+      setGeneratedFormula(formula);
+      setFormulaName(formulaData.name || `${wishData.productType} Formula`);
       
       setIsGenerating(false);
       toast.success("Formula generated! 35◆ used");
@@ -397,6 +608,8 @@ const CreateAWish = () => {
     setGeneratedFormula(null);
     setIsGenerating(false);
     setHeroInput("");
+    setFormulaName("");
+    setFormulaNotes("");
   };
 
   // Step Progress Component
@@ -434,48 +647,163 @@ const CreateAWish = () => {
   // If formula is generated, show results
   if (generatedFormula) {
     return (
-      <PageContent>
-        <div className="flex-1 p-8 overflow-auto">
-          {/* Success Header */}
-          <div
-            className={cn(
-              "mb-8 transition-all duration-700",
-              mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-            )}
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center text-2xl shadow-lg shadow-emerald-500/25 animate-bounce">
-                🪄
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-bold text-slate-800">Formula Generated!</h1>
-                  <Badge variant="outline" className="bg-teal-100 text-teal-700 border-teal-300">
-                    35◆ used
-                  </Badge>
+      <PageContent
+        ariaLabel="create-a-wish-result"
+        header={{
+          title: "Formula Generated!",
+          description: "Based on your wish brief",
+          hasBack: true,
+          animate: true,
+          actions: (
+            <div className="flex gap-2">
+              <Button
+                variant="contained"
+                color="success"
+                onClick={handleSaveWish}
+                disabled={saving || !userId}
+                size="sm"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                {saving ? "Saving..." : "Save to History"}
+              </Button>
+              <Button
+                variant="outlined"
+                color="default"
+                onClick={() => {
+                  setGeneratedFormula(null);
+                  setStep(1);
+                }}
+                size="sm"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Edit & Redesign
+              </Button>
+              <Button
+                variant="outlined"
+                color="default"
+                onClick={() => setShowHistory(!showHistory)}
+                size="sm"
+              >
+                {showHistory ? (
+                  <>
+                    <X className="h-4 w-4 mr-2" />
+                    Close
+                  </>
+                ) : (
+                  <>
+                    <History className="h-4 w-4 mr-2" />
+                    History
+                  </>
+                )}
+              </Button>
+            </div>
+          ),
+        }}
+      >
+        <div className="flex-1 p-8 overflow-auto relative">
+          {/* History Sidebar */}
+          {showHistory && (
+            <div className="fixed inset-y-0 right-0 w-96 bg-white border-l border-slate-200 shadow-xl z-50 flex flex-col">
+              <div className="p-6 border-b border-slate-200">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-bold text-slate-800">Formula History</h2>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowHistory(false)}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
                 </div>
-                <p className="text-slate-500">Based on your wish brief</p>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Input
+                    type="text"
+                    placeholder="Search history..."
+                    value={historySearch}
+                    onChange={(e) => setHistorySearch(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4">
+                {historyLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin text-teal-500" />
+                  </div>
+                ) : historyItems.length === 0 ? (
+                  <div className="text-center py-8 text-slate-500">
+                    <History className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                    <p>No saved formulas yet</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {historyItems.map((item) => (
+                      <Card
+                        key={item.id}
+                        className="p-4 hover:shadow-md transition-shadow cursor-pointer"
+                        onClick={() => loadHistoryItem(item)}
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <h3 className="font-semibold text-slate-800">{item.name}</h3>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteHistoryItem(item.id);
+                            }}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <p className="text-sm text-slate-500 mb-2">
+                          {item.wish_data.productType
+                            ? productTypes.find((t) => t.id === item.wish_data.productType)?.label
+                            : "Unknown"}{" "}
+                          • {item.wish_data.benefits.length} benefits
+                        </p>
+                        {item.notes && (
+                          <p className="text-xs text-slate-400 mb-2 line-clamp-2">{item.notes}</p>
+                        )}
+                        <p className="text-xs text-slate-400">
+                          {new Date(item.created_at).toLocaleDateString()}
+                        </p>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Quick Actions */}
-          <div className="flex items-center gap-3 mb-8">
-            <Button variant="outlined" color="default">
-              <span className="mr-2">📝</span>
-              Edit Formula
-            </Button>
-            <Button variant="contained" color="success">
-              <Save className="w-4 h-4 mr-2" />
-              Save to Project
-            </Button>
-            <Button variant="outlined" color="default">
-              <span className="mr-2">📤</span>
-              Export PDF
-            </Button>
-            <Button variant="ghost" color="default" onClick={resetWish}>
-              Start New Wish
-            </Button>
+          {/* Formula Name and Notes */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Formula Name
+              </label>
+              <Input
+                type="text"
+                placeholder="Enter formula name"
+                value={formulaName || generatedFormula.name}
+                onChange={(e) => setFormulaName(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Notes
+              </label>
+              <Input
+                type="text"
+                placeholder="Add notes about this formula"
+                value={formulaNotes}
+                onChange={(e) => setFormulaNotes(e.target.value)}
+                className="w-full"
+              />
+            </div>
           </div>
 
           {/* Stats Cards */}
@@ -737,33 +1065,136 @@ const CreateAWish = () => {
   }
 
   return (
-    <PageContent>
-      <div className="flex-1 p-8 overflow-auto">
-        {/* Header */}
-        <div
-          className={cn(
-            "mb-8 transition-all duration-700",
-            mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-          )}
-        >
-          <div className="flex items-center gap-4 mb-2">
-            <div className="w-14 h-14 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center text-3xl shadow-lg shadow-amber-500/25">
-              <Sparkles className="w-8 h-8 text-white" />
+    <PageContent
+      ariaLabel="create-a-wish"
+      header={{
+        title: "Create A Wish",
+        description: "Describe your dream product and let AI design the formula",
+        hasBack: true,
+        animate: true,
+        actions: (
+          <Button
+            variant="outlined"
+            onClick={() => setShowHistory(!showHistory)}
+            type="button"
+          >
+            {showHistory ? (
+              <>
+                <X className="h-4 w-4 mr-2" />
+                Close
+              </>
+            ) : (
+              <>
+                <History className="h-4 w-4 mr-2" />
+                History
+              </>
+            )}
+          </Button>
+        ),
+      }}
+    >
+      <div className="flex-1 p-8 overflow-auto relative">
+        {/* History Sidebar */}
+        {showHistory && (
+          <div className="fixed inset-y-0 right-0 w-96 bg-white border-l border-slate-200 shadow-xl z-50 flex flex-col">
+            <div className="p-6 border-b border-slate-200">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-slate-800">Formula History</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowHistory(false)}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Input
+                  type="text"
+                  placeholder="Search history..."
+                  value={historySearch}
+                  onChange={(e) => setHistorySearch(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-slate-800">Create A Wish</h1>
-              <p className="text-slate-500">Describe your dream product and let AI design the formula</p>
+            <div className="flex-1 overflow-y-auto p-4">
+              {historyLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-teal-500" />
+                </div>
+              ) : historyItems.length === 0 ? (
+                <div className="text-center py-8 text-slate-500">
+                  <History className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>No saved formulas yet</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {historyItems.map((item) => (
+                    <Card
+                      key={item.id}
+                      className="p-4 hover:shadow-md transition-shadow cursor-pointer"
+                      onClick={() => loadHistoryItem(item)}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <h3 className="font-semibold text-slate-800">{item.name}</h3>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteHistoryItem(item.id);
+                          }}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      <p className="text-sm text-slate-500 mb-2">
+                        {item.wish_data.productType
+                          ? productTypes.find((t) => t.id === item.wish_data.productType)?.label
+                          : "Unknown"}{" "}
+                        • {item.wish_data.benefits.length} benefits
+                      </p>
+                      {item.notes && (
+                        <p className="text-xs text-slate-400 mb-2 line-clamp-2">{item.notes}</p>
+                      )}
+                      <p className="text-xs text-slate-400">
+                        {new Date(item.created_at).toLocaleDateString()}
+                      </p>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
-        </div>
+        )}
 
         <div className="max-w-4xl">
           <Card className="p-8">
             <StepProgress />
 
-            {/* Step 1: Product Type */}
+            {/* Step 1: Name and Product Type */}
             {step === 1 && (
               <div className="space-y-8">
+                {/* Name Field */}
+                <div className="space-y-3">
+                  <label className="block text-sm font-semibold text-slate-700">
+                    Wish Name <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="e.g., Brightening Serum, Hydrating Cream"
+                    value={wishData.name}
+                    onChange={(e) => setWishData({ ...wishData, name: e.target.value })}
+                    className="w-full text-lg"
+                  />
+                  <p className="text-xs text-slate-500">
+                    Give your wish a name to easily identify it later
+                  </p>
+                </div>
+
                 <div className="text-center">
                   <h2 className="text-2xl font-bold text-slate-800 mb-2">What type of product?</h2>
                   <p className="text-slate-500">Select the product category you want to create</p>
@@ -803,7 +1234,7 @@ const CreateAWish = () => {
                 <div className="flex justify-end pt-4">
                   <Button
                     onClick={() => setStep(2)}
-                    disabled={!wishData.productType}
+                    disabled={!wishData.productType || !wishData.name.trim()}
                     size="lg"
                     color="primary"
                   >

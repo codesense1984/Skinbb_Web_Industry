@@ -54,6 +54,12 @@ export const formulatorRoutes: RouteObject = {
       path: FORMULATOR_ROUTES.SUBSTITUTION_FINDER.BASE,
       Component: lazy(() => import("@/modules/formulator/features/substitution-finder")),
     },
+
+    // Inspiration Boards Route
+    {
+      path: FORMULATOR_ROUTES.INSPIRATION_BOARDS.BASE,
+      Component: lazy(() => import("@/modules/formulator/features/inspiration-boards")),
+    },
   ],
 };
 
