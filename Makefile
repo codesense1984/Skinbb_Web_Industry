@@ -13,6 +13,11 @@ build:
 	rm -rf dist
 	npm run build
 
+build-simple:
+	rm -rf node_modules/.vite
+	rm -rf dist
+	npm run build:simple
+
 # Preview production build
 preview:
 	npm run preview
