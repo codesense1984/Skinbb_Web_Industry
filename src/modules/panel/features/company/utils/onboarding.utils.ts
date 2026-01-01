@@ -270,7 +270,7 @@ export function transformFormDataToApiRequest(
     brandWebsite: safeString(formData.website),
     totalSKU: safeString(formData.totalSkus),
     averageSellingPrice: safeString(formData.averageSellingPrice),
-    marketingBudget: safeString(formData.marketingBudget),
+    marketingBudget: formData.marketingBudget ? Number(formData.marketingBudget) : 0,
     brandType: (() => {
       const categoryArray = safeArray(formData.brandType);
       return categoryArray;
