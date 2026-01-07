@@ -15,7 +15,7 @@ import axios, {
 
 // ---- Config ---------------------------------------------------------------
 export const API_BASE_URL = baseApiUrl;
-export const REQUEST_TIMEOUT_MS = 25_000; // reasonable network timeout
+// export const REQUEST_TIMEOUT_MS = 25_000; // reasonable network timeout
 
 // If you still have Redux auth slice, wire it here. Otherwise, swap with your auth store.
 // This indirection keeps base service store‑agnostic.
@@ -44,7 +44,7 @@ export function wireAuthAdapters(adapters: {
 // ---- Axios instance -------------------------------------------------------
 export const http: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
-  timeout: REQUEST_TIMEOUT_MS,
+  // timeout: REQUEST_TIMEOUT_MS,
   // Let React Query abort via `signal`
   // signal: (AbortSignal as unknown as undefined), // placeholder to allow passing per‑request
   // withCredentials: false, // if you use httpOnly refresh tokens/cookies
@@ -78,7 +78,7 @@ async function refreshAccessToken(): Promise<string | null> {
     const { data } = await axios.post(
       `${API_BASE_URL}/api/v1/users/refresh-token`,
       { refreshToken },
-      { timeout: REQUEST_TIMEOUT_MS },
+      // { timeout: REQUEST_TIMEOUT_MS },
     );
     const newAccessToken: string | undefined = data?.data?.accessToken;
     const newRefreshToken: string | undefined = data?.data?.refreshToken;
