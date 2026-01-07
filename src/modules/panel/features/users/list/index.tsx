@@ -1,0 +1,31 @@
+import { Button } from "@/core/components/ui/button";
+import { PageContent } from "@/core/components/ui/structure";
+import { PANEL_ROUTES } from "@/modules/panel/routes/constant";
+import { NavLink } from "react-router";
+
+const UserList = () => {
+  return (
+    <PageContent
+      header={{
+        title: "User Management",
+        description: "Manage user accounts, roles, and permissions.",
+        actions: (
+          <Button color={"primary"} asChild>
+            <NavLink to={PANEL_ROUTES.USER.CREATE}>Add User</NavLink>
+          </Button>
+        ),
+      }}
+    >
+      <div className="flex h-64 items-center justify-center">
+        <div className="text-center">
+          <h3 className="text-lg font-medium">User Management</h3>
+          <p className="text-muted-foreground">
+            User list functionality coming soon.
+          </p>
+        </div>
+      </div>
+    </PageContent>
+  );
+};
+
+export default UserList;

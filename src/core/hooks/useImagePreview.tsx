@@ -1,0 +1,99 @@
+import {
+  AvatarRoot,
+  AvatarFallback,
+  AvatarImage,
+} from "@/core/components/ui/avatar";
+import { Button } from "@/core/components/ui/button";
+import { XMarkIcon } from "@heroicons/react/24/outline";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ComponentProps,
+  type JSX,
+} from "react";
+
+type UseImagePreviewOptions = {
+  alt?: string;
+  placeholder?: string; // URL for default image if file not present
+  fallback?: JSX.Element;
+  showRemoveButton?: boolean;
+  clear?: () => void;
+  imageProps?: ComponentProps<typeof AvatarImage>;
+  fallbackProps?: ComponentProps<typeof AvatarFallback>;
+  avatarProps?: ComponentProps<typeof AvatarRoot>;
+};
+
+type UseImagePreviewResult = {
+  url: string | null;
+  element: JSX.Element | null;
+  clear: () => void;
+};
+
+export function useImagePreview(
+  file?: File | null,
+  url?: string | null,
+  options: UseImagePreviewOptions = {},
+): UseImagePreviewResult {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    // If file is provided and is a valid File or Blob, create object URL
+    if (file && (file instanceof File || file instanceof Blob)) {
+      const objectUrl = URL.createObjectURL(file);
+      setPreviewUrl(objectUrl);
+
+      return () => {
+        URL.revokeObjectURL(objectUrl);
+      };
+    }
+    // If URL is provided, use it directly
+    if (url) {
+      setPreviewUrl(url);
+      return;
+    }
+
+    // Fallback to placeholder
+    setPreviewUrl(options?.placeholder ?? null);
+  }, [file, url, options.placeholder]);
+
+  const clear = useCallback(() => {
+    setPreviewUrl(options.placeholder ?? null);
+    options.clear?.();
+  }, [options]);
+
+  const element = useMemo<JSX.Element | null>(() => {
+    return (
+      <AvatarRoot
+        className="size-28 rounded-md border"
+        {...options.avatarProps}
+      >
+        {previewUrl && options.showRemoveButton !== false && (
+          <Button
+            variant="contained"
+            type="button"
+            className="border-border absolute top-2 right-2 size-5 border p-0 [&_svg]:size-3"
+            onClick={clear}
+          >
+            <XMarkIcon />
+          </Button>
+        )}
+        <AvatarImage
+          src={previewUrl ?? undefined}
+          alt={options.alt ?? "Preview"}
+          {...options.imageProps}
+        />
+        <AvatarFallback className="rounded-md" {...options.fallbackProps}>
+          {options.fallback}
+        </AvatarFallback>
+      </AvatarRoot>
+    );
+  }, [previewUrl, clear, options]);
+
+  return {
+    url: previewUrl,
+    element,
+    clear,
+  };
+}

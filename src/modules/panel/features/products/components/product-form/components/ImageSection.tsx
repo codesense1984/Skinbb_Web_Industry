@@ -1,0 +1,34 @@
+import { FormInput, INPUT_TYPES } from "@/core/components/ui/form-input";
+import type { FormSectionBaseProps } from "../../../types/product.types";
+
+type ImageSectionProps = FormSectionBaseProps;
+
+const ImageSection = ({ control, errors }: ImageSectionProps) => {
+  return (
+    <div className="rounded-lg border bg-white p-6 shadow-sm">
+      <h3 className="mb-4 text-lg font-semibold">Images</h3>
+
+      <div className="space-y-4">
+        <FormInput
+          control={control}
+          name="images"
+          type={INPUT_TYPES.FILE}
+          label="Product Images"
+          placeholder="Choose product images"
+          inputProps={{ accept: "image/*", multiple: true }}
+        />
+
+        <FormInput
+          control={control}
+          name="barcodeImage"
+          type={INPUT_TYPES.FILE}
+          label="Barcode Image"
+          placeholder="Choose barcode image"
+          inputProps={{ accept: "image/*" }}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default ImageSection;

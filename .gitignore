@@ -12,9 +12,12 @@
 .env
 .env.local
 .env.development.local
+.env.development
+.env.dev
 .env.test.local
 .env.production.local
 .env.production
+.env.prod
 
 # testing
 /coverage

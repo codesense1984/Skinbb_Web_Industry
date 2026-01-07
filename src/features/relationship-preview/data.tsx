@@ -1,7 +1,5 @@
 import type { Core, EventObject, LayoutOptions, NodeSingular } from "cytoscape";
-import type { ApiResponse } from "@/services";
-import DATA from "./cleaned-data.json";
-import type { Option } from "@/components/ui/combo-box";
+import type { Option } from "@/core/types";
 export type Product = {
   brand_name: string;
   product_name: string;
@@ -16,7 +14,43 @@ export type Node = {
   hasChildren: boolean;
 };
 
-const PRODUCT_INGREDIENT = DATA as Product[];
+// Cache for the loaded data
+let PRODUCT_INGREDIENT_CACHE: Product[] | null = null;
+let PRODUCT_INGREDIENT_LOADING: Promise<Product[]> | null = null;
+
+// Load data from public folder
+async function loadProductData(): Promise<Product[]> {
+  // Return cached data if available
+  if (PRODUCT_INGREDIENT_CACHE) {
+    return PRODUCT_INGREDIENT_CACHE;
+  }
+
+  // Return existing promise if already loading
+  if (PRODUCT_INGREDIENT_LOADING) {
+    return PRODUCT_INGREDIENT_LOADING;
+  }
+
+  // Start loading
+  PRODUCT_INGREDIENT_LOADING = fetch("/data/cleaned-data.json")
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Failed to load data: ${response.statusText}`);
+      }
+      return response.json();
+    })
+    .then((data) => {
+      PRODUCT_INGREDIENT_CACHE = data as Product[];
+      PRODUCT_INGREDIENT_LOADING = null;
+      return PRODUCT_INGREDIENT_CACHE;
+    })
+    .catch((error) => {
+      PRODUCT_INGREDIENT_LOADING = null;
+      console.error("Error loading product data:", error);
+      throw error;
+    });
+
+  return PRODUCT_INGREDIENT_LOADING;
+}
 export const relationshipStyle = [
   {
     selector: "node, edge",
@@ -201,20 +235,17 @@ export const relationshipLayouts: Record<
   }),
 };
 
-export async function fetchData(): Promise<ApiResponse<Product[]>> {
-  return {
-    data: PRODUCT_INGREDIENT,
-    error: "",
-  };
+export async function fetchData(): Promise<Product[]> {
+  return loadProductData();
 }
 
 export async function autocompleteIngredient(query: string): Promise<Option[]> {
-  const { data: products } = await fetchData();
+  const products = await fetchData();
   const ingredientSet = new Set<string>();
 
   // Collect all ingredients from all products
-  products?.forEach((product) => {
-    product.all_ingredients.forEach((ingredient) => {
+  products?.forEach((product: Product) => {
+    product.all_ingredients.forEach((ingredient: string) => {
       ingredientSet.add(ingredient);
     });
   });
@@ -238,6 +269,7 @@ export const fetchProductsByIngredient = async (
   ingredientId: string,
 ): Promise<Node[]> => {
   await new Promise((res) => setTimeout(res, 300));
+  const PRODUCT_INGREDIENT = await loadProductData();
   const response = PRODUCT_INGREDIENT.filter((product) =>
     product.all_ingredients.some(
       (ing) => ing.toLowerCase() === ingredientId.toLowerCase(),
@@ -255,6 +287,7 @@ export const fetchIngredientsByProduct = async (
   productId: string,
 ): Promise<Node[]> => {
   await new Promise((res) => setTimeout(res, 300));
+  const PRODUCT_INGREDIENT = await loadProductData();
   const product = PRODUCT_INGREDIENT.find(
     (p) => p.product_name.toLowerCase() === productId.toLowerCase(),
   );

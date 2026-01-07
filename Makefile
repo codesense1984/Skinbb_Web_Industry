@@ -13,6 +13,11 @@ build:
 	rm -rf dist
 	npm run build
 
+build-simple:
+	rm -rf node_modules/.vite
+	rm -rf dist
+	npm run build:simple
+
 # Preview production build
 preview:
 	npm run preview
@@ -68,3 +73,13 @@ sonar:
 
 remove-zone:
 	find . -type f -name '*Zone.Identifier*' -delete
+
+# Environment switching
+env-switch:
+	@./switch-env.sh $(ENV)
+
+env-dev:
+	@./switch-env.sh dev
+
+env-prod:
+	@./switch-env.sh prod
