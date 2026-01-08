@@ -1,11 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { AxiosError } from "axios";
 import { useCallback, useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 
 import { MODE } from "@/core/types";
+import { getAllErrorMessages } from "@/core/utils/error.utils";
 import { ENDPOINTS } from "@/modules/panel/config/endpoint.config";
 import {
   apiGetCompanyDropdownList,
@@ -25,6 +25,7 @@ import {
   transformApiResponseToFormData,
   transformFormDataToApiRequest,
 } from "../../../../utils/onboarding.utils";
+import usePreventUnload from "@/core/hooks/usePreventUnload";
 
 interface UseOnboardingFormProps {
   mode?: MODE;
@@ -133,13 +134,16 @@ export const useOnboardingForm = ({
       setConfirmation([false, undefined]);
       qc.invalidateQueries({ queryKey: [ENDPOINTS.SELLER.GET_COMPANY_LIST] });
     },
-    onError: (error: AxiosError<{ message?: string }>) => {
+    onError: (error) => {
       console.error("Onboarding submission error:", error);
-      toast.error(
-        error?.response?.data?.message ||
-          error?.message ||
-          "Failed to submit profile. Please try again.",
-      );
+      const errorMessages = getAllErrorMessages(error);
+
+      // Show the first error message, or fallback message if no errors found
+      if (errorMessages.length > 0) {
+        toast.error(errorMessages.map((msg) => msg).join("\n"));
+      } else {
+        toast.error("Failed to submit profile. Please try again.");
+      }
     },
   });
 

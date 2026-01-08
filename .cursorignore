@@ -1,0 +1,98 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Production builds
+dist/
+build/
+.next/
+out/
+
+# Testing
+coverage/
+.nyc_output/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+__tests__/
+__mocks__/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.dev
+.env.prod
+.env.test
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Cache directories
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+.turbo/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS files
+Thumbs.db
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Large data files
+public/data/
+*.json.bak
+*.json.backup
+
+# Generated files
+*.generated.*
+*.min.js
+*.min.css
+
+# Documentation (optional - uncomment if you want to exclude)
+# README.md
+# docs/
+# *.md
+
+# SonarQube
+.scannerwork/
+sonar-project.properties
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Package manager files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Optional: Exclude specific large folders (uncomment if needed)
+# src/modules/panel/features/**/node_modules/
+# public/assets/

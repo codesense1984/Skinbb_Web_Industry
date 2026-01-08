@@ -30,7 +30,7 @@ export function isStepCompleted(
           (addr) =>
             addr.address?.trim() &&
             addr.landmark?.trim() &&
-            addr.phoneNumber?.trim() &&
+            addr.landlineNumber?.trim() &&
             addr.country?.trim() &&
             addr.state?.trim() &&
             addr.city?.trim() &&
@@ -44,7 +44,7 @@ export function isStepCompleted(
         values.totalSkus?.trim() &&
         values.brandType?.some((cat) => cat?.trim()) &&
         values.averageSellingPrice?.trim() &&
-        values.marketingBudget?.trim()
+        values.marketingBudget
       );
 
     case StepKey.DOCUMENTS_DETAILS:

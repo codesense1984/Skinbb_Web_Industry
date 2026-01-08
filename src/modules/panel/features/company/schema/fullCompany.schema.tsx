@@ -202,10 +202,34 @@ const sellingPlatformSchema = z
   })
   .optional()
   .superRefine((platform, ctx) => {
-    if (platform?.platform && platform.platform.trim() !== "") {
+    // If object is provided, validate it
+    if (platform !== undefined && platform !== null) {
+      const platformValue = platform.platform?.trim() || "";
+      const urlValue = platform.url?.trim() || "";
+
+      // If object is provided but platform is empty, throw error
+      if (!platformValue) {
+        // If URL is provided but platform is empty, throw error
+        if (urlValue) {
+          ctx.addIssue({
+            path: ["platform"],
+            code: z.ZodIssueCode.custom,
+            message: "Platform is required when URL is provided",
+          });
+        } else {
+          // If object is provided but both platform and URL are empty, throw error
+          ctx.addIssue({
+            path: ["platform"],
+            code: z.ZodIssueCode.custom,
+            message: "Platform is required",
+          });
+        }
+        return;
+      }
+
       // URL is required only when platform is "other"
-      if (platform.platform.toLowerCase() === "other") {
-        if (!platform.url || platform.url.trim() === "") {
+      if (platformValue.toLowerCase() === "other") {
+        if (!urlValue) {
           ctx.addIssue({
             path: ["url"],
             code: z.ZodIssueCode.custom,
@@ -216,8 +240,8 @@ const sellingPlatformSchema = z
       }
 
       // Validate URL format only if URL is provided
-      if (platform.url && platform.url.trim() !== "") {
-        if (!VALIDATION_CONSTANTS.URL.REGEX.test(platform.url)) {
+      if (urlValue) {
+        if (!VALIDATION_CONSTANTS.URL.REGEX.test(platform.url!)) {
           ctx.addIssue({
             path: ["url"],
             code: z.ZodIssueCode.custom,
