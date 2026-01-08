@@ -114,6 +114,8 @@ http.interceptors.response.use(
     };
     const status = error.response?.status ?? 0;
 
+    debugger;
+
     // Handle 401 once: try refresh, replay queued requests
     const { accessToken, refreshToken } = getAuth();
     if (status === 401 && !original?._retry && accessToken && refreshToken) {
@@ -159,7 +161,8 @@ http.interceptors.response.use(
     }
 
     // Non‑auth errors
-    return Promise.reject(normalizeAxiosError(error));
+    // return Promise.reject(normalizeAxiosError(error));
+    return Promise.reject(error);
   },
 );
 
@@ -252,7 +255,13 @@ export function createApiError(
   cause?: unknown,
   extras?: Record<string, unknown>,
 ): ApiErrorShape {
-  const err: ApiErrorShape = { message, status, ...(extras ?? {}) };
+  const err: ApiErrorShape = {
+    message,
+    status,
+    ...(cause && typeof cause === "object" && cause !== null ? cause : {}),
+    // ...(typeof cause === "object" && cause !== null ? cause : {}),
+    ...(extras ?? {}),
+  };
   if (cause && cause instanceof AxiosError) {
     err.code = cause.code;
   }
